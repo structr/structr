@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.api.NamedArguments;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
@@ -30,7 +31,6 @@ import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,15 +54,15 @@ public class CallFunction extends AdvancedScriptingFunction {
 
 				if (sources.length == 1) {
 
-					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), Collections.EMPTY_MAP);
+					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), new NamedArguments().fromCaller());
 
 				} else if (sources.length == 2 && sources[1] instanceof Map) {
 
-					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), ((Map)sources[1]));
+					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), NamedArguments.fromMap((Map)sources[1]).fromCaller());
 
 				} else if (sources.length == 2 && sources[1] instanceof GraphObjectMap) {
 
-					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), ((GraphObjectMap)sources[1]).toMap());
+					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), NamedArguments.fromMap(((GraphObjectMap)sources[1]).toMap()).fromCaller());
 
 				} else {
 
@@ -79,7 +79,7 @@ public class CallFunction extends AdvancedScriptingFunction {
 						newMap.put(sources[c].toString(), sources[c + 1]);
 					}
 
-					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), newMap);
+					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), NamedArguments.fromMap(newMap).fromCaller());
 
 				}
 

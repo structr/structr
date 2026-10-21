@@ -66,14 +66,10 @@ public class HealthCheckServlet extends AbstractDataServlet {
 		boolean error             = false;
 
 		// isolate request authentication in a transaction
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-
-			final Authenticator auth = getConfig().getAuthenticator();
+		try {
 
 			// Ensure CORS settings apply by letting the authenticator examine the request.
-			auth.initializeAndExamineRequest(request, response);
-
-			tx.success();
+			authenticate(getConfig().getAuthenticator(), request, response);
 
 		} catch (FrameworkException ex) {
 

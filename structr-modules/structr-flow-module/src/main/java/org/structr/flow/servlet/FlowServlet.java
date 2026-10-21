@@ -82,21 +82,16 @@ public class FlowServlet extends JsonRestServlet {
 			response.setContentType("application/json; charset=utf-8");
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+			authenticator   = config.getAuthenticator();
+			securityContext = authenticate(authenticator, request, response);
 
 			final App app = StructrApp.getInstance(securityContext);
 
 			// evaluate constraints and measure query time
 			double queryTimeStart = System.nanoTime();
-
 			final SecurityContext context = securityContext;
 
-			evaluateWithRetry(response, () -> {
+			evaluateWithRetry(request, response, () -> {
 
 				try (final Tx tx = app.tx()) {
 
@@ -165,24 +160,14 @@ public class FlowServlet extends JsonRestServlet {
 	 * Runs the transaction that evaluates the flow and writes its result, and repeats it when the database terminated
 	 * it to resolve a deadlock, like a REST request.
 	 */
-	private void evaluateWithRetry(final HttpServletResponse response, final RetryException.Attempt<Exception> attempt) throws Exception {
+	private void evaluateWithRetry(final HttpServletRequest request, final HttpServletResponse response, final RetryException.Attempt<Exception> attempt) throws Exception {
 
-		boolean retry = true;
-		int attempts  = 0;
+		repeatUnlessCommitted(request, response, () -> {
 
-		while (retry) {
+			attempt.run();
 
-			try {
-
-				attempt.run();
-
-				retry = false;
-
-			} catch (Exception ex) {
-
-				retry = retryAfterOutput(response, ex, ++attempts);
-			}
-		}
+			return null;
+		});
 	}
 
 	@Override
@@ -242,21 +227,16 @@ public class FlowServlet extends JsonRestServlet {
 			response.setContentType("application/json; charset=utf-8");
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+			authenticator   = config.getAuthenticator();
+			securityContext = authenticate(authenticator, request, response);
 
 			final App app = StructrApp.getInstance(securityContext);
 
 			// evaluate constraints and measure query time
 			double queryTimeStart    = System.nanoTime();
-
 			final SecurityContext context = securityContext;
 
-			evaluateWithRetry(response, () -> {
+			evaluateWithRetry(request, response, () -> {
 
 				try (final Tx tx = app.tx()) {
 

@@ -22,8 +22,6 @@ import org.structr.api.service.LicenseManager;
 import org.structr.core.traits.StructrTraits;
 import org.structr.module.StructrModule;
 import org.structr.xmpp.traits.definitions.XMPPClientTraitDefinition;
-import org.structr.xmpp.traits.definitions.XMPPRequestTraitDefinition;
-import org.structr.xmpp.traits.relationships.XMPPClientRequest;
 
 import java.util.Set;
 
@@ -35,14 +33,12 @@ public class XMPPModule implements StructrModule {
 	@Override
 	public void onLoad() {
 
-		StructrTraits.registerTrait(new XMPPClientRequest());
-		StructrTraits.registerRelationshipType(StructrTraits.XMPP_CLIENT_REQUEST, StructrTraits.XMPP_CLIENT_REQUEST);
+		// connect the enabled clients at boot, see XMPPContext.registerInitializationCallback()
+		XMPPContext.registerInitializationCallback();
 
 		StructrTraits.registerTrait(new XMPPClientTraitDefinition());
-		StructrTraits.registerTrait(new XMPPRequestTraitDefinition());
 
-		StructrTraits.registerNodeType(StructrTraits.XMPP_CLIENT,  StructrTraits.XMPP_CLIENT);
-		StructrTraits.registerNodeType(StructrTraits.XMPP_REQUEST, StructrTraits.XMPP_REQUEST);
+		StructrTraits.registerNodeType(StructrTraits.XMPP_CLIENT, StructrTraits.XMPP_CLIENT);
 	}
 
 	@Override

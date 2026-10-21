@@ -47,13 +47,13 @@ public class DynamicFileTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface templateFile = FileHelper.createFile(securityContext, """
-	${{
-		$.setResponseHeader('Content-Type', 'application/json');
-		$.setResponseHeader('Content-Disposition', `attachment; filename="data.json"`);
-		
-		$.print(JSON.stringify({ result: 'success' }));
-	}}
-	""".getBytes(), "text/plain", StructrTraits.FILE, "myfile.txt", true);
+				${{
+					$.setResponseHeader('Content-Type', 'application/json');
+					$.setResponseHeader('Content-Disposition', `attachment; filename="data.json"`);
+
+					$.print(JSON.stringify({ result: 'success' }));
+				}}
+				""".getBytes(), "text/plain", StructrTraits.FILE, "myfile.txt", true);
 
 			templateFile.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.IS_TEMPLATE_PROPERTY), true);
 			templateFile.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
@@ -67,8 +67,8 @@ public class DynamicFileTest extends StructrUiTest {
 		}
 
 		final String expected = """
-  {"result":"success"}
-  """;
+			{"result":"success"}
+			""";
 
 		RestAssured
 				.given()

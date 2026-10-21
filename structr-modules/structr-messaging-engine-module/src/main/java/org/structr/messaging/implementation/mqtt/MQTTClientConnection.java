@@ -22,9 +22,11 @@ import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +45,10 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 
 		client = new MqttClient(info.getMainBrokerURL(), info.getUuid(), persistence);
 		client.setCallback(this);
+
+		// a message is acknowledged only after its callbacks have committed, see CallbackWorker
+		client.setManualAcks(true);
+
 		connOpts = new MqttConnectOptions();
 
 		if (info.getFallbackBrokerURLs() != null) {
@@ -64,7 +70,7 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 			connOpts.setServerURIs(fallBackBrokers);
 		}
 
-		connOpts.setCleanSession(true);
+		connOpts.setCleanSession(info.getCleanSession());
 
 		connOpts.setAutomaticReconnect(true);
 		connOpts.setMaxReconnectDelay(5);
@@ -131,15 +137,19 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 		return client.isConnected();
 	}
 
-	public void sendMessage(String topic, String message) throws FrameworkException {
+	/**
+	 * Publishes a message. The QoS is passed in because this runs after the commit of the transaction that sent the
+	 * message, where the client node cannot be read anymore.
+	 */
+	public void sendMessage(final String topic, final String message, final int qos) throws FrameworkException {
 
 		try {
 
 			if (client.isConnected()){
 
-				MqttMessage msg = new MqttMessage(message.getBytes());
+				MqttMessage msg = new MqttMessage(message.getBytes(StandardCharsets.UTF_8));
 
-				msg.setQos(info.getQos());
+				msg.setQos(qos);
 
 				client.publish(topic, msg);
 			}
@@ -185,7 +195,7 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 
 		if (!Services.getInstance().isShuttingDown() && !Services.getInstance().isShutdownDone()) {
 
-			Thread workerThread = new Thread(new CallbackWorker(info, topic, msg.toString()));
+			Thread workerThread = new Thread(new CallbackWorker(info, topic, msg));
 			workerThread.start();
 		}
 	}
@@ -210,9 +220,9 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 
 		private final MQTTInfo info;
 		private final String topic;
-		private final String message;
+		private final MqttMessage message;
 
-		public CallbackWorker(MQTTInfo info, String topic, String message){
+		public CallbackWorker(MQTTInfo info, String topic, MqttMessage message){
 
 			this.info = info;
 			this.topic = topic;
@@ -226,12 +236,40 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 
 				if (!Services.getInstance().isShuttingDown() && !Services.getInstance().isShutdownDone()) {
 
-					info.messageCallback(topic, message);
+					// the callbacks start the outermost transaction of this thread, so it can be repeated as a whole if
+					// the database terminates it, e.g. to resolve a deadlock
+					RetryException.repeat(() -> info.messageCallback(topic, new String(message.getPayload(), StandardCharsets.UTF_8)));
 				}
 
-			} catch (FrameworkException e) {
+			} catch (FrameworkException | RuntimeException e) {
 
 				logger.error("Error during MQTT message callback: " + e.getMessage());
+			}
+
+			acknowledge();
+		}
+
+		/**
+		 * Acknowledges the message once its callbacks have committed or failed for good, i.e. with an error or with a
+		 * transaction that is still terminated after the last repetition, since delivering it again would most likely fail
+		 * the same way. A message that arrives during the shutdown, or whose callbacks the shutdown interrupts, stays
+		 * unacknowledged, so that the broker delivers it again after the restart if the session is persistent and the QoS
+		 * is 1 or 2.
+		 */
+		private void acknowledge() {
+
+			if (Services.getInstance().isShuttingDown() || Services.getInstance().isShutdownDone()) {
+
+				return;
+			}
+
+			try {
+
+				client.messageArrivedComplete(message.getId(), message.getQos());
+
+			} catch (MqttException ex) {
+
+				logger.warn("Unable to acknowledge MQTT message on topic {}: {}", topic, ex.getMessage());
 			}
 		}
 	}

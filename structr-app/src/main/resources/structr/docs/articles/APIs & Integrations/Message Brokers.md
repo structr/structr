@@ -78,6 +78,7 @@ MQTT (Message Queuing Telemetry Transport) is a lightweight protocol designed fo
 | `username` | String | Authentication username |
 | `password` | String | Authentication password |
 | `qos` | Integer | Quality of Service level (0, 1, or 2), default: 0 |
+| `cleanSession` | Boolean | Start every connection with a new session at the broker, default: false |
 | `isEnabled` | Boolean | Set to `true` to connect |
 | `isConnected` | Boolean | Connection status (read-only) |
 
@@ -146,20 +147,22 @@ Structr matches the subscriber topic against the incoming topic as a whole: a su
 
 ### Managing Broker Subscriptions
 
-Every client has the methods `subscribeTopic` and `unsubscribeTopic`, which subscribe the client to a topic at the broker and remove that subscription again. Both take the topic as their only argument and only reach the broker while the client is enabled and connected:
+An MQTT client has the methods `subscribeTopic` and `unsubscribeTopic`, which subscribe the client to a topic at the broker and remove that subscription again. Both take the topic as the argument `topic` and only reach the broker while the client is enabled and connected. The functions `mqttSubscribe` and `mqttUnsubscribe` do the same. Messages on such a topic reach the subscribers with that topic or with `*`:
 
 ```javascript
-client.subscribeTopic('devices/lamp/status');
-client.unsubscribeTopic('devices/lamp/status');
+client.subscribeTopic({ topic: 'devices/lamp/status' });
+client.unsubscribeTopic({ topic: 'devices/lamp/status' });
 ```
+
+Kafka and Pulsar clients subscribe to the topics of their subscribers on their own, for them these methods do nothing.
 
 ### Publishing Messages
 
-Send messages using the client's `sendMessage` method or the `mqttPublish` function:
+Send messages using the client's `sendMessage` method or the `mqttPublish` function. Like every method called from JavaScript, `sendMessage` takes its arguments as an object, here with the names `topic` and `message`:
 
 ```javascript
 // Using the method on the client
-client.sendMessage('devices/lamp/command', JSON.stringify({ action: 'on', brightness: 80 }));
+client.sendMessage({ topic: 'devices/lamp/command', message: JSON.stringify({ action: 'on', brightness: 80 }) });
 
 // Using the global function
 $.mqttPublish(client, 'devices/lamp/command', JSON.stringify({ action: 'off' }));
@@ -184,6 +187,14 @@ MQTT supports three QoS levels:
 | 2 | Exactly once | Message delivered exactly once |
 
 Higher QoS levels add overhead. Use QoS 0 for frequent sensor readings where occasional loss is acceptable, QoS 1 or 2 for important commands or events.
+
+The QoS level describes the transfer between the broker and Structr. It does not extend to your callback: Structr acknowledges a message only after its callbacks have committed, so with QoS 2 a message can still be processed twice if Structr stops before the acknowledgement reaches the broker. See Delivery Guarantees below.
+
+### Persistent Sessions
+
+By default, the broker keeps the session of an MQTT client when it disconnects, because `cleanSession` is `false`. The session contains the subscriptions and the messages with QoS 1 or 2 that arrive while the client is disconnected or that Structr has not acknowledged yet, and the broker delivers them when the client connects again, also after a restart of Structr. The broker identifies the session by the client ID, which is the UUID of the `MQTTClient` object.
+
+Set `cleanSession` to `true` if your application only cares about messages that arrive while it is connected, for example live sensor readings. The broker then discards the session on every connect, and messages sent while Structr was disconnected are lost. Messages with QoS 0 are never kept for a disconnected client, regardless of this setting. Changing `cleanSession` reconnects an enabled client.
 
 ## Kafka
 
@@ -237,12 +248,15 @@ The `servers` property accepts an array of bootstrap servers. Kafka clients conn
 ```javascript
 let client = $.first($.find('KafkaClient', 'name', 'Event Processor'));
 
-client.sendMessage('order-updates', JSON.stringify({
-    orderId: order.externalId,
-    status: 'shipped',
-    trackingNumber: 'ABC123',
-    timestamp: new Date().toISOString()
-}));
+client.sendMessage({
+    topic: 'order-updates',
+    message: JSON.stringify({
+        orderId: order.externalId,
+        status: 'shipped',
+        trackingNumber: 'ABC123',
+        timestamp: new Date().toISOString()
+    })
+});
 ```
 
 ### Consumer Groups
@@ -300,13 +314,16 @@ Pulsar clients have minimal configuration. The `servers` property accepts Pulsar
 ```javascript
 let client = $.first($.find('PulsarClient', 'name', 'Analytics Pipeline'));
 
-client.sendMessage('analytics/events', JSON.stringify({
-    type: 'conversion',
-    userId: user.id,
-    product: product.name,
-    value: product.price,
-    timestamp: new Date().toISOString()
-}));
+client.sendMessage({
+    topic: 'analytics/events',
+    message: JSON.stringify({
+        type: 'conversion',
+        userId: user.id,
+        product: product.name,
+        value: product.price,
+        timestamp: new Date().toISOString()
+    })
+});
 ```
 
 ## Working with Callbacks
@@ -388,6 +405,30 @@ $.create('MessageSubscriber', {
 });
 ```
 
+## Delivery Guarantees
+
+Structr combines a message broker with a database, and there is no shared commit between the two. A message can therefore not be processed exactly once in every situation. Where the broker keeps unconfirmed messages, Structr processes incoming messages at least once, and it sends outgoing messages only after the transaction that sent them has committed.
+
+### Incoming Messages
+
+Structr runs the callbacks of all subscribers for a message in one transaction. If the callback of one subscriber fails, Structr logs the error and the work of the other subscribers is still committed.
+
+If the database terminates the transaction, for example to resolve a deadlock, MQTT and Kafka clients run the callbacks again, with up to ten attempts in total. Pulsar clients reject the message instead, and the broker delivers it again after a delay.
+
+Structr confirms a message to the broker only after the transaction has committed or has failed for good. MQTT clients acknowledge the message, Kafka clients commit the offsets after each batch of records, and Pulsar clients acknowledge the message. If Structr shuts down before that point, the broker delivers the message again after the restart. For MQTT, this requires QoS 1 or 2 and a persistent session, see Persistent Sessions above.
+
+The consequence is that a callback can receive the same message twice: once before a shutdown that interrupted the confirmation, and once after the restart. Write callbacks so that processing a message twice has the same effect as processing it once, for example by storing a message ID from the payload with a uniqueness constraint, or by checking whether the object the message describes already exists.
+
+A callback that fails with an error counts as processed, because delivering the message again would fail the same way. The same applies to a transaction that MQTT or Kafka clients could not complete in ten attempts. Structr logs the error and continues with the next message. If you need to retry such messages, store them yourself as shown in Error Handling above.
+
+### Outgoing Messages
+
+When you call `sendMessage` or `mqttPublish` in a transaction, Structr sends the message after the transaction has committed. If the transaction fails and is rolled back, the message is not sent, so other systems never receive messages about changes that did not happen. If Structr repeats the transaction, for example a REST request whose transaction the database terminated to resolve a deadlock, the message is still sent only once.
+
+Since the message leaves Structr after the commit, an error during sending, such as a broker that has become unavailable, does not reach your script. Structr logs it instead. If the server stops between the commit and the sending, the message is lost. Only a missing connection of an MQTT client is reported to the script immediately, as an error.
+
+Subscribers of the sending client receive the message immediately, in the same transaction as the sender. If the client also receives the topic from the broker, its subscribers get the message a second time when the broker delivers it.
+
 ## Managing Connections
 
 ### Checking Connection Status
@@ -418,6 +459,8 @@ client.isEnabled = true;
 
 Disabling disconnects from the broker. Re-enabling reconnects and resubscribes to all configured topics.
 
+Messages that arrive while a client is disabled are kept by the broker where the protocol allows it. A Kafka client continues from the last committed offset of its consumer group, and a Pulsar client finds the messages in its subscription. An MQTT client receives them only with a persistent session and QoS 1 or 2, see Persistent Sessions. A message that a Kafka client has already fetched when you disable it is still processed.
+
 ### Cleaning Up
 
 Deleting a client automatically closes the connection and cleans up resources. Subscribers linked only to that client become inactive but are not automatically deleted.
@@ -429,15 +472,18 @@ Deleting a client automatically closes the connection and cleans up resources. S
 Structure your messages as JSON for easy parsing and forward compatibility:
 
 ```javascript
-client.sendMessage('events', JSON.stringify({
-    type: 'user.created',
-    version: 1,
-    timestamp: new Date().toISOString(),
-    data: {
-        userId: user.id,
-        email: user.eMail
-    }
-}));
+client.sendMessage({
+    topic: 'events',
+    message: JSON.stringify({
+        type: 'user.created',
+        version: 1,
+        timestamp: new Date().toISOString(),
+        data: {
+            userId: user.id,
+            email: user.eMail
+        }
+    })
+});
 ```
 
 ### Keep Callbacks Simple
@@ -497,5 +543,6 @@ Use authentication (username/password for MQTT) and encrypted connections (TLS) 
 ## Related Topics
 
 - Server-Sent Events - Pushing updates to browsers
+- XMPP - Chat and presence for messages between your application and people
 - Scheduled Tasks - Processing queued messages periodically
 - Business Logic - Implementing message handlers as schema methods

@@ -2633,10 +2633,7 @@ public class SearchAndSortingTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Map<String, String> expressions = Map.of(
-			"StructrScript", "${find('Group', sort('unknownKey'))}",
-			"JavaScript",    "${{ $.find('Group', $.predicate.sort('unknownKey')); }}"
-		);
+		final Map<String, String> expressions = Map.of("StructrScript", "${find('Group', sort('unknownKey'))}", "JavaScript",    "${{ $.find('Group', $.predicate.sort('unknownKey')); }}");
 
 		for (final Map.Entry<String, String> entry : expressions.entrySet()) {
 

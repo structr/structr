@@ -83,17 +83,18 @@ public class StructrGlobalSchemaMethods {
 
 				globalMethods.add(entry);
 
-				entry.put(JsonSchema.KEY_NAME,                schemaMethod.getName());
-				entry.put(JsonSchema.KEY_SOURCE,              schemaMethod.getSource());
-				entry.put(JsonSchema.KEY_TAGS,                schemaMethod.getTags());
-				entry.put(JsonSchema.KEY_INCLUDE_IN_OPENAPI,  schemaMethod.includeInOpenAPI());
-				entry.put(JsonSchema.KEY_OPENAPI_RETURN_TYPE, schemaMethod.getOpenAPIReturnType());
-				entry.put(JsonSchema.KEY_SUMMARY,             schemaMethod.getSummary());
-				entry.put(JsonSchema.KEY_DESCRIPTION,         schemaMethod.getDescription());
-				entry.put(JsonSchema.KEY_IS_PRIVATE,          schemaMethod.isPrivateMethod());
-				entry.put(JsonSchema.KEY_RETURN_RAW_RESULT,   schemaMethod.returnRawResult());
-				entry.put(JsonSchema.KEY_HTTP_VERB,           schemaMethod.getHttpVerb());
-				entry.put(JsonSchema.KEY_WRAP_JS_IN_MAIN,     schemaMethod.wrapJsInMain());
+				entry.put(JsonSchema.KEY_NAME,                     schemaMethod.getName());
+				entry.put(JsonSchema.KEY_SOURCE,                   schemaMethod.getSource());
+				entry.put(JsonSchema.KEY_TAGS,                     schemaMethod.getTags());
+				entry.put(JsonSchema.KEY_INCLUDE_IN_OPENAPI,       schemaMethod.includeInOpenAPI());
+				entry.put(JsonSchema.KEY_OPENAPI_RETURN_TYPE,      schemaMethod.getOpenAPIReturnType());
+				entry.put(JsonSchema.KEY_SUMMARY,                  schemaMethod.getSummary());
+				entry.put(JsonSchema.KEY_DESCRIPTION,              schemaMethod.getDescription());
+				entry.put(JsonSchema.KEY_IS_PRIVATE,               schemaMethod.isPrivateMethod());
+				entry.put(JsonSchema.KEY_RETURN_RAW_RESULT,        schemaMethod.returnRawResult());
+				entry.put(JsonSchema.KEY_HTTP_VERB,                schemaMethod.getHttpVerb());
+				entry.put(JsonSchema.KEY_WRAP_JS_IN_MAIN,          schemaMethod.wrapJsInMain());
+				entry.put(JsonSchema.KEY_ALLOW_UNKNOWN_PARAMETERS, schemaMethod.allowUnknownParameters());
 
 				// TODO: remove
 				entry.put(SchemaMethodTraitDefinition.VIRTUAL_FILE_NAME_PROPERTY,             schemaMethod.getVirtualFileName());

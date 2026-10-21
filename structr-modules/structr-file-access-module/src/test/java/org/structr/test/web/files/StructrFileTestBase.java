@@ -53,8 +53,8 @@ public abstract class StructrFileTestBase extends StructrUiTest {
 		super.setup(testDatabaseConnection);
 
 		final Services services = Services.getInstance();
-
 		final FtpService ftpService = services.getServiceImplementation(FtpService.class);
+
 		if (ftpService != null) {
 
 			ftpPort = ftpService.getAllocatedPort();

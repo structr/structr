@@ -311,6 +311,7 @@ public class RequestLifecycleTest extends StructrUiTest {
 		for (final Method method : HttpServletRequest.class.getMethods()) {
 
 			if (Modifier.isStatic(method.getModifiers())) {
+
 				continue;
 			}
 
@@ -383,6 +384,7 @@ public class RequestLifecycleTest extends StructrUiTest {
 	 * the attempt before it wrote.
 	 */
 	private String uniqueValue() {
+
 		return UUID.randomUUID().toString();
 	}
 

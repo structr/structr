@@ -813,6 +813,7 @@ public class AuthHelper {
 
 			return;
 		}
+
 		final Object lock = userLocks.computeIfAbsent(uuid, k -> new Object());
 
 		synchronized (lock) {
@@ -927,7 +928,6 @@ public class AuthHelper {
 	public static boolean isTwoFactorRequiredForUser(final Principal principal) {
 
 		final int twoFactorLevel = Settings.TwoFactorLevel.getValue();
-
 		final boolean twoFactorForced   = (twoFactorLevel == 2);
 		final boolean twoFactorOptional = (twoFactorLevel == 1);
 

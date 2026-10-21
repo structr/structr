@@ -58,6 +58,8 @@ public class SchemaService implements Service {
 	private static final Semaphore IndexUpdateSemaphore      = new Semaphore(1);
 	private static final AtomicBoolean schemaIsBeingReplaced = new AtomicBoolean(false);
 	private static final Set<String> blacklist               = new LinkedHashSet<>();
+	private static volatile Thread indexUpdaterThread        = null;
+	private static final int AWAIT_INDEX_UPDATE_SECONDS      = 30;
 
 	@Override
 	public void injectArguments(final Command command) {
@@ -309,6 +311,39 @@ public class SchemaService implements Service {
 		return schemaIsBeingReplaced.get();
 	}
 
+	/**
+	 * Waits until the index update that the last schema reload started has finished, including the population of the
+	 * new indexes for a short time, see IndexUpdater.awaitIndexes() in the Bolt driver. Queries that run while many
+	 * indexes come online can fail. The index update can itself wait up to three minutes for another one, or for a
+	 * schema lock, so the wait is bounded and startup is not held up longer. A query that fails afterwards because the
+	 * schema changes too often is repeated with pauses that double up to 5 s, about 21 s in all, see
+	 * RetryException.delay(), so only an index population that outlasts both can still make a migration fail.
+	 */
+	public static void awaitIndexUpdate() {
+
+		final Thread thread = indexUpdaterThread;
+		if (thread == null) {
+
+			return;
+		}
+
+		try {
+
+			thread.join(TimeUnit.SECONDS.toMillis(AWAIT_INDEX_UPDATE_SECONDS));
+
+		} catch (InterruptedException iex) {
+
+			Thread.currentThread().interrupt();
+
+			return;
+		}
+
+		if (thread.isAlive()) {
+
+			logger.info("Index update not finished after {} seconds, continuing.", AWAIT_INDEX_UPDATE_SECONDS);
+		}
+	}
+
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
@@ -429,6 +464,8 @@ public class SchemaService implements Service {
 		indexUpdater.setName("indexUpdater");
 		indexUpdater.setDaemon(true);
 		indexUpdater.start();
+
+		indexUpdaterThread = indexUpdater;
 	}
 
 	private static String getIndexingTypeName(final TraitsInstance traitsInstance, final String typeName) {

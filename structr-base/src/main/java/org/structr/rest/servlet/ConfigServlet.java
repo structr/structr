@@ -148,6 +148,7 @@ public class ConfigServlet extends AbstractServletBase {
 		if ("login".equals(action)) {
 
 			sendRedirectHeader(response, ConfigServletLocation + login(request, activeSection));
+
 			return;
 		}
 
@@ -160,6 +161,7 @@ public class ConfigServlet extends AbstractServletBase {
 		if ("setup".equals(action)) {
 
 			sendRedirectHeader(response, ConfigServletLocation + setup(request, activeSection));
+
 			return;
 		}
 
@@ -167,18 +169,21 @@ public class ConfigServlet extends AbstractServletBase {
 
 			invalidateSession(request);
 			sendRedirectHeader(response, ConfigServletLocation + activeSection);
+
 			return;
 		}
 
 		if (!isAuthenticated(request)) {
 
 			sendRedirectHeader(response, ConfigServletLocation + activeSection);
+
 			return;
 		}
 
 		if (action != null) {
 
 			handleAction(action, request, response, activeSection);
+
 			return;
 		}
 
@@ -212,6 +217,7 @@ public class ConfigServlet extends AbstractServletBase {
 			} catch (FrameworkException fex) {
 
 				sendFrameworkException(response, fex);
+
 				return;
 			}
 
@@ -268,6 +274,7 @@ public class ConfigServlet extends AbstractServletBase {
 					} catch (FrameworkException fex) {
 
 						sendFrameworkException(response, fex);
+
 						return;
 					}
 				}
@@ -434,7 +441,6 @@ public class ConfigServlet extends AbstractServletBase {
 		}
 
 		final String submittedToken = StringUtils.trim(request.getParameter("setupToken"));
-
 		if (StringUtils.isNotBlank(submittedToken) && constantTimeEquals(getSetupToken(), submittedToken)) {
 
 			authenticateSession(request);
@@ -474,6 +480,7 @@ public class ConfigServlet extends AbstractServletBase {
 				if (StringUtils.isBlank(serviceName)) {
 
 					response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing service name");
+
 					return;
 				}
 
@@ -484,6 +491,7 @@ public class ConfigServlet extends AbstractServletBase {
 				} catch (FrameworkException fex) {
 
 					sendFrameworkException(response, fex);
+
 					return;
 				}
 
@@ -495,6 +503,7 @@ public class ConfigServlet extends AbstractServletBase {
 				if (StringUtils.isBlank(serviceName)) {
 
 					response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing service name");
+
 					return;
 				}
 
@@ -507,6 +516,7 @@ public class ConfigServlet extends AbstractServletBase {
 				if (StringUtils.isBlank(serviceName)) {
 
 					response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing service name");
+
 					return;
 				}
 
@@ -1033,8 +1043,8 @@ public class ConfigServlet extends AbstractServletBase {
 
 			// one column per option: button on top, explanation below
 			final Tag options = body.block("div").css("database-options");
-
 			final Tag remote = options.block("div");
+
 			remote.block("button").id("create-db-connection-button").css("default-action").attr(new Type("button")).text("Create new database connection");
 			remote.block("p").text("Connect to a running Neo4j server.");
 

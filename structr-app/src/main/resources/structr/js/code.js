@@ -2116,6 +2116,8 @@ let _Code = {
 
 					_Code.mainArea.populateOpenAPIBaseConfig(apiTab[0], result, _Code.availableTags);
 
+					apiTab[0].querySelector('[data-property="allowUnknownParameters"]').checked = (result.allowUnknownParameters === true);
+
 					let parameterTplRow = $('.template', apiTab);
 					let parameterContainer = parameterTplRow.parent();
 
@@ -4186,6 +4188,14 @@ let _Code = {
 				<button id="add-parameter-button">
 					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green']), 'Add parameter')}
 				</button>
+
+				<label class="flex mt-2" data-comment="If this flag is set, the method also accepts parameters that are not defined here. They are passed on unconverted and can be read with <code>$.args</code> or <code>retrieve()</code>.">
+					<input type="checkbox" data-property="allowUnknownParameters"> Allow unknown parameters
+				</label>
+
+				<div class="unknown-parameters-warning warning mt-2 p-2">
+					Because parameters are defined, the method only accepts these parameters. A REST or script call with any other parameter is rejected and the method is not executed. Event action mappings drop the other parameters and log a warning.
+				</div>
 
 				<div>
 					<div class="method-parameter-grid">

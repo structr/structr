@@ -133,6 +133,7 @@ public class DiffReport {
 
 				entry.put("changes", changes);
 			}
+
 			entry.put("signalReason", delta.getSignalReason());
 			entry.put("detailCode", delta.getDetailCode() != null ? delta.getDetailCode().name() : null);
 			entry.put("detail", delta.getDetail());

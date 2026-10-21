@@ -48,7 +48,6 @@ public class SearchCommand extends AbstractCommand {
 
 	private static final String SEARCH_STRING_KEY = "searchString";
 	private static final String EXACT_KEY         = "exact";
-	private static final String REST_QUERY_KEY    = "restQuery";
 	private static final String CYPHER_QUERY_KEY  = "cypherQuery";
 	private static final String CYPHER_PARAMS_KEY = "cypherParams";
 	private static final String TYPE_KEY          = "type";
@@ -69,7 +68,6 @@ public class SearchCommand extends AbstractCommand {
 			exactSearch = webSocketData.getNodeDataBooleanValue(EXACT_KEY);
 		}
 
-		final String restQuery    = webSocketData.getNodeDataStringValue(REST_QUERY_KEY);
 		final String cypherQuery  = webSocketData.getNodeDataStringValue(CYPHER_QUERY_KEY);
 		final String paramString  = webSocketData.getNodeDataStringValue(CYPHER_PARAMS_KEY);
 		final int pageSize        = webSocketData.getPageSize();
@@ -121,11 +119,6 @@ public class SearchCommand extends AbstractCommand {
 					return;
 
 				}
-			}
-
-			if (restQuery != null) {
-
-				throw new UnsupportedOperationException("Using restQuery in the SEARCH command is deprecated.");
 			}
 		}
 

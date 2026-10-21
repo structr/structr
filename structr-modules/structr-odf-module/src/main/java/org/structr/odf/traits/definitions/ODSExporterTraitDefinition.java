@@ -23,30 +23,21 @@ import org.odftoolkit.odfdom.doc.table.OdfTable;
 import org.odftoolkit.odfdom.doc.table.OdfTableCell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.util.Iterables;
-import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.JavaMethod;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.odf.entity.ODSExporter;
 import org.structr.odf.traits.wrappers.ODSExporterTraitWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
-import org.structr.transform.VirtualType;
 import org.structr.web.entity.File;
 
 import java.util.*;
@@ -91,18 +82,10 @@ public class ODSExporterTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public void exportAttributes(final ActionContext actionContext, final ODSExporter entity, final String uuid) throws FrameworkException {
 
-		final File output                = entity.getResultDocument();
-		final VirtualType transformation = entity.getTransformationProvider();
+		final File output                        = entity.getResultDocument();
+		final Map<String, Object> nodeProperties = ODFExporterTraitDefinition.getMappedValues(actionContext, entity, uuid);
 
 		try {
-
-			final App app = StructrApp.getInstance();
-			final ResultStream result = app.nodeQuery(StructrTraits.NODE_INTERFACE).key(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).getResultStream();
-			final ResultStream transformedResult = transformation.transformOutput(actionContext, StructrTraits.NODE_INTERFACE, result);
-			Map<String, Object> nodeProperties = new HashMap<>();
-			GraphObjectMap node = (GraphObjectMap) Iterables.first(transformedResult);
-
-			node.getPropertyKeys(null).forEach(p -> nodeProperties.put(p.dbName(), node.getProperty(p)));
 
 			OdfSpreadsheetDocument spreadsheet = OdfSpreadsheetDocument.loadDocument(StorageProviderFactory.getStorageProvider(output).getInputStream());
 			OdfTable sheet = spreadsheet.getTableList().get(0);

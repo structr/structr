@@ -19,6 +19,7 @@
 package org.structr.messaging.traits.wrappers;
 
 import com.google.gson.JsonSyntaxException;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -27,6 +28,7 @@ import org.apache.kafka.common.KafkaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotInTransactionException;
+import org.structr.api.RetryException;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -37,22 +39,25 @@ import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.messaging.engine.AfterCommit;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.implementation.kafka.entity.KafkaClient;
 import org.structr.messaging.traits.definitions.KafkaClientTraitDefinition;
-import org.structr.messaging.traits.definitions.MessageClientTraitDefinition;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implements KafkaClient {
 
-	private final Map<String, Producer<String, String>> producerMap = new ConcurrentHashMap<>();
-	private final Map<String, ConsumerWorker> consumerWorkerMap = new ConcurrentHashMap<>();
+	// static, because every transaction creates new wrapper instances: an instance map would create a new producer for
+	// each message and never find the worker that setup() started
+	private static final Map<String, Producer<String, String>> producerMap = new ConcurrentHashMap<>();
+	private static final Map<String, ConsumerWorker> consumerWorkerMap     = new ConcurrentHashMap<>();
 
 	public KafkaClientTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 
@@ -74,12 +79,12 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 		setProperty(traits.key(KafkaClientTraitDefinition.SERVERS_PROPERTY), servers);
 	}
 
-	public Iterable<MessageSubscriber> getSubscribers() {
-
-		return getProperty(traits.key(MessageClientTraitDefinition.SUBSCRIBERS_PROPERTY));
-	}
-
-	static {
+	/**
+	 * Registers the boot-time initialization callback that starts the consumers of the existing clients. Called from
+	 * {@code MessageEngineModule.onLoad()}: a static initializer would only run once something loads this class, which
+	 * may happen after the initialization callbacks have run, see MQTTContext.registerInitializationCallback().
+	 */
+	public static void registerInitializationCallback() {
 
 		Services.getInstance().registerInitializationCallback(() -> {
 
@@ -112,31 +117,39 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 
 	public void setProducer(KafkaProducer<String, String> producer) {
 
-		producerMap.put(getUuid(), producer);
+		final Producer<String, String> previous = producerMap.put(getUuid(), producer);
+
+		// a new configuration replaces the producer, the old one would keep its connections open
+		if (previous != null && previous != producer) {
+
+			previous.close();
+		}
 	}
 
 	public void setup() {
 
-		ConsumerWorker cw = new ConsumerWorker(this);
-		Thread t = new Thread(cw);
+		final ConsumerWorker cw = new ConsumerWorker(this);
 
 		consumerWorkerMap.put(this.getUuid(), cw);
-		t.start();
+
+		// started once the client is committed, so that a rolled back or repeated transaction does not leave a
+		// consumer running
+		AfterCommit.run(() -> new Thread(cw).start());
 	}
 
 	public void close() {
 
-		if (getProducer() != null) {
+		final Producer<String, String> producer = producerMap.remove(getUuid());
+		if (producer != null) {
 
-			getProducer().close();
+			producer.close();
 		}
 
-		ConsumerWorker cw = consumerWorkerMap.get(this.getUuid());
+		final ConsumerWorker cw = consumerWorkerMap.remove(getUuid());
 		if (cw != null) {
 
 			cw.stop();
 		}
-
 	}
 
 	public void refreshConfiguration() {
@@ -157,7 +170,7 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 
 	public void forwardReceivedMessage(final String topic, final String message) throws FrameworkException {
 
-		sendMessage(new ActionContext(getSecurityContext()), topic, message);
+		deliverToSubscribers(new ActionContext(getSecurityContext()), topic, message);
 	}
 
 	public Properties getConfiguration(final Class clazz) {
@@ -208,8 +221,8 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 					props.put("group.id", "structr-" + this.getUuid());
 				}
 
-				props.put("enable.auto.commit", "true");
-				props.put("auto.commit.interval.ms", "1000");
+				// the offsets are committed by the ConsumerWorker after the records are processed
+				props.put("enable.auto.commit", "false");
 				props.put("session.timeout.ms", "30000");
 				props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 				props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
@@ -231,16 +244,19 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 	public class ConsumerWorker implements Runnable {
 
 		private final Logger logger = LoggerFactory.getLogger(ConsumerWorker.class.getName());
+		private final String clientId;
 		private KafkaClient client;
 		private KafkaConsumer<String, String> consumer;
 		private List<String> currentlySubscribedTopics;
 		private String currentGroupId;
 		private volatile boolean running;
+		private boolean wasDisabled = true;
 
 		public ConsumerWorker(final KafkaClient client) {
 
 			this.currentlySubscribedTopics = null;
 			this.currentGroupId = null;
+			this.clientId = client.getUuid();
 			this.client = client;
 			this.consumer = null;
 			this.running = true;
@@ -261,7 +277,7 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 					consumer.close();
 				}
 
-				this.consumer = new KafkaConsumer<>(getConfiguration(KafkaConsumer.class));
+				this.consumer = new KafkaConsumer<>(client.getConfiguration(KafkaConsumer.class));
 
 				if (client.getGroupId() != null) {
 
@@ -304,7 +320,9 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 					cId = client.getGroupId();
 				}
 
-				return !currentGroupId.equals(cId);
+				// the group id is null for a client without one, then the consumer uses a group of its own
+
+				return !Objects.equals(currentGroupId, cId);
 
 			} catch (FrameworkException ex) {
 
@@ -359,6 +377,116 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 
 		}
 
+		/**
+		 * Updates the consumer from the configuration of the client and returns whether it is ready to receive. The
+		 * records are polled and processed outside of this transaction, each record in a transaction of its own.
+		 */
+		private boolean updateConsumer() throws FrameworkException {
+
+			// an instance from an earlier transaction would not see changes to the client, like disabling it
+			final NodeInterface current = StructrApp.getInstance().getNodeById(StructrTraits.KAFKA_CLIENT, clientId);
+			if (current == null) {
+
+				logger.info("KafkaClient {} was deleted, stopping its ConsumerWorker", clientId);
+
+				running = false;
+
+				return false;
+			}
+
+			this.client = current.as(KafkaClient.class);
+
+			if (this.client.getServers() != null && this.client.getServers().length > 0 && this.client.getIsEnabled()) {
+
+				if (this.consumer == null || wasDisabled) {
+
+					this.refreshConsumer();
+					this.updateSubscriptions(true);
+					wasDisabled = false;
+
+				} else {
+
+					if (newGroupId()) {
+
+						this.refreshConsumer();
+						logger.info("New groupId for KafkaClient " + this.client.getUuid() + ", updating ConsumerWorker..");
+						this.updateSubscriptions(true);
+
+					} else {
+
+						this.updateSubscriptions(false);
+					}
+
+					if (this.consumer.subscription().size() > 0) {
+
+						return true;
+
+					} else {
+
+						wasDisabled = true;
+
+						try {
+
+							Thread.sleep(1000);
+
+						} catch (InterruptedException iex) {
+						}
+
+						// Wait for subscriptions
+					}
+				}
+
+			} else {
+
+				try {
+
+					Thread.sleep(1000);
+
+				} catch (InterruptedException iex) {
+
+					// Wait for servers to be configured
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Passes each record to the subscribers in a transaction of its own, which is repeated if the database terminates
+		 * it, and commits the offsets afterwards. The offsets are committed after an empty poll too, so that a new consumer
+		 * group keeps its starting position and a restart does not skip the records sent in the meantime, which the
+		 * default reset to the end of the topic would do. A record whose callbacks fail, or whose transaction is still
+		 * terminated after the last repetition, counts as processed, since delivering it again would most likely fail the
+		 * same way. When the server shuts down, the offsets are not committed, so that the records are delivered again
+		 * after the restart.
+		 */
+		private void process(final ConsumerRecords<String, String> records) {
+
+			for (final ConsumerRecord<String, String> record : records) {
+
+				if (Services.getInstance().isShuttingDown()) {
+
+					return;
+				}
+
+				try {
+
+					// the transaction of a record is the outermost one of this thread, so it can be repeated as a whole if
+					// the database terminates it, e.g. to resolve a deadlock
+					RetryException.repeat(() -> client.forwardReceivedMessage(record.topic(), record.value()));
+
+				} catch (FrameworkException | RuntimeException e) {
+
+					logger.error("Could not process records in ConsumerWorker: " + e);
+				}
+			}
+
+			if (!Services.getInstance().isShuttingDown()) {
+
+				this.consumer.commitSync();
+			}
+		}
+
 		@Override
 		public void run() {
 
@@ -374,97 +502,56 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 			}
 
 			final App app = StructrApp.getInstance();
-			boolean wasDisabled = true;
 
 			while (running) {
 
-				try (final Tx tx = app.tx()) {
+				if (this.client == null || Thread.currentThread().isInterrupted()) {
 
-					if (this.client == null || Thread.currentThread().isInterrupted()) {
+					running = false;
+					break;
+				}
 
-						running = false;
-						break;
+				try {
+
+					final boolean ready;
+
+					try (final Tx tx = app.tx()) {
+
+						ready = updateConsumer();
+
+						tx.success();
 					}
 
-					if (this.client.getServers() != null && this.client.getServers().length > 0 && this.client.getIsEnabled()) {
+					if (ready) {
 
-						if (this.consumer == null || wasDisabled) {
-
-							this.refreshConsumer();
-							this.updateSubscriptions(true);
-							wasDisabled = false;
-
-						} else {
-
-							if (newGroupId()) {
-
-								this.refreshConsumer();
-								logger.info("New groupId for KafkaClient " + this.client.getUuid() + ", updating ConsumerWorker..");
-								this.updateSubscriptions(true);
-
-							} else {
-
-								this.updateSubscriptions(false);
-							}
-
-							if (this.consumer.subscription().size() > 0) {
-
-								final ConsumerRecords<String, String> records = this.consumer.poll(1000);
-
-								records.forEach(record -> {
-									try {
-
-										forwardReceivedMessage(record.topic(), record.value());
-
-									} catch (FrameworkException e) {
-
-										logger.error("Could not process records in ConsumerWorker: " + e);
-									}
-								});
-
-							} else {
-
-								wasDisabled = true;
-
-								try {
-
-									Thread.sleep(1000);
-
-								} catch (InterruptedException iex) {
-								}
-
-								// Wait for subscriptions
-							}
-
-						}
-
-					} else {
-
-						try {
-
-							Thread.sleep(1000);
-
-						} catch (InterruptedException iex) {
-
-							// Wait for servers to be configured
-						}
+						process(this.consumer.poll(1000));
 					}
-
-					tx.success();
 
 				} catch (FrameworkException | NotInTransactionException ex) {
 
-					// Terminate thread since client became stale or invalid
+					// the next round reads the client again
 					logger.error("Exception in ConsumerWorker for KafkaClient. " + ex);
+
+				} catch (KafkaException ex) {
+
+					// e.g. a commit that fails because of a rebalance: the records are delivered again, the worker goes on
+					logger.warn("Kafka error in ConsumerWorker for KafkaClient {}: {}", clientId, ex.getMessage());
 
 				} catch (IllegalStateException ex) {
 
-					// Main thread has shut down driver, since this worker only does reads, we can safely shutdown
+					// the database driver was shut down, which happens when Structr stops
+					if (Services.getInstance().isShuttingDown()) {
+
+						running = false;
+					}
 				}
 
 			}
 
-			this.consumer.close();
+			if (this.consumer != null) {
+
+				this.consumer.close();
+			}
 
 		}
 

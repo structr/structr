@@ -91,7 +91,7 @@ For user-defined functions and static methods, a Run Dialog button appears in th
 
 ### API Tab
 
-Here you can define typed parameters for your method. Structr validates incoming requests against these definitions before your code runs, catching type mismatches and missing required parameters automatically. This also generates OpenAPI documentation.
+Here you can define typed parameters for your method. Structr converts incoming values to the declared types before your code runs and rejects calls with values that cannot be converted. Once parameters are defined, REST and script calls with other parameters are rejected, and the API tab shows a warning to that effect. Enable **Allow unknown parameters** if the method also has to accept parameters that are not defined. See Method Parameters for details. The parameters also appear in the OpenAPI documentation.
 
 ### Usage Tab
 

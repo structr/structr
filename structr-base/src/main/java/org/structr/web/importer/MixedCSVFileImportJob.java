@@ -35,8 +35,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.traits.Traits;
-import org.structr.module.StructrModule;
-import org.structr.module.api.APIBuilder;
 import org.structr.rest.common.CsvHelper;
 import org.structr.web.entity.File;
 
@@ -65,15 +63,6 @@ public class MixedCSVFileImportJob extends FileImportJob {
 		if (delimiter == null || quoteChar == null) {
 
 			throw new FrameworkException(400, "Cannot import CSV, please specify at least delimiter and quote character.");
-
-		} else {
-
-			final StructrModule module = StructrApp.getConfiguration().getModules().get("api-builder");
-			if (module == null || !(module instanceof APIBuilder) ) {
-
-				throw new FrameworkException(400, "Cannot import CSV, API builder module is not available.");
-
-			}
 		}
 
 		return true;

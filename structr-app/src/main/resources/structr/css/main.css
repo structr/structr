@@ -1694,6 +1694,15 @@ body[style*=zoom] .non-block-ui-blocker-content {
 	border: 1px solid var(--dark-orange);
 }
 
+/* only shown for a method with defined parameters that does not allow unknown parameters, in CSS so that it also follows a revert */
+.unknown-parameters-warning {
+	display: none;
+}
+
+#openapi-options:has(.method-parameter):not(:has([data-property="allowUnknownParameters"]:checked)) .unknown-parameters-warning {
+	display: block;
+}
+
 .message.warning button {
     background-color: var(--warning-bg);
 }
@@ -2607,7 +2616,7 @@ input.tree-search-input {
 	overflow: auto;
 }
 
-#contents-contents-container, #folder-contents-container, #code-context-container, #flows-canvas-container, #localization-detail, #virtual-type-detail, #mail-template-detail {
+#contents-contents-container, #folder-contents-container, #code-context-container, #flows-canvas-container, #localization-detail, #mail-template-detail {
 	width: 100%;
 }
 

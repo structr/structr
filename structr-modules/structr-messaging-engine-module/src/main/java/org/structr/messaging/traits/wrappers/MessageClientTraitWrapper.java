@@ -23,7 +23,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsManager;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
@@ -94,6 +96,17 @@ public class MessageClientTraitWrapper extends AbstractNodeTraitWrapper implemen
 		}
 
 		return null;
+	}
+
+	/**
+	 * Passes a message that this client received from its broker to the subscribers. Unlike {@link #sendMessage}, it
+	 * does not publish the message at the broker, which would send it back to the topic it came from.
+	 */
+	protected void deliverToSubscribers(final ActionContext actionContext, final String topic, final String message) throws FrameworkException {
+
+		final MessageClientOperations operations = TraitsManager.getCurrentInstance().getTrait(StructrTraits.MESSAGE_CLIENT).getFrameworkMethod(MessageClientOperations.class);
+
+		operations.sendMessage(actionContext, this, topic, message);
 	}
 
 	@Override

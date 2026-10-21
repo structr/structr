@@ -97,9 +97,7 @@ public class PrefetchStatisticsCommand extends NodeServiceCommand implements Mai
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.optional("reset", "`true` resets the statistics after returning them")
-		);
+		return List.of(Parameter.optional("reset", "`true` resets the statistics after returning them"));
 	}
 
 	@Override
@@ -111,10 +109,7 @@ public class PrefetchStatisticsCommand extends NodeServiceCommand implements Mai
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"The statistics are kept in memory and start over when Structr restarts.",
-			"Only the bolt driver supports prefetching, other drivers return no statistics."
-		);
+		return List.of("The statistics are kept in memory and start over when Structr restarts.", "Only the bolt driver supports prefetching, other drivers return no statistics.");
 	}
 
 	@Override
