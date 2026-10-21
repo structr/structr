@@ -394,7 +394,7 @@ public class UiAuthenticator implements Authenticator {
 			RuntimeEventLog.resourceAccess("No permission", eventLogMap);
 
 			TransactionCommand.simpleBroadcastGenericMessage(Map.of(
-				"type",           "RESOURCE_ACCESS",
+				"type",               "RESOURCE_ACCESS",
 				"message",            errorMessage,
 				"uri",                escapedURI,
 				"signature",          rawResourceSignature,
@@ -521,14 +521,15 @@ public class UiAuthenticator implements Authenticator {
 		RuntimeEventLog.resourceAccess("No matching permission", eventLogMap);
 
 		TransactionCommand.simpleBroadcastGenericMessage(Map.of(
-			"type",  "RESOURCE_ACCESS",
-			"message",   errorMessage,
-			"uri",       escapedURI,
-			"signature", rawResourceSignature,
-			"method",    method,
-			"validUser", validUser,
-			"userid",    (validUser ? user.getUuid() : ""),
-			"username",  escapedUsername
+			"type",               "RESOURCE_ACCESS",
+			"message",            errorMessage,
+			"uri",                escapedURI,
+			"signature",          rawResourceSignature,
+			"method",             method,
+			"validUser",          validUser,
+			"isServicePrincipal", isServicePrincipal,
+			"userid",             (validUser ? user.getUuid() : ""),
+			"username",           escapedUsername
 		));
 
 		throw new UnauthorizedException("Access denied");
