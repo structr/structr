@@ -87,6 +87,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	public static final String HTTP_VERB_PROPERTY                  = "httpVerb";
 	public static final String DELETE_METHOD_PROPERTY              = "deleteMethod";
 	public static final String WRAP_JS_IN_MAIN_PROPERTY            = "wrapJsInMain";
+	public static final String ALLOW_UNKNOWN_PARAMETERS_PROPERTY   = "allowUnknownParameters";
 
 	public SchemaMethodTraitDefinition() {
 
@@ -286,6 +287,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 		final Property<String>             httpVerb                = new EnumProperty(HTTP_VERB_PROPERTY, newSet("GET", "PUT", "POST", "PATCH", "DELETE")).defaultValue("POST");
 		final Property<Boolean>            deleteMethod            = new BooleanProperty(DELETE_METHOD_PROPERTY).defaultValue(Boolean.FALSE);
 		final Property<Boolean>            wrapJsInMain            = new BooleanProperty(WRAP_JS_IN_MAIN_PROPERTY).defaultValue(Boolean.TRUE);
+		final Property<Boolean>            allowUnknownParameters  = new BooleanProperty(ALLOW_UNKNOWN_PARAMETERS_PROPERTY).defaultValue(false);
 
 		return newSet(
 			parameters,
@@ -309,7 +311,8 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 			returnRawResult,
 			httpVerb,
 			deleteMethod,
-			wrapJsInMain
+			wrapJsInMain,
+			allowUnknownParameters
 		);
 	}
 
@@ -324,7 +327,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
 					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
 					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
-					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY, WRAP_JS_IN_MAIN_PROPERTY
+					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY, WRAP_JS_IN_MAIN_PROPERTY, ALLOW_UNKNOWN_PARAMETERS_PROPERTY
 			),
 
 			PropertyView.Ui,
@@ -333,7 +336,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
 					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
 					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
-					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY, WRAP_JS_IN_MAIN_PROPERTY
+					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY, WRAP_JS_IN_MAIN_PROPERTY, ALLOW_UNKNOWN_PARAMETERS_PROPERTY
 			),
 
 			PropertyView.Schema,
@@ -343,7 +346,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
 					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
 					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
-					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY, WRAP_JS_IN_MAIN_PROPERTY,
+					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY, WRAP_JS_IN_MAIN_PROPERTY, ALLOW_UNKNOWN_PARAMETERS_PROPERTY,
 					PARAMETERS_PROPERTY
 			)
 		);

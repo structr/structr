@@ -696,4 +696,298 @@ public class MethodTest extends StructrRestTestBase {
 				.patch("/BaseType/" + base + "/patchTest");
 	}
 
+	@Test
+	public void testGETRequestParametersWithDefinedMethodParameters() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base = schema.addType("BaseType");
+
+			base.addMethod("test", "{ return { key: $.args.key, extra: $.request.extra }; }")
+				.addParameter("key", "String")
+				.setHttpVerb("GET");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String base = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		// request parameters are not method arguments, so they are neither validated nor rejected
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result.key",   equalTo("value"))
+				.body("result.extra", equalTo("requestValue"))
+			.when()
+				.get("/BaseType/" + base + "/test/value?extra=requestValue");
+	}
+
+	@Test
+	public void testPOSTWithDefinedMethodParameters() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base = schema.addType("BaseType");
+
+			base.addMethod("test", "{ return { args: $.args.count, retrieved: $.retrieve('count') }; }")
+				.addParameter("count", "Integer");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String base = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ count: '3' }")
+			.expect()
+				.statusCode(200)
+				.body("result.args",      equalTo(3))
+				.body("result.retrieved", equalTo(3))
+			.when()
+				.post("/BaseType/" + base + "/test");
+	}
+
+	@Test
+	public void testUnknownParameterIsRejected() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base = schema.addType("BaseType");
+
+			base.addMethod("test", "{ return $.args.count; }")
+				.addParameter("count", "Integer");
+
+			// fails when its body runs, so the error tells whether the call was rejected before
+			base.addMethod("failing", "{ throw new Error('method body was executed'); }")
+				.addParameter("count", "Integer");
+
+			base.addMethod("callWithUnknownParameter", "{ return $.this.test({ count: 1, other: 'x' }); }");
+
+			// a StructrScript method is called from JavaScript on a different path than a JavaScript method
+			base.addMethod("structrScriptTest", "retrieve('count')")
+				.addParameter("count", "Integer");
+
+			base.addMethod("callStructrScriptWithUnknownParameter", "{ return $.this.structrScriptTest({ count: 1, other: 'x' }); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String base = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ count: 1, other: 'x' }")
+			.expect()
+				.statusCode(422)
+				.body("message", containsString("other"))
+			.when()
+				.post("/BaseType/" + base + "/test");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(422)
+			.when()
+				.post("/BaseType/" + base + "/callWithUnknownParameter");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(422)
+			.when()
+				.post("/BaseType/" + base + "/callStructrScriptWithUnknownParameter");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ count: 1, other: 'x' }")
+			.expect()
+				.statusCode(422)
+				.body("message", containsString("Unknown parameter"))
+			.when()
+				.post("/BaseType/" + base + "/failing");
+
+		// a call with only the defined parameters still works
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ count: 1 }")
+			.expect()
+				.statusCode(200)
+				.body("result", equalTo(1))
+			.when()
+				.post("/BaseType/" + base + "/test");
+	}
+
+	@Test
+	public void testUnknownParametersAreAllowedWhenEnabled() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base = schema.addType("BaseType");
+
+			base.addMethod("test", "{ return { count: $.args.count, other: $.args.other, retrieved: $.retrieve('other') }; }")
+				.addParameter("count", "Integer")
+				.setAllowUnknownParameters(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String base = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ count: '2', other: 'x' }")
+			.expect()
+				.statusCode(200)
+				.body("result.count",     equalTo(2))
+				.body("result.other",     equalTo("x"))
+				.body("result.retrieved", equalTo("x"))
+			.when()
+				.post("/BaseType/" + base + "/test");
+	}
+
+	@Test
+	public void testCallbackContextValuesAreNotRejected() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base = schema.addType("BaseType");
+
+			base.addMethod("calc", "{ return $.args.y; }")
+				.addParameter("y", "Integer");
+
+			// evaluating a method as a property passes the arguments of the current call as context, here x, which calc must not reject
+			base.addMethod("evaluate", "this.calc");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String base = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ x: 1 }")
+			.expect()
+				.statusCode(200)
+			.when()
+				.post("/BaseType/" + base + "/evaluate");
+	}
+
+	@Test
+	public void testParameterWithoutTypeIsAccepted() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base = schema.addType("BaseType");
+
+			base.addMethod("test", "{ return $.args.value; }")
+				.addParameter("value", null);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String base = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ value: 'x' }")
+			.expect()
+				.statusCode(200)
+				.body("result", equalTo("x"))
+			.when()
+				.post("/BaseType/" + base + "/test");
+	}
+
+	@Test
+	public void testMethodWithoutDefinedParametersAcceptsAnyArguments() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base = schema.addType("BaseType");
+
+			base.addMethod("test", "{ return { other: $.args.other, retrieved: $.retrieve('other') }; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String base = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ other: 'x' }")
+			.expect()
+				.statusCode(200)
+				.body("result.other",     equalTo("x"))
+				.body("result.retrieved", equalTo("x"))
+			.when()
+				.post("/BaseType/" + base + "/test");
+	}
 }

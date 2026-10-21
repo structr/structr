@@ -49,6 +49,15 @@ public class NamedArguments extends Arguments {
 		arguments.add(new Argument(name, value));
 	}
 
+	/**
+	 * Replaces the value of the argument with the given name, or adds it if there is none.
+	 */
+	public void set(final String name, final Object value) {
+
+		arguments.removeIf(a -> name.equals(a.getName()));
+		arguments.add(new Argument(name, value));
+	}
+
 	public void prepend(final String name, final Object value) {
 
 		arguments.add(0, new Argument(name, value));

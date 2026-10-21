@@ -176,6 +176,12 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
+	public boolean allowUnknownParameters() {
+
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.ALLOW_UNKNOWN_PARAMETERS_PROPERTY));
+	}
+
+	@Override
 	public String getHttpVerb() {
 
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY));

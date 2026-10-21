@@ -435,17 +435,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 		try { Thread.sleep(200); } catch (Throwable t) {}
 
-		websocket.onWebSocketText(toJson(Map.of(
-			"command", "CREATE",
-			"sessionId", sessionId,
-			"data", Map.of(
-				"name", "Test Task",
-				"type", "Task",
-				"project", Map.of(
-					"id", projectId
-				)
-			)
-		)));
+		websocket.onWebSocketText(toJson(Map.of("command", "CREATE", "sessionId", sessionId, "data", Map.of("name", "Test Task", "type", "Task", "project", Map.of("id", projectId)))));
 
 		assertTaskIsLinkedToProject(projectId);
 	}
@@ -472,16 +462,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 		try { Thread.sleep(200); } catch (Throwable t) {}
 
-		websocket.onWebSocketText(toJson(Map.of(
-			"command", "UPDATE",
-			"sessionId", sessionId,
-			"id", taskId,
-			"data", Map.of(
-				"project", Map.of(
-					"id", projectId
-				)
-			)
-		)));
+		websocket.onWebSocketText(toJson(Map.of("command", "UPDATE", "sessionId", sessionId, "id", taskId, "data", Map.of("project", Map.of("id", projectId)))));
 
 		assertTaskIsLinkedToProject(projectId);
 	}

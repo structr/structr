@@ -11,13 +11,18 @@
 		anything written outside a test method (background threads, pools, shutdown hooks), which is on
 		purpose: output nobody owns is worth seeing as such.
 	-->
-	<conversionRule conversionWord="prefixedEx" converterClass="org.structr.logging.PrefixingThrowableConverter" />
+
+	<conversionRule conversionWord="prefixedEx" class="org.structr.logging.PrefixingThrowableConverter" />
 
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread]%X{structrScratchMDC}%X{test} %-5level %logger{36} - %msg%n%prefixedEx{structrScratchMDC}</pattern>
 		</encoder>
 	</appender>
+
+	<!-- same levels as the production config, the module tests use this file too -->
+	<logger name="org.apache.commons.beanutils" level="WARN" />
+	<logger name="org.apache.kafka" level="WARN" />
 
 	<root level="info">
 		<appender-ref ref="STDOUT" />

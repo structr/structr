@@ -55,7 +55,7 @@ public abstract class RESTMethodCallHandler extends RESTCallHandler {
 				securityContext.enableReturnRawResult();
 			}
 
-			final RestMethodResult result = wrapInResult(method.execute(new ActionContext(securityContext), entity, arguments));
+			final RestMethodResult result = wrapInResult(method.execute(new ActionContext(securityContext), entity, arguments.fromCaller()));
 
 			tx.success();
 

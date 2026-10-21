@@ -199,9 +199,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final String uuid = principal.getUuid();
 		final String name = principal.getName();
-
 		final Thread thread = new Thread(() -> {
-
 			final App app = StructrApp.getInstance();
 
 			try (final Tx tx = app.tx()) {

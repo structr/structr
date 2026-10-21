@@ -2080,9 +2080,7 @@ public class SchemaTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface itemType = app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute<>(schemaNodeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Item")
-			);
+			final NodeInterface itemType = app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(schemaNodeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Item"));
 
 			app.create(StructrTraits.SCHEMA_NODE,
 				new NodeAttribute<>(schemaNodeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "DerivedItem"),

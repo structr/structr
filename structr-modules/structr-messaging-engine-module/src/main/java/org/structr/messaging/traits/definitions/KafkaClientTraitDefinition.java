@@ -19,7 +19,9 @@
 package org.structr.messaging.traits.definitions;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.KafkaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -40,6 +42,7 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
 import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.messaging.engine.AfterCommit;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.implementation.kafka.entity.KafkaClient;
 import org.structr.messaging.traits.operations.MessageClientOperations;
@@ -130,9 +133,22 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 						return new RestMethodResult(422);
 					}
 
-					if (client.getProducer() != null) {
+					final Producer<String, String> producer = client.getProducer();
+					if (producer != null) {
 
-						client.getProducer().send(new ProducerRecord<>(topic, message));
+						// sent once the sending transaction has committed, so that a repeated transaction does not send
+						// twice and a rolled back one not at all
+						AfterCommit.run(() -> {
+
+							try {
+
+								producer.send(new ProducerRecord<>(topic, message));
+
+							} catch (KafkaException ex) {
+
+								LoggerFactory.getLogger(KafkaClientTraitDefinition.class).error("Unable to send Kafka message on topic {} after the commit: {}", topic, ex.getMessage());
+							}
+						});
 					}
 
 					return new RestMethodResult(200);

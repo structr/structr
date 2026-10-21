@@ -45,10 +45,12 @@ public class QueryHistogram {
 	private static final String AVG_TIME   = "Average time (s)";
 
 	public static QueryTimer newTimer() {
+
 		return new QueryTimer();
 	}
 
 	public static void clear() {
+
 		entries.clear();
 	}
 
@@ -72,6 +74,7 @@ public class QueryHistogram {
 		final String actualSortKey             = switch (sortKey != null ? sortKey : "") {
 
 			case "min"   -> MIN_TIME;
+
 			case "max"   -> MAX_TIME;
 			case "avg"   -> AVG_TIME;
 			case "count" -> COUNT;

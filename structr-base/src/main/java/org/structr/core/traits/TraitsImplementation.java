@@ -31,6 +31,7 @@ import org.structr.docs.*;
 import org.structr.docs.ontology.ConceptType;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A named collection of traits that a node can have.
@@ -40,11 +41,12 @@ public class TraitsImplementation implements Traits {
 	private final TraitsInstance traitsInstance;
 	private final Set<String> traitNames                                = new LinkedHashSet<>();
 	private final Set<Trait> traits                                     = new LinkedHashSet<>();
-	private final Map<String, Wrapper<PropertyKey>> keyCache            = new LinkedHashMap<>();
-	private final Map<Class, FrameworkMethod> frameworkMethodCache      = new LinkedHashMap<>();
-	private final Map<Class, Set<LifecycleMethod>> lifecycleMethodCache = new LinkedHashMap<>();
-	private final Map<Class, NodeTraitFactory> nodeTraitFactoryCache    = new LinkedHashMap<>();
-	private Map<String, AbstractMethod> dynamicMethodCache              = null;
+	// the caches are filled on first use, while the TraitsInstance is already published and used by many threads
+	private final Map<String, Wrapper<PropertyKey>> keyCache            = new ConcurrentHashMap<>();
+	private final Map<Class, FrameworkMethod> frameworkMethodCache      = new ConcurrentHashMap<>();
+	private final Map<Class, Set<LifecycleMethod>> lifecycleMethodCache = new ConcurrentHashMap<>();
+	private final Map<Class, NodeTraitFactory> nodeTraitFactoryCache    = new ConcurrentHashMap<>();
+	private volatile Map<String, AbstractMethod> dynamicMethodCache     = null;
 	private Wrapper<Relation> cachedRelation                            = null;
 
 	private final boolean isNodeType;
@@ -116,6 +118,12 @@ public class TraitsImplementation implements Traits {
 		// keys from dynamic or user-supplied names (scripting, search predicates,
 		// raw stored property keys, websocket commands, ...) rely on this. Use
 		// hasKey(name) to check existence first where a missing key is unexpected.
+
+		// the cache does not accept null as a key
+		if (name == null) {
+
+			return null;
+		}
 
 		// use wrapper to cache null values as well
 		Wrapper<PropertyKey> wrapper = keyCache.get(name);
@@ -294,20 +302,24 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public Map<String, AbstractMethod> getDynamicMethods() {
 
-		if (dynamicMethodCache != null) {
+		final Map<String, AbstractMethod> cached = dynamicMethodCache;
+		if (cached != null) {
 
-			return dynamicMethodCache;
+			return cached;
 		}
 
-		dynamicMethodCache = new LinkedHashMap<>();
+		// built completely before it is published, a thread that resolves a method meanwhile must not see a partial map
+		final Map<String, AbstractMethod> methods = new LinkedHashMap<>();
 
 		for (final Trait trait : getTraits()) {
 
 			// this is the place where we can detect clashes!
-			dynamicMethodCache.putAll(trait.getDynamicMethods());
+			methods.putAll(trait.getDynamicMethods());
 		}
 
-		return dynamicMethodCache;
+		dynamicMethodCache = methods;
+
+		return methods;
 	}
 
 	/**

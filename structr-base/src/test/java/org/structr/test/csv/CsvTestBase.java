@@ -4,19 +4,19 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test;
+package org.structr.test.csv;
 
 import io.restassured.RestAssured;
 import org.apache.commons.io.FileUtils;
@@ -24,6 +24,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -172,12 +173,20 @@ public abstract class CsvTestBase {
 
 		if (!first) {
 
-			try (final Tx tx = app.tx()) {
+			try {
 
-				// delete everything
-				Services.getInstance().getDatabaseService().cleanDatabase();
+				// repeated when the database terminates it, e.g. in a deadlock with a background service that the
+				// previous test started, otherwise the next test finds its data
+				RetryException.repeat(() -> {
 
-				tx.success();
+					try (final Tx tx = app.tx()) {
+
+						// delete everything
+						Services.getInstance().getDatabaseService().cleanDatabase();
+
+						tx.success();
+					}
+				});
 
 			} catch (Throwable t) {
 

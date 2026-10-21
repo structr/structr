@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
@@ -241,14 +242,22 @@ public abstract class StructrRestTestBase {
 
 		if (!first) {
 
-			try (final Tx tx = app.tx()) {
+			try {
 
-				// delete everything
-				Services.getInstance().getDatabaseService().cleanDatabase();
+				// repeated when the database terminates it, e.g. in a deadlock with a background service that the
+				// previous test started, otherwise the next test finds its data
+				RetryException.repeat(() -> {
 
-				FlushCachesCommand.flushAll();
+					try (final Tx tx = app.tx()) {
 
-				tx.success();
+						// delete everything
+						Services.getInstance().getDatabaseService().cleanDatabase();
+
+						FlushCachesCommand.flushAll();
+
+						tx.success();
+					}
+				});
 
 			} catch (Throwable t) {
 

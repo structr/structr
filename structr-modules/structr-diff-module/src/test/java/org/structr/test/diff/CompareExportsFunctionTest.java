@@ -65,14 +65,11 @@ public class CompareExportsFunctionTest extends StructrUiTest {
 		assertNotNull("compareExports is not registered; a server-side caller reaches this module only through"
 			+ " Functions.get(), so an unregistered function makes the capability unreachable", function);
 
-		assertEquals("The function must name the module it needs, so an instance without it can say so",
-			"diff", function.getRequiredModule());
+		assertEquals("The function must name the module it needs, so an instance without it can say so", "diff", function.getRequiredModule());
 
-		assertEquals("The function belongs in the Deployment category of the documentation",
-			FunctionCategory.Deployment, function.getCategory());
+		assertEquals("The function belongs in the Deployment category of the documentation", FunctionCategory.Deployment, function.getCategory());
 
-		assertNotNull("Every function needs a short description; it is what the reference and any tool listing shows",
-			function.getShortDescription());
+		assertNotNull("Every function needs a short description; it is what the reference and any tool listing shows", function.getShortDescription());
 	}
 
 	@Test
@@ -115,13 +112,11 @@ public class CompareExportsFunctionTest extends StructrUiTest {
 			final Map<String, Object> summary = (Map<String, Object>) report.get("summary");
 
 			// two localizations plus deployment.conf, which the parser reads as a ConfigFile entity of its own
-			assertEquals("The left fixture has to parse to three entities, otherwise the verdict below means nothing",
-				3, ((Number) summary.get("leftEntities")).intValue());
+			assertEquals("The left fixture has to parse to three entities, otherwise the verdict below means nothing", 3, ((Number) summary.get("leftEntities")).intValue());
 
 			assertEquals("The right fixture has to parse to three entities", 3, ((Number) summary.get("rightEntities")).intValue());
 
-			assertTrue("One localization differs between the two fixtures, so the comparison has to report at least one delta",
-				((Number) summary.get("deltas")).intValue() > 0);
+			assertTrue("One localization differs between the two fixtures, so the comparison has to report at least one delta", ((Number) summary.get("deltas")).intValue() > 0);
 
 			final Map<String, Object> congruence = (Map<String, Object>) report.get("congruence");
 			final Object verdict                 = congruence.get("verdict");
@@ -183,9 +178,7 @@ public class CompareExportsFunctionTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// what a brand new instance exports: the platform's own boilerplate, and one page of its own
-			freshId = createExport("fresh.zip", Map.of(
-				"widgets.json", widgets(PLATFORM_WIDGETS),
-				"pages.json",   pages(Map.of("index", "f0000000000000000000000000000001"))));
+			freshId = createExport("fresh.zip", Map.of("widgets.json", widgets(PLATFORM_WIDGETS), "pages.json",   pages(Map.of("index", "f0000000000000000000000000000001"))));
 
 			// an application, exported from an instance carrying the same bundled widgets
 			appId = createExport("app.zip", Map.of(
@@ -209,7 +202,6 @@ public class CompareExportsFunctionTest extends StructrUiTest {
 
 			final Map<String, Object> report     = (Map<String, Object>) apply(freshId, appId);
 			final Map<String, Object> congruence = (Map<String, Object>) report.get("congruence");
-
 			final double raw         = ((Number) congruence.get("identityOverlapAllEntities")).doubleValue();
 			final double application = ((Number) congruence.get("identityOverlap")).doubleValue();
 
@@ -219,12 +211,10 @@ public class CompareExportsFunctionTest extends StructrUiTest {
 				+ " excluding it. Raw identity was " + raw, raw >= 0.5);
 
 			// the fix: the two share no application entity at all
-			assertEquals("A fresh instance shares no application entity with an app it has never seen",
-				0.0, application, 0.0001);
+			assertEquals("A fresh instance shares no application entity with an app it has never seen", 0.0, application, 0.0001);
 
 			assertTrue("A fresh instance must not be reported as a version of an application it has never held,"
-				+ " because a caller refuses or permits a deployment on this verdict: " + congruence.get("verdict"),
-				!"SAME_LINEAGE".equals(congruence.get("verdict")));
+				+ " because a caller refuses or permits a deployment on this verdict: " + congruence.get("verdict"), !"SAME_LINEAGE".equals(congruence.get("verdict")));
 
 			tx.success();
 
@@ -276,8 +266,7 @@ public class CompareExportsFunctionTest extends StructrUiTest {
 
 			// both sides call every page they have "orders", so the page names agree completely. Reading the
 			// manifest key instead would see "orders-<uuid>" as a page nobody else has and score this 0.5
-			assertEquals("A page is named by its name, not by the file the export happened to write it to",
-				1.0, ((Number) signals.get("pageNames")).doubleValue(), 0.0001);
+			assertEquals("A page is named by its name, not by the file the export happened to write it to", 1.0, ((Number) signals.get("pageNames")).doubleValue(), 0.0001);
 
 			tx.success();
 
@@ -304,9 +293,7 @@ public class CompareExportsFunctionTest extends StructrUiTest {
 				"relationships/OWNS.json", records(
 					"{\"id\":\"e0000000000000000000000000000001\",\"sourceId\":\"c0000000000000000000000000000001\",\"targetId\":\"c0000000000000000000000000000002\",\"relType\":\"OWNS\"}")));
 
-			rightId = createExport("right.zip", Map.of(
-				"nodes/Project.json", records(
-					"{\"id\":\"c0000000000000000000000000000001\",\"name\":\"Apollo\",\"status\":\"closed\"}"),
+			rightId = createExport("right.zip", Map.of("nodes/Project.json", records("{\"id\":\"c0000000000000000000000000000001\",\"name\":\"Apollo\",\"status\":\"closed\"}"),
 				// the same link, with a uuid of its own that an import would have minted fresh
 				"relationships/OWNS.json", records(
 					"{\"id\":\"e9999999999999999999999999999999\",\"sourceId\":\"c0000000000000000000000000000001\",\"targetId\":\"c0000000000000000000000000000002\",\"relType\":\"OWNS\"}")));
@@ -325,7 +312,6 @@ public class CompareExportsFunctionTest extends StructrUiTest {
 
 			final Map<String, Object> report      = (Map<String, Object>) apply(leftId, rightId);
 			final List<Map<String, Object>> deltas = (List<Map<String, Object>>) report.get("deltas");
-
 			final Map<String, Object> changed = deltaFor(deltas, "c0000000000000000000000000000001");
 			final Map<String, Object> removed = deltaFor(deltas, "c0000000000000000000000000000002");
 
@@ -340,8 +326,7 @@ public class CompareExportsFunctionTest extends StructrUiTest {
 			for (final Map<String, Object> delta : deltas) {
 
 				assertFalse("the link was matched by its uuid rather than by what it connects, so a deployment"
-					+ " that recreates every edge would report every link as a change: " + delta,
-					"RecordLink".equals(delta.get("kind")));
+					+ " that recreates every edge would report every link as a change: " + delta, "RecordLink".equals(delta.get("kind")));
 			}
 
 			tx.success();
@@ -431,12 +416,12 @@ public class CompareExportsFunctionTest extends StructrUiTest {
 	private Object apply(final String leftId, final String rightId) throws FrameworkException {
 
 		// exactly what a server-side caller writes: no import from this module, no reflection
+
 		return Functions.get("compareExports").apply(new ActionContext(securityContext), null, new Object[] { leftId, rightId });
 	}
 
 	/** Widget uuids that ship with the platform, so every instance exports them under the same keys. */
-	private static final List<String> PLATFORM_WIDGETS = List.of(
-		"126e7efc2ddc4e449d7a554ee9ed2ecb", "226e7efc2ddc4e449d7a554ee9ed2ecb", "326e7efc2ddc4e449d7a554ee9ed2ecb");
+	private static final List<String> PLATFORM_WIDGETS = List.of("126e7efc2ddc4e449d7a554ee9ed2ecb", "226e7efc2ddc4e449d7a554ee9ed2ecb", "326e7efc2ddc4e449d7a554ee9ed2ecb");
 
 	private String widgets(final List<String> ids) {
 

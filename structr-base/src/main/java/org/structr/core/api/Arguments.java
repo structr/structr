@@ -31,12 +31,49 @@ import java.util.*;
  */
 public abstract class Arguments {
 
+	/**
+	 * Who passes the arguments, which decides how arguments are treated that the method does not
+	 * define: a caller is told, Structr's own context values for callbacks are ignored.
+	 */
+	public enum Origin {
+
+		// context values Structr itself passes to callbacks like onDownload, a method may ignore them
+		Structr,
+
+		// a REST request or a script, which only sends what it means to send
+		Caller,
+
+		// the frontend of an event action mapping, which also sends the data attributes and form fields of the element
+		EventActionMapping
+	}
+
 	protected final List<Argument> arguments = new LinkedList<>();
+
+	private Origin origin = Origin.Structr;
 
 	@Override
 	public String toString() {
 
 		return this.arguments.toString();
+	}
+
+	public Arguments fromCaller() {
+
+		this.origin = Origin.Caller;
+
+		return this;
+	}
+
+	public Arguments fromEventActionMapping() {
+
+		this.origin = Origin.EventActionMapping;
+
+		return this;
+	}
+
+	public Origin getOrigin() {
+
+		return origin;
 	}
 
 	public Object get(final int index) {

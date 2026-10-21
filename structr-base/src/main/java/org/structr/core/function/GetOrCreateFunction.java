@@ -77,7 +77,6 @@ public class GetOrCreateFunction extends CoreFunction {
 		}
 
 		final NodeInterface existing = app.nodeQuery(StructrTraits.PRINCIPAL).name(name).getFirst();
-
 		if (existing != null) {
 
 			throw new FrameworkException(422, "getOrCreate(): a " + existing.getType() + " named '" + name + "' already exists, so creating a "

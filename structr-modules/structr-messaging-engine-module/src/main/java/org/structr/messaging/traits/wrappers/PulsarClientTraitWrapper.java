@@ -24,14 +24,18 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.messaging.engine.AfterCommit;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.traits.definitions.PulsarClientTraitDefinition;
 import org.structr.schema.action.ActionContext;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,11 +43,41 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implements org.structr.messaging.implementation.pulsar.PulsarClient {
 
-	private final Map<String, PulsarClientTraitWrapper.ConsumerWorker> consumerWorkerMap = new ConcurrentHashMap<>();
+	// static, because every transaction creates new wrapper instances, and close() must find the worker that setup() started
+	private static final Map<String, PulsarClientTraitWrapper.ConsumerWorker> consumerWorkerMap = new ConcurrentHashMap<>();
 
 	public PulsarClientTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 
 		super(traits, wrappedObject);
+	}
+
+	/**
+	 * Registers the boot-time initialization callback that starts the consumers of the existing clients. Called from
+	 * {@code MessageEngineModule.onLoad()}, see MQTTContext.registerInitializationCallback().
+	 */
+	public static void registerInitializationCallback() {
+
+		Services.getInstance().registerInitializationCallback(() -> {
+
+			if (Traits.exists(StructrTraits.PULSAR_CLIENT)) {
+
+				final App app = StructrApp.getInstance();
+
+				try (final Tx tx = app.tx()) {
+
+					for (final NodeInterface client : app.nodeQuery(StructrTraits.PULSAR_CLIENT).getAsList()) {
+
+						client.as(org.structr.messaging.implementation.pulsar.PulsarClient.class).setup();
+					}
+
+					tx.success();
+
+				} catch (Throwable t) {
+
+					LoggerFactory.getLogger(PulsarClientTraitWrapper.class).error("Unable to initialize Pulsar clients. " + t);
+				}
+			}
+		});
 	}
 
 	public boolean getEnabled() {
@@ -71,17 +105,19 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 	@Override
 	public void setup() {
 
-		PulsarClientTraitWrapper.ConsumerWorker cw = new PulsarClientTraitWrapper.ConsumerWorker(this);
-		Thread t = new Thread(cw);
+		final PulsarClientTraitWrapper.ConsumerWorker cw = new PulsarClientTraitWrapper.ConsumerWorker(this.getUuid());
 
 		consumerWorkerMap.put(this.getUuid(), cw);
-		t.start();
+
+		// started once the client is committed, so that a rolled back or repeated transaction does not leave a
+		// consumer running
+		AfterCommit.run(() -> new Thread(cw).start());
 	}
 
 	@Override
 	public void close() {
 
-		PulsarClientTraitWrapper.ConsumerWorker cw = consumerWorkerMap.get(this.getUuid());
+		final PulsarClientTraitWrapper.ConsumerWorker cw = consumerWorkerMap.remove(this.getUuid());
 		if (cw != null) {
 
 			cw.stop();
@@ -91,7 +127,7 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 	@Override
 	public void forwardReceivedMessage(final ActionContext actionContext, String topic, String message) throws FrameworkException {
 
-		sendMessage(actionContext, topic, message);
+		deliverToSubscribers(actionContext, topic, message);
 	}
 
 	@Override
@@ -100,19 +136,26 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 		return consumerWorkerMap.get(this.getUuid());
 	}
 
-	public class ConsumerWorker implements Runnable {
+	/**
+	 * Keeps a Pulsar consumer in line with its client: it creates the consumer when the client is enabled and has
+	 * servers and subscribers, recreates it when the servers or the topics change, closes it when the client is
+	 * disabled, and stops when the client is deleted. The client is read anew in each round, because an instance from
+	 * an earlier transaction would not see the changes.
+	 */
+	public static class ConsumerWorker implements Runnable {
 
 		private final static Logger logger = LoggerFactory.getLogger(ConsumerWorker.class);
-		private final PulsarClientTraitWrapper thisClient;
-		private PulsarClient pulsarClient = null;
-		private Consumer consumer = null;
-		private boolean running = true;
-		private List<String> subbedTopics = null;
+		private final String clientId;
+		private volatile org.structr.messaging.implementation.pulsar.PulsarClient thisClient = null;
+		private volatile Consumer consumer                                                  = null;
+		private volatile boolean running                                                    = true;
+		private PulsarClient pulsarClient                                                   = null;
+		private List<String> subbedTopics                                                   = null;
+		private String subbedServiceUrl                                                     = null;
 
-		public ConsumerWorker(PulsarClientTraitWrapper thisClient) {
+		public ConsumerWorker(final String clientId) {
 
-			this.thisClient = thisClient;
-
+			this.clientId = clientId;
 		}
 
 		@Override
@@ -131,36 +174,38 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 
 			while (running) {
 
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				if (Thread.currentThread().isInterrupted()) {
 
-					if (this.thisClient == null || Thread.currentThread().isInterrupted()) {
+					running = false;
+					break;
+				}
 
-						running = false;
-						break;
+				try {
+
+					try (final Tx tx = StructrApp.getInstance().tx()) {
+
+						update();
+
+						tx.success();
 					}
 
-					if (thisClient.getServers() == null || thisClient.getServers().length == 0 || !thisClient.getEnabled()) {
+				} catch (FrameworkException | RuntimeException ex) {
 
-						continue;
-					}
-
-					if (consumer == null) {
-
-						consumer = createConsumer();
-					}
-
-					if (thisClient.getEnabled()) {
-
-						updateConsumerIfTopicsHaveChanged();
-					}
-
-				} catch (FrameworkException ex) {
-
+					// the next round reads the client again
 					logger.error("Exception in PulsarClient.ConsumerWorker. " + ex);
 				}
 
+				try {
+
+					Thread.sleep(1000);
+
+				} catch (InterruptedException iex) {
+
+					running = false;
+				}
 			}
 
+			closeClient();
 		}
 
 		public void stop() {
@@ -185,28 +230,45 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 			}
 		}
 
-		private void updateConsumerIfTopicsHaveChanged() {
+		/**
+		 * Brings the consumer in line with the current state of the client.
+		 */
+		private void update() throws FrameworkException {
 
-			if (subbedTopics == null) {
+			final NodeInterface node = StructrApp.getInstance().getNodeById(StructrTraits.PULSAR_CLIENT, clientId);
+			if (node == null) {
+
+				logger.info("PulsarClient {} was deleted, stopping its ConsumerWorker", clientId);
+
+				running = false;
 
 				return;
 			}
 
-			if (!subbedTopics.equals(getSubTopics())) {
+			thisClient = node.as(org.structr.messaging.implementation.pulsar.PulsarClient.class);
 
-				invalidateConsumer();
-				consumer = createConsumer();
+			final String[] servers = thisClient.getServers();
+			if (servers == null || servers.length == 0 || !thisClient.getIsEnabled()) {
+
+				closeClient();
+
+				return;
+			}
+
+			final String serviceUrl  = String.join(",", servers);
+			final List<String> topics = getSubTopics();
+
+			if (consumer == null || !serviceUrl.equals(subbedServiceUrl) || !topics.equals(subbedTopics)) {
+
+				closeClient();
+
+				consumer = createConsumer(serviceUrl, topics);
 			}
 		}
 
 		private List<String> getSubTopics() {
 
 			List<String> aggregatedTopics = new ArrayList<>();
-
-			if (thisClient == null) {
-
-				return aggregatedTopics;
-			}
 
 			thisClient.getSubscribers().forEach((MessageSubscriber sub) -> {
 				String topic = sub.getTopic();
@@ -219,60 +281,76 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 			return aggregatedTopics;
 		}
 
-		private Consumer createConsumer() {
+		private void closeClient() {
 
-			List<String> aggregatedTopics = getSubTopics();
+			invalidateConsumer();
 
 			try {
 
 				if (pulsarClient != null) {
 
-					invalidateConsumer();
 					pulsarClient.close();
-					pulsarClient = null;
-				}
-
-				pulsarClient = PulsarClient.builder()
-					.serviceUrl(String.join(",", thisClient.getServers()))
-					.build();
-
-				if (pulsarClient != null) {
-
-					if (aggregatedTopics.size() > 0) {
-
-						MessageListener messageListener = ((Consumer consumer, Message msg) -> {
-							try {
-
-								String[] topicFragments = msg.getTopicName().split("/");
-								String topic = topicFragments[topicFragments.length - 1];
-
-								forwardReceivedMessage(new ActionContext(getSecurityContext()), topic, new String(msg.getData()));
-								consumer.acknowledge(msg);
-
-							} catch (Exception e) {
-
-								consumer.negativeAcknowledge(msg);
-							}
-						});
-
-						subbedTopics = aggregatedTopics;
-
-						return pulsarClient.newConsumer()
-							.subscriptionName("structr-pulsar-subscription")
-							.topics(aggregatedTopics)
-							.messageListener(messageListener)
-							.subscribe();
-					}
-
 				}
 
 			} catch (PulsarClientException ex) {
 
-				LoggerFactory.getLogger(PulsarClientTraitWrapper.class).error("Could not update consumer subscriptions for PulsarClient " + thisClient.getUuid() + ". " + ex);
+				logger.error("Could not close pulsar client. " + ex);
+			}
+
+			pulsarClient     = null;
+			subbedTopics     = null;
+			subbedServiceUrl = null;
+		}
+
+		/**
+		 * Creates the consumer for the given topics, or returns null if there are none.
+		 */
+		private Consumer createConsumer(final String serviceUrl, final List<String> topics) {
+
+			if (topics.isEmpty()) {
+
+				return null;
+			}
+
+			try {
+
+				pulsarClient = PulsarClient.builder()
+					.serviceUrl(serviceUrl)
+					.build();
+
+				MessageListener messageListener = ((Consumer consumer, Message msg) -> {
+					try {
+
+						String[] topicFragments = msg.getTopicName().split("/");
+						String topic = topicFragments[topicFragments.length - 1];
+						final org.structr.messaging.implementation.pulsar.PulsarClient client = thisClient;
+
+						client.forwardReceivedMessage(new ActionContext(client.getSecurityContext()), topic, new String(msg.getData(), StandardCharsets.UTF_8));
+						consumer.acknowledge(msg);
+
+					} catch (Exception e) {
+
+						consumer.negativeAcknowledge(msg);
+					}
+				});
+
+				final Consumer newConsumer = pulsarClient.newConsumer()
+					.subscriptionName("structr-pulsar-subscription")
+					.topics(topics)
+					.messageListener(messageListener)
+					.subscribe();
+
+				subbedTopics     = topics;
+				subbedServiceUrl = serviceUrl;
+
+				return newConsumer;
+
+			} catch (PulsarClientException ex) {
+
+				logger.error("Could not update consumer subscriptions for PulsarClient " + clientId + ". " + ex);
 			}
 
 			return null;
 		}
 	}
-
 }

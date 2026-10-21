@@ -4047,6 +4047,7 @@ let _Schema = {
 				`);
 
 			let clearButton = _Dialogs.custom.appendCustomDialogButton('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
+			let copyButton  = _Dialogs.custom.appendCustomDialogButton('<button id="copy-output" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Copy output</button>');
 
 			window.setTimeout(() => {
 				runButton.focus();
@@ -4181,6 +4182,12 @@ let _Schema = {
 
 			clearButton.addEventListener('click', () => {
 				logOutput.textContent = '';
+			});
+
+			copyButton.addEventListener('click', async () => {
+				await navigator.clipboard.writeText(logOutput.textContent);
+
+				new SuccessMessage().text('Copied to clipboard').show();
 			});
 		},
 		templates: {

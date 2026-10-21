@@ -73,6 +73,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private boolean isPrivate                                 = false;
 	private boolean returnRawResult                           = false;
 	private boolean wrapJsInMain                              = true;
+	private boolean allowUnknownParameters                    = false;
 	private JsonType parent                                   = null;
 	private String httpVerb                                   = "POST";
 	private String openAPIReturnType                          = null;
@@ -285,6 +286,20 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	@Override
+	public boolean allowUnknownParameters() {
+
+		return allowUnknownParameters;
+	}
+
+	@Override
+	public JsonMethod setAllowUnknownParameters(final boolean allowUnknownParameters) {
+
+		this.allowUnknownParameters = allowUnknownParameters;
+
+		return this;
+	}
+
+	@Override
 	public boolean wrapJsInMain() {
 
 		return wrapJsInMain;
@@ -452,6 +467,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		updateProperties.put(traits.key(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY),                 isPrivate());
 		updateProperties.put(traits.key(SchemaMethodTraitDefinition.RETURN_RAW_RESULT_PROPERTY),          returnRawResult());
 		updateProperties.put(traits.key(SchemaMethodTraitDefinition.WRAP_JS_IN_MAIN_PROPERTY),            wrapJsInMain());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.ALLOW_UNKNOWN_PARAMETERS_PROPERTY),   allowUnknownParameters());
 		updateProperties.put(traits.key(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY),                  getHttpVerb());
 		updateProperties.put(traits.key(SchemaMethodTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY),        includeInOpenAPI());
 		updateProperties.put(traits.key(SchemaMethodTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY),       getOpenAPIReturnType());
@@ -557,6 +573,12 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			this.wrapJsInMain = (Boolean)_wrapJsInMain;
 		}
 
+		final Object _allowUnknownParameters = source.get(JsonSchema.KEY_ALLOW_UNKNOWN_PARAMETERS);
+		if (_allowUnknownParameters != null && _allowUnknownParameters instanceof Boolean) {
+
+			this.allowUnknownParameters = (Boolean)_allowUnknownParameters;
+		}
+
 		final Object _httpVerb = source.get(JsonSchema.KEY_HTTP_VERB);
 		if (_httpVerb != null && _httpVerb instanceof String) {
 
@@ -631,6 +653,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setIsPrivate(method.isPrivateMethod());
 		setReturnRawResult(method.returnRawResult());
 		setWrapJsInMain(method.wrapJsInMain());
+		setAllowUnknownParameters(method.allowUnknownParameters());
 		setHttpVerb(method.getHttpVerb());
 		setOverridesExisting(method.overridesExisting());
 		setDoExport(method.doExport());
@@ -681,6 +704,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		map.put(JsonSchema.KEY_IS_PRIVATE, isPrivate);
 		map.put(JsonSchema.KEY_RETURN_RAW_RESULT, returnRawResult);
 		map.put(JsonSchema.KEY_WRAP_JS_IN_MAIN, wrapJsInMain);
+		map.put(JsonSchema.KEY_ALLOW_UNKNOWN_PARAMETERS, allowUnknownParameters);
 		map.put(JsonSchema.KEY_HTTP_VERB, httpVerb);
 		map.put(JsonSchema.KEY_OVERRIDES_EXISTING, overridesExisting);
 		map.put(JsonSchema.KEY_DO_EXPORT, doExport);
