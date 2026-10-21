@@ -64,11 +64,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.structr</groupId>
-			<artifactId>structr-api-builder-module</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.structr</groupId>
 			<artifactId>structr-csv-module</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -565,7 +560,6 @@
 													<DATABASE_PASSWORD>admin123</DATABASE_PASSWORD>
 													<SUPERUSER_PASSWORD>structr1234</SUPERUSER_PASSWORD>
 													<SETUP_TOKEN>ui-test-setup-token</SETUP_TOKEN>
-													<DEBUG>pw:api</DEBUG>
 												</env>
 												<volumes>
 													<bind>

@@ -39,6 +39,7 @@ import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.common.StatsCallback;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
+import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.web.entity.User;
 
 import java.io.IOException;
@@ -94,12 +95,8 @@ public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSou
 			assertInitialized();
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+			authenticator   = config.getAuthenticator();
+			securityContext = AbstractServletBase.authenticate(authenticator, request, response);
 
 			final App app = StructrApp.getInstance(securityContext);
 

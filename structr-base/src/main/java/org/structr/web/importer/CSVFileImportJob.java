@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.ContextStore;
-import org.structr.common.ResultTransformer;
+import org.structr.common.PropertyMapping;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.JsonInput;
@@ -36,8 +36,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
-import org.structr.module.StructrModule;
-import org.structr.module.api.APIBuilder;
 import org.structr.rest.common.CsvHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
@@ -45,9 +43,10 @@ import org.structr.web.entity.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class CSVFileImportJob extends FileImportJob {
@@ -74,15 +73,6 @@ public class CSVFileImportJob extends FileImportJob {
 		if (targetType == null || delimiter == null || quoteChar == null) {
 
 			throw new FrameworkException(400, "Cannot import CSV, please specify target type, delimiter and quote character.");
-
-		} else {
-
-			final StructrModule module = StructrApp.getConfiguration().getModules().get("api-builder");
-			if (module == null || !(module instanceof APIBuilder) ) {
-
-				throw new FrameworkException(400, "Cannot import CSV, API builder module is not available.");
-
-			}
 		}
 
 		return true;
@@ -108,9 +98,6 @@ public class CSVFileImportJob extends FileImportJob {
 
 			logger.info("Importing CSV from {} ({}) to {} using {}", filePath, fileUuid, targetType, configuration);
 
-			final APIBuilder builder       = (APIBuilder) StructrApp.getConfiguration().getModules().get("api-builder");
-			final SimpleDateFormat df      = new SimpleDateFormat("yyyyMMddHHMM");
-			final String importTypeName    = "ImportFromCsv" + df.format(System.currentTimeMillis());
 			final SecurityContext threadContext = SecurityContext.getInstance(user, AccessMode.Backend);
 
 			threadContext.setContextStore(ctxStore);
@@ -132,7 +119,7 @@ public class CSVFileImportJob extends FileImportJob {
 
 				reportBegin();
 
-				final ResultTransformer mapper     = builder.createMapping(app, targetType, importTypeName, importMappings, transforms);
+				final PropertyMapping mapper  = createMapping(importMappings, transforms);
 				IMPORT_TYPE currentImportType = IMPORT_TYPE.NODE;
 				Traits targetEntityType       = Traits.of(targetType);
 
@@ -186,7 +173,8 @@ public class CSVFileImportJob extends FileImportJob {
 
 							} else {
 
-								mapper.transformInput(new ActionContext(threadContext), targetEntityType.getName(), input);
+								// a fresh context per line, so transform scripts cannot carry state from one line to the next
+								mapper.transformInput(new ActionContext(threadContext), input);
 
 								if (currentImportType.equals(IMPORT_TYPE.NODE)) {
 
@@ -246,15 +234,6 @@ public class CSVFileImportJob extends FileImportJob {
 
 			} finally {
 
-				try {
-
-					builder.removeMapping(app, targetType, importTypeName);
-
-				} catch (FrameworkException ex) {
-
-					logger.warn("Exception while cleaning up CSV Import Mapping '{}'", targetType);
-				}
-
 				jobFinished();
 			}
 		};
@@ -277,5 +256,20 @@ public class CSVFileImportJob extends FileImportJob {
 	public String getJobExceptionMessageType() {
 
 		return "FILE_IMPORT_EXCEPTION";
+	}
+
+	// ----- private methods -----
+	private PropertyMapping createMapping(final Map<String, String> importMappings, final Map<String, String> transforms) throws FrameworkException {
+
+		final List<PropertyMapping.Entry> entries = new LinkedList<>();
+
+		for (final Map.Entry<String, String> mapping : importMappings.entrySet()) {
+
+			final String propertyName = mapping.getKey();
+
+			entries.add(new PropertyMapping.Entry(propertyName, mapping.getValue(), transforms.get(propertyName), null));
+		}
+
+		return new PropertyMapping(entries);
 	}
 }

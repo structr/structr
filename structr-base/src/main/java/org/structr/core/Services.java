@@ -571,7 +571,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 		logger.info("{} processors available, {} GB max heap memory", processors, maxMemGB);
 
 		final int recommendedMemGB = 8;
-
 		if (maxMemGB < recommendedMemGB) {
 
 			logger.warn("Maximum heap size is below the recommended {} GB. If you use an embedded database or have large datasets, this can lead to problems.", recommendedMemGB);

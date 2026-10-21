@@ -21,6 +21,9 @@ package org.structr.core.api;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.LogThrottle;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
@@ -39,6 +42,8 @@ import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,6 +52,9 @@ import java.util.Map.Entry;
  *
  */
 public abstract class AbstractMethod {
+
+	private static final Logger logger                    = LoggerFactory.getLogger(AbstractMethod.class);
+	private static final LogThrottle unknownParametersLog = new LogThrottle("Unknown method parameters", 1);
 
 	protected String description = null;
 	protected String summary = null;
@@ -117,7 +125,7 @@ public abstract class AbstractMethod {
 
 						try {
 
-							final Arguments args = NamedArguments.fromValues(actionContext, arguments);
+							final Arguments args = NamedArguments.fromValues(actionContext, arguments).fromCaller();
 							final Arguments converted = checkAndConvertArguments(actionContext, args, true);
 
 							inner = new ActionContext(securityContext, converted.toMap());
@@ -183,7 +191,7 @@ public abstract class AbstractMethod {
 				}
 
 				// fallback => normal scripting
-				final Arguments converted = PolyglotWrapper.unwrapExecutableArguments(actionContext, this, arguments);
+				final Arguments converted = PolyglotWrapper.unwrapExecutableArguments(actionContext, this, arguments).fromCaller();
 
 				return PolyglotWrapper.wrap(actionContext, this.execute(actionContext, entity, converted));
 
@@ -195,6 +203,15 @@ public abstract class AbstractMethod {
 	}
 
 	public boolean shouldReturnRawResult() {
+
+		return false;
+	}
+
+	/**
+	 * Whether the method accepts arguments that are not defined as parameters. Methods without
+	 * defined parameters accept any arguments regardless of this flag.
+	 */
+	public boolean allowUnknownParameters() {
 
 		return false;
 	}
@@ -213,6 +230,8 @@ public abstract class AbstractMethod {
 		}
 
 		final NamedArguments converted = new NamedArguments();
+		final List<String> unknown     = new LinkedList<>();
+		final boolean passOnUnknown    = allowUnknownParameters();
 		int index = 0;
 
 		// The below block tries to convert method arguments according to declared parameters (if present).
@@ -225,39 +244,76 @@ public abstract class AbstractMethod {
 
 			if (parameterName == null) {
 
+				// positional arguments have no name that could be passed on, so there must be a parameter for each of them
 				parameterName = parameters.getNameByIndex(index);
+
+				if (parameterName == null) {
+
+					throw new FrameworkException(400, "Unexpected method parameter #" + (index + 1) + ", method defines only " + parameters.size() + " parameters.");
+				}
 			}
 
-			final String type = parameters.getTypeByNameOrIndex(parameterName, index);
-			if (type != null) {
+			if (parameters.containsKey(parameterName)) {
 
-				converted.add(parameterName, convertValue(parameterName, parameterValue, type));
+				final String type = parameters.get(parameterName);
+
+				// a parameter without a type is passed on unconverted
+				converted.add(parameterName, type != null ? convertValue(parameterName, parameterValue, type) : parameterValue);
+
+			} else if (passOnUnknown) {
+
+				converted.add(parameterName, parameterValue);
+
+			} else {
+
+				unknown.add(parameterName);
 			}
 
 			index++;
 		}
 
-		if (ensureArgumentsArePresent) {
+		if (!unknown.isEmpty()) {
 
-			int pos = 0;
+			final String message = "Unknown parameter(s) " + String.join(", ", unknown) + " for " + getFullMethodName() + ", the method only accepts its defined parameters " + String.join(", ", parameters.keySet()) + ". Enable \"Allow unknown parameters\" to accept other parameters.";
+
+			switch (arguments.getOrigin()) {
+
+				case Caller -> throw new FrameworkException(422, message);
+
+				// dropped, because the values the frontend sends along cannot be controlled, but logged, so that a misspelled parameter mapping is visible
+				case EventActionMapping -> {
+
+					if (unknownParametersLog.allow(getFullMethodName())) {
+
+						logger.warn("{} The values were dropped.", message);
+					}
+				}
+
+				// context values of a callback are dropped without a word, the method may ignore them
+				case Structr -> {}
+			}
+		}
+
+		if (ensureArgumentsArePresent) {
 
 			// go over all parameters and ensure that there is a value for each parameter
 			for (final Entry<String, String> entry : parameters.entrySet()) {
 
 				final String parameterName = entry.getKey();
 				final String parameterType = entry.getValue();
-				final Object argument = converted.get(pos++);
+				final Object argument      = converted.get(parameterName);
 
-				if (argument == null) {
+				// a parameter without a type gets no default value
+				if (argument == null && parameterType != null) {
 
 					switch (parameterType) {
 
 						case "Map":
-							converted.add(parameterName, new LinkedHashMap());
+							converted.set(parameterName, new LinkedHashMap());
 							break;
 
 						case "SecurityContext":
-							converted.add(parameterName, securityContext);
+							converted.set(parameterName, securityContext);
 							break;
 					}
 

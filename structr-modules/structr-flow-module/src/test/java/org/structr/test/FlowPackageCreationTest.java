@@ -66,7 +66,6 @@ public class FlowPackageCreationTest extends StructrUiTest {
 
 				final String name = "round" + round + "test" + i;
 				final String id   = post("FlowContainerPackage", Map.of("name", name)).jsonPath().getString("result[0]");
-
 				final Map<String, Object> object = new LinkedHashMap<>();
 
 				object.put("id", id);

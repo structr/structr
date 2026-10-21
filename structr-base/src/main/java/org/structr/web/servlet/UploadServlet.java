@@ -196,29 +196,27 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		String uploadFolderPathParameter = null;
 
 		// isolate request authentication in a transaction
-		try (final Tx tx = StructrApp.getInstance().tx()) {
+		try {
+
+			securityContext = authenticate(getConfig().getAuthenticator(), request, response);
+
+		} catch (AuthenticationException ae) {
 
 			try {
-
-				securityContext = getConfig().getAuthenticator().initializeAndExamineRequest(request, response);
-
-			} catch (AuthenticationException ae) {
 
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes(StandardCharsets.UTF_8));
 
-				return;
+			} catch (IOException ioex) {
+
+				logger.warn("Unable to send response", ioex);
 			}
 
-			tx.success();
+			return;
 
 		} catch (FrameworkException fex) {
 
 			logger.warn("Unable to examine request", fex);
-
-		} catch (IOException ioex) {
-
-			logger.warn("Unable to send response", ioex);
 		}
 
 		// something went wrong, but we don't know what...
@@ -688,9 +686,8 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			if (origin != null && corsHeaders != null && corsMethod != null) {
 
-				final Authenticator auth = getConfig().getAuthenticator();
 				// Ensure CORS settings apply by letting the authenticator examine the request.
-				auth.initializeAndExamineRequest(request, response);
+				authenticate(getConfig().getAuthenticator(), request, response);
 
 			} else {
 

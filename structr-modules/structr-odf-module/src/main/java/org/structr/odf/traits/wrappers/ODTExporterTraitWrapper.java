@@ -20,12 +20,13 @@ package org.structr.odf.traits.wrappers;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.odf.entity.ODTExporter;
 
 /**
  * Reads a nodes attributes and tries to replace matching attributes in the
  * given ODT-File template.
  */
-public class ODTExporterTraitWrapper extends ODFExporterTraitWrapper {
+public class ODTExporterTraitWrapper extends ODFExporterTraitWrapper implements ODTExporter {
 
 	public ODTExporterTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 

@@ -60,7 +60,7 @@ public class FlowFunction extends Function<Object, Object> {
 	@Override
 	public String getRequiredModule() {
 
-		return "api-builder";
+		return "flows";
 	}
 
 	@Override

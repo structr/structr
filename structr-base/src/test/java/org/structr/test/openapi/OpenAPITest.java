@@ -783,7 +783,7 @@ public class OpenAPITest extends StructrUiTest {
 			.contentType("application/json; charset=UTF-8")
 			.header("X-User", "admin")
 			.header("X-Password", "admin")
-			.body("{ param1: '2022-01-01T00:00:00+0100', moep1: test, param2: '2022-01-01T23:59:59+0100' }")
+			.body("{ param1: '2022-01-01T00:00:00+0100', param2: '2022-01-01T23:59:59+0100' }")
 			.expect()
 			.statusCode(200)
 			.when()

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-	<conversionRule conversionWord="prefixedEx" converterClass="org.structr.logging.PrefixingThrowableConverter" />
+	<conversionRule conversionWord="prefixedEx" class="org.structr.logging.PrefixingThrowableConverter" />
 
 	<!--
 		%X{test} names the test that wrote a line and is always empty in a running server, so the
-		server log is unchanged. It is here because only structr-base has its own test logback.xml:
-		the other modules' tests take this configuration off the classpath, and their log output has
-		to be attributable too. See org.structr.test.common.TestContextListener.
+		server log is unchanged. It is here to keep the pattern identical to logback-test.xml, which
+		all test runs use (structr-base directly, the other modules via its test jar). See
+		org.structr.test.common.TestContextListener.
 	-->
 
 	<appender name="SERVERLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -50,11 +50,7 @@
 	<include file="logback-include.xml" optional="true" />
 
 	<!-- Module specific logging configuration -->
-	<logger name="org.apache.kafka">
-		<level value="warn" />
-		<appender-ref ref="STDOUT" />
-		<appender-ref ref="SERVERLOG" />
-	</logger>
+	<logger name="org.apache.kafka" level="WARN" />
 
 	<!-- Jetty Request logging configuration -->
 	<logger name="org.eclipse.jetty.server.RequestLog" additivity="false">

@@ -1733,7 +1733,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 			removeInternalDataBindingKeys(parameters);
 
-			return Actions.callWithSecurityContext(methodName, renderContext.getSecurityContext(), parameters);
+			return Actions.callWithSecurityContext(methodName, renderContext.getSecurityContext(), NamedArguments.fromMap(parameters).fromEventActionMapping());
 		}
 
 		if (Settings.isValidUuid(dataTarget)) {
@@ -1758,7 +1758,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						renderContext.getSecurityContext().enableReturnRawResult();
 					}
 
-					return method.execute(renderContext, target, NamedArguments.fromMap(parameters));
+					return method.execute(renderContext, target, NamedArguments.fromMap(parameters).fromEventActionMapping());
 
 				} else {
 
@@ -1785,7 +1785,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							renderContext.getSecurityContext().enableReturnRawResult();
 						}
 
-						return method.execute(renderContext, null, NamedArguments.fromMap(parameters));
+						return method.execute(renderContext, null, NamedArguments.fromMap(parameters).fromEventActionMapping());
 
 					} else {
 
@@ -2031,7 +2031,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			if ("completeWithSubject".equals(operation)) {
 
 				final String subjectType = getDataType(renderContext.getSecurityContext(), entity, parameters);
-
 				if (StringUtils.isBlank(subjectType) || subjectType.startsWith("${")) {
 
 					throw new FrameworkException(422, "control-process operation 'completeWithSubject' requires a Data type to resolve to a SchemaNode name (got: '" + subjectType + "'). For process-bound widgets, ensure the form renders 'data-structr-data-type' to a concrete type name; for static actions, set Data type on the action mapping.");
@@ -2060,7 +2059,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		// verbatim from Camunda. Coerce here so the BPMN keeps its
 		// natural typed semantics without authoring-side glue.
 		coerceConstantValueParameters(triggeredAction, renderContext, parameters);
-		final Object result = m.execute(renderContext, target, NamedArguments.fromMap(parameters));
+		final Object result = m.execute(renderContext, target, NamedArguments.fromMap(parameters).fromEventActionMapping());
 
 		// `start` augments the response with a pre-built page URL so the
 		// EAM `Navigate to URL` follow-up can use {result.url} to drop the
