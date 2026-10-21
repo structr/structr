@@ -76,6 +76,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 	private Session session                        = null;
 	private Gson gson                              = null;
 	private HttpServletRequest request             = null;
+	private String handshakeSessionId              = null;
 	private SecurityContext securityContext        = null;
 	private WebsocketController syncController     = null;
 	private Map<String, FileUploadHandler> uploads = null;
@@ -93,6 +94,19 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 		this.syncController = syncController;
 		this.gson           = gson;
 		this.authenticator  = authenticator;
+	}
+
+	public void setHandshakeSessionId(final String sessionId) {
+
+		this.handshakeSessionId = sessionId;
+	}
+
+	/** The session id the message names, or else the one of the session cookie the browser sent with the handshake. */
+	public String getSessionId(final WebSocketMessage message) {
+
+		final String fromMessage = message.getSessionId();
+
+		return fromMessage != null ? fromMessage : handshakeSessionId;
 	}
 
 	public void setRequest(final HttpServletRequest request) {
@@ -206,7 +220,6 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 		final App app                        = StructrApp.getInstance(securityContext);
 		final String command                 = webSocketData.getCommand();
 		final Class type                     = commandSet.get(command);
-		final String sessionIdFromMessage = webSocketData.getSessionId();
 
 		if (type != null) {
 
@@ -218,10 +231,12 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 				tx.setIsPing(isPing);
 
-				if (sessionIdFromMessage != null) {
+				// a message without a session id is checked against the handshake session only while unauthenticated and on PING, like the clients that send one
+				final String sessionId = webSocketData.getSessionId() != null || isPing || !isAuthenticated() ? getSessionId(webSocketData) : null;
+				if (sessionId != null) {
 
 					// try to authenticate this connection by sessionId
-					authenticate(SessionHelper.getShortSessionId(sessionIdFromMessage), isPing);
+					authenticate(SessionHelper.getShortSessionId(sessionId), isPing);
 				}
 
 				// we only permit LOGIN commands if authentication based on sessionId was not successful

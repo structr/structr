@@ -94,6 +94,12 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 				// object. This replaces the previous approach of reflectively nulling
 				// ServletApiRequest._servletChannel, which required an --add-opens on the Jetty servlet module.
 				webSocket.setRequest(new DetachedHttpServletRequest(apiRequest));
+
+				// the browser's session cookie identifies the connection, so the page never has to read it (HttpOnly)
+				if (isOriginTrustedForSessionCookie(request)) {
+
+					webSocket.setHandshakeSessionId(apiRequest.getRequestedSessionId());
+				}
 			}
 
 			return webSocket;
@@ -137,23 +143,48 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 			return true;
 		}
 
-		final String acceptedOriginsConfig = Settings.AccessControlAcceptedOrigins.getValue();
-		if (StringUtils.isNotBlank(acceptedOriginsConfig)) {
+		final List<String> accepted = getAcceptedOrigins();
+		if (accepted.contains("*") || accepted.contains(origin)) {
 
-			final List<String> accepted = Arrays.stream(acceptedOriginsConfig.split(","))
-				.map(String::trim)
-				.filter(StringUtils::isNotBlank)
-				.collect(Collectors.toList());
-
-			if (accepted.contains("*") || accepted.contains(origin)) {
-
-				return true;
-			}
+			return true;
 		}
 
 		logger.warn("WebSocket upgrade rejected: Origin '{}' not allowed for request to {}", origin, requestUri);
 
 		return false;
+	}
+
+	/** Stricter than isOriginAllowed: a wildcard in access.control.accepted.origins does not count, so a foreign page cannot ride on a user's session cookie. */
+	private boolean isOriginTrustedForSessionCookie(final ServerUpgradeRequest request) {
+
+		final String origin = request.getHeaders().get("Origin");
+		if (StringUtils.isBlank(origin)) {
+
+			return true;
+		}
+
+		try {
+
+			return isSameOrigin(new URI(origin), request.getHttpURI()) || getAcceptedOrigins().contains(origin);
+
+		} catch (final URISyntaxException e) {
+
+			return false;
+		}
+	}
+
+	private List<String> getAcceptedOrigins() {
+
+		final String acceptedOriginsConfig = Settings.AccessControlAcceptedOrigins.getValue();
+		if (StringUtils.isBlank(acceptedOriginsConfig)) {
+
+			return List.of();
+		}
+
+		return Arrays.stream(acceptedOriginsConfig.split(","))
+			.map(String::trim)
+			.filter(StringUtils::isNotBlank)
+			.collect(Collectors.toList());
 	}
 
 	private boolean isSameOrigin(final URI originUri, final HttpURI requestUri) {

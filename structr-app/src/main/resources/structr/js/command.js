@@ -29,7 +29,6 @@ let Command = {
 	login: function(data) {
 		let obj = {
 			command: 'LOGIN',
-			sessionId: Structr.getSessionId(),
 			data: data
 		};
 		return StructrWS.sendObj(obj);
@@ -40,7 +39,6 @@ let Command = {
 	logout: function(username) {
 		let obj = {
 			command: 'LOGOUT',
-			sessionId: Structr.getSessionId(),
 			data: {
 				username: username
 			}
@@ -52,8 +50,7 @@ let Command = {
 	 */
 	ping: function(callback) {
 		let obj = {
-			command: 'PING',
-			sessionId: Structr.getSessionId()
+			command: 'PING'
 		};
 		return StructrWS.sendObj(obj, callback);
 	},

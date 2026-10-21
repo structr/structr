@@ -83,14 +83,22 @@ let StructrWS = {
 
 		let message = Object.assign({ type: 'connect' }, wsInfo);
 
-		StructrWS.sessionId = Structr.getSessionId();
-		if (!StructrWS.sessionId) {
-			Structr.renewSessionId(() => {
-				StructrWS.wsWorker.postMessage(message);
-			});
-		} else {
+		// the handshake carries the session cookie, so a session must exist before it
+		Structr.renewSessionId(() => {
 			StructrWS.wsWorker.postMessage(message);
+		});
+	},
+	onNextOpen: undefined,
+	renew: (callback) => {
+
+		let wsInfo = StructrWS.getWSConnectionInfo();
+		if (wsInfo === false) {
+			return;
 		}
+
+		StructrWS.onNextOpen = callback;
+
+		StructrWS.wsWorker.postMessage(Object.assign({ type: 'renew' }, wsInfo));
 	},
 	reconnect: (data) => {
 
@@ -110,16 +118,7 @@ let StructrWS = {
 		StructrWS.wsWorker.postMessage({ type: 'close' });
 	},
 	ping: () => {
-
-		StructrWS.sessionId = Structr.getSessionId();
-
-		if (StructrWS.sessionId) {
-			Command.ping();
-		} else {
-			Structr.renewSessionId(() => {
-				Command.ping();
-			});
-		}
+		Command.ping();
 	},
 	startPing: () => {
 		StructrWS.wsWorker.postMessage({ type: 'startPing' });
@@ -145,6 +144,13 @@ let StructrWS = {
 		StructrWS.stopReconnect();
 		Structr.init();
 		StructrWS.startPing();
+
+		let onNextOpen = StructrWS.onNextOpen;
+		StructrWS.onNextOpen = undefined;
+
+		if (typeof onNextOpen === 'function') {
+			onNextOpen();
+		}
 	},
 	onclose: (workerMessage) => {
 
@@ -257,6 +263,9 @@ let StructrWS = {
 				if (data.data.reason === 'sessionLimitExceeded') {
 					_Dialogs.loginDialog.show();
 					_Dialogs.loginDialog.appendErrorMessage('Max. number of sessions exceeded.');
+				} else if (data.data.reason === 'noSessionCookie') {
+					_Dialogs.loginDialog.show();
+					Structr.showSessionCookieWarning();
 				} else {
 					_Dialogs.loginDialog.show();
 
