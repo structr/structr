@@ -105,6 +105,10 @@ let _Config = {
 				_Config.postAction('setMaintenance', { enabled: e.target.dataset.enabled });
 			});
 
+			let configureSuperuserCredentialsFormContainer = document.getElementById('superuser-credentials-form');
+			if (configureSuperuserCredentialsFormContainer) {
+				configureSuperuserCredentialsFormContainer.innerHTML = _Config.templates.configureSuperuserForm;
+			}
 
 			// react to invalid form elements
 			let configForm = document.querySelector('form.config-form');
