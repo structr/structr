@@ -63,6 +63,12 @@ public class DeploymentStorageConfigurationTest extends DeploymentTestBase {
 		config.put("customSetting", "custom-value");
 		config.put("secretSetting", "s3cr3t-value");
 
+		// the per-mount sync settings, which a deployment round trip has to keep (#1647)
+		config.put("sync.watchContents", "true");
+		config.put("sync.scanInterval",  "60");
+		config.put("sync.fileType",      "File");
+		config.put("sync.folderType",    "Folder");
+
 		String configUuid = null;
 		String folderUuid = null;
 

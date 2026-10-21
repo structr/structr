@@ -20,10 +20,10 @@ package org.structr.files.sync;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -33,6 +33,7 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.sync.ExternalEntry;
+import org.structr.storage.sync.SyncSettings;
 import org.structr.storage.sync.SyncTarget;
 import org.structr.storage.sync.VanishPolicy;
 import org.structr.web.common.FileHelper;
@@ -46,7 +47,7 @@ import org.structr.web.traits.definitions.FolderTraitDefinition;
 /**
  * Maps external change events and enumerated entries for one sync target
  * onto graph operations: creates, updates, moves and deletes File and Folder
- * nodes (honouring mountTargetFileType/mountTargetFolderType), creates
+ * nodes (honouring sync.fileType/sync.folderType), creates
  * intermediate folders, marks nodes isExternal, maintains lastSeenMounted
  * and triggers fulltext indexing and metadata refresh where content actually
  * changed. All methods require an active transaction.
@@ -264,14 +265,6 @@ public class ExternalFileSyncHandler {
 			return syncRoot;
 		}
 
-		if (!target.syncRootIsFolder()) {
-
-			logger.warn("Ignoring entry {} of sync target {}: sync root is a single file and cannot contain other entries", entry.relativePath(), target.syncRootPath());
-			stats.ignored++;
-
-			return null;
-		}
-
 		final NodeInterface parentFolder = resolveParentFolder(syncRoot, entry, create);
 		if (parentFolder == null) {
 
@@ -306,13 +299,19 @@ public class ExternalFileSyncHandler {
 					return null;
 				}
 
-				// remaining folders do not exist yet and will inherit this target's
-				// configuration, so no boundary can be crossed below this point.
-				// read the sync root's path fresh from the node - ancestors may have
-				// been renamed since the target snapshot was taken
-				final String virtualParentPath = syncRoot.as(AbstractFile.class).getPath() + "/" + parentPath;
+				// a folder the storage implies but does not list, as S3 never lists folders: it
+				// is as external as the entry below it, so that reconciliation can remove it once
+				// its contents are gone, and it is created by the sync layer, so that it is not
+				// sent back to the storage it came from
+				current = app.create(getTargetType(true),
+					new NodeAttribute<>(nameKey, segment),
+					new NodeAttribute<>(parentKey, current),
+					new NodeAttribute<>(traits.key(AbstractFileTraitDefinition.IS_EXTERNAL_PROPERTY), true)
+				);
 
-				return FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), virtualParentPath);
+				stats.created++;
+
+				continue;
 			}
 
 			if (child.as(AbstractFile.class).getStorageConfiguration() != null) {
@@ -368,7 +367,7 @@ public class ExternalFileSyncHandler {
 
 		if (node == null && doCreate) {
 
-			final String type            = getTargetType(syncRoot, entry.directory());
+			final String type            = getTargetType(entry.directory());
 			final PropertyMap properties = new PropertyMap();
 
 			properties.put(nameKey,       entry.name());
@@ -395,36 +394,29 @@ public class ExternalFileSyncHandler {
 		return node;
 	}
 
-	private String getTargetType(final NodeInterface syncRoot, final boolean directory) {
+	private String getTargetType(final boolean directory) {
 
-		String fileType   = null;
-		String folderType = null;
+		final SyncSettings settings = SyncSettings.fromConfiguration(target.configuration());
+		String fileType             = settings.fileType();
+		String folderType           = settings.folderType();
 
-		if (syncRoot.is(StructrTraits.FOLDER)) {
+		if (fileType != null) {
 
-			final Folder rootFolder = syncRoot.as(Folder.class);
+			final Traits traits = Traits.of(fileType);
+			if (traits == null || !traits.contains(StructrTraits.FILE)) {
 
-			fileType   = rootFolder.getMountTargetFileType();
-			folderType = rootFolder.getMountTargetFolderType();
-
-			if (fileType != null) {
-
-				final Traits traits = Traits.of(fileType);
-				if (traits == null || !traits.contains(StructrTraits.FILE)) {
-
-					logger.error("Given target type {} for synchronized files does not extend File.", fileType);
-					fileType = null;
-				}
+				logger.error("Given target type {} for synchronized files does not extend File.", fileType);
+				fileType = null;
 			}
+		}
 
-			if (folderType != null) {
+		if (folderType != null) {
 
-				final Traits traits = Traits.of(folderType);
-				if (traits == null || !traits.contains(StructrTraits.FOLDER)) {
+			final Traits traits = Traits.of(folderType);
+			if (traits == null || !traits.contains(StructrTraits.FOLDER)) {
 
-					logger.error("Given target type {} for synchronized folders does not extend Folder.", folderType);
-					folderType = null;
-				}
+				logger.error("Given target type {} for synchronized folders does not extend Folder.", folderType);
+				folderType = null;
 			}
 		}
 

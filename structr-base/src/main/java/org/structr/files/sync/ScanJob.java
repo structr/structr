@@ -36,7 +36,7 @@ import org.structr.storage.sync.SyncTarget;
 import org.structr.storage.sync.VanishPolicy;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FolderTraitDefinition;
+import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -298,7 +298,7 @@ class ScanJob implements Runnable {
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			final NodeInterface syncRoot = StructrApp.getInstance().getNodeById(StructrTraits.ABSTRACT_FILE, target.syncRootUuid());
-			if (syncRoot != null && target.syncRootIsFolder()) {
+			if (syncRoot != null) {
 
 				collectStale(syncRoot, scanStart, staleUuids);
 			}
@@ -426,17 +426,20 @@ class ScanJob implements Runnable {
 
 	private void updateLastScanned(final long scanStart) {
 
-		if (!target.syncRootIsFolder() || !service.isReady()) {
+		if (!service.isReady()) {
 
 			return;
 		}
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
+		// written as the sync layer, so that recording the scan does not re-attach the mount
+		final App app = StructrApp.getInstance(StorageSyncService.createSyncContext());
 
-			final NodeInterface syncRoot = StructrApp.getInstance().getNodeById(StructrTraits.FOLDER, target.syncRootUuid());
-			if (syncRoot != null) {
+		try (final Tx tx = app.tx()) {
 
-				syncRoot.setProperty(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_LAST_SCANNED_PROPERTY), scanStart);
+			final NodeInterface configuration = app.getNodeById(StructrTraits.STORAGE_CONFIGURATION, target.storageConfigurationUuid());
+			if (configuration != null) {
+
+				configuration.setProperty(Traits.of(StructrTraits.STORAGE_CONFIGURATION).key(StorageConfigurationTraitDefinition.LAST_SCANNED_PROPERTY), scanStart);
 			}
 
 			tx.success();

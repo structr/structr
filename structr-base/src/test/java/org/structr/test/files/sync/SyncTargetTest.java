@@ -42,7 +42,7 @@ public class SyncTargetTest {
 		configuration.put("sync.direction", null);   // created but not set
 		configuration.put(null, "orphan");           // entry without a name
 
-		final SyncTarget target = new SyncTarget("uuid", "/mounted", true, "configUuid", configuration);
+		final SyncTarget target = new SyncTarget("uuid", "/mounted", "configUuid", configuration);
 
 		assertEquals("Set entries must be preserved", "/data", target.configuration().get("mountTarget"));
 		assertFalse("Null-valued entries must be dropped", target.configuration().containsKey("sync.direction"));
@@ -53,7 +53,7 @@ public class SyncTargetTest {
 	@Test
 	public void testNullConfigurationYieldsEmptyMap() {
 
-		final SyncTarget target = new SyncTarget("uuid", "/mounted", true, "configUuid", null);
+		final SyncTarget target = new SyncTarget("uuid", "/mounted", "configUuid", null);
 
 		assertNotNull("Configuration must never be null", target.configuration());
 		assertTrue("Null configuration must yield an empty map", target.configuration().isEmpty());
@@ -62,7 +62,7 @@ public class SyncTargetTest {
 	@Test
 	public void testConfigurationSnapshotIsImmutable() {
 
-		final SyncTarget target = new SyncTarget("uuid", "/mounted", true, "configUuid", Map.of("region", "us-east-1"));
+		final SyncTarget target = new SyncTarget("uuid", "/mounted", "configUuid", Map.of("region", "us-east-1"));
 
 		try {
 
@@ -78,7 +78,7 @@ public class SyncTargetTest {
 
 		try {
 
-			new SyncTarget(null, "/mounted", true, "configUuid", Map.of());
+			new SyncTarget(null, "/mounted", "configUuid", Map.of());
 			fail("SyncTarget must reject a null sync root UUID");
 
 		} catch (IllegalArgumentException expected) {
@@ -86,7 +86,7 @@ public class SyncTargetTest {
 
 		try {
 
-			new SyncTarget("uuid", null, true, "configUuid", Map.of());
+			new SyncTarget("uuid", null, "configUuid", Map.of());
 			fail("SyncTarget must reject a null sync root path");
 
 		} catch (IllegalArgumentException expected) {

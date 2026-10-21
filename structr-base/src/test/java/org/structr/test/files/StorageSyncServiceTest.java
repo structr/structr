@@ -122,9 +122,10 @@ public class StorageSyncServiceTest extends SyncTestBase {
 			// create folder to mount
 			final StorageConfiguration testMount = StorageProviderFactory.createConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString()));
 
+			syncSettings(testMount, true, null);
+
 			app.create(StructrTraits.FOLDER,
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), true),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount)
 			);
 
@@ -199,10 +200,11 @@ public class StorageSyncServiceTest extends SyncTestBase {
 			// create folder to mount
 			final StorageConfiguration testMount = StorageProviderFactory.createConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString()));
 
+			syncSettings(testMount, true, null);
+
 			app.create(StructrTraits.FOLDER,
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted2"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), parent2),
-				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), true),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount)
 			);
 
@@ -279,11 +281,11 @@ public class StorageSyncServiceTest extends SyncTestBase {
 				// create folder to mount
 				final StorageConfiguration testMount = StorageProviderFactory.createConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString()));
 
+				syncSettings(testMount, true, 2);
+
 				app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted3"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY),   true),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY),    2)
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount)
 				);
 
 				tx.success();
@@ -402,8 +404,7 @@ public class StorageSyncServiceTest extends SyncTestBase {
 
 				app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted3"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false)
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount)
 				);
 
 				tx.success();
@@ -528,10 +529,10 @@ public class StorageSyncServiceTest extends SyncTestBase {
 				final StorageConfiguration testMount = StorageProviderFactory.createConfig("pruneMount", LocalFSStorageProvider.class,
 					Map.of("mountTarget", root.toString(), VanishPolicy.POLICY_KEY, VanishPolicy.DELETE.value()));
 
+				syncSettings(testMount, false, 2);
+
 				app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted4"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY), 2),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount)
 				);
 
@@ -602,9 +603,10 @@ public class StorageSyncServiceTest extends SyncTestBase {
 				final StorageConfiguration testMount = StorageProviderFactory.createConfig("ignoreMount", LocalFSStorageProvider.class,
 					Map.of("mountTarget", root.toString()));
 
+				syncSettings(testMount, true, null);
+
 				app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted10"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), true),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount)
 				);
 
@@ -661,9 +663,10 @@ public class StorageSyncServiceTest extends SyncTestBase {
 				final StorageConfiguration testMount = StorageProviderFactory.createConfig("deleteMount", LocalFSStorageProvider.class,
 					Map.of("mountTarget", root.toString(), VanishPolicy.POLICY_KEY, VanishPolicy.DELETE.value()));
 
+				syncSettings(testMount, true, null);
+
 				app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted11"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), true),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount)
 				);
 
@@ -733,10 +736,10 @@ public class StorageSyncServiceTest extends SyncTestBase {
 				final StorageConfiguration testMount = StorageProviderFactory.createConfig("readonlyMount", LocalFSStorageProvider.class,
 					Map.of("mountTarget", root.toString(), VanishPolicy.POLICY_KEY, VanishPolicy.READONLY.value()));
 
+				syncSettings(testMount, false, 2);
+
 				app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted12"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY), 2),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount)
 				);
 
@@ -817,9 +820,10 @@ public class StorageSyncServiceTest extends SyncTestBase {
 				final StorageConfiguration testMount = StorageProviderFactory.createConfig("addedEntryMount", LocalFSStorageProvider.class,
 					Map.of("mountTarget", root.toString()));
 
+				syncSettings(testMount, true, null);
+
 				app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted13"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), true),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount)
 				);
 
@@ -1327,17 +1331,16 @@ public class StorageSyncServiceTest extends SyncTestBase {
 					Map.of("mountTarget", outerDir.toString(), VanishPolicy.POLICY_KEY, VanishPolicy.DELETE.value()));
 
 				final StorageConfiguration innerMount = StorageProviderFactory.createConfig("innerMount", LocalFSStorageProvider.class, Map.of("mountTarget", innerDir.toString()));
+				syncSettings(outerMount, false, 2);
+
 				final NodeInterface outer = app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "outer"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY), 2),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), outerMount)
 				);
 
 				app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "inner"),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), outer),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), innerMount)
 				);
 
@@ -1404,7 +1407,6 @@ public class StorageSyncServiceTest extends SyncTestBase {
 				final StorageConfiguration mount = StorageProviderFactory.createConfig("uuidMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString()));
 				final NodeInterface folder = app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted5"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount)
 				);
 
@@ -1418,7 +1420,7 @@ public class StorageSyncServiceTest extends SyncTestBase {
 				fail("Unexpected exception.");
 			}
 
-			final SyncTarget target = new SyncTarget(folderUuid, "/mounted5", true, configUuid, Map.of("mountTarget", root.toString()));
+			final SyncTarget target = new SyncTarget(folderUuid, "/mounted5", configUuid, Map.of("mountTarget", root.toString()));
 
 			// the handler always runs in sync-originated transactions (see StorageSyncService)
 			final App syncApp = StructrApp.getInstance(StorageSyncService.createSyncContext());
@@ -1521,7 +1523,6 @@ public class StorageSyncServiceTest extends SyncTestBase {
 				final StorageConfiguration mount = StorageProviderFactory.createConfig("extKeyMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString()));
 				final NodeInterface folder = app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted6"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount)
 				);
 
@@ -1535,7 +1536,7 @@ public class StorageSyncServiceTest extends SyncTestBase {
 				fail("Unexpected exception.");
 			}
 
-			final SyncTarget target = new SyncTarget(folderUuid, "/mounted6", true, configUuid, Map.of("mountTarget", root.toString()));
+			final SyncTarget target = new SyncTarget(folderUuid, "/mounted6", configUuid, Map.of("mountTarget", root.toString()));
 			final App syncApp        = StructrApp.getInstance(StorageSyncService.createSyncContext());
 			final String nativeKey = "docs/report.pdf";
 			final long now         = System.currentTimeMillis();
@@ -1656,7 +1657,6 @@ public class StorageSyncServiceTest extends SyncTestBase {
 			final StorageConfiguration testMount = StorageProviderFactory.createConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString()));
 			final AccessControllable folder = app.create(StructrTraits.FOLDER,
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted"),
-				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount)
 			).as(AccessControllable.class);
 
@@ -1762,7 +1762,6 @@ public class StorageSyncServiceTest extends SyncTestBase {
 
 				app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "outbound1"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount)
 				);
 
@@ -1861,7 +1860,6 @@ public class StorageSyncServiceTest extends SyncTestBase {
 
 				final NodeInterface folder = app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "outbound2"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount)
 				);
 
@@ -1990,7 +1988,6 @@ public class StorageSyncServiceTest extends SyncTestBase {
 
 				app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "guarded"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount)
 				);
 
@@ -2049,10 +2046,10 @@ public class StorageSyncServiceTest extends SyncTestBase {
 				final StorageConfiguration mount = StorageProviderFactory.createConfig("outboundOnlyMount", LocalFSStorageProvider.class,
 					Map.of("mountTarget", root.toString(), StorageSyncService.DIRECTION_KEY, "out"));
 
+				syncSettings(mount, true, 2);
+
 				app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "outboundOnly"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), true),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY), 2),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount)
 				);
 
@@ -2137,9 +2134,10 @@ public class StorageSyncServiceTest extends SyncTestBase {
 				final StorageConfiguration mount = StorageProviderFactory.createConfig("echoMount", LocalFSStorageProvider.class,
 					Map.of("mountTarget", root.toString(), StorageSyncService.DIRECTION_KEY, "both"));
 
+				syncSettings(mount, true, null);
+
 				app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "echo"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), true),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount)
 				);
 

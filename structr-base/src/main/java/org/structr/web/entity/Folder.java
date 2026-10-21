@@ -24,9 +24,6 @@ import java.util.List;
 
 public interface Folder extends AbstractFile {
 
-	String getMountTarget();
-	String getMountTargetFileType();
-	String getMountTargetFolderType();
 	String getEnabledChecksums();
 	boolean isExcludeSubtreeFromExport();
 

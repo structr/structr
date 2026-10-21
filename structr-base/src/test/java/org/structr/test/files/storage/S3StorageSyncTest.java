@@ -565,7 +565,7 @@ public class S3StorageSyncTest extends SyncTestBase {
 	public void testListingAMissingBucketOrAnUnreachableEndpointFailsInsteadOfListingNothing() {
 
 		// an empty listing would read as "everything vanished" and be reconciled accordingly
-		final SyncTarget target = new SyncTarget(NodeServiceCommand.getNextUuid(), "/s3failing", true, null, Map.of());
+		final SyncTarget target = new SyncTarget(NodeServiceCommand.getNextUuid(), "/s3failing", null, Map.of());
 
 		final S3StorageSynchronizer missingBucket = new S3StorageSynchronizer(target, S3ClientCache.getOrCreate(RustFsTestSupport.getEndpoint(), RustFsTestSupport.REGION, RustFsTestSupport.ACCESS_KEY, RustFsTestSupport.SECRET_KEY), uniqueBucket());
 		final S3StorageSynchronizer unreachable   = new S3StorageSynchronizer(target, S3ClientCache.getOrCreate("http://localhost:9", RustFsTestSupport.REGION, RustFsTestSupport.ACCESS_KEY, RustFsTestSupport.SECRET_KEY), uniqueBucket());

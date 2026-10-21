@@ -133,7 +133,7 @@ public class LocalFSStorageSynchronizerTest {
 	}
 
 	private LocalFSStorageSynchronizer synchronizer() {
-		return new LocalFSStorageSynchronizer(new SyncTarget(UUID, "/mount", true, null, Map.of()), root);
+		return new LocalFSStorageSynchronizer(new SyncTarget(UUID, "/mount", null, Map.of()), root);
 	}
 
 	private static void drain(final Iterator<ExternalEntry> it) {

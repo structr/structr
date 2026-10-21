@@ -57,7 +57,7 @@ import java.util.concurrent.ExecutionException;
  *
  * S3-compatible stores have no universal push channel, so watching is not
  * supported and synchronization is driven purely by periodic scans
- * (mountScanInterval).
+ * (sync.scanInterval).
  *
  * Outbound: DELETED events delete the object (mandatory - the direct
  * provider delete is skipped for outbound-governed nodes); MOVED events

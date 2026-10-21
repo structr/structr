@@ -4,16 +4,12 @@ Synchronizes the Structr filesystem (File and Folder nodes) with external storag
 
 ## Configuration
 
-A file or folder is synchronized when it is directly linked to a StorageConfiguration whose provider supports synchronization. For the local filesystem provider, mount a directory by adding a `mountTarget` entry to the storage configuration. The service watches for changes and periodically rescans the backend.
+A folder is synchronized when it is directly linked to a StorageConfiguration whose provider supports synchronization. A file linked to such a configuration only stores its content there; it is not scanned or watched. For the local filesystem provider, mount a directory by adding a `mountTarget` entry to the storage configuration. The service watches for changes and periodically rescans the backend.
 
 ## Folder Properties
 
 | Property | Description |
 |----------|-------------|
-| `mountWatchContents` | Enable live change monitoring for immediate change detection |
-| `mountScanInterval` | Seconds between rescans (0 = no periodic scan) |
-| `mountTargetFileType` | Node type created for discovered files (default: File) |
-| `mountTargetFolderType` | Node type created for discovered folders (default: Folder) |
 | `mountDoFulltextIndexing` | Add discovered files to the fulltext index |
 
 ## Storage Configuration Entries
@@ -21,6 +17,10 @@ A file or folder is synchronized when it is directly linked to a StorageConfigur
 | Entry | Description |
 |-------|-------------|
 | `mountTarget` | Path to the directory on the server filesystem (local provider) |
+| `sync.watchContents` | `true` enables live change monitoring for immediate change detection, where the provider supports it; absent means not watched |
+| `sync.scanInterval` | Seconds between rescans; absent or `0` means no periodic scan |
+| `sync.fileType` | Node type created for discovered files (default: File) |
+| `sync.folderType` | Node type created for discovered folders (default: Folder) |
 | `sync.direction` | Direction of synchronization: `in` (external → Structr, the default when absent), `out` (Structr → external), or `both` |
 | `sync.onVanished` | What happens to a node whose backing entry vanished from the external storage: `ignore` (keep it, the default when absent), `delete`, or `readonly` (keep it, mark it `isExternallyDeleted` and refuse changes until it reappears). Applies to live watch events and to rescans, inbound only |
 

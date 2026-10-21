@@ -1951,6 +1951,25 @@ let _Files = {
 
 			return data;
 		},
+		/**
+		 * Configuration entries hold strings, and an absent entry is what every setting's default means: a ticked box is
+		 * the entry "true", an unticked one is no entry, and a number is stored as its digits.
+		 */
+		toEntryValues: (data) => {
+
+			for (let [name, value] of Object.entries(data)) {
+
+				if (value === true) {
+					data[name] = 'true';
+				} else if (value === false) {
+					data[name] = null;
+				} else if (typeof value === 'number') {
+					data[name] = String(value);
+				}
+			}
+
+			return data;
+		},
 		create: async (dialogText) => {
 
 			let mountConfig = Object.assign({
@@ -1959,13 +1978,13 @@ let _Files = {
 			}, _Files.mountDialog.getDataFromElements(dialogText.querySelectorAll('[data-mount-is-folder-option][data-attribute-name]')));
 
 			let storageConfigurationData      = _Files.mountDialog.getDataFromElements(dialogText.querySelectorAll('[data-mount-is-storageconfiguration-option][data-attribute-name]'));
-			let storageConfigurationEntryData = _Files.mountDialog.getDataFromElements(dialogText.querySelectorAll('[data-mount-is-storageconfigurationentry-option][data-attribute-name]'));
+			let storageConfigurationEntryData = _Files.mountDialog.toEntryValues(_Files.mountDialog.getDataFromElements(dialogText.querySelectorAll('[data-mount-is-storageconfigurationentry-option][data-attribute-name]')));
 
 			storageConfigurationData.provider = _Files.mountDialog.supportedProviders[storageConfigurationData.provider];
 
 			mountConfig.storageConfiguration         = storageConfigurationData;
 			mountConfig.storageConfiguration.name    = 'Configuration for ' + mountConfig.name;
-			mountConfig.storageConfiguration.entries = Object.entries(storageConfigurationEntryData).map(entry => ({ name: entry[0], value: entry[1]}));
+			mountConfig.storageConfiguration.entries = Object.entries(storageConfigurationEntryData).filter(entry => entry[1] !== null).map(entry => ({ name: entry[0], value: entry[1]}));
 
 			return _Files.mountDialog.request(`${Structr.rootUrl}Folder`, 'POST', mountConfig);
 		},
@@ -2029,7 +2048,19 @@ let _Files = {
 
 				let name = element.dataset['attributeName'];
 
-				if (!_Files.mountDialog.writeOnlyEntries.includes(name)) {
+				if (element.type === 'checkbox') {
+					element.checked = (mount.entries[name]?.value === 'true');
+				} else if (element.tagName === 'SELECT') {
+
+					// the service reads these values leniently, so " Both" is a valid way to write "both"; a value no
+					// option matches is shown as the default, which is what the service falls back to as well
+					element.value = (mount.entries[name]?.value ?? '').trim().toLowerCase();
+
+					if (element.selectedIndex === -1) {
+						element.value = '';
+					}
+
+				} else if (!_Files.mountDialog.writeOnlyEntries.includes(name)) {
 					element.value = mount.entries[name]?.value ?? '';
 				}
 			}
@@ -2055,13 +2086,13 @@ let _Files = {
 		/**
 		 * Writes the dialog back onto an existing mount. An emptied field removes its configuration entry, because an
 		 * absent entry is what every setting's default means; a write-only field left empty is left as it is.
-		 * Entries the dialog does not show (sync.direction, for one) are never touched.
+		 * Entries the dialog does not show are never touched.
 		 */
 		save: async (dialogText, mount) => {
 
 			let providerKey = dialogText.querySelector('#storage-configuration-provider').value;
 			let folderData  = _Files.mountDialog.getDataFromElements(dialogText.querySelectorAll('[data-mount-is-folder-option][data-attribute-name]'), true);
-			let entryData   = _Files.mountDialog.getDataFromElements(dialogText.querySelectorAll('[data-mount-is-storageconfigurationentry-option][data-attribute-name]'), true);
+			let entryData   = _Files.mountDialog.toEntryValues(_Files.mountDialog.getDataFromElements(dialogText.querySelectorAll('[data-mount-is-storageconfigurationentry-option][data-attribute-name]'), true));
 
 			let providerChanged = (providerKey !== mount.providerKey);
 			let targetChanged   = providerChanged || _Files.mountDialog.providerEntryNames(providerKey).some(name => {
@@ -2167,15 +2198,15 @@ let _Files = {
 							</tr>
 							<tr>
 								<td data-comment="The scan interval for repeated scans of this mount target">Scan Interval (s)</td>
-								<td><input type="number" class="box-border w-full" data-mount-is-folder-option data-attribute-name="mountScanInterval"></td>
+								<td><input type="number" class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="sync.scanInterval"></td>
 							</tr>
 							<tr>
 								<td data-comment="Folders encountered underneath this mounted folder are created with this type">Mount Target Folder Type</td>
-								<td><input type="text" class="box-border w-full" data-mount-is-folder-option data-attribute-name="mountTargetFolderType"></td>
+								<td><input type="text" class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="sync.folderType"></td>
 							</tr>
 							<tr>
 								<td data-comment="Files encountered underneath this mounted folder are created with this type">Mount Target File Type</td>
-								<td><input type="text" class="box-border w-full" data-mount-is-folder-option data-attribute-name="mountTargetFileType"></td>
+								<td><input type="text" class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="sync.fileType"></td>
 							</tr>
 							<tr>
 								<td data-comment="List of checksum types which are being automatically calculated on file creation.<br>Supported values are: crc32, md5, sha1, sha512">Enabled Checksums</td>
@@ -2183,7 +2214,7 @@ let _Files = {
 							</tr>
 							<tr>
 								<td data-comment="Registers this path with a watch service (if supported by operating/file system)">Watch Folder Contents</td>
-								<td><input type="checkbox" data-mount-is-folder-option data-attribute-name="mountWatchContents"></td>
+								<td><input type="checkbox" data-mount-is-storageconfigurationentry-option data-attribute-name="sync.watchContents"></td>
 							</tr>
 							<tr>
 								<td data-comment="What happens in Structr when a file or folder disappears from the mounted storage.<br>Ignore keeps the node, delete removes it, read-only keeps it but marks it as deleted and refuses changes until it reappears.">When Contents Disappear</td>
@@ -2192,6 +2223,16 @@ let _Files = {
 										<option selected value="">Ignore</option>
 										<option value="delete">Delete in Structr</option>
 										<option value="readonly">Mark deleted, read-only</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<td data-comment="Which way changes are synchronized.<br>In: changes in the storage are applied in Structr. Out: changes made in Structr are written to the storage. Both: in both directions.">Sync Direction</td>
+								<td>
+									<select class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="sync.direction">
+										<option selected value="">In (storage to Structr)</option>
+										<option value="out">Out (Structr to storage)</option>
+										<option value="both">Both</option>
 									</select>
 								</td>
 							</tr>

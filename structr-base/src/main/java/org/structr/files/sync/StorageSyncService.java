@@ -507,6 +507,15 @@ public class StorageSyncService extends Thread implements RunnableService {
 			return;
 		}
 
+		// only folders are sync roots: a file linked to a storage configuration keeps its content there
+		// and is not scanned or watched
+		if (!abstractFile.is(StructrTraits.FOLDER)) {
+
+			detach(uuid);
+
+			return;
+		}
+
 		final StorageProvider provider = StorageProviderFactory.getStorageProvider(abstractFile);
 		if (!(provider instanceof SynchronizableStorageProvider synchronizable)) {
 
@@ -515,15 +524,13 @@ public class StorageSyncService extends Thread implements RunnableService {
 			return;
 		}
 
-		final boolean isFolder      = abstractFile.is(StructrTraits.FOLDER);
 		final String path           = abstractFile.getPath();
-		final SyncTarget syncTarget = new SyncTarget(uuid, path, isFolder, config.getUuid(), config.getConfiguration());
+		final SyncTarget syncTarget = new SyncTarget(uuid, path, config.getUuid(), config.getConfiguration());
 
-		// folder-level sync settings, defaults for single-file sync roots
-		final Traits folderTraits    = Traits.of(StructrTraits.FOLDER);
-		final boolean watchContents  = isFolder && Boolean.TRUE.equals(abstractFile.getProperty(folderTraits.key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY)));
-		final Integer scanInterval   = isFolder ? abstractFile.getProperty(folderTraits.key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY)) : null;
-		final Long lastScanned       = isFolder ? abstractFile.getProperty(folderTraits.key(FolderTraitDefinition.MOUNT_LAST_SCANNED_PROPERTY)) : null;
+		final SyncSettings settings  = SyncSettings.fromConfiguration(syncTarget.configuration());
+		final boolean watchContents  = settings.watchContents();
+		final Integer scanInterval   = settings.scanInterval();
+		final Long lastScanned       = config.getProperty(Traits.of(StructrTraits.STORAGE_CONFIGURATION).key(StorageConfigurationTraitDefinition.LAST_SCANNED_PROPERTY));
 		final VanishPolicy vanishPolicy = VanishPolicy.fromConfiguration(syncTarget.configuration());
 		final SyncDirection direction   = SyncDirection.fromConfiguration(syncTarget.configuration());
 
@@ -609,7 +616,16 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 				sync.lastScanned = System.currentTimeMillis();
 
-				startScan(sync);
+				if (running) {
+
+					startScan(sync);
+
+				} else {
+
+					// attached while the service starts: a scan started now would find the service
+					// layer not yet initialized and give up, so the run loop starts it once it is
+					sync.fullScanRequested = true;
+				}
 
 			} else {
 
@@ -696,7 +712,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 	// ----- quiescence, for callers that must know the service has caught up -----
 	/**
 	 * Waits until no external change event is queued or being handled, no outbound change is pending
-	 * and no scan is running.
+	 * and no scan is running or requested.
 	 *
 	 * @return true if the service became idle within the given time
 	 */
@@ -749,6 +765,11 @@ public class StorageSyncService extends Thread implements RunnableService {
 		}
 
 		buf.append(", running scans: ").append(scanThreads.stream().map(Thread::getName).toList());
+
+		synchronized (targets) {
+
+			buf.append(", requested scans: ").append(targets.values().stream().filter(sync -> sync.fullScanRequested).map(sync -> sync.target.syncRootPath()).toList());
+		}
 		buf.append(", busy: ").append(busy.get());
 
 		synchronized (targets) {
@@ -777,12 +798,25 @@ public class StorageSyncService extends Thread implements RunnableService {
 			}
 		}
 
+		synchronized (targets) {
+
+			for (final ActiveSync sync : targets.values()) {
+
+				if (sync.fullScanRequested && sync.direction.isInbound()) {
+
+					return false;
+				}
+			}
+		}
+
 		return scanThreads.isEmpty() && busy.get() == 0;
 	}
 
 	// ----- interface RunnableService -----
 	@Override
 	public void run() {
+
+		boolean attachedAfterInitialization = false;
 
 		while (running) {
 
@@ -802,6 +836,23 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 				// loop until we are stopped
 				continue;
+			}
+
+			if (!attachedAfterInitialization) {
+
+				attachedAfterInitialization = true;
+
+				// the migrations run after this service has attached the mounts, and while the service
+				// layer starts, changes to a configuration reach no running service: a mount whose
+				// configuration a migration changed is rebuilt here
+				try {
+
+					attachConfigured();
+
+				} catch (Throwable t) {
+
+					logger.warn("Unable to attach the configured mounts again after startup: {}", t.getMessage());
+				}
 			}
 
 			synchronized (targets) {
@@ -867,14 +918,26 @@ public class StorageSyncService extends Thread implements RunnableService {
 	@Override
 	public void startService() throws Exception {
 
+		attachConfigured();
+
+		running = true;
+
+		this.start();
+	}
+
+	/**
+	 * Attaches every folder that directly carries a storage configuration, found from the
+	 * configuration side: a query for a non-blank relationship property on the files does not match on
+	 * every driver, and there are few configurations. A mount that is attached already is only rebuilt
+	 * if its configuration changed.
+	 */
+	private void attachConfigured() throws FrameworkException {
+
 		final PropertyKey<Iterable<NodeInterface>> configuredKey = Traits.of(StructrTraits.STORAGE_CONFIGURATION).key(StorageConfigurationTraitDefinition.FOLDERS_PROPERTY);
 		final App app                                            = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx(false, false, false)) {
 
-			// every file or folder that directly carries a storage configuration, found from the
-			// configuration side: a query for a non-blank relationship property on the files does not
-			// match on every driver, and there are few configurations
 			for (final NodeInterface configuration : app.nodeQuery(StructrTraits.STORAGE_CONFIGURATION).getAsList()) {
 
 				for (final NodeInterface node : configuration.getProperty(configuredKey)) {
@@ -885,10 +948,6 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 			tx.success();
 		}
-
-		running = true;
-
-		this.start();
 	}
 
 	@Override

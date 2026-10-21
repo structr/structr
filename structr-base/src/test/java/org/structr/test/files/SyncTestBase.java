@@ -50,6 +50,7 @@ import org.structr.storage.sync.ExternalEntry;
 import org.structr.storage.sync.SyncTarget;
 import org.structr.storage.sync.VirtualChangeEvent;
 import org.structr.test.web.StructrUiTest;
+import org.structr.storage.sync.SyncSettings;
 import org.structr.storage.sync.VanishPolicy;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
@@ -61,6 +62,7 @@ import org.structr.web.entity.User;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.StorageConfigurationEntryTraitDefinition;
 import org.structr.web.traits.definitions.FolderTraitDefinition;
+import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
 import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
@@ -222,19 +224,36 @@ public abstract class SyncTestBase extends StructrUiTest {
 	}
 
 	/**
-	 * Creates a mount root for the given storage configuration, inside the caller's transaction. This is
-	 * the one place that decides where the per-mount settings watch and scan interval are stored.
+	 * Creates a mount root for the given storage configuration, inside the caller's transaction, with
+	 * the per-mount settings watch and scan interval.
 	 */
 	protected NodeInterface mountFolder(final String folderName, final StorageConfiguration configuration, final boolean watchContents, final Integer scanInterval) throws FrameworkException {
 
 		final Traits folderTraits = Traits.of(StructrTraits.FOLDER);
 
+		syncSettings(configuration, watchContents, scanInterval);
+
 		return app.create(StructrTraits.FOLDER,
 			new NodeAttribute<>(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), folderName),
-			new NodeAttribute<>(folderTraits.key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), watchContents),
-			new NodeAttribute<>(folderTraits.key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY), scanInterval),
 			new NodeAttribute<>(folderTraits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), configuration)
 		);
+	}
+
+	/**
+	 * Stores the per-mount settings watch and scan interval as entries of the given storage
+	 * configuration, inside the caller's transaction. A setting at its default gets no entry.
+	 */
+	protected void syncSettings(final StorageConfiguration configuration, final boolean watchContents, final Integer scanInterval) throws FrameworkException {
+
+		if (watchContents) {
+
+			configuration.addEntry(SyncSettings.WATCH_CONTENTS_KEY, "true");
+		}
+
+		if (scanInterval != null) {
+
+			configuration.addEntry(SyncSettings.SCAN_INTERVAL_KEY, Integer.toString(scanInterval));
+		}
 	}
 
 	/**
@@ -287,20 +306,32 @@ public abstract class SyncTestBase extends StructrUiTest {
 
 		waitFor("Mount " + folderName + " should have completed a scan", () -> {
 
-			try (final Tx tx = app.tx()) {
+			final Long lastScanned = getLastScanned(folderName);
 
-				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name(folderName).getFirst();
-				final Long lastScanned     = folder != null ? folder.getProperty(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_LAST_SCANNED_PROPERTY)) : null;
-
-				tx.success();
-
-				return lastScanned != null && lastScanned > timestamp;
-
-			} catch (FrameworkException fex) {
-
-				return false;
-			}
+			return lastScanned != null && lastScanned > timestamp;
 		});
+	}
+
+	/**
+	 * @return the time the last complete scan of the named mount root started, recorded on its storage
+	 * configuration, or null
+	 */
+	protected Long getLastScanned(final String folderName) {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface folder       = app.nodeQuery(StructrTraits.FOLDER).name(folderName).getFirst();
+			final StorageConfiguration config = folder != null ? folder.as(AbstractFile.class).getStorageConfiguration() : null;
+			final Long lastScanned           = config != null ? config.getProperty(Traits.of(StructrTraits.STORAGE_CONFIGURATION).key(StorageConfigurationTraitDefinition.LAST_SCANNED_PROPERTY)) : null;
+
+			tx.success();
+
+			return lastScanned;
+
+		} catch (FrameworkException fex) {
+
+			return null;
+		}
 	}
 
 	protected Object getFileProperty(final String name, final String key) {

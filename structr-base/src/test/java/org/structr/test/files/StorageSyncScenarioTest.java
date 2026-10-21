@@ -23,6 +23,7 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.files.sync.StorageSyncService;
 import org.structr.storage.sync.SyncDirection;
+import org.structr.storage.sync.SyncSettings;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -38,7 +39,6 @@ import org.structr.storage.sync.VirtualChangeEvent;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-import org.structr.web.traits.definitions.FolderTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -628,16 +628,11 @@ public class StorageSyncScenarioTest extends SyncTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final Traits traits = Traits.of(StructrTraits.FOLDER);
+			mountFolder("types", StorageProviderFactory.createConfig("scripted-types", ScriptedStorageProvider.class,
+				Map.of(ScriptedStorageProvider.SCENARIO_KEY, "types", SyncSettings.FILE_TYPE_KEY, StructrTraits.IMAGE)), false, null);
 
-			final NodeInterface typed = mountFolder("types", StorageProviderFactory.createConfig("scripted-types", ScriptedStorageProvider.class, Map.of(ScriptedStorageProvider.SCENARIO_KEY, "types")), false, null);
-
-			typed.setProperty(traits.key(FolderTraitDefinition.MOUNT_TARGET_FILE_TYPE_PROPERTY), StructrTraits.IMAGE);
-
-			final NodeInterface unknown = mountFolder("unknownTypes", StorageProviderFactory.createConfig("scripted-unknownTypes", ScriptedStorageProvider.class, Map.of(ScriptedStorageProvider.SCENARIO_KEY, "unknownTypes")), false, null);
-
-			unknown.setProperty(traits.key(FolderTraitDefinition.MOUNT_TARGET_FILE_TYPE_PROPERTY),   "NoSuchType");
-			unknown.setProperty(traits.key(FolderTraitDefinition.MOUNT_TARGET_FOLDER_TYPE_PROPERTY), StructrTraits.FILE);
+			mountFolder("unknownTypes", StorageProviderFactory.createConfig("scripted-unknownTypes", ScriptedStorageProvider.class,
+				Map.of(ScriptedStorageProvider.SCENARIO_KEY, "unknownTypes", SyncSettings.FILE_TYPE_KEY, "NoSuchType", SyncSettings.FOLDER_TYPE_KEY, StructrTraits.FILE)), false, null);
 
 			tx.success();
 
@@ -869,6 +864,165 @@ public class StorageSyncScenarioTest extends SyncTestBase {
 		assertEquals("A scan whose root is gone should stop instead of going through every entry", 0, scenario.entriesHandedOut());
 	}
 
+	@Test
+	public void testAFileWithAStorageConfigurationIsNotASyncRoot() {
+
+		final ScriptedStorageProvider.Scenario folderScenario = ScriptedStorageProvider.scenario("rootFolder");
+		final ScriptedStorageProvider.Scenario fileScenario   = ScriptedStorageProvider.scenario("rootFile");
+
+		// created together, so that once the folder is attached the file has had its chance as well
+		try (final Tx tx = app.tx()) {
+
+			mountFolder("rootFolder", StorageProviderFactory.createConfig("scripted-rootFolder", ScriptedStorageProvider.class, Map.of(ScriptedStorageProvider.SCENARIO_KEY, "rootFolder")), true, null);
+
+			app.create(StructrTraits.FILE,
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "plain.txt"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY),
+					StorageProviderFactory.createConfig("scripted-rootFile", ScriptedStorageProvider.class, Map.of(ScriptedStorageProvider.SCENARIO_KEY, "rootFile", SyncDirection.DIRECTION_KEY, "both")))
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		awaitScanAfter("rootFolder", 0L);
+
+		// a start attaches every node that carries a configuration, which is where a file was taken up
+		try {
+
+			Services.getInstance().shutdownService("StorageSyncService.default");
+			Services.getInstance().startService("StorageSyncService.default");
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception while restarting the service: " + ex.getMessage());
+		}
+
+		waitFor("The folder should be attached again", () -> folderScenario.synchronizersCreated() >= 2);
+		awaitIdle();
+
+		final NodeInterface file = getNodeAtPath("/plain.txt");
+
+		assertEquals("A file should never get a synchronizer of its own", 0, fileScenario.synchronizersCreated());
+		assertFalse("A file should not be a sync root", service().isSynchronized(uuidAt("/plain.txt")));
+
+		// its content lives in the configured storage like any file's, and goes with it
+		assertOutbound(fileScenario, () -> app.delete(file));
+		assertEquals("Deleting the file should delete its content in the configured storage", List.of("plain.txt"), fileScenario.deletes());
+	}
+
+	@Test
+	public void testAMountThatWasNeverScannedIsScannedWhenTheServiceStarts() {
+
+		final ScriptedStorageProvider.Scenario scenario = ScriptedStorageProvider.scenario("startScan").supportsWatching(false).entries(ExternalEntry.file("a.txt", 10L, MODIFIED));
+
+		try {
+
+			// created while the service is down, so the service's start is the first time it sees the mount
+			Services.getInstance().shutdownService("StorageSyncService.default");
+
+			mountScripted("startScan", scenario, false, 3600, Map.of());
+
+			Services.getInstance().startService("StorageSyncService.default");
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception while restarting the service: " + ex.getMessage());
+		}
+
+		waitFor("The mount should be attached on start", () -> scenario.synchronizersCreated() >= 1);
+
+		awaitScanAfter("startScan", 0L);
+
+		assertNotNull("The scan on start should have imported the entry", getNodeAtPath("/startScan/a.txt"));
+	}
+
+	/**
+	 * The time of the last complete scan is recorded on the storage configuration, and a restarted
+	 * service reads it there: a mount whose interval has not elapsed is not scanned again on start.
+	 */
+	@Test
+	public void testScanTimeIsRecordedOnTheConfigurationAndSuppressesTheScanOnRestart() {
+
+		final ScriptedStorageProvider.Scenario scenario = ScriptedStorageProvider.scenario("scanTime").supportsWatching(false).entries(ExternalEntry.file("a.txt", 10L, MODIFIED));
+
+		mountScripted("scanTime", scenario, false, 3600, Map.of());
+
+		awaitScanAfter("scanTime", 0L);
+		awaitIdle();
+
+		final int enumerationsBefore = scenario.enumerations();
+
+		try {
+
+			Services.getInstance().shutdownService("StorageSyncService.default");
+			Services.getInstance().startService("StorageSyncService.default");
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception while restarting the service: " + ex.getMessage());
+		}
+
+		waitFor("The mount should be attached again", () -> scenario.synchronizersCreated() >= 2);
+		awaitIdle();
+
+		assertEquals("A mount scanned within its interval should not be scanned again on start", enumerationsBefore, scenario.enumerations());
+	}
+
+	/**
+	 * A backend without directory entries, S3 for one, only lists files, so the folders above them are
+	 * created on the way. They are as external as the files and go when the files are gone.
+	 */
+	@Test
+	public void testFoldersCreatedAboveADiscoveredFileAreExternalAndReconciled() {
+
+		final ScriptedStorageProvider.Scenario scenario = ScriptedStorageProvider.scenario("implicit").entries(ExternalEntry.file("a/b/x.txt", 10L, MODIFIED));
+
+		mountAndAwaitAttach("implicit", scenario, DELETE);
+
+		assertNotNull("The file should be imported", getNodeAtPath("/implicit/a/b/x.txt"));
+		assertTrue("A folder created on the way should be external", isExternal("/implicit/a"));
+		assertTrue("A folder created on the way should be external", isExternal("/implicit/a/b"));
+
+		final long before = System.currentTimeMillis();
+
+		scenario.entries();
+		scenario.requestFullScan();
+
+		awaitScanAfter("implicit", before);
+
+		assertNull("The vanished file should be deleted",                       getNodeAtPath("/implicit/a/b/x.txt"));
+		assertNull("A folder with nothing left in it should be deleted as well", getNodeAtPath("/implicit/a/b"));
+		assertNull("A folder with nothing left in it should be deleted as well", getNodeAtPath("/implicit/a"));
+	}
+
+	@Test
+	public void testFoldersCreatedForAnInboundEventAreNotSentBack() {
+
+		final ScriptedStorageProvider.Scenario scenario = ScriptedStorageProvider.scenario("implicitEcho");
+
+		mountAndAwaitAttach("implicitEcho", scenario, BOTH);
+
+		scenario.outbound().clear();
+
+		final long handled = handledEvents();
+
+		scenario.emit(ExternalChangeEvent.created(ExternalEntry.file("c/y.txt", 10L, MODIFIED)));
+
+		awaitHandledEventsBeyond(handled);
+		awaitIdle();
+
+		assertNotNull("The file should be imported", getNodeAtPath("/implicitEcho/c/y.txt"));
+		assertEquals("Folders the sync layer created for an inbound change must not be sent back out", List.of(), describeOutbound(scenario));
+	}
+
 	/**
 	 * An entry whose size and modification time are what the node already records has not changed, so a
 	 * scan only marks it as seen: it neither reads the content's metadata again nor rewrites it.
@@ -1015,6 +1169,24 @@ public class StorageSyncScenarioTest extends SyncTestBase {
 		}
 	}
 
+	private boolean isExternal(final String path) {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = getNodeAtPath(path);
+
+			tx.success();
+
+			return node != null && node.as(AbstractFile.class).isExternal();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+
+			return false;
+		}
+	}
+
 	private Long fileModificationDateAt(final String path) {
 
 		try (final Tx tx = app.tx()) {
@@ -1142,25 +1314,6 @@ public class StorageSyncScenarioTest extends SyncTestBase {
 			tx.success();
 
 			return node;
-
-		} catch (FrameworkException fex) {
-
-			fail("Unexpected exception.");
-
-			return null;
-		}
-	}
-
-	private Long getLastScanned(final String folderName) {
-
-		try (final Tx tx = app.tx()) {
-
-			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name(folderName).getFirst();
-			final Long lastScanned     = folder.getProperty(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_LAST_SCANNED_PROPERTY));
-
-			tx.success();
-
-			return lastScanned;
 
 		} catch (FrameworkException fex) {
 
