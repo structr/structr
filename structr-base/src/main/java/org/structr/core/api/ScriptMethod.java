@@ -44,21 +44,23 @@ public class ScriptMethod extends AbstractMethod {
 	private boolean isStaticMethod              = false;
 	private boolean returnRawResult             = false;
 	private boolean wrapJsInMain                = true;
+	private boolean allowUnknownParameters      = false;
 	private String httpVerb                     = null;
 
 	public ScriptMethod(final SchemaMethod method) {
 
 		super(method.getName(), method.getSummary(), method.getDescription());
 
-		this.parameters      = Parameters.fromSchemaMethod(method);
-		this.source          = method.getSource();
-		this.uuid            = method.getUuid();
-		this.name            = method.getName();
-		this.isPrivateMethod = method.isPrivateMethod();
-		this.isStaticMethod  = method.isStaticMethod();
-		this.returnRawResult = method.returnRawResult();
-		this.httpVerb        = method.getHttpVerb();
-		this.wrapJsInMain    = method.wrapJsInMain();
+		this.parameters             = Parameters.fromSchemaMethod(method);
+		this.source                 = method.getSource();
+		this.uuid                   = method.getUuid();
+		this.name                   = method.getName();
+		this.isPrivateMethod        = method.isPrivateMethod();
+		this.isStaticMethod         = method.isStaticMethod();
+		this.returnRawResult        = method.returnRawResult();
+		this.httpVerb               = method.getHttpVerb();
+		this.wrapJsInMain           = method.wrapJsInMain();
+		this.allowUnknownParameters = method.allowUnknownParameters();
 
 		final AbstractSchemaNode declaringClass = method.getSchemaNode();
 		if (declaringClass == null) {
@@ -152,6 +154,12 @@ public class ScriptMethod extends AbstractMethod {
 	public String getDeclaringTrait() {
 
 		return declaringClass;
+	}
+
+	@Override
+	public boolean allowUnknownParameters() {
+
+		return this.allowUnknownParameters;
 	}
 
 	@Override

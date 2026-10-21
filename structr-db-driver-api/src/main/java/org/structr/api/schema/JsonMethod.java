@@ -68,6 +68,9 @@ public interface JsonMethod extends Comparable<JsonMethod> {
 	boolean wrapJsInMain();
 	JsonMethod setWrapJsInMain(final boolean wrapJsInMain);
 
+	boolean allowUnknownParameters();
+	JsonMethod setAllowUnknownParameters(final boolean allowUnknownParameters);
+
 	List<String> getExceptions();
 	JsonMethod addException(final String exception);
 

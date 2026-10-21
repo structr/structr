@@ -66,9 +66,7 @@ public class CompareExportsFunction extends Function<Object, Object> {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-			Usage.structrScript("Usage: ${ compareExports(leftFileId, rightFileId) }"),
-			Usage.javaScript("Usage: ${{ $.compareExports(leftFileId, rightFileId); }}"));
+		return List.of(Usage.structrScript("Usage: ${ compareExports(leftFileId, rightFileId) }"), Usage.javaScript("Usage: ${{ $.compareExports(leftFileId, rightFileId); }}"));
 	}
 
 	@Override
@@ -89,24 +87,21 @@ public class CompareExportsFunction extends Function<Object, Object> {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"The returned object has four keys. `summary` counts the entities on each side and the deltas between them, "
+		return List.of("The returned object has four keys. `summary` counts the entities on each side and the deltas between them, "
 				+ "grouped by operation and kind. `congruence` is the verdict. `profiles` describes each export by its schema "
 				+ "and pages. `deltas` lists every difference, each with its `operation`, `kind`, `key`, `name` and `signal`.",
 			"`congruence.verdict` is one of three values. `SAME_LINEAGE` means the exports are versions of one application and "
 				+ "a change between them can be expressed as an update. `SAME_APP_DIFFERENT_LINEAGE` means the same application "
 				+ "installed independently, where uuids no longer match. `DIFFERENT_APPS` means a diff between them describes "
 				+ "two unrelated applications rather than a change. `congruence.explanation` states the same verdict in a "
-				+ "sentence, with the percentages it rests on.",
-			"Beside the verdict, `congruence` carries `identityOverlap` and `similarity` as ratios, the four `signals` they are "
+				+ "sentence, with the percentages it rests on.", "Beside the verdict, `congruence` carries `identityOverlap` and `similarity` as ratios, the four `signals` they are "
 				+ "computed from (`pageNames`, `schemaTypes`, `localizations`, `pageStructure`), and `provenance`, which names "
 				+ "the Structr version each export came from and when it was taken.",
 			"`identityOverlap` counts application entities only: config files are keyed by their path and the bundled widgets "
 				+ "ship with every installation, so both would match between two instances that have no application in common. "
 				+ "`identityOverlapAllEntities` is the same ratio over everything, kept beside it so the difference is visible.",
 			"The comparison runs inline and returns when it is done; a large real export parses in roughly 180ms, so two "
-				+ "parses and the match stay well under a second.",
-			"The files are looked up by uuid, which is what an export has once it is stored. Pass the uuid of the File "
+				+ "parses and the match stay well under a second.", "The files are looked up by uuid, which is what an export has once it is stored. Pass the uuid of the File "
 				+ "node, not a path.");
 	}
 

@@ -45,6 +45,7 @@ public class DefaultSortOrder implements SortOrder {
 	public DefaultSortOrder(final String type, final String[] sortKeyNames, final String[] sortOrders) throws FrameworkException {
 
 		if (sortKeyNames == null || !Traits.exists(type)) {
+
 			return;
 		}
 
@@ -54,6 +55,7 @@ public class DefaultSortOrder implements SortOrder {
 
 			final String name = sortKeyNames[i];
 			if (StringUtils.isBlank(name)) {
+
 				continue;
 			}
 

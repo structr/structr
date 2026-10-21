@@ -70,7 +70,6 @@ public class RemoteAddressWhitelist {
 	/** setting name to the value it last held and what that parsed to; bounded by the number of settings. */
 	private static final Map<String, Map.Entry<String, Set<String>>> parsedBySetting = new ConcurrentHashMap<>();
 
-
 	public static boolean isWhitelisted(final HttpServletRequest request, final Set<String> whitelist, final String endpoint) {
 
 		final String remoteAddress = request.getRemoteAddr();
@@ -156,7 +155,6 @@ public class RemoteAddressWhitelist {
 		for (final String candidate : source.split(",")) {
 
 			final String entry = candidate.trim();
-
 			if (StringUtils.isBlank(entry)) {
 
 				continue;
@@ -211,6 +209,7 @@ public class RemoteAddressWhitelist {
 				if (candidate == null) {
 
 					// not an address this can compare bitwise, so no range can cover it
+
 					return false;
 				}
 			}
@@ -240,6 +239,7 @@ public class RemoteAddressWhitelist {
 		if (network == null || prefix == null || prefix > network.getAddress().length * 8) {
 
 			// parse() drops these, so reaching one here means an unvalidated set: cover nothing
+
 			return false;
 		}
 
@@ -277,10 +277,10 @@ public class RemoteAddressWhitelist {
 	private static boolean isUsable(final String entry) {
 
 		final int slash = entry.indexOf('/');
-
 		if (slash < 0) {
 
 			// an exact entry, which may be a host name and cannot be validated as an address
+
 			return true;
 		}
 
@@ -316,7 +316,6 @@ public class RemoteAddressWhitelist {
 			return null;
 		}
 	}
-
 
 	// ----- private methods -----
 

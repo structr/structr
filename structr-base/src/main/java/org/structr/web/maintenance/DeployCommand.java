@@ -461,6 +461,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			// migrate imported app
 			if (doMigration) {
+
 				MigrationService.execute();
 			}
 
@@ -1655,7 +1656,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
 			final String relatedType = key.relatedType();
-
 			if (key.isDynamic() && relatedType != null) {
 
 				// this must be restored exactly. we need to store node.id, property, value
@@ -1664,7 +1664,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				// unless we export relationships only, but that would cause other problems
 
 				final String uuid = node.getUuid();
-
 				final Map<String, Object> nodeData = builtinTypeCustomRelationships.getOrDefault(uuid, new LinkedHashMap<>());
 
 				if (key.isCollection()) {
@@ -1695,6 +1694,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				}
 
 				if (!builtinTypeCustomRelationships.containsKey(uuid) && !nodeData.isEmpty()) {
+
 					builtinTypeCustomRelationships.put(uuid, nodeData);
 				}
 			}
@@ -1719,6 +1719,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, FileTraitDefinition.DONT_CACHE_PROPERTY,                file.dontCache());
 			putData(config, FileTraitDefinition.CONTENT_TYPE_PROPERTY,              file.getContentType());
 			putData(config, FileTraitDefinition.CACHE_FOR_SECONDS_PROPERTY,         file.getCacheForSeconds());
+			putData(config, FileTraitDefinition.TRUSTED_PROPERTY,                   file.isTrusted());
 		}
 
 		putData(config, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, abstractFile.includeInFrontendExport(false));
@@ -1732,6 +1733,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				putData(config, FolderTraitDefinition.EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY, true);
 			}
+
+			putIfNotNull(config, FolderTraitDefinition.ENABLED_CHECKSUMS_PROPERTY, folder.getEnabledChecksums());
 		}
 
 		if (abstractFile.is(StructrTraits.LINKABLE)) {
@@ -2074,7 +2077,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface preDeployACDN = app.nodeQuery(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE).key(configTypeKey, PRE_DEPLOY_CONF_ACDN_TYPE).getFirst();
-
 			if (preDeployACDN != null) {
 
 				writeStringToFile(preDeployConf, preDeployACDN.as(ApplicationConfigurationDataNode.class).getContent());
@@ -2092,7 +2094,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			final NodeInterface postDeployACDN = app.nodeQuery(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE).key(configTypeKey, POST_DEPLOY_CONF_ACDN_TYPE).getFirst();
-
 			if (postDeployACDN != null) {
 
 				writeStringToFile(postDeployConf, postDeployACDN.as(ApplicationConfigurationDataNode.class).getContent());
@@ -2506,7 +2507,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Files.exists(confFile)) {
 
 			final App app = StructrApp.getInstance(ctx);
-
 			boolean wrapped = false;
 
 			try (final Tx tx = app.tx()) {
@@ -2971,7 +2971,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final Type type = new TypeToken<Map<String, Map<String, Object>>>(){}.getType();
 				final Map<String, Map<String, Object>> customRelData = getGson().fromJson(reader, type);
-
 				final SecurityContext ctx       = SecurityContext.getSuperUserInstance();
 				final App app                   = StructrApp.getInstance(ctx);
 
@@ -2989,14 +2988,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						if (node != null) {
 
 							final Traits nodeTraits = node.getTraits();
-
 							final Map<String, Object> nodeAttributes = nodeData.getValue();
 
 							for (final Map.Entry<String, Object> entry : nodeAttributes.entrySet()) {
 
 								final String propertyName  = entry.getKey();
 								final Object propertyValue = entry.getValue();
-
 								final PropertyKey key = nodeTraits.key(propertyName);
 
 								if (key != null) {
@@ -3008,7 +3005,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 										for (final String relatedUuid : (List<String>) propertyValue) {
 
 											final NodeInterface relatedNode = app.getNodeById(relatedUuid);
-
 											if (relatedNode != null) {
 
 												relatedNodes.add(relatedNode);
@@ -3489,7 +3485,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void warnAboutEmbeddedUserTypes(final Path dataDir) {
 
 		final Path nodesDir = dataDir.resolve("nodes");
-
 		if (!Files.isDirectory(nodesDir)) {
 
 			return;
@@ -3500,7 +3495,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			for (final Path file : files.toList()) {
 
 				final String fileName = file.getFileName().toString();
-
 				if (!fileName.endsWith(".json")) {
 
 					continue;
@@ -4055,7 +4049,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				// a thrown Error carries no location of its own, so the innermost guest frame is where it happened
 				SourceSection location = polyglot.getSourceLocation();
-
 				if (location == null) {
 
 					for (final PolyglotException.StackFrame frame : polyglot.getPolyglotStackTrace()) {
@@ -4085,6 +4078,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			if (cause == cause.getCause()) {
+
 				break;
 			}
 		}

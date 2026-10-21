@@ -159,7 +159,6 @@ public class TerminatedTransactionTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-
 			final JsonObjectType item = schema.addType("Item");
 
 			item.addBooleanProperty("writtenBy0");

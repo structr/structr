@@ -68,8 +68,6 @@ public class StructrTraits {
 	public static final String EMAIL_MESSAGE                       = "EMailMessage";
 	public static final String MAILBOX                             = "Mailbox";
 	public static final String WIDGET                              = "Widget";
-	public static final String VIRTUAL_TYPE                        = "VirtualType";
-	public static final String VIRTUAL_PROPERTY                    = "VirtualProperty";
 	public static final String MESSAGE_CLIENT                      = "MessageClient";
 	public static final String MESSAGE_SUBSCRIBER                  = "MessageSubscriber";
 	public static final String KAFKA_CLIENT                        = "KafkaClient";
@@ -272,14 +270,12 @@ public class StructrTraits {
 	public static final String SCHEMA_RELATIONSHIP_SOURCE_NODE                                = "SchemaRelationshipSourceNode";
 	public static final String SCHEMA_RELATIONSHIP_TARGET_NODE                                = "SchemaRelationshipTargetNode";
 	public static final String SCHEMA_VIEW_PROPERTY                                           = "SchemaViewProperty";
-	public static final String VIRTUAL_TYPE_VIRTUAL_PROPERTY_VIRTUAL_PROPERTY                 = "VirtualTypevirtualPropertyVirtualProperty";
 	public static final String EMAIL_MESSAGE_HAS_ATTACHMENT_FILE                              = "EMailMessageHAS_ATTACHMENTFile";
 	public static final String MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE                  = "MailboxCONTAINS_EMAILMESSAGESEMailMessage";
 	public static final String MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER                          = "MessageClientHASMessageSubscriber";
 	public static final String VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE                      = "VideoFileHAS_CONVERTED_VIDEOVideoFile";
 	public static final String VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE                              = "VideoFileHAS_POSTER_IMAGEImage";
 	public static final String ODF_EXPORTER_EXPORTS_TO_FILE                                   = "ODFExporterEXPORTS_TOFile";
-	public static final String ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE             = "ODFExporterGETS_TRANSFORMATION_FROMVirtualType";
 	public static final String ODF_EXPORTER_USES_TEMPLATE_FILE                                = "ODFExporterUSES_TEMPLATEFile";
 	public static final String DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM                             = "DataFeedHAS_FEED_ITEMSFeedItem";
 	public static final String FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT                 = "FeedItemFEED_ITEM_CONTENTSFeedItemContent";

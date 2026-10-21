@@ -56,6 +56,7 @@ public class MessagingDeploymentTest extends MessagingTestBase {
 		final MessageEngineModule module = new MessageEngineModule();
 		final Gson gson                  = new GsonBuilder().setPrettyPrinting().create();
 		final Path deployment            = Files.createTempDirectory("structr-messaging-deployment");
+
 		final String subscriberId;
 
 		try (final Tx tx = app.tx()) {
@@ -110,6 +111,7 @@ public class MessagingDeploymentTest extends MessagingTestBase {
 		final MessageEngineModule module = new MessageEngineModule();
 		final Gson gson                  = new GsonBuilder().setPrettyPrinting().create();
 		final Path deployment            = Files.createTempDirectory("structr-messaging-deployment");
+
 		final String mqttId;
 		final String kafkaId;
 		final String pulsarId;

@@ -46,7 +46,6 @@ public class MQTTSubscribeTopicFunction extends MessagingModuleFunction {
 		if (sources != null && sources.length == 2 && sources[0] != null && sources[1] != null) {
 
 			final MQTTClient client = toMQTTClient(sources[0]);
-
 			if(client == null){
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());

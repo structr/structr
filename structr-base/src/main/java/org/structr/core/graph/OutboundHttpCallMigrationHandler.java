@@ -144,7 +144,6 @@ public class OutboundHttpCallMigrationHandler {
 				if (source != null && !source.isEmpty()) {
 
 					final String migrated = migrateSources(findings, type, propertyName, source, node, apply);
-
 					if (apply && !migrated.equals(source)) {
 
 						node.setProperty(key, migrated);
@@ -160,8 +159,8 @@ public class OutboundHttpCallMigrationHandler {
 
 		final String type = StructrTraits.FILE;
 		final Traits traits = Traits.of(type);
-
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+
 		securityContext.setRequestParameter(RequestParameters.EditMode.getName(), "1");
 
 		final App app = StructrApp.getInstance(securityContext);
@@ -176,7 +175,6 @@ public class OutboundHttpCallMigrationHandler {
 				if (source != null && !source.isEmpty()) {
 
 					final String migrated = migrateSources(findings, type, "content", source, file, apply);
-
 					if (apply && !migrated.equals(source)) {
 
 						setFileContent(file, migrated);

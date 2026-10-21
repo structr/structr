@@ -291,6 +291,7 @@ public class DocumentationServlet extends HttpServlet {
 						}
 					}
 				}
+
 			} else if (segments.length == 2) {
 
 				// parent exists

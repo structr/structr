@@ -187,9 +187,7 @@ public class ToExcelMigrationHandlerTest {
 		// a second run must find nothing left to do
 		for (final String call : new String[] {
 
-			"toExcel(find('User'), 'public')",
-			"toExcel(find('User'), ['name', 'id'])",
-			"$.toExcel($.find('User'), 'excelView', true, false, '', 1000, 't')"
+			"toExcel(find('User'), 'public')", "toExcel(find('User'), ['name', 'id'])", "$.toExcel($.find('User'), 'excelView', true, false, '', 1000, 't')"
 		}) {
 
 			assertEquals(Verdict.UP_TO_DATE, verdict(ToExcelMigrationHandler.rewrite(call)));

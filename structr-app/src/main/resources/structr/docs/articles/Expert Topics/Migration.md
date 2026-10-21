@@ -150,6 +150,17 @@ Images, stylesheets and fonts are read from the Structr filesystem by path, unde
 user the page is rendered as. External URLs are not fetched unless `pdf.resources.external.allowed` is
 enabled.
 
+### Undeclared Method Parameters Are Rejected
+
+A method with declared parameters no longer ignores parameters it does not declare. Previously, such
+values were silently dropped, so `$.args` and `$.retrieve()` did not see them, while the call itself
+succeeded. Now a REST or script call fails with a `422 Unprocessable Entity` error and the method is not
+executed. Event Action Mappings still drop such values, and Structr logs a warning.
+
+If a method relies on receiving additional values, either declare them as parameters or enable
+"Allow unknown parameters" in the API tab of the method. Methods without declared parameters accept
+any parameters as before. See Method Parameters in the REST Interface chapter.
+
 ## Migrating to Structr 6.x
 
 Version 6 introduces several breaking changes that require manual migration from 5.x.

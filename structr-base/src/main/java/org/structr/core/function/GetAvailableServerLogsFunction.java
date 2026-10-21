@@ -141,6 +141,7 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 			if (logFile.exists()) {
 
 				// the rolling policy in logback.xml keeps the rotated logs next to it
+
 				return getLogFilesInDirectory(logPath, logFile.getName(), includeCompressed);
 			}
 

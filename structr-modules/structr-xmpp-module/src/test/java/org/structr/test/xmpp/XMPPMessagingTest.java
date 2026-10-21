@@ -561,6 +561,7 @@ public class XMPPMessagingTest extends StructrUiTest {
 		final String prefix       = uniquePrefix();
 		final Traits clientTraits = Traits.of(StructrTraits.XMPP_CLIENT);
 		final Peer peer           = new Peer();
+
 		final String clientId;
 
 		try (final Tx tx = app.tx()) {

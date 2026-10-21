@@ -93,7 +93,7 @@ public class DeprecatedGlobalSchemaMethodsResource extends WildcardMatchEndpoint
 
 			try (final Tx tx = app.tx()) {
 
-				final Arguments arguments     = NamedArguments.fromMap(propertySet);
+				final Arguments arguments     = NamedArguments.fromMap(propertySet).fromCaller();
 				final RestMethodResult result = wrapInResult(method.execute(new ActionContext(securityContext), null, arguments));
 
 				tx.success();
