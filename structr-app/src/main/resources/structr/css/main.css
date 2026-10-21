@@ -2607,7 +2607,7 @@ input.tree-search-input {
 	overflow: auto;
 }
 
-#contents-contents-container, #folder-contents-container, #code-context-container, #flows-canvas-container, #localization-detail, #virtual-type-detail, #mail-template-detail {
+#contents-contents-container, #folder-contents-container, #code-context-container, #flows-canvas-container, #localization-detail, #mail-template-detail {
 	width: 100%;
 }
 

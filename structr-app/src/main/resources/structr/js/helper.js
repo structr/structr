@@ -539,7 +539,6 @@ let _Helpers = {
 			case 'schema-enum':    return '#docs:troubleshooting-guide#enum-property';
 
 			case 'mail-templates':
-			case 'virtual-types':
 			case 'localization':   return '#docs:Admin%20User%20Interface/Localization';
 			default:
 				return '#docs';

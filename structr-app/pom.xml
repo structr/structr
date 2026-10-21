@@ -64,11 +64,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.structr</groupId>
-			<artifactId>structr-api-builder-module</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.structr</groupId>
 			<artifactId>structr-csv-module</artifactId>
 			<version>${project.version}</version>
 		</dependency>

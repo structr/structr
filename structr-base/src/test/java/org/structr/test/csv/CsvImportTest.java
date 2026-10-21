@@ -4,34 +4,38 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test;
+package org.structr.test.csv;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.restassured.RestAssured;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
@@ -46,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -756,5 +761,324 @@ public class CsvImportTest extends CsvTestBase {
 		assertEquals("Invalid CSV export result", expected, actual);
 
 		RestAssured.basePath = "/structr/rest";
+	}
+
+	@Test
+	public void testCsvFileImportWithTransforms() {
+
+		createAdminUser();
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createEmptySchema();
+			final JsonType newType  = schema.addType("Item");
+
+			newType.addIntegerProperty("originId").setIndexed(true);
+			newType.addStringProperty("comment");
+			newType.addStringProperty("unmapped");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Map<String, Object> params     = new LinkedHashMap<>();
+		final Map<String, Object> mappings   = new LinkedHashMap<>();
+		final Map<String, Object> transforms = new LinkedHashMap<>();
+
+		params.put("targetType", "Item");
+		params.put("quoteChar",  "");
+		params.put("delimiter",  ";");
+		params.put("mappings",   mappings);
+		params.put("transforms", transforms);
+
+		mappings.put("originId", "id");
+		mappings.put("name",     "Item name");
+		mappings.put("comment",  "comment");
+
+		// StructrScript and JavaScript input functions, plus a transform without a mapping
+		transforms.put("name",     "upper(input)");
+		transforms.put("comment",  "{ $.get('input') + '-js'; }");
+		transforms.put("unmapped", "'set by transform'");
+
+		importCsv(
+			"id;Item name;comment;unmapped\n" +
+			"1;one;first;x\n" +
+			"2;two;;y",
+			params
+		);
+
+		try (final Tx tx = app.tx()) {
+
+			final Traits traits             = Traits.of("Item");
+			final PropertyKey originId      = traits.key("originId");
+			final List<NodeInterface> items = app.nodeQuery("Item").sort(originId).getAsList();
+
+			assertEquals("Invalid CSV import result", 2, items.size());
+
+			final NodeInterface one = items.get(0);
+			final NodeInterface two = items.get(1);
+
+			assertEquals("Invalid CSV mapping result", (Integer)1, one.getProperty(originId));
+			assertEquals("Invalid CSV mapping result", (Integer)2, two.getProperty(originId));
+
+			assertEquals("StructrScript transform not applied", "ONE", one.getProperty(traits.key("name")));
+			assertEquals("StructrScript transform not applied", "TWO", two.getProperty(traits.key("name")));
+
+			assertEquals("JavaScript transform not applied", "first-js", one.getProperty(traits.key("comment")));
+			assertEquals("JavaScript transform not applied", "-js",      two.getProperty(traits.key("comment")));
+
+			assertNull("Unmapped column must not be imported, even if a transform exists for it", one.getProperty(traits.key("unmapped")));
+			assertNull("Unmapped column must not be imported, even if a transform exists for it", two.getProperty(traits.key("unmapped")));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testCsvFileImportArrayPropertyWithRenamedColumn() {
+
+		createAdminUser();
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createEmptySchema();
+			final JsonType newType  = schema.addType("Item");
+
+			newType.addIntegerProperty("originId").setIndexed(true);
+			newType.addStringArrayProperty("tags");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Map<String, Object> params   = new LinkedHashMap<>();
+		final Map<String, Object> mappings = new LinkedHashMap<>();
+
+		params.put("targetType", "Item");
+		params.put("quoteChar",  "");
+		params.put("delimiter",  ";");
+		params.put("mappings",   mappings);
+
+		mappings.put("originId", "id");
+		mappings.put("tags",     "Tag list");
+
+		importCsv(
+			"id;Tag list\n" +
+			"1;[a,b,c]\n" +
+			"2;[d]\n" +
+			"3;[]\n" +
+			"4;",
+			params
+		);
+
+		try (final Tx tx = app.tx()) {
+
+			final Traits traits              = Traits.of("Item");
+			final PropertyKey originId       = traits.key("originId");
+			final PropertyKey<String[]> tags = traits.key("tags");
+			final List<NodeInterface> items  = app.nodeQuery("Item").sort(originId).getAsList();
+
+			assertEquals("Invalid CSV import result", 4, items.size());
+
+			assertEquals("Array column not split", List.of("a", "b", "c"), List.of(items.get(0).getProperty(tags)));
+			assertEquals("Array column not split", List.of("d"),           List.of(items.get(1).getProperty(tags)));
+
+			assertNull("Empty brackets must not yield an array with an empty element", items.get(2).getProperty(tags));
+			assertNull("Empty cell must not yield an array with an empty element",     items.get(3).getProperty(tags));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testCsvFileImportDistinct() {
+
+		createAdminUser();
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createEmptySchema();
+			final JsonType newType  = schema.addType("Item");
+
+			newType.addIntegerProperty("originId").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Map<String, Object> params   = new LinkedHashMap<>();
+		final Map<String, Object> mappings = new LinkedHashMap<>();
+
+		params.put("targetType", "Item");
+		params.put("quoteChar",  "");
+		params.put("delimiter",  ";");
+		params.put("distinct",   true);
+		params.put("mappings",   mappings);
+
+		mappings.put("originId", "id");
+		mappings.put("name",     "name");
+
+		importCsv(
+			"id;name\n" +
+			"1;one\n" +
+			"1;one\n" +
+			"2;two",
+			params
+		);
+
+		try (final Tx tx = app.tx()) {
+
+			final Traits traits             = Traits.of("Item");
+			final List<NodeInterface> items = app.nodeQuery("Item").sort(traits.key("originId")).getAsList();
+
+			assertEquals("Duplicate CSV line must be ignored in distinct mode", 2, items.size());
+			assertEquals("Invalid CSV mapping result", "one", items.get(0).getName());
+			assertEquals("Invalid CSV mapping result", "two", items.get(1).getName());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testCsvFileImportRelationshipsWithTransform() {
+
+		final String projectId = "0f0e0d0c0b0a49388f7e6d5c4b3a2910";
+		final String taskId    = "1a2b3c4d5e6f47a8b9c0d1e2f3a4b5c6";
+
+		createAdminUser();
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createEmptySchema();
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS", Cardinality.ManyToMany, "projects", "tasks").addStringProperty("role");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.create("Project", new NodeAttribute<>(Traits.of("Project").key(GraphObjectTraitDefinition.ID_PROPERTY), projectId), new NodeAttribute<>(Traits.of("Project").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "project"));
+			app.create("Task",    new NodeAttribute<>(Traits.of("Task").key(GraphObjectTraitDefinition.ID_PROPERTY),    taskId),    new NodeAttribute<>(Traits.of("Task").key(NodeInterfaceTraitDefinition.NAME_PROPERTY),    "task"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Map<String, Object> params     = new LinkedHashMap<>();
+		final Map<String, Object> mappings   = new LinkedHashMap<>();
+		final Map<String, Object> transforms = new LinkedHashMap<>();
+
+		params.put("targetType", "ProjectHASTask");
+		params.put("quoteChar",  "");
+		params.put("delimiter",  ";");
+		params.put("mappings",   mappings);
+		params.put("transforms", transforms);
+
+		mappings.put("sourceId", "from");
+		mappings.put("targetId", "to");
+		mappings.put("role",     "role");
+
+		transforms.put("role", "upper(input)");
+
+		importCsv(
+			"from;to;role\n" +
+			projectId + ";" + taskId + ";lead",
+			params
+		);
+
+		try (final Tx tx = app.tx()) {
+
+			final List<RelationshipInterface> rels = app.relationshipQuery("ProjectHASTask").getAsList();
+
+			assertEquals("Invalid CSV relationship import result", 1, rels.size());
+
+			final RelationshipInterface rel = rels.get(0);
+
+			assertEquals("Wrong source node", projectId, rel.getSourceNodeId());
+			assertEquals("Wrong target node", taskId,    rel.getTargetNodeId());
+			assertEquals("Transform not applied to relationship property", "LEAD", rel.getProperty(Traits.of("ProjectHASTask").key("role")));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	// ----- private methods -----
+	private void importCsv(final String csvData, final Map<String, Object> params) {
+
+		String fileId = null;
+
+		try (final Tx tx = app.tx()) {
+
+			fileId = FileHelper.createFile(securityContext, csvData.getBytes("utf-8"), "text/csv", StructrTraits.FILE, "test.csv", true).getUuid();
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.body(new GsonBuilder().create().toJson(params))
+			.expect().statusCode(200).when().post("/File/" + fileId + "/doCSVImport");
+
+		// wait for result (import is async.)
+		try { Thread.sleep(10000); } catch (Throwable t) {}
 	}
 }

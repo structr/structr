@@ -18,23 +18,18 @@
  */
 package org.structr.odf.entity;
 
+import org.structr.common.PropertyMapping;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.transform.VirtualType;
 import org.structr.web.entity.File;
 
 /**
- * Base class for ODF exporter
+ * Common interface of the ODS and ODT exporters.
  */
 public interface ODFExporter extends NodeInterface {
-
-	String ODF_IMAGE_PARENT_NAME                 = "draw:frame";
-	String ODF_IMAGE_ATTRIBUTE_PARENT_IMAGE_NAME = "draw:name";
-	String ODF_IMAGE_ATTRIBUTE_FILE_PATH         = "xlink:href";
-	String ODF_IMAGE_DIRECTORY                   = "Pictures/";
 
 	File getDocumentTemplate();
 	File getResultDocument();
 	void setResultDocument(final File resultDocument) throws FrameworkException;
-	VirtualType getTransformationProvider();
+	PropertyMapping getPropertyMapping() throws FrameworkException;
 }
