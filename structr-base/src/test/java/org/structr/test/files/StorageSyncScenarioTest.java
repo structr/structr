@@ -1023,6 +1023,62 @@ public class StorageSyncScenarioTest extends SyncTestBase {
 		assertEquals("Folders the sync layer created for an inbound change must not be sent back out", List.of(), describeOutbound(scenario));
 	}
 
+	@Test
+	public void testFolderRenamedAndDeletedInOneTransactionIsDeletedWhereTheStorageHasIt() {
+
+		final ScriptedStorageProvider.Scenario scenario = ScriptedStorageProvider.scenario("renameDelete").entries(
+			ExternalEntry.directory("f", MODIFIED),
+			ExternalEntry.directory("f/sub", MODIFIED),
+			ExternalEntry.file("f/sub/x.txt", 10L, MODIFIED)
+		);
+
+		mountAndAwaitAttach("renameDelete", scenario, BOTH);
+
+		final NodeInterface f = getNodeAtPath("/renameDelete/f");
+
+		// the rename is never sent, because the folder is gone by the end of the transaction
+		assertOutbound(scenario, () -> {
+			setName(f, "g");
+			deleteRecursively(f);
+		}, "DELETED f/sub/x.txt", "DELETED f/sub", "DELETED f");
+	}
+
+	/**
+	 * On a storage where every entry records its own path, S3 for one, a moved folder has nothing to
+	 * move by itself, so every file below it is sent as moved as well.
+	 */
+	@Test
+	public void testMovedFolderIsSentAsAMoveOfEveryFileBelowItWhereEntriesTrackTheirPaths() {
+
+		final ScriptedStorageProvider.Scenario scenario = ScriptedStorageProvider.scenario("entryPaths").tracksEntryPaths(true).entries(
+			ExternalEntry.directory("a", MODIFIED),
+			ExternalEntry.file("a/x.txt", 10L, MODIFIED),
+			ExternalEntry.directory("a/b", MODIFIED),
+			ExternalEntry.file("a/b/y.txt", 10L, MODIFIED)
+		);
+
+		mountAndAwaitAttach("entryPaths", scenario, BOTH);
+
+		final NodeInterface a = getNodeAtPath("/entryPaths/a");
+
+		assertOutbound(scenario, () -> setName(a, "c"), "MOVED a -> c", "MOVED a/x.txt -> c/x.txt", "MOVED a/b/y.txt -> c/b/y.txt");
+	}
+
+	@Test
+	public void testMovedFolderIsOneMoveWhereMovingTheFolderMovesItsContents() {
+
+		final ScriptedStorageProvider.Scenario scenario = ScriptedStorageProvider.scenario("folderMoves").entries(
+			ExternalEntry.directory("a", MODIFIED),
+			ExternalEntry.file("a/x.txt", 10L, MODIFIED)
+		);
+
+		mountAndAwaitAttach("folderMoves", scenario, BOTH);
+
+		final NodeInterface a = getNodeAtPath("/folderMoves/a");
+
+		assertOutbound(scenario, () -> setName(a, "c"), "MOVED a -> c");
+	}
+
 	/**
 	 * An entry whose size and modification time are what the node already records has not changed, so a
 	 * scan only marks it as seen: it neither reads the content's metadata again nor rewrites it.

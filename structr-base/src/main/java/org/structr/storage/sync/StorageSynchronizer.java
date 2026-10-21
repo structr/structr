@@ -63,6 +63,15 @@ public interface StorageSynchronizer extends AutoCloseable {
 	Iterator<ExternalEntry> enumerate(final String relativePath) throws IOException;
 
 	/**
+	 * @return true if every entry records its own path in the storage, so that a folder moved in
+	 * Structr has to be sent as a move of every file below it; false if moving the folder moves its
+	 * contents, as on a file system
+	 */
+	default boolean tracksEntryPaths() {
+		return false;
+	}
+
+	/**
 	 * Outbound side: called after a Structr-side structural change (create/
 	 * move/rename/delete of a file or folder governed by this target) was
 	 * committed, if the target's {@link SyncDirection} includes OUT. Called

@@ -314,11 +314,116 @@ public class S3StorageSyncTest extends SyncTestBase {
 
 			final HeadObjectResponse head = RustFsTestSupport.head(bucket, uuid);
 
-			return head != null && "/s3outrename/renamed.txt".equals(head.metadata().get("path"));
+			return head != null && "renamed.txt".equals(head.metadata().get("path"));
 		});
 
 		// content survived the metadata copy
 		assertEquals("Content should be intact after metadata refresh", content, new String(RustFsTestSupport.getObject(bucket, fileUuid)));
+	}
+
+	@Test
+	public void testOutboundFolderRenameRefreshesThePathOfEveryObjectBelowIt() {
+
+		final String bucket = uniqueBucket();
+
+		RustFsTestSupport.createBucket(bucket);
+
+		mountBucket("s3dirrename", bucket, "both", VanishPolicy.DELETE);
+
+		String fileUuid = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface folder = app.create(StructrTraits.FOLDER,
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "docs"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), getNodeAtPath("/s3dirrename"))
+			);
+
+			final NodeInterface file = app.create(StructrTraits.FILE,
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "a.txt"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder)
+			);
+
+			fileUuid = file.getUuid();
+
+			try (final OutputStream os = file.as(File.class).getOutputStream()) {
+
+				os.write("folder content".getBytes("utf-8"));
+			}
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final String uuid = fileUuid;
+
+		waitFor("The object should be written with its path", () -> {
+
+			final HeadObjectResponse head = RustFsTestSupport.head(bucket, uuid);
+
+			return head != null && "docs/a.txt".equals(head.metadata().get("path"));
+		});
+
+		setNodeProperty(getNodeAtPath("/s3dirrename/docs"), NodeInterfaceTraitDefinition.NAME_PROPERTY, "papers");
+
+		waitFor("The path of an object below a renamed folder should follow the rename", () -> {
+
+			final HeadObjectResponse head = RustFsTestSupport.head(bucket, uuid);
+
+			return head != null && "papers/a.txt".equals(head.metadata().get("path"));
+		});
+
+		// and a scan, which goes by the stored paths, leaves the file where it now is
+		final long renamed = System.currentTimeMillis();
+
+		awaitScanAfter("s3dirrename", renamed);
+
+		assertNotNull("The file should stay below the renamed folder", getNodeAtPath("/s3dirrename/papers/a.txt"));
+		assertNull("The file should not come back at its old place",   getNodeAtPath("/s3dirrename/docs/a.txt"));
+	}
+
+	/**
+	 * Objects written before stored their absolute virtual path. A mount that writes to its storage
+	 * moves them to the path below the root on its first scan; an inbound-only one reads them as they
+	 * are and leaves the storage alone.
+	 */
+	@Test
+	public void testLegacyAbsolutePathsAreMigratedByAWritingMountAndReadByAnInboundOne() {
+
+		final String writingBucket = uniqueBucket();
+		final String readingBucket = uniqueBucket();
+		final String writingUuid   = NodeServiceCommand.getNextUuid();
+		final String readingUuid   = NodeServiceCommand.getNextUuid();
+
+		RustFsTestSupport.createBucket(writingBucket);
+		RustFsTestSupport.createBucket(readingBucket);
+
+		RustFsTestSupport.putObject(writingBucket, writingUuid, "legacy".getBytes(), Map.of("path", "/s3legacyBoth/sub/a.txt"));
+		RustFsTestSupport.putObject(readingBucket, readingUuid, "legacy".getBytes(), Map.of("path", "/s3legacyIn/sub/b.txt"));
+
+		mountBucket("s3legacyBoth", writingBucket, "both", null);
+		mountBucket("s3legacyIn",   readingBucket, "in",   null);
+
+		waitForNodeAtPath(StructrTraits.FILE, "/s3legacyBoth/sub/a.txt");
+		waitForNodeAtPath(StructrTraits.FILE, "/s3legacyIn/sub/b.txt");
+
+		waitFor("A writing mount should migrate the path to the form below the root", () -> {
+
+			final HeadObjectResponse head = RustFsTestSupport.head(writingBucket, writingUuid);
+
+			return head != null && "sub/a.txt".equals(head.metadata().get("path"));
+		});
+
+		assertEquals("The content should survive the migration", "legacy", new String(RustFsTestSupport.getObject(writingBucket, writingUuid)));
+
+		// several scans later, an inbound-only mount has still not written anything
+		awaitScanAfter("s3legacyIn", System.currentTimeMillis());
+
+		assertEquals("An inbound-only mount should leave the stored path alone", "/s3legacyIn/sub/b.txt", RustFsTestSupport.head(readingBucket, readingUuid).metadata().get("path"));
 	}
 
 	@Test
@@ -375,7 +480,7 @@ public class S3StorageSyncTest extends SyncTestBase {
 		final HeadObjectResponse head = RustFsTestSupport.head(bucket, fileUuid);
 
 		assertNotNull("Object should still exist", head);
-		assertEquals("Rolled-back renames must not touch the path metadata", "/s3rollback/stable.txt", head.metadata().get("path"));
+		assertEquals("Rolled-back renames must not touch the path metadata", "stable.txt", head.metadata().get("path"));
 	}
 
 	@Test
@@ -481,7 +586,7 @@ public class S3StorageSyncTest extends SyncTestBase {
 
 			final HeadObjectResponse head = RustFsTestSupport.head(bucket, "docs/report.pdf");
 
-			return head != null && "/s3extrename/docs/renamed.pdf".equals(head.metadata().get("path"));
+			return head != null && "docs/renamed.pdf".equals(head.metadata().get("path"));
 		});
 
 		// no move-back after further complete scans, and the node lives at the new path only

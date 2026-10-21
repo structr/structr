@@ -37,6 +37,7 @@ import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.sync.*;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FolderTraitDefinition;
@@ -109,6 +110,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 	// toplevel transaction by handleTransactionFinished().
 	private static final ThreadLocal<Map<String, PreMoveLocation>> preMoveStash   = new ThreadLocal<>();
 	private static final ThreadLocal<Map<String, PendingOutbound>> capturedEvents = new ThreadLocal<>();
+	private static final ThreadLocal<List<Relocation>> deletedRelocations         = new ThreadLocal<>();
 
 	public StorageSyncService() {
 
@@ -265,6 +267,11 @@ public class StorageSyncService extends Thread implements RunnableService {
 			if (oldRelative != null && newRelative != null && !oldRelative.equals(newRelative)) {
 
 				capture(oldTarget.syncRootUuid(), VirtualChangeEvent.moved(uuid, directory, oldRelative, newRelative, nativeKey));
+
+				if (directory && tracksEntryPaths(oldTarget)) {
+
+					captureMovesBelow(oldTarget, file.as(Folder.class), oldRelative, newRelative);
+				}
 			}
 
 			return true;
@@ -283,6 +290,43 @@ public class StorageSyncService extends Thread implements RunnableService {
 		}
 
 		return true;
+	}
+
+	/**
+	 * @return true if the synchronizer of the given target needs a moved folder sent as a move of
+	 * every file below it
+	 */
+	private static boolean tracksEntryPaths(final OutboundTarget target) {
+
+		final StorageSyncService service = runningService();
+		final ActiveSync sync            = service != null ? service.getActiveSync(target.syncRootUuid()) : null;
+
+		return sync != null && sync.synchronizer.tracksEntryPaths();
+	}
+
+	/**
+	 * Captures a MOVED event for every file below the given folder, which has just moved from
+	 * oldRelative to newRelative within the given target.
+	 */
+	private static void captureMovesBelow(final OutboundTarget target, final Folder folder, final String oldRelative, final String newRelative) {
+
+		for (final NodeInterface node : folder.getAllChildNodes()) {
+
+			if (node.is(StructrTraits.FOLDER)) {
+
+				continue;
+			}
+
+			final AbstractFile child        = node.as(AbstractFile.class);
+			final String childNewRelative   = relativize(target, child.getPath());
+
+			if (childNewRelative != null && childNewRelative.startsWith(newRelative + "/")) {
+
+				final String childOldRelative = oldRelative + childNewRelative.substring(newRelative.length());
+
+				capture(target.syncRootUuid(), VirtualChangeEvent.moved(child.getUuid(), false, childOldRelative, childNewRelative, child.getStorageKey()));
+			}
+		}
 	}
 
 	/**
@@ -319,7 +363,26 @@ public class StorageSyncService extends Thread implements RunnableService {
 			return false;
 		}
 
-		capture(target.syncRootUuid(), VirtualChangeEvent.deleted(uuid, file.is(StructrTraits.FOLDER), relativePath, file.getStorageKey()));
+		final boolean directory = file.is(StructrTraits.FOLDER);
+		if (stashed != null && directory) {
+
+			// a folder moved or renamed and then deleted in one transaction never has its move sent,
+			// so what was below it is still below its old location on the storage
+			final String currentPath = relativize(target, file.getPath());
+			if (currentPath != null && !currentPath.equals(relativePath)) {
+
+				List<Relocation> relocations = deletedRelocations.get();
+				if (relocations == null) {
+
+					relocations = new LinkedList<>();
+					deletedRelocations.set(relocations);
+				}
+
+				relocations.add(new Relocation(target.syncRootUuid(), currentPath, relativePath));
+			}
+		}
+
+		capture(target.syncRootUuid(), VirtualChangeEvent.deleted(uuid, directory, relativePath, file.getStorageKey()));
 
 		return true;
 	}
@@ -361,9 +424,11 @@ public class StorageSyncService extends Thread implements RunnableService {
 	public static void handleTransactionFinished(final boolean successful) {
 
 		final Map<String, PendingOutbound> captured = capturedEvents.get();
+		final List<Relocation> relocations          = deletedRelocations.get();
 
 		preMoveStash.remove();
 		capturedEvents.remove();
+		deletedRelocations.remove();
 
 		if (!successful || captured == null || captured.isEmpty()) {
 
@@ -386,7 +451,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 			if (VirtualChangeEvent.Type.DELETED.equals(pending.event().type())) {
 
-				deleted.add(pending);
+				deleted.add(relocated(pending, relocations));
 
 			} else {
 
@@ -1243,6 +1308,35 @@ public class StorageSyncService extends Thread implements RunnableService {
 	}
 
 	/**
+	 * @return the given deletion at the location the storage still has, if it lies below a folder
+	 * that was moved and then deleted in the same transaction
+	 */
+	private static PendingOutbound relocated(final PendingOutbound pending, final List<Relocation> relocations) {
+
+		if (relocations == null) {
+
+			return pending;
+		}
+
+		final VirtualChangeEvent event = pending.event();
+		final String path              = event.previousRelativePath();
+
+		for (final Relocation relocation : relocations) {
+
+			final String prefix = relocation.currentPath() + "/";
+
+			if (relocation.syncRootUuid().equals(pending.syncRootUuid()) && path.startsWith(prefix)) {
+
+				final String oldPath = relocation.storagePath() + "/" + path.substring(prefix.length());
+
+				return new PendingOutbound(pending.syncRootUuid(), VirtualChangeEvent.deleted(event.nodeUuid(), event.directory(), oldPath, event.nativeKey()));
+			}
+		}
+
+		return pending;
+	}
+
+	/**
 	 * Captures an outbound event in the per-transaction buffer, coalescing
 	 * with an already-captured event of the same node so that intermediate
 	 * states that never existed externally are not propagated.
@@ -1474,6 +1568,9 @@ public class StorageSyncService extends Thread implements RunnableService {
 	 * previous parent is not recoverable from the modification queue.
 	 */
 	private record PreMoveLocation(OutboundTarget target, String absolutePath) {}
+
+	/** A folder deleted after it was moved: its path in Structr at the time, and on the storage. */
+	private record Relocation(String syncRootUuid, String currentPath, String storagePath) {}
 
 	/**
 	 * A captured, committed outbound event awaiting dispatch.

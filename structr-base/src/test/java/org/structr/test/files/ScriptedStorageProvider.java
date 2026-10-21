@@ -102,6 +102,11 @@ public class ScriptedStorageProvider extends AbstractStorageProvider implements 
 			}
 
 			@Override
+			public boolean tracksEntryPaths() {
+				return scenario.tracksEntryPaths;
+			}
+
+			@Override
 			public void startWatching(final StorageSyncListener listener) {
 
 				scenario.watchStarts.incrementAndGet();
@@ -274,6 +279,7 @@ public class ScriptedStorageProvider extends AbstractStorageProvider implements 
 		private volatile boolean createFails         = false;
 		private volatile boolean noSynchronizer      = false;
 		private volatile boolean supportsWatching    = true;
+		private volatile boolean tracksEntryPaths    = false;
 		private volatile CountDownLatch gate         = null;
 		private volatile StorageSyncListener listener = null;
 
@@ -298,6 +304,7 @@ public class ScriptedStorageProvider extends AbstractStorageProvider implements 
 		public Scenario createFails(final boolean f)     { this.createFails = f; return this; }
 		public Scenario noSynchronizer(final boolean f)  { this.noSynchronizer = f; return this; }
 		public Scenario supportsWatching(final boolean w) { this.supportsWatching = w; return this; }
+		public Scenario tracksEntryPaths(final boolean t) { this.tracksEntryPaths = t; return this; }
 
 		/** Holds the next enumeration before its first entry until the returned latch is counted down. */
 		public CountDownLatch holdNextEnumeration() {
