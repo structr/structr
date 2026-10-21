@@ -326,6 +326,9 @@ public final class TikaParserSetup {
 			pdfConfig.setExtractInlineImages(images);
 			pdfConfig.setExtractUniqueInlineImagesOnly(true);
 
+			// rotated text, e.g. a diagonal watermark, is read in its own direction; otherwise it is cut into fragments of a few letters
+			pdfConfig.setDetectAngles(true);
+
 			if (ocr) {
 
 				ocrConfig.setLanguage(ocrLanguages);

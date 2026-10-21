@@ -169,6 +169,15 @@ public class ExtractionTest {
 	}
 
 	@Test
+	public void testRotatedTextStaysWhole() throws Exception {
+
+		final ExtractedDocument document = extract(Fixtures.pdfWithWatermark(), "regulation.pdf", options().setOcrMode(OcrMode.OFF));
+
+		assertTrue("A diagonal watermark is read as one line: " + document.getText(), document.getText().contains("This printout is not updated"));
+		assertTrue(document.getText().contains("The regulation applies to all departments."));
+	}
+
+	@Test
 	public void testPptxSlides() throws Exception {
 
 		// read with Tika's SAX extractor (TikaParserSetup.officeConfig), since POI does not export the package

@@ -25,6 +25,7 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.util.Matrix;
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
 import org.apache.poi.xslf.usermodel.XSLFSlide;
 import org.apache.poi.xslf.usermodel.XSLFTextBox;
@@ -220,6 +221,39 @@ public final class Fixtures {
 					content.showText(text);
 					content.endText();
 				}
+			}
+
+			document.save(out);
+
+			return out.toByteArray();
+		}
+	}
+
+	/**
+	 * A PDF page with a line of text and a watermark drawn diagonally across it.
+	 */
+	public static byte[] pdfWithWatermark() throws IOException {
+
+		try (final PDDocument document = new PDDocument(); final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+			final PDType1Font font = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
+			final PDPage page      = new PDPage();
+
+			document.addPage(page);
+
+			try (final PDPageContentStream content = new PDPageContentStream(document, page)) {
+
+				content.beginText();
+				content.setFont(font, 14);
+				content.newLineAtOffset(72, 700);
+				content.showText("The regulation applies to all departments.");
+				content.endText();
+
+				content.beginText();
+				content.setFont(font, 40);
+				content.setTextMatrix(Matrix.getRotateInstance(Math.toRadians(45), 100, 150));
+				content.showText("This printout is not updated");
+				content.endText();
 			}
 
 			document.save(out);
