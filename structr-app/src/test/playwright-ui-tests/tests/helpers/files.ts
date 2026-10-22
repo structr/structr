@@ -52,4 +52,9 @@ export async function createFileWithContentAndContentType(page: Page, name: stri
     await page.getByRole('textbox', {name: 'Content Type'}).fill(contentType);
     await page.keyboard.press('Enter');
     await page.getByRole('button', {name: 'Close', exact: true}).click();
+
+    await waitForDialogBoxToClose(page);
+
+    // the context menu reads the content type from the model object, which is only updated when the server confirms the change
+    await page.waitForFunction(([name, contentType]) => Object.values(StructrModel.objects).some((obj: any) => obj.name === name && obj.contentType === contentType), [name, contentType]);
 }

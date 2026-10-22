@@ -564,4 +564,22 @@ public class CsvTest extends StructrCsvTest {
 
 		assertEquals(expected, ((RestAssuredResponseImpl) result).asString());
 	}
+
+	@Test
+	public void test12CsvOutputOfRelatedCollectionSortedByKeyOfRelatedType() {
+
+		final String fourId = createTestFourWithTestOnes(2, 3, 1);
+
+		final String resultString = RestAssured.given().contentType("application/csv; charset=UTF-8").expect().statusCode(200)
+			.when().get(csvUrl + "/TestFour/" + fourId + "/manyToManyTestOnes?_sort=anInt").asString();
+
+		final int index1 = resultString.indexOf("\"name1\"");
+		final int index2 = resultString.indexOf("\"name2\"");
+		final int index3 = resultString.indexOf("\"name3\"");
+
+		assertTrue("anInt is a key of TestOne, so the export must be sorted by it although TestFour does not have it: " + resultString, index3 >= 0 && index3 < index1 && index1 < index2);
+
+		RestAssured.given().contentType("application/csv; charset=UTF-8").expect().statusCode(422)
+			.when().get(csvUrl + "/TestFour/" + fourId + "/manyToManyTestOnes?_sort=unknownKey");
+	}
 }

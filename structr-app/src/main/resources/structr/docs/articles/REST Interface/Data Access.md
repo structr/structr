@@ -82,6 +82,8 @@ To sort the result based on multiple fields, repeat the `_sort` and `_order` par
 
 A `_sort` key that neither the type nor one of its subtypes has is rejected with status 422. The REST interface does not resolve paths like `owner.name` for sorting.
 
+For the collection behind a relationship property, such as `/structr/rest/Project/<uuid>/tasks`, the `_sort` key must belong to the type of the related objects, in this case Task, not Project.
+
 ### Null Values
 
 If a sorted collection includes objects with null values, those objects are placed at the end of the collection for ascending order (“nulls last”), or at the beginning of the collection for descending order.
@@ -102,6 +104,10 @@ These simple value-based filters can also be used on contextual properties, e.g.
 You can also search for multiple values at once, resulting in an “OR” conjunction, with the ; character between the values:
 
     $ curl -s -HX-User:admin -HX-Password:admin "http://localhost:8082/structr/rest/Project?name=Project1;Project2"
+
+A search key that the type does not have is rejected with status 400. For the collection behind a relationship property, the search keys belong to the type of the related objects, so you filter the tasks of a project by the properties of Task.
+
+    $ curl -s -HX-User:admin -HX-Password:admin "http://localhost:8082/structr/rest/Project/c431c1b5020f4430808f9b330a123159/tasks?priority=3"
 
 ### Indexing
 
