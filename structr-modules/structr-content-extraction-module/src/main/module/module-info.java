@@ -46,6 +46,10 @@ module structr.content.extraction.module {
     exports org.structr.extraction.api.search;
     exports org.structr.extraction.entity;
 
+    // type, index and property names, settings, and the configuration type the AI module adds properties to
+    exports org.structr.extraction;
+    exports org.structr.extraction.traits.definitions;
+
     provides org.structr.module.StructrModule with
         org.structr.extraction.ContentExtractionModule;
 }

@@ -37,6 +37,7 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.extraction.ContentExtractionTraits;
+import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.entity.ExtractedContentNode;
 import org.structr.extraction.query.ContentFileSearch;
 import org.structr.extraction.traits.wrappers.ExtractedContentNodeTraitWrapper;
@@ -46,8 +47,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A chunk of a file's content: its text, where it is in the document, and (written by the AI module)
- * its embedding.
+ * A chunk of a file's content: its text, where it is in the document, and (written by the Enterprise AI
+ * module) its embedding. The embedding is vector-indexed by Structr's index management as
+ * ExtractedContentNode_embedding_vector, with the size ContentExtraction.embeddingDimensions() returns.
  */
 public class ExtractedContentNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -124,7 +126,7 @@ public class ExtractedContentNodeTraitDefinition extends AbstractNodeTraitDefini
 		final Property<String> contentHash     = new StringProperty(CONTENT_HASH_PROPERTY).indexed();
 
 		// a vector of e.g. 1536 doubles is 12 KB per chunk, so it is not serialized unless asked for
-		final Property<Double[]> embedding     = new ArrayProperty<>(EMBEDDING_PROPERTY, Double.class).disableSerialization(true);
+		final Property<Double[]> embedding     = new ArrayProperty<>(EMBEDDING_PROPERTY, Double.class).disableSerialization(true).vectorIndexed(ContentExtraction::embeddingDimensions, "cosine");
 		final Property<String> embeddingModel  = new StringProperty(EMBEDDING_MODEL_PROPERTY);
 
 		return newSet(file, next, previous, text, position, startOffset, endOffset, charCount, tokenCount, pageStart, pageEnd, headingPath, embeddedPath, language, contentHash, embedding, embeddingModel);

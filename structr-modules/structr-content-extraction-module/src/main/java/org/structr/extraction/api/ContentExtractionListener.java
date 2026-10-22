@@ -56,4 +56,12 @@ public interface ContentExtractionListener {
 	 */
 	default void onContentExtracted(final String fileUuid, final List<String> nodeUuids, final EffectiveContentOptions options) {
 	}
+
+	/**
+	 * Called after a deployment import replaced all content extraction configurations, outside of any
+	 * transaction. The import deletes and creates the configurations (with their ids), so anything a
+	 * module attached to them, e.g. a relationship, is gone and can be attached again here.
+	 */
+	default void onConfigurationsImported() {
+	}
 }

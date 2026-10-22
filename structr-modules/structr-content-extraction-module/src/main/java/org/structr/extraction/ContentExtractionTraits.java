@@ -45,6 +45,12 @@ public final class ContentExtractionTraits {
 	/** Name of the fulltext index Structr creates for ExtractedContentNode.text and .embeddedPath. */
 	public static final String CONTENT_FULLTEXT_INDEX = "ExtractedContentNode_" + CONTENT_FULLTEXT_INDEX_NAME + "_fulltext";
 
+	/** Name of the vector index Structr creates for ExtractedContentNode.embedding, once the vector size is known. */
+	public static final String EMBEDDING_VECTOR_INDEX = "ExtractedContentNode_embedding_vector";
+
+	/** Namespace of the script functions about extracted content: $.documents.extractContent() etc. */
+	public static final String FUNCTION_NAMESPACE = "documents";
+
 	private ContentExtractionTraits() {
 	}
 }

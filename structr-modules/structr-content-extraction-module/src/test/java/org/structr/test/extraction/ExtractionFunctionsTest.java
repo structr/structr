@@ -216,7 +216,8 @@ public class ExtractionFunctionsTest extends StructrUiTest {
 			}}
 			""");
 
-		assertEquals("17|true|function|true|false", result);
+		// 17 functions and the 6 of Structr Enterprise, which say so when called (EnterpriseOnlyFunction)
+		assertEquals("23|true|function|true|false", result);
 		assertEquals("2", String.valueOf(evaluate("${documents.countTokens('Hello world')}")));
 
 		assertNull("Functions must not be registered outside the namespace", Functions.get("extractContent"));
@@ -233,6 +234,24 @@ public class ExtractionFunctionsTest extends StructrUiTest {
 			assertNotNull(file);
 
 			tx.success();
+		}
+	}
+
+	@Test
+	public void testEnterpriseFunctionsSayWhatTheyNeed() {
+
+		// without the Enterprise AI module, its functions in the documents namespace explain themselves
+		for (final String script : new String[] {
+			"${{ $.documents.searchContentSemantic('reset password'); }}",
+			"${documents.answerFromContent('Which port?', null)}",
+			"${{ $.documents.embeddingStatus(); }}"
+		}) {
+
+			final FrameworkException error = evaluateExpectingError(script);
+
+			assertEquals(script, 422, error.getStatus());
+			assertTrue(error.getMessage(), error.getMessage().contains("needs Structr Enterprise"));
+			assertTrue(error.getMessage(), error.getMessage().contains("documents.searchExtractedContent()"));
 		}
 	}
 

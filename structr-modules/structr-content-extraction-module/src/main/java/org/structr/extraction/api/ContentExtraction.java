@@ -20,10 +20,15 @@ package org.structr.extraction.api;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.extraction.ContentExtractionSettings;
+import org.structr.extraction.ContentExtractionTraits;
 import org.structr.extraction.api.chunk.Chunk;
 import org.structr.extraction.api.chunk.ChunkContext;
 import org.structr.extraction.api.document.DetectedLanguage;
@@ -64,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Supplier;
 
 /**
  * Java API of the content extraction module, for other modules (e.g. the Enterprise AI module) and for
@@ -74,6 +80,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class ContentExtraction {
 
 	private static final CopyOnWriteArrayList<ContentExtractionListener> listeners = new CopyOnWriteArrayList<>();
+
+	/** the size of the embedding vectors, provided by the module that writes them (the Enterprise AI module) */
+	private static volatile Supplier<Integer> embeddingDimensions = null;
 
 	private ContentExtraction() {
 	}
@@ -351,6 +360,58 @@ public final class ContentExtraction {
 	public static List<FileSearchHit> searchFiles(final SecurityContext securityContext, final String input, final ContentSearchOptions options, final int maxSnippets, final int contextChars) throws FrameworkException {
 
 		return ContentKeywordSearch.searchFiles(securityContext, input, options, maxSnippets, contextChars);
+	}
+
+	/**
+	 * The search hit for a chunk found by other means, e.g. by a vector index, or null if the security
+	 * context may not read it or the options filter it out. Uses minScore, fileUuids, folder and
+	 * contextChunks of the options, so other searches filter exactly like the keyword search.
+	 */
+	public static ContentSearchHit toSearchHit(final SecurityContext securityContext, final NodeInterface node, final double score, final ContentSearchOptions options) {
+
+		return ContentKeywordSearch.searchHit(securityContext, node, score, options);
+	}
+
+	// ----- embeddings -----
+	/**
+	 * Sets where the size of the embedding vectors comes from. ExtractedContentNode.embedding is vector-indexed
+	 * with this size; null or less than 1 means no index. Set by the module that writes the embeddings.
+	 */
+	public static void setEmbeddingDimensions(final Supplier<Integer> dimensions) {
+
+		embeddingDimensions = dimensions;
+	}
+
+	/**
+	 * The size of the vector index of ExtractedContentNode.embedding, asked for by Structr's index management.
+	 *
+	 * Without a module that writes embeddings (e.g. after a change from Structr Enterprise to the Community
+	 * Edition) this is the size of the index that exists, so the index and the stored vectors are kept as
+	 * they are, ready for a return to Enterprise.
+	 */
+	public static Integer embeddingDimensions() {
+
+		final Supplier<Integer> supplier = embeddingDimensions;
+		if (supplier != null) {
+
+			return supplier.get();
+		}
+
+		final App app = StructrApp.getInstance(SecurityContext.getSuperUserInstance());
+
+		try (final Tx tx = app.tx()) {
+
+			final Object dimensions = app.getDatabaseService().getIndexInfo(ContentExtractionTraits.EMBEDDING_VECTOR_INDEX).get("dimensions");
+
+			tx.success();
+
+			return dimensions instanceof Number number ? number.intValue() : null;
+
+		} catch (FrameworkException | RuntimeException ex) {
+
+			// a database without index information (e.g. the in-memory database) has no vector index to keep
+			return null;
+		}
 	}
 
 	// ----- listeners -----

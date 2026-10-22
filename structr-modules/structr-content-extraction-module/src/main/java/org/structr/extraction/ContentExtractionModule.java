@@ -21,6 +21,7 @@ package org.structr.extraction;
 import com.google.gson.Gson;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.GlobalSearchContributors;
@@ -28,6 +29,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.extraction.automation.ContentFileChangeListener;
 import org.structr.extraction.configuration.ContentConfigurationDeployment;
 import org.structr.extraction.entity.ExtractedContentNode;
+import org.structr.extraction.function.enterprise.EnterpriseOnlyFunction;
 import org.structr.extraction.function.extract.DetectLanguageFunction;
 import org.structr.extraction.function.extract.ExtractContentFunction;
 import org.structr.extraction.function.extract.ExtractEmbeddedFunction;
@@ -103,6 +105,14 @@ public class ContentExtractionModule implements StructrModule {
 
 		// file content in the global search of the admin UI
 		GlobalSearchContributors.register(ContentGlobalSearch.INSTANCE);
+
+		// says once what Structr Enterprise left behind, if it is not running anymore
+		Services.getInstance().registerInitializationCallback(() -> {
+
+			if (!Services.isTesting()) {
+				EnterpriseDataCheck.run();
+			}
+		});
 	}
 
 	@Override
@@ -128,6 +138,12 @@ public class ContentExtractionModule implements StructrModule {
 		Functions.put(licenseManager, new GetExtractedTextFunction());
 		Functions.put(licenseManager, new DeleteExtractedContentFunction());
 		Functions.put(licenseManager, new SearchExtractedContentFunction());
+
+		// the functions of Structr Enterprise in this namespace, which say so when called in the Community Edition;
+		// the AI module depends on this module, so it loads later and replaces them with the real ones
+		for (final EnterpriseOnlyFunction function : EnterpriseOnlyFunction.all()) {
+			Functions.put(licenseManager, function);
+		}
 	}
 
 	@Override

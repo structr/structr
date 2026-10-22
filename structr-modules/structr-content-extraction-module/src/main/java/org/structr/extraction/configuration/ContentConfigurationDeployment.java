@@ -36,6 +36,8 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.extraction.ContentExtractionSettings;
 import org.structr.extraction.ContentExtractionTraits;
+import org.structr.extraction.api.ContentExtraction;
+import org.structr.extraction.api.ContentExtractionListener;
 import org.structr.extraction.entity.ContentExtractionConfiguration;
 import org.structr.extraction.processing.ContentExtractionJob;
 import org.structr.extraction.traits.definitions.ContentExtractionConfigurationTraitDefinition;
@@ -181,6 +183,18 @@ public final class ContentConfigurationDeployment {
 			}
 
 			tx.success();
+		}
+
+		for (final ContentExtractionListener listener : ContentExtraction.getListeners()) {
+
+			try {
+
+				listener.onConfigurationsImported();
+
+			} catch (final RuntimeException ex) {
+
+				logger.warn("Content extraction listener {} failed after the configuration import: {}", listener.getClass().getName(), ex.getMessage(), ex);
+			}
 		}
 	}
 

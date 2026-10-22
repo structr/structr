@@ -68,9 +68,7 @@ public final class ContentKeywordSearch {
 
 		for (final ChunkHit hit : chunkHits(securityContext, luceneQuery, options, options.limit() * OVERFETCH)) {
 
-			final String context = options.contextChunks() > 0 ? ContentChunkReader.context(hit.chunk(), options.contextChunks(), options.contextChunks()).text() : null;
-
-			hits.add(new ContentSearchHit(hit.chunk(), hit.score(), hit.file(), context));
+			hits.add(searchHit(hit, options));
 
 			if (hits.size() >= options.limit()) {
 
@@ -141,6 +139,18 @@ public final class ContentKeywordSearch {
 			.toList();
 	}
 
+	/**
+	 * The search hit for a chunk found by other means, e.g. by a vector index, or null if the security
+	 * context may not read it or the options filter it out. Uses minScore, fileUuids, folder and
+	 * contextChunks of the options, so hits from other searches are filtered exactly like keyword hits.
+	 */
+	public static ContentSearchHit searchHit(final SecurityContext securityContext, final NodeInterface node, final double score, final ContentSearchOptions options) {
+
+		final ChunkHit hit = chunkHit(securityContext, node, score, options, folderPrefix(options));
+
+		return hit != null ? searchHit(hit, options) : null;
+	}
+
 	// ----- private methods -----
 	private record ChunkHit(ExtractedContentNode chunk, double score, File file) {
 	}
@@ -166,30 +176,52 @@ public final class ContentKeywordSearch {
 
 		final int pageSize                     = Math.min(MAX_FETCH, Math.max(fetch, 50));
 		final Map<NodeInterface, Double> found = StructrApp.getInstance(securityContext).getNodesFromFulltextIndex(ContentExtractionTraits.CONTENT_FULLTEXT_INDEX, luceneQuery, 1, pageSize);
-		final String folderPrefix              = options.folder() != null ? options.folder().getPath() + "/" : null;
+		final String folderPrefix              = folderPrefix(options);
 		final List<ChunkHit> hits              = new ArrayList<>();
 
 		for (final Map.Entry<NodeInterface, Double> entry : found.entrySet()) {
 
-			final NodeInterface node = entry.getKey();
-			final double score       = entry.getValue() != null ? entry.getValue() : 0.0;
+			final ChunkHit hit = chunkHit(securityContext, entry.getKey(), entry.getValue() != null ? entry.getValue() : 0.0, options, folderPrefix);
+			if (hit != null) {
 
-			if (score < options.minScore() || !node.is(ContentExtractionTraits.EXTRACTED_CONTENT_NODE) || !securityContext.isVisible(node)) {
-
-				continue;
+				hits.add(hit);
 			}
-
-			final ExtractedContentNode chunk = node.as(ExtractedContentNode.class);
-			final File file                  = chunk.getFile();
-
-			if (file == null || (options.fileUuids() != null && !options.fileUuids().contains(file.getUuid())) || (folderPrefix != null && !file.getPath().startsWith(folderPrefix))) {
-
-				continue;
-			}
-
-			hits.add(new ChunkHit(chunk, score, file));
 		}
 
 		return hits;
+	}
+
+	/**
+	 * The hit for a node, or null if it is no chunk, the security context may not read it or the options
+	 * filter it out.
+	 */
+	private static ChunkHit chunkHit(final SecurityContext securityContext, final NodeInterface node, final double score, final ContentSearchOptions options, final String folderPrefix) {
+
+		if (node == null || score < options.minScore() || !node.is(ContentExtractionTraits.EXTRACTED_CONTENT_NODE) || !securityContext.isVisible(node)) {
+
+			return null;
+		}
+
+		final ExtractedContentNode chunk = node.as(ExtractedContentNode.class);
+		final File file                  = chunk.getFile();
+
+		if (file == null || (options.fileUuids() != null && !options.fileUuids().contains(file.getUuid())) || (folderPrefix != null && !file.getPath().startsWith(folderPrefix))) {
+
+			return null;
+		}
+
+		return new ChunkHit(chunk, score, file);
+	}
+
+	private static ContentSearchHit searchHit(final ChunkHit hit, final ContentSearchOptions options) {
+
+		final String context = options.contextChunks() > 0 ? ContentChunkReader.context(hit.chunk(), options.contextChunks(), options.contextChunks()).text() : null;
+
+		return new ContentSearchHit(hit.chunk(), hit.score(), hit.file(), context);
+	}
+
+	private static String folderPrefix(final ContentSearchOptions options) {
+
+		return options.folder() != null ? options.folder().getPath() + "/" : null;
 	}
 }

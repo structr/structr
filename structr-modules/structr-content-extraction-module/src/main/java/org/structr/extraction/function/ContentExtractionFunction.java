@@ -24,6 +24,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.extraction.ContentExtractionModule;
+import org.structr.extraction.ContentExtractionTraits;
 import org.structr.extraction.api.ContentExtractionException;
 import org.structr.extraction.api.options.ExtractionOptions;
 import org.structr.extraction.api.options.OcrMode;
@@ -52,7 +53,7 @@ import java.util.TreeSet;
  */
 public abstract class ContentExtractionFunction extends Function<Object, Object> {
 
-	public static final String NAMESPACE = "documents";
+	public static final String NAMESPACE = ContentExtractionTraits.FUNCTION_NAMESPACE;
 
 	public static final String OPTION_OCR              = "ocr";
 	public static final String OPTION_OCR_LANGUAGES    = "ocrLanguages";
