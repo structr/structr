@@ -184,6 +184,64 @@ Files that have not changed since their last extraction are skipped. Pass `force
 | `stopWords(language)` | Returns the common words of a language, such as "the" and "and" |
 | `getContentContext(chunk)` | Returns a chunk together with the chunks before and after it |
 
+## Embeddings and Semantic Search (Enterprise Edition)
+
+Available in Structr Enterprise with the AI module.
+
+Keyword search finds the words of a query. Semantic search finds the meaning: a question like "How do I get back into my account?" finds a passage about resetting a password, although they share no word. For this, each chunk is turned into an embedding, a vector of numbers that describes its meaning, by an embedding model such as `nomic-embed-text` (Ollama) or `text-embedding-3-small` (OpenAI). Structr stores the vector in the chunk's `embedding` property and keeps a vector index over it, `ExtractedContentNode_embedding_vector`.
+
+### Enabling It for a Folder
+
+Open the Content Extraction dialog of a folder and choose an **Embedding Provider** - an LLM provider configuration of type Ollama or OpenAI-compatible; Anthropic has no embedding models - and an **Embedding Model**. The dialog suggests the embedding models the provider reports, and refuses a chat model. Choosing a model fills in the **Document Prefix** and **Query Prefix** it expects - `search_document: ` and `search_query: ` for nomic-embed-text, `passage: ` and `query: ` for e5 - which are put in front of every chunk and every search query; most other models need none. Changing the document prefix later embeds all files again. When you save, Structr embeds one short text to check the provider and to learn the size of the vectors, and creates the vector index. From then on, every file in the folder and its subfolders is embedded after it is extracted, in the job queue `embedding`. Files that were extracted before are embedded right away. In scripts, `$.documents.linkEmbeddingProvider(folder, 'ollama', 'nomic-embed-text')` does the same.
+
+Below the provider and model, the dialog shows **Max. Input Tokens** - the longest text the model reads; longer chunks are cut and the file shows a warning - and the state of the embeddings: how many chunks are embedded, the model, the vector index and failed files. Ollama reports the limit of each model, for OpenAI's own models it is known, and it is filled in when you save; choose a chunk size the model can read. If the provider cannot be reached, the dialog says why, e.g. "unknown host": if Structr runs in Docker and Ollama on the same machine, the `host` of the provider configuration is `http://host.docker.internal:11434`.
+
+Documents are only sent to an embedding provider for folders where an administrator linked one. A file shows its state in `contentEmbeddingStatus` (`pending`, `running`, `done`, `failed`) and `contentEmbeddingError`. All folders must use the same model; to change it everywhere, use `$.documents.resetEmbeddings({ model: '...' })`, which embeds everything again. Chunks whose text did not change keep their embedding when a file is extracted again, so small edits are cheap.
+
+### Three Ways to Search
+
+| Function | Finds | Edition |
+|---|---|---|
+| `$.documents.searchExtractedContent(query)` | the words of the query, through the full-text index | Community |
+| `$.documents.searchContentSemantic(query)` | the meaning of the query, through the vector index | Enterprise |
+| `$.documents.searchContentSemantic(query, { hybrid: true })` | the meaning and the words: chunks that match both come first, and rare words such as product numbers are found even if the model does not know them | Enterprise |
+
+`$.documents.answerFromContent(question, { config })` goes one step further: it finds the best chunks and has a chat model answer the question from them, with citations like [1], [2] that point to file, page and section. The chunks reach the model as data that is never followed, so an instruction written into a document is quoted, not obeyed. LLM agents get the same search as the `knowledge-search` tool.
+
+```javascript
+{
+    let hits = $.documents.searchContentSemantic('How do I get back into my account?', { hybrid: true, limit: 3, contextChunks: 1 });
+
+    for (let hit of hits) {
+        $.log(hit.file.name + ', page ' + hit.pageStart + ' (' + hit.source + '): ' + hit.context);
+    }
+}
+```
+
+As with keyword search, only chunks of files the current user can read are found. `$.documents.embeddingStatus()` shows how many chunks are embedded, which files failed and the state of the vector index; `$.documents.embedContent()` embeds files again. The article *LLM Agents and Chatbots* (Enterprise) describes providers, models and the agent tool in detail.
+
+The vector index is an ordinary Structr vector index, so the Community function `$.searchVector('ExtractedContentNode_embedding_vector', vector, limit)` queries it as well, with a vector from the same model.
+
+### Jobs and Settings
+
+Embedding runs in the job queue `embedding`, next to the extraction jobs in the queue `content`; the Job Queue area shows its progress and can pause and abort it. Two settings in the category "AI Module" of the Configuration Interface control it:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `ai.embedding.enabled` | `true` | Embeds automatically where a folder links a provider; without a link nothing is embedded |
+| `ai.embedding.queue` | `embedding` | The job queue of the embedding jobs |
+
+### Downgrading to the Community Edition
+
+When an instance that used embeddings runs the Community Edition again, nothing is lost and nothing fails:
+
+- The embeddings stay on the chunks and the vector index stays in the database. They are used again after a return to Structr Enterprise, without embedding anything again. At startup, Structr logs once how many chunks carry embeddings.
+- Keyword search and automatic extraction work as before.
+- Scripts that call `$.documents.searchContentSemantic()`, `answerFromContent()` or the other Enterprise functions get an error that says they need Structr Enterprise.
+- The links between folders and LLM providers and the embedding state of files are ignored.
+
+A deployment export of the Community Edition into a folder that holds an earlier export of Structr Enterprise keeps the old files in `modules/ai/`, including the LLM provider configurations and their API keys. Export into an empty folder, or remove that folder.
+
 ## OCR
 
 OCR reads text from images and scanned PDF pages. It uses Tesseract, which has to be installed on the server:
