@@ -92,7 +92,7 @@ public class GetContentContextFunction extends ContentExtractionFunction {
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(Example.javaScript("${{ $.documents.getContentContext($.documents.searchExtractedContent('invoice address')[0].node, 2, 2).text; }}", "The best hit with two chunks of context on each side"));
+		return List.of(Example.javaScript("${{ $.documents.getContentContext($.documents.fulltextSearch('invoice address')[0].node, 2, 2).text; }}", "The best hit with two chunks of context on each side"));
 	}
 
 	// ----- private methods -----

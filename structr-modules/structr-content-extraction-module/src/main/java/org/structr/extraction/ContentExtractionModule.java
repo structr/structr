@@ -41,7 +41,7 @@ import org.structr.extraction.function.graph.ExtractContentInfoFunction;
 import org.structr.extraction.function.graph.GetContentContextFunction;
 import org.structr.extraction.function.graph.GetExtractedTextFunction;
 import org.structr.extraction.function.graph.ProcessContentFunction;
-import org.structr.extraction.function.graph.SearchExtractedContentFunction;
+import org.structr.extraction.function.graph.DocumentsFulltextSearchFunction;
 import org.structr.extraction.function.text.CountTokensFunction;
 import org.structr.extraction.function.text.NormalizeTextFunction;
 import org.structr.extraction.function.text.SplitContentFunction;
@@ -137,7 +137,7 @@ public class ContentExtractionModule implements StructrModule {
 		Functions.put(licenseManager, new GetContentContextFunction());
 		Functions.put(licenseManager, new GetExtractedTextFunction());
 		Functions.put(licenseManager, new DeleteExtractedContentFunction());
-		Functions.put(licenseManager, new SearchExtractedContentFunction());
+		Functions.put(licenseManager, new DocumentsFulltextSearchFunction());
 
 		// the functions of Structr Enterprise in this namespace, which say so when called in the Community Edition;
 		// the AI module depends on this module, so it loads later and replaces them with the real ones

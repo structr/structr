@@ -160,7 +160,7 @@ public class ContentGraphTest extends StructrUiTest {
 		// "guide" is only in the name of the entry, not in its text
 		final Object result = evaluate("""
 			${{
-			    let hits = $.documents.searchExtractedContent('guide', { mode: 'simple' });
+			    let hits = $.documents.fulltextSearch('guide', { mode: 'simple' });
 
 			    [ hits.length, hits[0].embeddedPath, hits[0].text ].join('|');
 			}}
@@ -773,7 +773,7 @@ public class ContentGraphTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testSearchExtractedContent() throws Exception {
+	public void testDocumentsFulltextSearch() throws Exception {
 
 		createFulltextIndex();
 
@@ -784,8 +784,8 @@ public class ContentGraphTest extends StructrUiTest {
 
 		final Object result = evaluate("""
 			${{
-			    let hits     = $.documents.searchExtractedContent('structr.conf', { limit: 5, contextChunks: 1 });
-			    let inFolder = $.documents.searchExtractedContent('paragraph', { folder: $.find('Folder', { path: '/docs' })[0] });
+			    let hits     = $.documents.fulltextSearch('structr.conf', { limit: 5, contextChunks: 1 });
+			    let inFolder = $.documents.fulltextSearch('paragraph', { folder: $.find('Folder', { path: '/docs' })[0] });
 
 			    [ hits.length > 0, hits[0].headingPath.join(' > '), hits[0].file.name, hits[0].context.length > hits[0].text.length, inFolder.length ].join('|');
 			}}
@@ -795,7 +795,7 @@ public class ContentGraphTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testSearchExtractedContentInSimpleMode() throws Exception {
+	public void testDocumentsFulltextSearchInSimpleMode() throws Exception {
 
 		createFulltextIndex();
 
@@ -806,8 +806,8 @@ public class ContentGraphTest extends StructrUiTest {
 		// typo and different case: no hit as Lucene query, a hit in simple mode
 		final Object result = evaluate("""
 			${{
-			    let lucene = $.documents.searchExtractedContent('CONFIGURATON');
-			    let simple = $.documents.searchExtractedContent('CONFIGURATON', { mode: 'simple' });
+			    let lucene = $.documents.fulltextSearch('CONFIGURATON');
+			    let simple = $.documents.fulltextSearch('CONFIGURATON', { mode: 'simple' });
 
 			    [ lucene.length, simple.length > 0, simple[0].file.name ].join('|');
 			}}
@@ -817,7 +817,7 @@ public class ContentGraphTest extends StructrUiTest {
 
 		try {
 
-			evaluate("${{ $.documents.searchExtractedContent('x', { mode: 'regex' }); }}");
+			evaluate("${{ $.documents.fulltextSearch('x', { mode: 'regex' }); }}");
 			fail("An unknown mode must be rejected");
 
 		} catch (final FrameworkException ex) {
@@ -922,7 +922,7 @@ public class ContentGraphTest extends StructrUiTest {
 			tx.success();
 		}
 
-		assertEquals("1", String.valueOf(evaluate("${{ $.documents.searchExtractedContent('sendreminder', { mode: 'simple' }).length; }}")));
+		assertEquals("1", String.valueOf(evaluate("${{ $.documents.fulltextSearch('sendreminder', { mode: 'simple' }).length; }}")));
 	}
 
 	@Test
