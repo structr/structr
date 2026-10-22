@@ -149,10 +149,16 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 				@Override
 				public void onModification(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-					final SchemaRelationshipNode node = obj.as(SchemaRelationshipNode.class);
+					final SchemaRelationshipNode node    = obj.as(SchemaRelationshipNode.class);
+					final GraphObjectMap modifications = modificationQueue.getModifications(obj);
 
-					checkClassName(node);
-					checkAndRenameSourceAndTargetJsonNames(node, modificationQueue.getModifications(obj));
+					// the name is the type of the existing relationships, so any other change, for example by a migration, must keep it
+					if (isClassNameAffected(node, modifications)) {
+
+						checkClassName(node);
+					}
+
+					checkAndRenameSourceAndTargetJsonNames(node, modifications);
 
 					// register transaction postprocessing that recreates the schema information
 					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
@@ -342,6 +348,33 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		}
 
 		return allow;
+	}
+
+	private boolean isClassNameAffected(final SchemaRelationshipNode node, final GraphObjectMap modifications) {
+
+		final Traits traits               = node.getTraits();
+		final GraphObjectMap before       = modifications.get(new GenericProperty<>("before"));
+		final Map<String, Object> added   = modifications.get(new GenericProperty<>("added"));
+		final Map<String, Object> removed = modifications.get(new GenericProperty<>("removed"));
+
+		for (final String key : List.of(RELATIONSHIP_TYPE_PROPERTY, SOURCE_TYPE_PROPERTY, TARGET_TYPE_PROPERTY)) {
+
+			if (before.containsKey(traits.key(key))) {
+
+				return true;
+			}
+		}
+
+		// source and target node are relationships, so they are reported as added and removed remote properties
+		for (final String key : List.of(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY)) {
+
+			if (added.containsKey(key) || removed.containsKey(key)) {
+
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private void checkClassName(final SchemaRelationshipNode node) throws FrameworkException {

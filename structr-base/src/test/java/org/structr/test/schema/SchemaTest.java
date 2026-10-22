@@ -27,6 +27,7 @@ import org.structr.api.DatabaseFeature;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.*;
 import org.structr.api.schema.JsonSchema.Cascade;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -2238,6 +2239,118 @@ public class SchemaTest extends StructrTest {
 		} catch (FrameworkException fex) {
 
 			assertTrue("Rejection must name the offending property", fex.getErrorBuffer().getErrorTokens().stream().anyMatch(t -> "cannot_override".equals(t.getToken())));
+		}
+	}
+
+	@Test
+	public void testUnrelatedChangeKeepsNameOfSchemaRelationship() {
+
+		// Ticket 1629: the name of a schema relationship is the type of its existing relationships. When the source type
+		// was renamed, the name no longer matches it, and any later change to the schema relationship, for example by the
+		// migration on startup, renamed it. The existing relationships then had an unknown type and blocked deleting nodes.
+
+		final Traits schemaNodeTraits         = Traits.of(StructrTraits.SCHEMA_NODE);
+		final Traits schemaRelationshipTraits = Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE);
+		final Traits schemaPropertyTraits     = Traits.of(StructrTraits.SCHEMA_PROPERTY);
+		final String containerId;
+
+		// a schema import stores the name of a schema relationship explicitly
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface itemType = app.create(StructrTraits.SCHEMA_NODE, "Item");
+			final NodeInterface partType = app.create(StructrTraits.SCHEMA_NODE, "Part");
+
+			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
+				new NodeAttribute<>(schemaRelationshipTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ItemHASPart"),
+				new NodeAttribute<>(schemaRelationshipTraits.key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), itemType),
+				new NodeAttribute<>(schemaRelationshipTraits.key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), partType),
+				new NodeAttribute<>(schemaRelationshipTraits.key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "HAS"),
+				new NodeAttribute<>(schemaRelationshipTraits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "1"),
+				new NodeAttribute<>(schemaRelationshipTraits.key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "*"),
+				new NodeAttribute<>(schemaRelationshipTraits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "item"),
+				new NodeAttribute<>(schemaRelationshipTraits.key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "parts")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception while creating the schema.");
+
+			return;
+		}
+
+		// rename the source type, the schema relationship keeps its name
+		try (final Tx tx = app.tx()) {
+
+			app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Item").getFirst().setProperty(schemaNodeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Container");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception while renaming the source type.");
+
+			return;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface container = app.create("Container", "container");
+			final NodeInterface part      = app.create("Part", "part");
+
+			container.setProperty(Traits.of("Container").key("parts"), List.of(part));
+
+			containerId = container.getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception while creating the data.");
+
+			return;
+		}
+
+		// a change that has nothing to do with the name: a property added to the schema relationship links a new node to it
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(schemaPropertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "weight"),
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Integer"),
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getFirst())
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception while adding a property to the schema relationship.");
+
+			return;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("An unrelated change must not rename the schema relationship", "ItemHASPart", app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getFirst().getName());
+
+			final PropertyKey<Iterable<NodeInterface>> partsKey = Traits.of("Container").key("parts");
+			final NodeInterface container                       = app.getNodeById("Container", containerId);
+
+			assertEquals("The existing relationship must keep a known type", 1, Iterables.toList(container.getProperty(partsKey)).size());
+
+			app.delete(container);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Deleting a node with an existing relationship must work.");
 		}
 	}
 
