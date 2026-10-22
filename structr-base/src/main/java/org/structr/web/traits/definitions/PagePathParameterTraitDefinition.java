@@ -51,6 +51,7 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 	public static final String DEFAULT_VALUE_PROPERTY           = "defaultValue";
 	public static final String IS_REQUIRED_PROPERTY             = "isRequired";
 	public static final String USE_DEFAULT_IF_INVALID_PROPERTY  = "useDefaultIfInvalid";
+	public static final String IS_CURRENT_OBJECT_PROPERTY       = "isCurrentObject";
 
 	public PagePathParameterTraitDefinition() {
 
@@ -78,7 +79,21 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 					@Override
 					public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-						final PagePath pagePath = graphObject.as(PagePathParameter.class).getPagePath();
+						final PagePathParameter parameter = graphObject.as(PagePathParameter.class);
+						final PagePath pagePath           = parameter.getPagePath();
+
+						// a route has at most one current object, the parameter just marked wins
+						if (pagePath != null && parameter.getIsCurrentObject()) {
+
+							for (final PagePathParameter other : pagePath.getParameters()) {
+
+								if (!other.getUuid().equals(parameter.getUuid()) && other.getIsCurrentObject()) {
+
+									other.setProperty(other.getTraits().key(IS_CURRENT_OBJECT_PROPERTY), false);
+								}
+							}
+						}
+
 						if (pagePath != null) {
 
 							pagePath.updatePathAndParameters(securityContext, Map.of("path", pagePath.getName()));
@@ -116,8 +131,9 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 		final Property<String> defaultValueProperty         = new StringProperty(DEFAULT_VALUE_PROPERTY);
 		final Property<Boolean> isRequiredProperty          = new BooleanProperty(IS_REQUIRED_PROPERTY);
 		final Property<Boolean> useDefaultIfInvalidProperty = new BooleanProperty(USE_DEFAULT_IF_INVALID_PROPERTY);
+		final Property<Boolean> isCurrentObjectProperty     = new BooleanProperty(IS_CURRENT_OBJECT_PROPERTY);
 
-		return Set.of(pathProperty, positionProperty, valueTypeProperty, formatProperty, defaultValueProperty, isRequiredProperty, useDefaultIfInvalidProperty);
+		return Set.of(pathProperty, positionProperty, valueTypeProperty, formatProperty, defaultValueProperty, isRequiredProperty, useDefaultIfInvalidProperty, isCurrentObjectProperty);
 	}
 
 	@Override
@@ -125,9 +141,9 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 
 		return Map.of(
 
-				PropertyView.Public, newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_REQUIRED_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY),
+				PropertyView.Public, newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_REQUIRED_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY, IS_CURRENT_OBJECT_PROPERTY),
 
-				PropertyView.Ui, newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_REQUIRED_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY));
+				PropertyView.Ui, newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_REQUIRED_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY, IS_CURRENT_OBJECT_PROPERTY));
 	}
 
 	@Override

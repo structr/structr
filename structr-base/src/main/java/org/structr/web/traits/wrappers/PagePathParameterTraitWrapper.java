@@ -108,6 +108,12 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 	}
 
 	@Override
+	public boolean getIsCurrentObject() {
+
+		return Boolean.TRUE.equals(wrappedObject.getProperty(traits.key(PagePathParameterTraitDefinition.IS_CURRENT_OBJECT_PROPERTY)));
+	}
+
+	@Override
 	public Object convert(final SecurityContext securityContext, final String src) throws ParseFailureException {
 
 		try {

@@ -1103,6 +1103,9 @@ export class Frontend {
 			}
 		}
 
+		// the path of this page, so a partial of a page reached through a URL route sees the route's values
+		params['structr-route-path'] = window.location.pathname;
+
 		// include render state to reconstruct state of repeaters and dynamic elements
 		if (fromDataset.structrRenderState && fromDataset.structrRenderState.length > 0) {
 			params['structr-encoded-render-state'] = fromDataset.structrRenderState;
