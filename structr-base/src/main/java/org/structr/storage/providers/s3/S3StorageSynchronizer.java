@@ -24,6 +24,7 @@ import org.structr.api.config.Settings;
 import org.structr.storage.sync.ExternalEntry;
 import org.structr.storage.sync.StorageSyncListener;
 import org.structr.storage.sync.StorageSynchronizer;
+import org.structr.storage.sync.SyncDirection;
 import org.structr.storage.sync.SyncTarget;
 import org.structr.storage.sync.VirtualChangeEvent;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -57,7 +58,7 @@ import java.util.concurrent.ExecutionException;
  *
  * S3-compatible stores have no universal push channel, so watching is not
  * supported and synchronization is driven purely by periodic scans
- * (mountScanInterval).
+ * (sync.scanInterval).
  *
  * Outbound: DELETED events delete the object (mandatory - the direct
  * provider delete is skipped for outbound-governed nodes); MOVED events
@@ -76,14 +77,16 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 	private final Map<String, CachedHead> headCache = new ConcurrentHashMap<>();
 
 	private final SyncTarget target;
+	private final boolean writesToStorage;
 	private final S3AsyncClient client;
 	private final String bucketName;
 
 	public S3StorageSynchronizer(final SyncTarget target, final S3AsyncClient client, final String bucketName) {
 
-		this.target     = target;
-		this.client     = client;
-		this.bucketName = bucketName;
+		this.target          = target;
+		this.writesToStorage = SyncDirection.fromConfiguration(target.configuration()).isOutbound();
+		this.client          = client;
+		this.bucketName      = bucketName;
 	}
 
 	@Override
@@ -96,6 +99,13 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 	public boolean supportsWatching() {
 
 		return false;
+	}
+
+	@Override
+	public boolean tracksEntryPaths() {
+
+		// there are no directories, every object carries its own path as metadata
+		return true;
 	}
 
 	@Override
@@ -183,20 +193,42 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 			return;
 		}
 
+		if (writePathMetadata(key, head, event.relativePath())) {
+
+			logger.debug("Refreshed path metadata of S3 object {}: {} -> {}", key, event.previousRelativePath(), event.relativePath());
+		}
+	}
+
+	/**
+	 * The physical object key an outbound event acts on: externally created
+	 * objects keep their native key (persisted in the node's storageKey),
+	 * Structr-origin objects live at the node uuid.
+	 */
+	private String objectKey(final VirtualChangeEvent event) {
+
+		return event.nativeKey() != null ? event.nativeKey() : event.nodeUuid();
+	}
+
+	/**
+	 * Replaces the "path" metadata of the given object. S3 metadata is immutable, so the canonical
+	 * update is a server-side self-copy with replaced metadata, through which no data flows to the
+	 * client. REPLACE discards everything not resent, so the full metadata map and the content type are
+	 * sent again.
+	 *
+	 * @return false if the object is too large for a single-request copy and was left as it is
+	 */
+	private boolean writePathMetadata(final String key, final HeadObjectResponse head, final String relativePath) throws InterruptedException, ExecutionException {
+
 		if (head.contentLength() != null && head.contentLength() > MAX_COPY_OBJECT_SIZE) {
 
 			logger.warn("Skipping path-metadata refresh of S3 object {}: size {} exceeds the single-request copy limit", key, head.contentLength());
 
-			return;
+			return false;
 		}
 
-		// S3 metadata is immutable - the canonical update is a server-side
-		// self-copy with replaced metadata (no data flows through the client).
-		// REPLACE discards everything not resent, so the full metadata map and
-		// the content type are re-sent explicitly.
 		final Map<String, String> metadata = new HashMap<>(head.metadata());
 
-		metadata.put("path", target.syncRootPath() + "/" + event.relativePath());
+		metadata.put("path", relativePath);
 
 		final CopyObjectRequest.Builder builder = CopyObjectRequest.builder()
 			.sourceBucket(bucketName).sourceKey(key)
@@ -211,20 +243,10 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 
 		client.copyObject(builder.build()).get();
 
-		// eTag changes on copy - drop the cache entry, it self-heals on the next scan
+		// the eTag changes on copy, so the cache entry is dropped and the next scan reads it afresh
 		headCache.remove(key);
 
-		logger.debug("Refreshed path metadata of S3 object {}: {} -> {}", key, event.previousRelativePath(), event.relativePath());
-	}
-
-	/**
-	 * The physical object key an outbound event acts on: externally created
-	 * objects keep their native key (persisted in the node's storageKey),
-	 * Structr-origin objects live at the node uuid.
-	 */
-	private String objectKey(final VirtualChangeEvent event) {
-
-		return event.nativeKey() != null ? event.nativeKey() : event.nodeUuid();
+		return true;
 	}
 
 	private HeadObjectResponse headOrNull(final String key) throws InterruptedException, ExecutionException {
@@ -246,26 +268,66 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 
 	/**
 	 * Derives the sync-root-relative virtual path from the "path" user
-	 * metadata (which stores the absolute virtual path at write time).
+	 * metadata, which holds the path below the sync root, or the absolute
+	 * virtual path on objects written in that form.
 	 *
 	 * @return the relative path, "" for the root itself, or null when the
 	 * metadata is absent or does not lie below this target's root
 	 */
-	private String relativizePathMetadata(final String absolutePath) {
+	private String relativizePathMetadata(final String path) {
 
-		if (absolutePath == null) {
+		if (path == null) {
 
 			return null;
 		}
 
-		if (absolutePath.equals(target.syncRootPath())) {
+		// stored relative to the sync root; an absolute path is how objects were written before, and
+		// it only still holds while the root and its ancestors keep their names
+		if (!path.startsWith("/")) {
+
+			return path;
+		}
+
+		if (path.equals(target.syncRootPath())) {
 
 			return "";
 		}
 
 		final String prefix = target.syncRootPath() + "/";
 
-		return absolutePath.startsWith(prefix) ? absolutePath.substring(prefix.length()) : null;
+		return path.startsWith(prefix) ? path.substring(prefix.length()) : null;
+	}
+
+	/**
+	 * Rewrites a path stored in the absolute form, as objects were written before, to the form
+	 * relative to the sync root, while the absolute one still matches the root. Only a mount that
+	 * writes to its storage does this: an inbound-only one reads both forms and leaves the storage as
+	 * it is. A failure leaves the object in the absolute form, which stays readable.
+	 */
+	private void migrateAbsolutePath(final String key, final HeadObjectResponse head, final String storedPath) throws InterruptedException {
+
+		if (storedPath == null || !storedPath.startsWith("/") || !writesToStorage) {
+
+			return;
+		}
+
+		final String relativePath = relativizePathMetadata(storedPath);
+		if (relativePath == null || relativePath.isEmpty()) {
+
+			return;
+		}
+
+		try {
+
+			if (writePathMetadata(key, head, relativePath)) {
+
+				logger.debug("Migrated path metadata of S3 object {} from {} to {}", key, storedPath, relativePath);
+			}
+
+		} catch (ExecutionException eex) {
+
+			logger.warn("Unable to migrate the path metadata of S3 object {} in bucket '{}': {}", key, bucketName, S3Errors.describe(eex));
+		}
 	}
 
 	private record CachedHead(String eTag, String path) {}
@@ -375,6 +437,8 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 				cached = new CachedHead(object.eTag(), head.metadata().get("path"));
 
 				headCache.put(key, cached);
+
+				migrateAbsolutePath(key, head, cached.path());
 			}
 
 			final String relativePath = relativizePathMetadata(cached.path());

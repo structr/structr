@@ -20,10 +20,10 @@ package org.structr.files.sync;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -33,18 +33,21 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.sync.ExternalEntry;
+import org.structr.storage.sync.SyncSettings;
 import org.structr.storage.sync.SyncTarget;
+import org.structr.storage.sync.VanishPolicy;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 /**
  * Maps external change events and enumerated entries for one sync target
  * onto graph operations: creates, updates, moves and deletes File and Folder
- * nodes (honouring mountTargetFileType/mountTargetFolderType), creates
+ * nodes (honouring sync.fileType/sync.folderType), creates
  * intermediate folders, marks nodes isExternal, maintains lastSeenMounted
  * and triggers fulltext indexing and metadata refresh where content actually
  * changed. All methods require an active transaction.
@@ -60,6 +63,7 @@ public class ExternalFileSyncHandler {
 	private static final Logger logger = LoggerFactory.getLogger(ExternalFileSyncHandler.class);
 
 	private final SyncTarget target;
+	private final VanishPolicy vanishPolicy;
 	private final Stats stats = new Stats();
 
 	// all graph access happens with a sync-originated superuser context, so
@@ -67,9 +71,10 @@ public class ExternalFileSyncHandler {
 	// ones (see StorageSyncService.SYNC_ORIGIN_ATTRIBUTE)
 	private final App app = StructrApp.getInstance(StorageSyncService.createSyncContext());
 
-	public ExternalFileSyncHandler(final SyncTarget target) {
+	public ExternalFileSyncHandler(final SyncTarget target, final VanishPolicy vanishPolicy) {
 
-		this.target = target;
+		this.target       = target;
+		this.vanishPolicy = vanishPolicy;
 	}
 
 	public Stats getStats() {
@@ -85,22 +90,30 @@ public class ExternalFileSyncHandler {
 	 */
 	public NodeInterface handleDiscovered(final ExternalEntry entry, final long scanTime) throws FrameworkException {
 
+		final long createdBefore = stats.created;
 		final NodeInterface node = resolve(entry, true);
 		if (node == null) {
 
 			return null;
 		}
 
-		if (node.is(StructrTraits.FILE) && !hasChanged(node.as(File.class), entry)) {
+		final boolean created = stats.created > createdBefore;
 
-			// unchanged: only stamp lastSeenMounted for reconciliation
+		if (!created && (!node.is(StructrTraits.FILE) || !hasChanged(node.as(File.class), entry))) {
+
+			// unchanged, and a folder has nothing to compare: only stamp lastSeenMounted for reconciliation
 			node.setProperty(lastSeenMountedKey(), scanTime);
+			clearVanishedMark(node);
 			stats.unchanged++;
 
 		} else {
 
-			updateNode(node, scanTime);
-			stats.updated++;
+			updateNode(node, entry, scanTime);
+
+			if (!created) {
+
+				stats.updated++;
+			}
 		}
 
 		return node;
@@ -115,7 +128,7 @@ public class ExternalFileSyncHandler {
 		final NodeInterface node = resolve(entry, true);
 		if (node != null) {
 
-			updateNode(node, System.currentTimeMillis());
+			updateNode(node, entry, System.currentTimeMillis());
 			stats.updated++;
 		}
 
@@ -123,10 +136,18 @@ public class ExternalFileSyncHandler {
 	}
 
 	/**
-	 * Push side: DELETED. Resolves by UUID first, else by path, and deletes
-	 * the node if present. The sync root itself is never deleted.
+	 * Push side: DELETED. Resolves by UUID first, else by path, and applies
+	 * the target's VanishPolicy to the node if present. The sync root itself
+	 * is never deleted or marked.
 	 */
 	public void handleDeleted(final ExternalEntry entryReference) throws FrameworkException {
+
+		if (!vanishPolicy.reconciles()) {
+
+			stats.ignored++;
+
+			return;
+		}
 
 		final NodeInterface node = resolve(entryReference, false);
 		if (node != null) {
@@ -138,8 +159,16 @@ public class ExternalFileSyncHandler {
 				return;
 			}
 
-			app.delete(node);
-			stats.deleted++;
+			if (VanishPolicy.READONLY.equals(vanishPolicy)) {
+
+				node.as(AbstractFile.class).setExternallyDeleted(true);
+				stats.marked++;
+
+			} else {
+
+				app.delete(node);
+				stats.deleted++;
+			}
 		}
 	}
 
@@ -156,7 +185,7 @@ public class ExternalFileSyncHandler {
 
 			if (moveTo(node, to)) {
 
-				updateNode(node, System.currentTimeMillis());
+				updateNode(node, to, System.currentTimeMillis());
 				stats.updated++;
 			}
 
@@ -236,14 +265,6 @@ public class ExternalFileSyncHandler {
 			return syncRoot;
 		}
 
-		if (!target.syncRootIsFolder()) {
-
-			logger.warn("Ignoring entry {} of sync target {}: sync root is a single file and cannot contain other entries", entry.relativePath(), target.syncRootPath());
-			stats.ignored++;
-
-			return null;
-		}
-
 		final NodeInterface parentFolder = resolveParentFolder(syncRoot, entry, create);
 		if (parentFolder == null) {
 
@@ -278,13 +299,19 @@ public class ExternalFileSyncHandler {
 					return null;
 				}
 
-				// remaining folders do not exist yet and will inherit this target's
-				// configuration, so no boundary can be crossed below this point.
-				// read the sync root's path fresh from the node - ancestors may have
-				// been renamed since the target snapshot was taken
-				final String virtualParentPath = syncRoot.as(AbstractFile.class).getPath() + "/" + parentPath;
+				// a folder the storage implies but does not list, as S3 never lists folders: it
+				// is as external as the entry below it, so that reconciliation can remove it once
+				// its contents are gone, and it is created by the sync layer, so that it is not
+				// sent back to the storage it came from
+				current = app.create(getTargetType(true),
+					new NodeAttribute<>(nameKey, segment),
+					new NodeAttribute<>(parentKey, current),
+					new NodeAttribute<>(traits.key(AbstractFileTraitDefinition.IS_EXTERNAL_PROPERTY), true)
+				);
 
-				return FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), virtualParentPath);
+				stats.created++;
+
+				continue;
 			}
 
 			if (child.as(AbstractFile.class).getStorageConfiguration() != null) {
@@ -314,6 +341,14 @@ public class ExternalFileSyncHandler {
 		NodeInterface node = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(nameKey, entry.name()).key(parentKey, parentFolder).getFirst();
 		if (node != null) {
 
+			if (node.as(AbstractFile.class).getStorageConfiguration() != null) {
+
+				logger.debug("Ignoring entry {} of sync target {}: it is nested sync root {}, which is governed by a different storage configuration", entry.relativePath(), target.syncRootPath(), node.getUuid());
+				stats.ignored++;
+
+				return null;
+			}
+
 			// identity verification: never rebind a node whose physical identity
 			// differs from the entry's. A native-key entry only reaches this point
 			// when no node carries its storageKey (resolve() checks that first), so
@@ -332,7 +367,7 @@ public class ExternalFileSyncHandler {
 
 		if (node == null && doCreate) {
 
-			final String type            = getTargetType(syncRoot, entry.directory());
+			final String type            = getTargetType(entry.directory());
 			final PropertyMap properties = new PropertyMap();
 
 			properties.put(nameKey,       entry.name());
@@ -359,36 +394,29 @@ public class ExternalFileSyncHandler {
 		return node;
 	}
 
-	private String getTargetType(final NodeInterface syncRoot, final boolean directory) {
+	private String getTargetType(final boolean directory) {
 
-		String fileType   = null;
-		String folderType = null;
+		final SyncSettings settings = SyncSettings.fromConfiguration(target.configuration());
+		String fileType             = settings.fileType();
+		String folderType           = settings.folderType();
 
-		if (syncRoot.is(StructrTraits.FOLDER)) {
+		if (fileType != null) {
 
-			final Folder rootFolder = syncRoot.as(Folder.class);
+			final Traits traits = Traits.of(fileType);
+			if (traits == null || !traits.contains(StructrTraits.FILE)) {
 
-			fileType   = rootFolder.getMountTargetFileType();
-			folderType = rootFolder.getMountTargetFolderType();
-
-			if (fileType != null) {
-
-				final Traits traits = Traits.of(fileType);
-				if (traits == null || !traits.contains(StructrTraits.FILE)) {
-
-					logger.error("Given target type {} for synchronized files does not extend File.", fileType);
-					fileType = null;
-				}
+				logger.error("Given target type {} for synchronized files does not extend File.", fileType);
+				fileType = null;
 			}
+		}
 
-			if (folderType != null) {
+		if (folderType != null) {
 
-				final Traits traits = Traits.of(folderType);
-				if (traits == null || !traits.contains(StructrTraits.FOLDER)) {
+			final Traits traits = Traits.of(folderType);
+			if (traits == null || !traits.contains(StructrTraits.FOLDER)) {
 
-					logger.error("Given target type {} for synchronized folders does not extend Folder.", folderType);
-					folderType = null;
-				}
+				logger.error("Given target type {} for synchronized folders does not extend Folder.", folderType);
+				folderType = null;
 			}
 		}
 
@@ -449,7 +477,9 @@ public class ExternalFileSyncHandler {
 	 * Ported from the legacy FileSyncWatchEventListener: fulltext indexing
 	 * and full metadata refresh for files, lastSeenMounted for folders.
 	 */
-	private void updateNode(final NodeInterface node, final long timestamp) throws FrameworkException {
+	private void updateNode(final NodeInterface node, final ExternalEntry entry, final long timestamp) throws FrameworkException {
+
+		clearVanishedMark(node);
 
 		if (node.is(StructrTraits.FILE)) {
 
@@ -465,9 +495,32 @@ public class ExternalFileSyncHandler {
 
 			FileHelper.updateMetadata(node.as(File.class), new PropertyMap(lastSeenMountedKey(), timestamp), true);
 
+			// the storage's modification time, which the next scan compares with: updateMetadata records the
+			// node's own instead, which never matches, so every file would read as changed on every scan
+			if (entry.lastModified() != null) {
+
+				node.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.FILE_MODIFICATION_DATE_PROPERTY), entry.lastModified());
+			}
+
 		} else if (node.is(StructrTraits.ABSTRACT_FILE)) {
 
 			node.setProperty(lastSeenMountedKey(), timestamp);
+		}
+	}
+
+	/**
+	 * Clears the externally-deleted mark of a node that the external storage
+	 * reports again: an entry that is enumerated or changed is, by that fact,
+	 * no longer gone. Without this a READONLY mount would mark a node once
+	 * and never release it.
+	 */
+	private void clearVanishedMark(final NodeInterface node) throws FrameworkException {
+
+		final AbstractFile file = node.as(AbstractFile.class);
+
+		if (file.isExternallyDeleted()) {
+
+			file.setExternallyDeleted(false);
 		}
 	}
 
@@ -480,7 +533,9 @@ public class ExternalFileSyncHandler {
 			return true;
 		}
 
-		final Long nodeSize = file.getSize();
+		// what the node recorded at its last update: File.getSize() would ask the storage instead, which
+		// is a read per file and scan, and is not what the entry has to be compared with
+		final Long nodeSize = file.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.SIZE_PROPERTY));
 		final Long nodeDate = file.getFileModificationDate();
 
 		return nodeSize == null || nodeDate == null || !entry.size().equals(nodeSize) || !entry.lastModified().equals(nodeDate);
@@ -543,18 +598,20 @@ public class ExternalFileSyncHandler {
 		private long updated   = 0;
 		private long unchanged = 0;
 		private long deleted   = 0;
+		private long marked    = 0;
 		private long ignored   = 0;
 
 		public long getCreated()   { return created; }
 		public long getUpdated()   { return updated; }
 		public long getUnchanged() { return unchanged; }
 		public long getDeleted()   { return deleted; }
+		public long getMarked()    { return marked; }
 		public long getIgnored()   { return ignored; }
 
 		@Override
 		public String toString() {
 
-			return "created " + created + ", updated " + updated + ", unchanged " + unchanged + ", deleted " + deleted + ", ignored " + ignored;
+			return "created " + created + ", updated " + updated + ", unchanged " + unchanged + ", deleted " + deleted + ", marked " + marked + ", ignored " + ignored;
 		}
 	}
 }

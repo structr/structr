@@ -20,20 +20,22 @@ package org.structr.core.graph.search;
 
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
-import org.structr.common.PathResolvingComparator;
-import org.structr.core.GraphObject;
-import org.structr.schema.action.ActionContext;
+import org.structr.common.SortKeysComparator;
 
 import java.util.Collections;
 import java.util.List;
 
-public class PathPropertySortOrder implements SortOrder {
+/**
+ * A sort order of a query that the database cannot sort by, like a path through related objects,
+ * natural order or an explicit position of nulls. The result is sorted in Java before it is paged.
+ */
+public class SortKeysSortOrder implements SortOrder {
 
-	final PathResolvingComparator comparator;
+	private final SortKeysComparator comparator;
 
-	public PathPropertySortOrder(final ActionContext actionContext, final String pathSortKey, final boolean sortDescending) {
+	public SortKeysSortOrder(final SortKeysComparator comparator) {
 
-		this.comparator = new PathResolvingComparator(actionContext, pathSortKey, sortDescending);
+		this.comparator = comparator;
 	}
 
 	@Override
@@ -49,13 +51,8 @@ public class PathPropertySortOrder implements SortOrder {
 	}
 
 	@Override
-	public int compare(Object o1, Object o2) {
+	public int compare(final Object o1, final Object o2) {
 
-		if (o1 instanceof GraphObject && o2 instanceof GraphObject) {
-
-			return this.comparator.compare((GraphObject) o1, (GraphObject) o2);
-		}
-
-		return 0;
+		return comparator.compare(o1, o2);
 	}
 }

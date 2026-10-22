@@ -21,6 +21,7 @@ package org.structr.storage.sync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -33,7 +34,7 @@ import java.util.Map;
  *        created before this setting existed.
  * OUT  - Structr-side structural changes (create/move/rename/delete) are
  *        propagated to the external storage; no watching or scanning.
- *        Note that inbound-only features like "sync.deleteStale" pruning
+ *        Note that inbound-only features like "sync.onVanished" reconciliation
  *        never run for outbound-only configurations.
  * BOTH - full two-way synchronization.
  */
@@ -57,7 +58,7 @@ public enum SyncDirection {
 			return IN;
 		}
 
-		switch (value.trim().toLowerCase()) {
+		switch (value.trim().toLowerCase(Locale.ROOT)) {
 
 			case "in":   { return IN; }
 			case "out":  { return OUT; }

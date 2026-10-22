@@ -48,10 +48,11 @@ import java.util.Set;
 
 public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String ENTRIES_PROPERTY  = "entries";
-	public static final String FOLDERS_PROPERTY  = "folders";
-	public static final String NAME_PROPERTY     = "name";
-	public static final String PROVIDER_PROPERTY = "provider";
+	public static final String ENTRIES_PROPERTY      = "entries";
+	public static final String FOLDERS_PROPERTY      = "folders";
+	public static final String LAST_SCANNED_PROPERTY = "lastScanned";
+	public static final String NAME_PROPERTY         = "name";
+	public static final String PROVIDER_PROPERTY     = "provider";
 
 	public StorageConfigurationTraitDefinition() {
 
@@ -85,6 +86,12 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+					// the sync layer's own writes (the scan time) change nothing a synchronizer depends on
+					if (StorageSyncService.isSyncOrigin(securityContext)) {
+
+						return;
+					}
 
 					// re-attach all sync roots using this configuration
 					StorageSyncService.handleConfigurationChanged(graphObject.getUuid());
@@ -130,14 +137,15 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 		final Property<Iterable<NodeInterface>> foldersProperty = new StartNodes(traitsInstance, FOLDERS_PROPERTY, StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION);
 		final Property<String> nameProperty                     = new StringProperty(NAME_PROPERTY).indexed().unique().notNull();
 		final Property<String> providerProperty                 = new StringProperty(PROVIDER_PROPERTY).indexed().notNull();
+		final Property<Long> lastScannedProperty                = new LongProperty(LAST_SCANNED_PROPERTY);
 
-		return Set.of(entriesProperty, foldersProperty, nameProperty, providerProperty);
+		return Set.of(entriesProperty, foldersProperty, nameProperty, providerProperty, lastScannedProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(PropertyView.Ui, newSet(NAME_PROPERTY, PROVIDER_PROPERTY, ENTRIES_PROPERTY));
+		return Map.of(PropertyView.Ui, newSet(NAME_PROPERTY, PROVIDER_PROPERTY, ENTRIES_PROPERTY, LAST_SCANNED_PROPERTY));
 	}
 
 	@Override

@@ -33,23 +33,25 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.storage.sync.ExternalEntry;
 import org.structr.storage.sync.SyncTarget;
+import org.structr.storage.sync.VanishPolicy;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FolderTraitDefinition;
+import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
  * Pull-side reconciliation for one sync target: consumes the synchronizer's
- * enumeration in batched transactions, then (opt-in via the configuration
- * entry "sync.deleteStale") prunes external nodes that were not seen during
- * the scan - i.e. entries that vanished from the external storage while
- * Structr was not watching. The prune traversal stops at nested sync roots,
- * which are governed by their own synchronizer.
+ * enumeration in batched transactions, then applies the target's VanishPolicy
+ * (configuration entry "sync.onVanished") to external nodes that were not seen
+ * during the scan - i.e. entries that vanished from the external storage while
+ * Structr was not watching. The traversal stops at nested sync roots, which are
+ * governed by their own synchronizer.
  */
 class ScanJob implements Runnable {
 
@@ -87,27 +89,43 @@ class ScanJob implements Runnable {
 			return;
 		}
 
-		final ExternalFileSyncHandler handler = new ExternalFileSyncHandler(target);
+		final ExternalFileSyncHandler handler = new ExternalFileSyncHandler(target, sync.vanishPolicy);
 		final long scanStart                  = System.currentTimeMillis();
-		long pruned                           = 0;
+		long reconciled                       = 0;
 
 		if (!discover(handler, scanStart)) {
 
-			// never prune after a partial scan
+			// a partial enumeration cannot distinguish a vanished entry from an
+			// unread one, so it never reconciles
 
 			return;
 		}
 
-		if (sync.deleteStale) {
+		if (sync.vanishPolicy.reconciles()) {
 
-			pruned = prune(scanStart);
+			reconciled = reconcile(scanStart);
+
+			if (reconciled < 0) {
+
+				// the next complete scan applies the policy again from the start
+
+				return;
+			}
 		}
 
 		updateLastScanned(scanStart);
 
-		if (Boolean.FALSE.equals(Settings.LogDirectoryWatchServiceQuiet.getValue())) {
+		final ExternalFileSyncHandler.Stats stats = handler.getStats();
+		final boolean changed                     = stats.getCreated() + stats.getUpdated() + stats.getDeleted() + stats.getMarked() + reconciled > 0;
 
-			logger.info("Scanned {}: {}, pruned {}", target.syncRootPath(), handler.getStats(), pruned);
+		// a scan that found nothing to do is not news, which matters at short intervals
+		if (changed && Boolean.FALSE.equals(Settings.LogDirectoryWatchServiceQuiet.getValue())) {
+
+			logger.info("Scanned {}: {}, vanish policy {} applied to {}", target.syncRootPath(), stats, sync.vanishPolicy.value(), reconciled);
+
+		} else {
+
+			logger.debug("Scanned {}: {}, vanish policy {} applied to {}", target.syncRootPath(), stats, sync.vanishPolicy.value(), reconciled);
 		}
 	}
 
@@ -166,22 +184,47 @@ class ScanJob implements Runnable {
 					return false;
 				}
 
-				int batchCount = 0;
+				if (!isStillAttached()) {
 
-				try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, false, false)) {
+					logger.info("Stopping the scan of {}: the mount was detached", target.syncRootPath());
 
-					while (it.hasNext() && batchCount++ < BATCH_SIZE) {
+					return false;
+				}
 
-						handler.handleDiscovered(it.next(), scanStart);
+				if (!syncRootExists()) {
+
+					logger.info("Stopping the scan of {}: its sync root no longer exists", target.syncRootPath());
+
+					return false;
+				}
+
+				// read the batch before opening the transaction: enumerating may mean I/O against
+				// the backend, which does not belong inside a write transaction
+				final List<ExternalEntry> batch = new ArrayList<>(BATCH_SIZE);
+
+				while (it.hasNext() && batch.size() < BATCH_SIZE) {
+
+					batch.add(it.next());
+				}
+
+				if (handleInOneTransaction(securityContext, handler, batch, scanStart) != null) {
+
+					// validation runs when the batch commits, so one invalid entry fails all of
+					// them: handle each on its own so that only the offending one is missing
+					for (final ExternalEntry entry : batch) {
+
+						final Throwable failure = handleInOneTransaction(securityContext, handler, List.of(entry), scanStart);
+						if (failure != null) {
+
+							logger.warn("Unable to import {} of {}: {}", entry.hasPath() ? entry.relativePath() : "#" + entry.nodeUuid(), target.syncRootPath(), failure.getMessage());
+						}
 					}
-
-					tx.success();
 				}
 			}
 
 			return true;
 
-		} catch (IOException | FrameworkException ex) {
+		} catch (IOException ex) {
 
 			logger.warn("Unable to scan {}: {}", target.syncRootPath(), ex.getMessage());
 
@@ -203,18 +246,67 @@ class ScanJob implements Runnable {
 	}
 
 	/**
-	 * Deletes external nodes below the sync root that were not seen by the
-	 * scan that started at the given timestamp. Children are deleted before
-	 * their parents; nodes with non-external or foreign-governed content
-	 * below them are kept.
-	 *
-	 * @return the number of deleted nodes
+	 * @return false once the mount this scan belongs to was detached or attached anew, for example after
+	 * its configuration changed: what is left of this scan would then write on behalf of a mount that no
+	 * longer exists in this form
 	 */
-	private long prune(final long scanStart) {
+	private boolean isStillAttached() {
+		return service.getActiveSync(target.syncRootUuid()) == sync;
+	}
+
+	private boolean syncRootExists() {
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final boolean exists = StructrApp.getInstance().getNodeById(StructrTraits.ABSTRACT_FILE, target.syncRootUuid()) != null;
+
+			tx.success();
+
+			return exists;
+
+		} catch (FrameworkException fex) {
+
+			return false;
+		}
+	}
+
+	/**
+	 * @return null if the given entries were handled and committed, the failure otherwise
+	 */
+	private Throwable handleInOneTransaction(final SecurityContext securityContext, final ExternalFileSyncHandler handler, final List<ExternalEntry> entries, final long scanStart) {
+
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, false, false)) {
+
+			for (final ExternalEntry entry : entries) {
+
+				handler.handleDiscovered(entry, scanStart);
+			}
+
+			tx.success();
+
+			return null;
+
+		} catch (Throwable t) {
+
+			return t;
+		}
+	}
+
+	/**
+	 * Applies the target's VanishPolicy to external nodes below the sync root
+	 * that were not seen by the scan that started at the given timestamp.
+	 * Children are handled before their parents; nodes with non-external or
+	 * foreign-governed content below them are kept.
+	 *
+	 * @return the number of nodes deleted or newly marked, or -1 if the policy could not be applied
+	 * completely: it stops at the first batch that fails, since a parent folder later in the list
+	 * would otherwise be deleted above children that were kept
+	 */
+	private long reconcile(final long scanStart) {
 
 		if (!service.isReady()) {
 
-			return 0;
+			return -1;
 		}
 
 		final List<String> staleUuids = new LinkedList<>();
@@ -222,7 +314,7 @@ class ScanJob implements Runnable {
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			final NodeInterface syncRoot = StructrApp.getInstance().getNodeById(StructrTraits.ABSTRACT_FILE, target.syncRootUuid());
-			if (syncRoot != null && target.syncRootIsFolder()) {
+			if (syncRoot != null) {
 
 				collectStale(syncRoot, scanStart, staleUuids);
 			}
@@ -233,30 +325,54 @@ class ScanJob implements Runnable {
 
 			logger.warn("Unable to determine stale nodes of {}: {}", target.syncRootPath(), fex.getMessage());
 
-			return 0;
+			return -1;
 		}
 
+		final boolean markOnly    = VanishPolicy.READONLY.equals(sync.vanishPolicy);
 		final Iterator<String> it = staleUuids.iterator();
-		long deleted              = 0;
+		long applied              = 0;
 
 		while (it.hasNext()) {
 
-			if (!service.isReady()) {
+			if (!service.isReady() || !isStillAttached()) {
 
-				break;
+				return -1;
 			}
 
-			int batchCount = 0;
+			int batchCount   = 0;
+			long batchApplied = 0;
 
-			try (final Tx tx = StructrApp.getInstance(StorageSyncService.createSyncContext()).tx(true, false, false)) {
+			// the sync-origin context is what tells the lifecycle guards that the
+			// physical side is already gone, so neither the delete nor the mark is
+			// propagated back to the external storage
+			final App app = StructrApp.getInstance(StorageSyncService.createSyncContext());
+
+			try (final Tx tx = app.tx(true, false, false)) {
 
 				while (it.hasNext() && batchCount++ < BATCH_SIZE) {
 
-					final NodeInterface node = StructrApp.getInstance().getNodeById(StructrTraits.ABSTRACT_FILE, it.next());
-					if (node != null) {
+					final NodeInterface node = app.getNodeById(StructrTraits.ABSTRACT_FILE, it.next());
+					if (node == null) {
 
-						StructrApp.getInstance().delete(node);
-						deleted++;
+						continue;
+					}
+
+					if (markOnly) {
+
+						final AbstractFile file = node.as(AbstractFile.class);
+
+						// every later scan sees an already marked node as stale again,
+						// so re-marking it would be a write per scan interval
+						if (!file.isExternallyDeleted()) {
+
+							file.setExternallyDeleted(true);
+							batchApplied++;
+						}
+
+					} else {
+
+						app.delete(node);
+						batchApplied++;
 					}
 				}
 
@@ -264,11 +380,15 @@ class ScanJob implements Runnable {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("Unable to prune stale nodes of {}: {}", target.syncRootPath(), fex.getMessage());
+				logger.warn("Unable to reconcile stale nodes of {}: {}", target.syncRootPath(), fex.getMessage());
+
+				return -1;
 			}
+
+			applied += batchApplied;
 		}
 
-		return deleted;
+		return applied;
 	}
 
 	/**
@@ -322,17 +442,20 @@ class ScanJob implements Runnable {
 
 	private void updateLastScanned(final long scanStart) {
 
-		if (!target.syncRootIsFolder() || !service.isReady()) {
+		if (!service.isReady()) {
 
 			return;
 		}
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
+		// written as the sync layer, so that recording the scan does not re-attach the mount
+		final App app = StructrApp.getInstance(StorageSyncService.createSyncContext());
 
-			final NodeInterface syncRoot = StructrApp.getInstance().getNodeById(StructrTraits.FOLDER, target.syncRootUuid());
-			if (syncRoot != null) {
+		try (final Tx tx = app.tx()) {
 
-				syncRoot.setProperty(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_LAST_SCANNED_PROPERTY), scanStart);
+			final NodeInterface configuration = app.getNodeById(StructrTraits.STORAGE_CONFIGURATION, target.storageConfigurationUuid());
+			if (configuration != null) {
+
+				configuration.setProperty(Traits.of(StructrTraits.STORAGE_CONFIGURATION).key(StorageConfigurationTraitDefinition.LAST_SCANNED_PROPERTY), scanStart);
 			}
 
 			tx.success();

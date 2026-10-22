@@ -37,6 +37,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -46,8 +47,13 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.files.sync.StorageSyncService;
 import org.structr.schema.SchemaService;
+import org.structr.storage.sync.SyncSettings;
+import org.structr.storage.sync.VanishPolicy;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -229,6 +235,8 @@ public class MigrationService {
 		new MigrationStep("migratePrincipalToPrincipalInterface",       Kind.WRITING, false, MigrationService::migratePrincipalToPrincipalInterface),
 		new MigrationStep("migrateDataSourceLabels",                    Kind.WRITING, false, MigrationService::migrateDataSourceLabels),
 		new MigrationStep("migrateFolderMountTarget",                   Kind.WRITING, false, apply -> migrateFolderMountTarget()),
+		new MigrationStep("migrateDeleteStaleToVanishPolicy",           Kind.WRITING, false, apply -> migrateDeleteStaleToVanishPolicy()),
+		new MigrationStep("migrateFolderMountSettings",                 Kind.WRITING, false, apply -> migrateFolderMountSettings()),
 		new MigrationStep("migrateEventActionMapping",                  Kind.WRITING, false, apply -> migrateEventActionMapping()),
 		new MigrationStep("migrateActionMappingTargetsToRelationships", Kind.WRITING, false, apply -> migrateActionMappingTargetsToRelationships()),
 		new MigrationStep("cleanStaleActionMappingTargets",             Kind.WRITING, false, apply -> cleanStaleActionMappingTargets()),
@@ -241,7 +249,8 @@ public class MigrationService {
 		new MigrationStep("migrateRestQueryRepeaters",                  Kind.WRITING, true, apply -> migrateRestQueryRepeaters()),
 		new MigrationStep("migrateActionMappingControlsToProcess",      Kind.WRITING, true, apply -> migrateActionMappingControlsToProcess()),
 		new MigrationStep("migrateVisibilityMappingForToProcess",       Kind.WRITING, true, apply -> migrateVisibilityMappingForToProcess()),
-		new MigrationStep("warnAboutWrongNotionProperties",             Kind.REPORTING, false, apply -> warnAboutWrongNotionProperties())
+		new MigrationStep("warnAboutWrongNotionProperties",             Kind.REPORTING, false, apply -> warnAboutWrongNotionProperties()),
+		new MigrationStep("warnAboutMountsWithoutSyncService",          Kind.REPORTING, false, apply -> warnAboutMountsWithoutSyncService())
 	);
 
 	/**
@@ -1777,6 +1786,53 @@ public class MigrationService {
 		}
 	}
 
+	/**
+	 * Mounted folders are synchronized only by the StorageSyncService, which is part of the default service
+	 * list. A configured.services line written while it was not - every list saved under 6.x, where mounting
+	 * was opt-in - keeps it switched off, and nothing else would tell the user why their mounts stand still.
+	 */
+	private static void warnAboutMountsWithoutSyncService() throws FrameworkException {
+
+		final int unsynchronized = countMountsWithoutSyncService();
+		if (unsynchronized > 0) {
+
+			logger.warn("{} mounted file(s) or folder(s) will not be synchronized, because StorageSyncService is not listed in {} (currently: {}). Add it to that setting to synchronize them.",
+				unsynchronized, Settings.Services.getKey(), Settings.Services.getValue());
+		}
+	}
+
+	/**
+	 * @return the number of files and folders that carry a storage configuration, if the StorageSyncService
+	 * is not configured to run, and 0 otherwise
+	 */
+	public static int countMountsWithoutSyncService() throws FrameworkException {
+
+		if (Services.getInstance().isConfigured(StorageSyncService.class)) {
+
+			return 0;
+		}
+
+		final PropertyKey<Iterable<NodeInterface>> configuredKey = Traits.of(StructrTraits.STORAGE_CONFIGURATION).key(StorageConfigurationTraitDefinition.FOLDERS_PROPERTY);
+		final App app                                            = StructrApp.getInstance();
+		int count                                                = 0;
+
+		try (final Tx tx = app.tx()) {
+
+			// counted from the configuration side: a query for the relationship on the files matches nothing
+			for (final NodeInterface configuration : app.nodeQuery(StructrTraits.STORAGE_CONFIGURATION).getAsList()) {
+
+				for (final NodeInterface ignored : configuration.getProperty(configuredKey)) {
+
+					count++;
+				}
+			}
+
+			tx.success();
+		}
+
+		return count;
+	}
+
 	private static void warnAboutWrongNotionProperties() throws FrameworkException {
 
 		final PropertyKey<String> typeKey   = Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY);
@@ -2028,6 +2084,211 @@ public class MigrationService {
 		}
 	}
 
+	/**
+	 * The name the boolean predecessor of {@link VanishPolicy} was stored under. It exists only
+	 * here, because this is the last code that has any reason to know it.
+	 */
+	private static final String LEGACY_DELETE_STALE_KEY = "sync.deleteStale";
+
+	// mount settings that Folder used to declare, read by their raw names
+	private static final String LEGACY_MOUNT_TARGET_KEY    = "mountTarget";
+	private static final String LEGACY_WATCH_CONTENTS_KEY  = "mountWatchContents";
+	private static final String LEGACY_SCAN_INTERVAL_KEY   = "mountScanInterval";
+	private static final String LEGACY_FILE_TYPE_KEY       = "mountTargetFileType";
+	private static final String LEGACY_FOLDER_TYPE_KEY     = "mountTargetFolderType";
+	private static final String LEGACY_LAST_SCANNED_KEY    = "mountLastScanned";
+	private static final List<String> LEGACY_MOUNT_SETTINGS = List.of(LEGACY_WATCH_CONTENTS_KEY, LEGACY_SCAN_INTERVAL_KEY, LEGACY_FILE_TYPE_KEY, LEGACY_FOLDER_TYPE_KEY, LEGACY_LAST_SCANNED_KEY);
+
+	/**
+	 * Rewrites the storage configuration entry "sync.deleteStale" into the three-valued
+	 * "sync.onVanished". An enabled flag becomes "delete"; a disabled one is removed outright,
+	 * because an absent entry already means "ignore" and keeping it would only preserve a name
+	 * nothing reads.
+	 */
+	private static void migrateDeleteStaleToVanishPolicy() throws FrameworkException {
+
+		final Traits entryTraits                         = Traits.of(StructrTraits.STORAGE_CONFIGURATION_ENTRY);
+		final PropertyKey<String> nameKey                = entryTraits.key(StorageConfigurationEntryTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<String> valueKey               = entryTraits.key(StorageConfigurationEntryTraitDefinition.VALUE_PROPERTY);
+		final PropertyKey<NodeInterface> configurationKey = entryTraits.key(StorageConfigurationEntryTraitDefinition.CONFIGURATION_PROPERTY);
+		final App app                                    = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> entries = app.nodeQuery(StructrTraits.STORAGE_CONFIGURATION_ENTRY).key(nameKey, LEGACY_DELETE_STALE_KEY).getAsList();
+
+			if (!entries.isEmpty()) {
+
+				logger.info("Migrating {} storage configuration entries from {} to {}.", entries.size(), LEGACY_DELETE_STALE_KEY, VanishPolicy.POLICY_KEY);
+			}
+
+			for (final NodeInterface entry : entries) {
+
+				// a policy already set on the same configuration is the explicit statement and wins;
+				// renaming the flag next to it would leave two entries of that name, and whichever one
+				// the configuration map happened to keep would decide the behaviour
+				if (hasEntryNamed(entry.getProperty(configurationKey), VanishPolicy.POLICY_KEY, nameKey)) {
+
+					app.delete(entry);
+
+					continue;
+				}
+
+				// the entry value is an encrypted property, so an instance without the global
+				// secret cannot be read here; leaving the entry alone keeps the old name in
+				// place rather than silently turning a configured "delete" into the default
+				final String value = entry.getProperty(valueKey);
+				if (value == null) {
+
+					logger.warn("Unable to read the value of a {} entry, leaving it unmigrated.", LEGACY_DELETE_STALE_KEY);
+
+					continue;
+				}
+
+				if (Boolean.parseBoolean(value)) {
+
+					entry.setProperty(nameKey,  VanishPolicy.POLICY_KEY);
+					entry.setProperty(valueKey, VanishPolicy.DELETE.value());
+
+				} else {
+
+					app.delete(entry);
+				}
+			}
+
+			tx.success();
+		}
+	}
+
+	/**
+	 * Moves the mount settings that Folder used to carry onto the folder's own storage configuration:
+	 * watch, scan interval and the two target types become sync.* entries, the last scan time becomes
+	 * the configuration's lastScanned. Only values that differ from the default are written, an entry
+	 * that already exists is never overwritten, and a configuration shared by several folders takes the
+	 * values of the first folder by path. A folder without a configuration only has the values cleared,
+	 * since they mean nothing there.
+	 */
+	private static void migrateFolderMountSettings() throws FrameworkException {
+
+		final Traits entryTraits                          = Traits.of(StructrTraits.STORAGE_CONFIGURATION_ENTRY);
+		final PropertyKey<String> nameKey                 = entryTraits.key(StorageConfigurationEntryTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<String> valueKey                = entryTraits.key(StorageConfigurationEntryTraitDefinition.VALUE_PROPERTY);
+		final PropertyKey<NodeInterface> configurationKey = entryTraits.key(StorageConfigurationEntryTraitDefinition.CONFIGURATION_PROPERTY);
+		final PropertyKey<Long> lastScannedKey            = Traits.of(StructrTraits.STORAGE_CONFIGURATION).key(StorageConfigurationTraitDefinition.LAST_SCANNED_PROPERTY);
+		final App app                                     = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			// sorted by path, so that of several folders sharing a configuration the first one wins
+			final Map<String, NodeInterface> folders = new TreeMap<>();
+
+			for (final String key : LEGACY_MOUNT_SETTINGS) {
+
+				for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).notBlank(new GenericProperty<>(key)).getAsList()) {
+
+					folders.put(folder.as(Folder.class).getPath() + "\0" + folder.getUuid(), folder);
+				}
+			}
+
+			if (!folders.isEmpty()) {
+
+				logger.info("Migrating the mount settings of {} folders to their storage configurations.", folders.size());
+			}
+
+			// what this run has written to each configuration, to tell a conflict from a repetition
+			final Map<String, String> written = new HashMap<>();
+
+			for (final NodeInterface folder : folders.values()) {
+
+				final StorageConfiguration configuration = folder.as(AbstractFile.class).getStorageConfiguration();
+				if (configuration != null) {
+
+					final Map<String, String> settings = new LinkedHashMap<>();
+					final Object watchContents         = folder.getProperty(new GenericProperty<>(LEGACY_WATCH_CONTENTS_KEY));
+					final Object scanInterval          = folder.getProperty(new GenericProperty<>(LEGACY_SCAN_INTERVAL_KEY));
+					final Object fileType              = folder.getProperty(new GenericProperty<>(LEGACY_FILE_TYPE_KEY));
+					final Object folderType            = folder.getProperty(new GenericProperty<>(LEGACY_FOLDER_TYPE_KEY));
+					final Object lastScanned           = folder.getProperty(new GenericProperty<>(LEGACY_LAST_SCANNED_KEY));
+
+					if (Boolean.TRUE.equals(watchContents) || "true".equals(watchContents)) {
+						settings.put(SyncSettings.WATCH_CONTENTS_KEY, "true");
+					}
+
+					if (scanInterval instanceof Number number && number.intValue() > 0) {
+						settings.put(SyncSettings.SCAN_INTERVAL_KEY, Integer.toString(number.intValue()));
+					}
+
+					if (fileType instanceof String type && !type.isBlank()) {
+						settings.put(SyncSettings.FILE_TYPE_KEY, type.trim());
+					}
+
+					if (folderType instanceof String type && !type.isBlank()) {
+						settings.put(SyncSettings.FOLDER_TYPE_KEY, type.trim());
+					}
+
+					for (final Map.Entry<String, String> setting : settings.entrySet()) {
+
+						final String claim    = configuration.getUuid() + "#" + setting.getKey();
+						final String previous = written.get(claim);
+
+						if (previous != null) {
+
+							if (!previous.equals(setting.getValue())) {
+
+								logger.warn("Folder {} sets {} to '{}', but its storage configuration {} is shared with a folder that set '{}', which is kept.", folder.as(Folder.class).getPath(), setting.getKey(), setting.getValue(), configuration.getName(), previous);
+							}
+
+							continue;
+						}
+
+						if (hasEntryNamed(configuration, setting.getKey(), nameKey)) {
+
+							continue;
+						}
+
+						app.create(StructrTraits.STORAGE_CONFIGURATION_ENTRY,
+							new NodeAttribute<>(configurationKey, configuration),
+							new NodeAttribute<>(nameKey,          setting.getKey()),
+							new NodeAttribute<>(valueKey,         setting.getValue())
+						);
+
+						written.put(claim, setting.getValue());
+					}
+
+					if (lastScanned instanceof Number number && configuration.getProperty(lastScannedKey) == null) {
+
+						configuration.setProperty(lastScannedKey, number.longValue());
+					}
+				}
+
+				for (final String key : LEGACY_MOUNT_SETTINGS) {
+
+					folder.setProperty(new GenericProperty<>(key), null);
+				}
+			}
+
+			tx.success();
+		}
+	}
+
+	private static boolean hasEntryNamed(final NodeInterface configuration, final String name, final PropertyKey<String> nameKey) {
+
+		if (configuration == null) {
+
+			return false;
+		}
+
+		for (final NodeInterface entry : configuration.as(StorageConfiguration.class).getEntries()) {
+
+			if (name.equals(entry.getProperty(nameKey))) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private static void migrateFolderMountTarget() throws FrameworkException {
 
 		final Traits storageConfigurationTraits      = Traits.of(StructrTraits.STORAGE_CONFIGURATION);
@@ -2037,8 +2298,9 @@ public class MigrationService {
 
 		try (final Tx tx = app.tx()) {
 
+			// the property is no longer declared on Folder, so it is read by its raw name
 			final List<NodeInterface> mountedFolders = app.nodeQuery(StructrTraits.FOLDER)
-				.notBlank(folderTraits.key(FolderTraitDefinition.MOUNT_TARGET_PROPERTY))
+				.notBlank(new GenericProperty<>(LEGACY_MOUNT_TARGET_KEY))
 				.getAsList();
 
 			if (!mountedFolders.isEmpty()) {
@@ -2057,11 +2319,11 @@ public class MigrationService {
 				app.create(StructrTraits.STORAGE_CONFIGURATION_ENTRY,
 					new NodeAttribute<>(storageConfigurationEntryTraits.key(StorageConfigurationEntryTraitDefinition.CONFIGURATION_PROPERTY), config),
 					new NodeAttribute<>(storageConfigurationEntryTraits.key(StorageConfigurationEntryTraitDefinition.NAME_PROPERTY),          "mountTarget"),
-					new NodeAttribute<>(storageConfigurationEntryTraits.key(StorageConfigurationEntryTraitDefinition.VALUE_PROPERTY),         folder.getMountTarget())
+					new NodeAttribute<>(storageConfigurationEntryTraits.key(StorageConfigurationEntryTraitDefinition.VALUE_PROPERTY),         folder.getProperty(new GenericProperty<String>(LEGACY_MOUNT_TARGET_KEY)))
 				);
 
 				folder.setProperty(folderTraits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), config);
-				folder.setProperty(folderTraits.key(FolderTraitDefinition.MOUNT_TARGET_PROPERTY), null);
+				folder.setProperty(new GenericProperty<>(LEGACY_MOUNT_TARGET_KEY), null);
 			}
 
 			tx.success();

@@ -2744,8 +2744,12 @@ class LifecycleMethods {
 			name: 'onNodeCreation',
 			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
 			comment: `
-				The <strong>onNodeCreation</strong> method runs immediately after creation of a node, before everything is committed.
-				An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.
+				The <strong>onNodeCreation</strong> method runs <strong><i>immediately</i></strong> after creation of a node, before the transaction is committed.
+				In contrast, <strong>onCreate</strong> runs only at the end of the transaction.
+				This makes <strong>onNodeCreation</strong> the right place to set up data that the rest of the same transaction needs to access,
+				for example related objects or generated identifiers.<br><br>
+
+				An error in this method will trigger a rollback of the current transaction.
 			`,
 			isPrefix: true
 		},
@@ -2753,8 +2757,13 @@ class LifecycleMethods {
 			name: 'onCreate',
 			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
 			comment: `
-				The <strong>onCreate</strong> method runs at the end of the transaction for all nodes created in the current transaction, before everything is committed.
-				An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.
+				The <strong>onCreate</strong> method runs <strong><i>at the end</i></strong> of the transaction, once for each node created in it,
+				before property constraints are validated and the transaction is committed.
+				At this point, all changes made during the transaction are in place.
+				This makes <strong>onCreate</strong> the right place for logic that depends on the final state of a node,
+				for example checking that a required relationship exists.<br><br>
+
+				An error in this method (or if a constraint is not met) will trigger a rollback of the current transaction.
 			`,
 			isPrefix: true
 		},
@@ -2762,14 +2771,15 @@ class LifecycleMethods {
 			name: 'afterCreate',
 			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
 			comment: `
-				The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong>
-				is called after all checks have run and the transaction is committed successfully.
-				The commit can not be rolled back anymore.<br><br>
+				The <strong>afterCreate</strong> method runs <strong><i>after</i></strong> the transaction has been committed successfully,
+				once for each node created in it. At this point, all validations have passed and the node is stored in the database.
+				Because the transaction is already committed, an error in <strong>afterCreate</strong> cannot undo the creation.
+				This makes <strong>afterCreate</strong> the right place for side effects that should only happen when the node is guaranteed to exist.<br><br>
 
 				<strong>Example</strong>: There is a unique constraint and you want to send an email when an object is created.<br><br>
 
-				Calling <code>send_html_mail()</code> in onCreate would send the email even if the transaction would be rolled back due to an error.
-				The appropriate place for this would be afterCreate.
+				Calling <code>sendHtmlMail()</code> in <strong>onCreate</strong> would send the email even if the transaction is rolled back due to an error.
+				The appropriate place for this is <strong>afterCreate</strong>.
 			`,
 			isPrefix: true
 		},
@@ -2777,12 +2787,11 @@ class LifecycleMethods {
 			name: 'onSave',
 			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
 			comment: `
-				The <strong>onSave</strong> method runs at the end of the transaction for all nodes saved/updated in the current transaction,
-				before everything is committed.<br><br>
+				The <strong>onSave</strong> method runs <strong><i>at the end</i></strong> of the transaction, once for each node modified in it,
+				before property constraints are validated and the transaction is committed.
+				The changes made to the node are available via <strong>$.modifications</strong>.<br><br>
 
-				An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.<br><br>
-
-				An object of exactly what changed is made available via <strong>$.modifications</strong>.
+				An error in this method (or if a constraint is not met) will trigger a rollback of the current transaction.
 			`,
 			isPrefix: true
 		},
@@ -2790,13 +2799,15 @@ class LifecycleMethods {
 			name: 'afterSave',
 			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
 			comment: `
-				The difference between <strong>onSave</strong> and <strong>afterSave</strong> is that <strong>afterSave</strong>
-				is called after all checks have run and the transaction is committed.<br><br>
+				The <strong>afterSave</strong> method runs <strong><i>after</i></strong> the transaction has been committed successfully,
+				once for each node modified in it. At this point, all validations have passed and the changes are stored in the database.
+				Because the transaction is already committed, an error in <strong>afterSave</strong> cannot undo the changes.
+				This makes <strong>afterSave</strong> the right place for side effects that should only happen when the changes are guaranteed to be stored.<br><br>
 
 				<strong>Example</strong>: There is a unique constraint, and you want to send an email when an object is saved successfully.<br><br>
 
-				Calling <code>send_html_mail()</code> in onCreate would send the email even if the transaction would be rolled back due to an error.
-				The appropriate place for this would be afterSave.
+				Calling <code>sendHtmlMail()</code> in <strong>onSave</strong> would send the email even if the transaction is rolled back due to an error.
+				The appropriate place for this is <strong>afterSave</strong>.
 			`,
 			isPrefix: true
 		},
@@ -2816,7 +2827,7 @@ class LifecycleMethods {
 			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
 			comment: `
 				The <strong>afterDelete</strong> method runs after a node has been deleted.
-				The deletion can not be stopped at this point.<br><br>
+				The deletion cannot be stopped at this point.<br><br>
 
 				The <code>$.this</code> object is not available anymore but using the keyword <code>$.data</code>,
 				the attributes (not the relationships) of the deleted node can be accessed.
@@ -2833,7 +2844,7 @@ class LifecycleMethods {
 		{
 			name: 'onDownload',
 			available: LifecycleMethods.onlyAvailableWithFileNodeContext,
-			comment: `Is called after a file has been requested for download. This function can not prevent the download of a file. This method is being called without parameters.`,
+			comment: `Is called after a file has been requested for download. This function cannot prevent the download of a file. This method is being called without parameters.`,
 			isPrefix: false
 		},
 		/** USER */
@@ -2841,7 +2852,7 @@ class LifecycleMethods {
 			name: 'onOAuthLogin',
 			available: LifecycleMethods.onlyAvailableWithUserNodeContext,
 			comment: `
-				Is called after a user successfully logs into the system via a configured OAuth provider. This function can not prevent the login of a user. The function is called with two parameters:
+				Is called after a user successfully logs into the system via a configured OAuth provider. This function cannot prevent the login of a user. The function is called with two parameters:
 				<br><br>
 				<div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
 					<div class="font-bold">Parameter name</div><div class="font-bold">Description</div>

@@ -30,8 +30,12 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.files.sync.StorageSyncService;
 import org.structr.storage.StorageProviderFactory;
+import org.structr.storage.sync.VanishPolicy;
 import org.structr.storage.providers.s3.GenericS3BucketStorageProvider;
-import org.structr.test.web.StructrUiTest;
+import org.structr.storage.providers.s3.S3ClientCache;
+import org.structr.storage.providers.s3.S3StorageSynchronizer;
+import org.structr.storage.sync.SyncTarget;
+import org.structr.test.files.SyncTestBase;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.StorageConfiguration;
@@ -44,9 +48,12 @@ import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 
@@ -57,7 +64,7 @@ import static org.testng.AssertJUnit.*;
  * outbound propagation of committed virtual filesystem changes, against a
  * rustfs test container.
  */
-public class S3StorageSyncTest extends StructrUiTest {
+public class S3StorageSyncTest extends SyncTestBase {
 
 	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
@@ -65,8 +72,6 @@ public class S3StorageSyncTest extends StructrUiTest {
 	public void setup(@Optional final String testDatabaseConnection) {
 
 		RustFsTestSupport.start();
-
-		Settings.Services.setValue("NodeService SchemaService HttpService StorageSyncService");
 
 		super.setup(testDatabaseConnection);
 	}
@@ -95,7 +100,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.putObject(bucket, uuid, content.getBytes(), Map.of("path", "/s3mounted/sub/external.txt"));
 
-		mountBucket("s3mounted", bucket, "in", true);
+		mountBucket("s3mounted", bucket, "in", VanishPolicy.DELETE);
 
 		waitForNodeAtPath(StructrTraits.FILE, "/s3mounted/sub/external.txt");
 
@@ -144,7 +149,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.putObject(bucket, uuid, "orphan".getBytes(), Map.of());
 
-		mountBucket("s3ext", bucket, "in", false);
+		mountBucket("s3ext", bucket, "in", null);
 
 		waitForNodeAtPath(StructrTraits.FILE, "/s3ext/docs/report.pdf");
 
@@ -179,7 +184,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testDeleteStalePruning() {
+	public void testDeletePolicyPruning() {
 
 		final String bucket = uniqueBucket();
 
@@ -189,7 +194,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.putObject(bucket, uuid, "to be pruned".getBytes(), Map.of("path", "/s3pruned/pruneme.txt"));
 
-		mountBucket("s3pruned", bucket, "in", true);
+		mountBucket("s3pruned", bucket, "in", VanishPolicy.DELETE);
 
 		waitForNodeAtPath(StructrTraits.FILE, "/s3pruned/pruneme.txt");
 
@@ -220,7 +225,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.createBucket(bucket);
 
-		mountBucket("s3outdelete", bucket, "both", false);
+		mountBucket("s3outdelete", bucket, "both", null);
 
 		final String content = "delete me";
 		String fileUuid      = null;
@@ -274,7 +279,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.createBucket(bucket);
 
-		mountBucket("s3outrename", bucket, "both", false);
+		mountBucket("s3outrename", bucket, "both", null);
 
 		final String content = "renamed content";
 		String fileUuid      = null;
@@ -309,11 +314,116 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 			final HeadObjectResponse head = RustFsTestSupport.head(bucket, uuid);
 
-			return head != null && "/s3outrename/renamed.txt".equals(head.metadata().get("path"));
+			return head != null && "renamed.txt".equals(head.metadata().get("path"));
 		});
 
 		// content survived the metadata copy
 		assertEquals("Content should be intact after metadata refresh", content, new String(RustFsTestSupport.getObject(bucket, fileUuid)));
+	}
+
+	@Test
+	public void testOutboundFolderRenameRefreshesThePathOfEveryObjectBelowIt() {
+
+		final String bucket = uniqueBucket();
+
+		RustFsTestSupport.createBucket(bucket);
+
+		mountBucket("s3dirrename", bucket, "both", VanishPolicy.DELETE);
+
+		String fileUuid = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface folder = app.create(StructrTraits.FOLDER,
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "docs"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), getNodeAtPath("/s3dirrename"))
+			);
+
+			final NodeInterface file = app.create(StructrTraits.FILE,
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "a.txt"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder)
+			);
+
+			fileUuid = file.getUuid();
+
+			try (final OutputStream os = file.as(File.class).getOutputStream()) {
+
+				os.write("folder content".getBytes("utf-8"));
+			}
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final String uuid = fileUuid;
+
+		waitFor("The object should be written with its path", () -> {
+
+			final HeadObjectResponse head = RustFsTestSupport.head(bucket, uuid);
+
+			return head != null && "docs/a.txt".equals(head.metadata().get("path"));
+		});
+
+		setNodeProperty(getNodeAtPath("/s3dirrename/docs"), NodeInterfaceTraitDefinition.NAME_PROPERTY, "papers");
+
+		waitFor("The path of an object below a renamed folder should follow the rename", () -> {
+
+			final HeadObjectResponse head = RustFsTestSupport.head(bucket, uuid);
+
+			return head != null && "papers/a.txt".equals(head.metadata().get("path"));
+		});
+
+		// and a scan, which goes by the stored paths, leaves the file where it now is
+		final long renamed = System.currentTimeMillis();
+
+		awaitScanAfter("s3dirrename", renamed);
+
+		assertNotNull("The file should stay below the renamed folder", getNodeAtPath("/s3dirrename/papers/a.txt"));
+		assertNull("The file should not come back at its old place",   getNodeAtPath("/s3dirrename/docs/a.txt"));
+	}
+
+	/**
+	 * Objects written before stored their absolute virtual path. A mount that writes to its storage
+	 * moves them to the path below the root on its first scan; an inbound-only one reads them as they
+	 * are and leaves the storage alone.
+	 */
+	@Test
+	public void testLegacyAbsolutePathsAreMigratedByAWritingMountAndReadByAnInboundOne() {
+
+		final String writingBucket = uniqueBucket();
+		final String readingBucket = uniqueBucket();
+		final String writingUuid   = NodeServiceCommand.getNextUuid();
+		final String readingUuid   = NodeServiceCommand.getNextUuid();
+
+		RustFsTestSupport.createBucket(writingBucket);
+		RustFsTestSupport.createBucket(readingBucket);
+
+		RustFsTestSupport.putObject(writingBucket, writingUuid, "legacy".getBytes(), Map.of("path", "/s3legacyBoth/sub/a.txt"));
+		RustFsTestSupport.putObject(readingBucket, readingUuid, "legacy".getBytes(), Map.of("path", "/s3legacyIn/sub/b.txt"));
+
+		mountBucket("s3legacyBoth", writingBucket, "both", null);
+		mountBucket("s3legacyIn",   readingBucket, "in",   null);
+
+		waitForNodeAtPath(StructrTraits.FILE, "/s3legacyBoth/sub/a.txt");
+		waitForNodeAtPath(StructrTraits.FILE, "/s3legacyIn/sub/b.txt");
+
+		waitFor("A writing mount should migrate the path to the form below the root", () -> {
+
+			final HeadObjectResponse head = RustFsTestSupport.head(writingBucket, writingUuid);
+
+			return head != null && "sub/a.txt".equals(head.metadata().get("path"));
+		});
+
+		assertEquals("The content should survive the migration", "legacy", new String(RustFsTestSupport.getObject(writingBucket, writingUuid)));
+
+		// several scans later, an inbound-only mount has still not written anything
+		awaitScanAfter("s3legacyIn", System.currentTimeMillis());
+
+		assertEquals("An inbound-only mount should leave the stored path alone", "/s3legacyIn/sub/b.txt", RustFsTestSupport.head(readingBucket, readingUuid).metadata().get("path"));
 	}
 
 	@Test
@@ -323,7 +433,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.createBucket(bucket);
 
-		mountBucket("s3rollback", bucket, "both", false);
+		mountBucket("s3rollback", bucket, "both", null);
 
 		String fileUuid = null;
 
@@ -365,12 +475,12 @@ public class S3StorageSyncTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 
-		try { Thread.sleep(1500); } catch (InterruptedException ignore) {}
+		awaitIdle();
 
 		final HeadObjectResponse head = RustFsTestSupport.head(bucket, fileUuid);
 
 		assertNotNull("Object should still exist", head);
-		assertEquals("Rolled-back renames must not touch the path metadata", "/s3rollback/stable.txt", head.metadata().get("path"));
+		assertEquals("Rolled-back renames must not touch the path metadata", "stable.txt", head.metadata().get("path"));
 	}
 
 	@Test
@@ -382,7 +492,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.putObject(bucket, "docs/report.pdf", "short".getBytes(), Map.of());
 
-		mountBucket("s3extchange", bucket, "in", false);
+		mountBucket("s3extchange", bucket, "in", null);
 
 		waitForNodeAtPath(StructrTraits.FILE, "/s3extchange/docs/report.pdf");
 
@@ -419,7 +529,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.putObject(bucket, "docs/report.pdf", "prune me".getBytes(), Map.of());
 
-		mountBucket("s3extprune", bucket, "in", true);
+		mountBucket("s3extprune", bucket, "in", VanishPolicy.DELETE);
 
 		waitForNodeAtPath(StructrTraits.FILE, "/s3extprune/docs/report.pdf");
 
@@ -437,7 +547,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.putObject(bucket, "docs/report.pdf", "delete me".getBytes(), Map.of());
 
-		mountBucket("s3extdelete", bucket, "both", false);
+		mountBucket("s3extdelete", bucket, "both", null);
 
 		waitForNodeAtPath(StructrTraits.FILE, "/s3extdelete/docs/report.pdf");
 
@@ -465,7 +575,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.putObject(bucket, "docs/report.pdf", "renamed content".getBytes(), Map.of());
 
-		mountBucket("s3extrename", bucket, "both", false);
+		mountBucket("s3extrename", bucket, "both", null);
 
 		waitForNodeAtPath(StructrTraits.FILE, "/s3extrename/docs/report.pdf");
 
@@ -476,11 +586,12 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 			final HeadObjectResponse head = RustFsTestSupport.head(bucket, "docs/report.pdf");
 
-			return head != null && "/s3extrename/docs/renamed.pdf".equals(head.metadata().get("path"));
+			return head != null && "docs/renamed.pdf".equals(head.metadata().get("path"));
 		});
 
-		// no move-back after further scans, and the node lives at the new path only
-		try { Thread.sleep(3000); } catch (InterruptedException ignore) {}
+		// no move-back after further complete scans, and the node lives at the new path only
+		awaitScanAfter("s3extrename", System.currentTimeMillis());
+		awaitScanAfter("s3extrename", System.currentTimeMillis());
 
 		assertNotNull("Object must remain at its original native key", RustFsTestSupport.head(bucket, "docs/report.pdf"));
 		assertNotNull("Node should exist at the renamed path", getNodeAtPath("/s3extrename/docs/renamed.pdf"));
@@ -494,7 +605,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.createBucket(bucket);
 
-		mountBucket("s3conflict", bucket, "in", false);
+		mountBucket("s3conflict", bucket, "in", null);
 
 		// a Structr-origin file materializes an object at its uuid key
 		final String content = "structr origin";
@@ -525,8 +636,9 @@ public class S3StorageSyncTest extends StructrUiTest {
 		// an external object whose key maps to the very same virtual path
 		RustFsTestSupport.putObject(bucket, "report.pdf", "foreign".getBytes(), Map.of());
 
-		// let a couple of scan cycles run
-		try { Thread.sleep(5000); } catch (InterruptedException ignore) {}
+		// two complete scans that started after the foreign object appeared
+		awaitScanAfter("s3conflict", System.currentTimeMillis());
+		awaitScanAfter("s3conflict", System.currentTimeMillis());
 
 		final String uuid = originUuid;
 
@@ -554,6 +666,136 @@ public class S3StorageSyncTest extends StructrUiTest {
 	}
 
 	// ----- private methods -----
+	@Test
+	public void testListingAMissingBucketOrAnUnreachableEndpointFailsInsteadOfListingNothing() {
+
+		// an empty listing would read as "everything vanished" and be reconciled accordingly
+		final SyncTarget target = new SyncTarget(NodeServiceCommand.getNextUuid(), "/s3failing", null, Map.of());
+
+		final S3StorageSynchronizer missingBucket = new S3StorageSynchronizer(target, S3ClientCache.getOrCreate(RustFsTestSupport.getEndpoint(), RustFsTestSupport.REGION, RustFsTestSupport.ACCESS_KEY, RustFsTestSupport.SECRET_KEY), uniqueBucket());
+		final S3StorageSynchronizer unreachable   = new S3StorageSynchronizer(target, S3ClientCache.getOrCreate("http://localhost:9", RustFsTestSupport.REGION, RustFsTestSupport.ACCESS_KEY, RustFsTestSupport.SECRET_KEY), uniqueBucket());
+
+		for (final S3StorageSynchronizer synchronizer : List.of(missingBucket, unreachable)) {
+
+			try {
+
+				synchronizer.enumerate(null).hasNext();
+				fail("A listing that could not be read must fail");
+
+			} catch (UncheckedIOException expected) {
+
+			} catch (IOException ioex) {
+
+				fail("Unexpected exception.");
+			}
+		}
+	}
+
+	@Test
+	public void testFolderPlaceholderKeysAreSkipped() {
+
+		final String bucket = uniqueBucket();
+
+		RustFsTestSupport.createBucket(bucket);
+
+		// keys with empty or dot segments are skipped as well, but this backend refuses to store them
+		RustFsTestSupport.putObject(bucket, "placeholder/", new byte[0],            Map.of());
+		RustFsTestSupport.putObject(bucket, "good/ok.txt",  "imported".getBytes(), Map.of());
+
+		mountBucket("s3keys", bucket, "in", null);
+
+		waitForNodeAtPath(StructrTraits.FILE, "/s3keys/good/ok.txt");
+		awaitScanAfter("s3keys", 0L);
+
+		assertFalse("A folder placeholder marker is not a file", existsByName("placeholder"));
+	}
+
+	@Test
+	public void testReadonlyPolicyMarksAVanishedObject() {
+
+		final String bucket = uniqueBucket();
+
+		RustFsTestSupport.createBucket(bucket);
+
+		RustFsTestSupport.putObject(bucket, "keep.txt",   "kept".getBytes(),   Map.of());
+		RustFsTestSupport.putObject(bucket, "vanish.txt", "vanish".getBytes(), Map.of());
+
+		mountBucket("s3readonly", bucket, "in", VanishPolicy.READONLY);
+
+		waitForNodeAtPath(StructrTraits.FILE, "/s3readonly/vanish.txt");
+
+		RustFsTestSupport.deleteObject(bucket, "vanish.txt");
+
+		waitFor("The node of a vanished object should be marked", () -> isExternallyDeleted("vanish.txt"));
+
+		assertNotNull("A marked node should be kept", getNodeAtPath("/s3readonly/vanish.txt"));
+		assertFalse("An object that is still there should not be marked", isExternallyDeleted("keep.txt"));
+	}
+
+	@Test
+	public void testIgnorePolicyKeepsAVanishedObjectUnmarked() {
+
+		final String bucket = uniqueBucket();
+
+		RustFsTestSupport.createBucket(bucket);
+
+		RustFsTestSupport.putObject(bucket, "vanish.txt", "vanish".getBytes(), Map.of());
+
+		mountBucket("s3ignore", bucket, "in", VanishPolicy.IGNORE);
+
+		waitForNodeAtPath(StructrTraits.FILE, "/s3ignore/vanish.txt");
+
+		RustFsTestSupport.deleteObject(bucket, "vanish.txt");
+
+		final long deleted = System.currentTimeMillis();
+
+		awaitScanAfter("s3ignore", deleted);
+
+		assertNotNull("Under the ignore policy a vanished object's node should be kept", getNodeAtPath("/s3ignore/vanish.txt"));
+		assertFalse("Under the ignore policy a vanished object's node should not be marked", isExternallyDeleted("vanish.txt"));
+	}
+
+	@Test
+	public void testListingBeyondOnePageIsComplete() {
+
+		final String bucket = uniqueBucket();
+
+		RustFsTestSupport.createBucket(bucket);
+
+		// one listing page holds 1000 keys
+		for (int i = 0; i < 1005; i++) {
+
+			RustFsTestSupport.putObject(bucket, String.format("f%04d.txt", i), new byte[] { 1 }, Map.of());
+		}
+
+		// a single scan at attach time, so that the assertions see exactly one listing of the bucket
+		mountBucket("s3pages", bucket, "in", VanishPolicy.DELETE, null);
+
+		awaitScanAfter("s3pages", 0L);
+
+		assertNotNull("An object on the first page should be imported",  getNodeAtPath("/s3pages/f0000.txt"));
+		assertNotNull("An object on the first page should be imported",  getNodeAtPath("/s3pages/f0999.txt"));
+		assertNotNull("An object on the second page should be imported", getNodeAtPath("/s3pages/f1004.txt"));
+	}
+
+	private boolean existsByName(final String name) {
+
+		try (final Tx tx = app.tx()) {
+
+			final boolean exists = app.nodeQuery(StructrTraits.ABSTRACT_FILE).name(name).getFirst() != null;
+
+			tx.success();
+
+			return exists;
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+
+			return false;
+		}
+	}
+
 	private String uniqueBucket() {
 
 		return "test-" + System.nanoTime();
@@ -563,7 +805,11 @@ public class S3StorageSyncTest extends StructrUiTest {
 	 * Creates a StorageConfiguration for the given bucket and a folder using
 	 * it, with a short rescan interval for inbound directions.
 	 */
-	private void mountBucket(final String folderName, final String bucket, final String direction, final boolean deleteStale) {
+	private void mountBucket(final String folderName, final String bucket, final String direction, final VanishPolicy vanishPolicy) {
+		mountBucket(folderName, bucket, direction, vanishPolicy, 2);
+	}
+
+	private void mountBucket(final String folderName, final String bucket, final String direction, final VanishPolicy vanishPolicy, final Integer scanInterval) {
 
 		try (final Tx tx = app.tx()) {
 
@@ -571,18 +817,12 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 			entries.put(StorageSyncService.DIRECTION_KEY, direction);
 
-			if (deleteStale) {
+			if (vanishPolicy != null) {
 
-				entries.put(StorageSyncService.DELETE_STALE_KEY, "true");
+				entries.put(VanishPolicy.POLICY_KEY, vanishPolicy.value());
 			}
 
-			final StorageConfiguration config = StorageProviderFactory.createConfig("s3-" + folderName + "-" + bucket, GenericS3BucketStorageProvider.class, entries);
-
-			app.create(StructrTraits.FOLDER,
-				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), folderName),
-				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY), 2),
-				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), config)
-			);
+			mountFolder(folderName, StorageProviderFactory.createConfig("s3-" + folderName + "-" + bucket, GenericS3BucketStorageProvider.class, entries), false, scanInterval);
 
 			tx.success();
 
@@ -593,72 +833,4 @@ public class S3StorageSyncTest extends StructrUiTest {
 		}
 	}
 
-	private NodeInterface getNodeAtPath(final String path) {
-
-		try (final Tx tx = app.tx()) {
-
-			final NodeInterface node = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), path).getFirst();
-
-			tx.success();
-
-			return node;
-
-		} catch (FrameworkException fex) {
-
-			fail("Unexpected exception.");
-
-			return null;
-		}
-	}
-
-	private void waitForNodeAtPath(final String type, final String path) {
-
-		waitFor("Node at " + path + " should have been created", () -> {
-
-			try (final Tx tx = app.tx()) {
-
-				final NodeInterface node = app.nodeQuery(type).key(Traits.of(type).key(AbstractFileTraitDefinition.PATH_PROPERTY), path).getFirst();
-
-				tx.success();
-
-				return node != null;
-
-			} catch (FrameworkException fex) {
-
-				return false;
-			}
-		});
-	}
-
-	private void setNodeProperty(final NodeInterface node, final String keyName, final Object value) {
-
-		try (final Tx tx = app.tx()) {
-
-			node.setProperty(Traits.of(StructrTraits.ABSTRACT_FILE).key(keyName), value);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception.");
-		}
-	}
-
-	private void waitFor(final String message, final BooleanSupplier condition) {
-
-		final long deadline = System.currentTimeMillis() + 15000;
-
-		while (System.currentTimeMillis() < deadline) {
-
-			if (condition.getAsBoolean()) {
-
-				return;
-			}
-
-			try { Thread.sleep(200); } catch (InterruptedException ignore) {}
-		}
-
-		fail(message);
-	}
 }

@@ -22,8 +22,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let _Files = {
 	_moduleName: 'files',
-	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount,createdDate,lastModifiedDate,includeInFrontendExport',
-	defaultFileAttributes: 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isTemplate,trusted,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers,parentId,includeInFrontendExport',
+	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,isExternallyDeleted,storageConfiguration,parentId,foldersCount,filesCount,createdDate,lastModifiedDate,includeInFrontendExport',
+	defaultFileAttributes: 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isTemplate,trusted,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers,isExternallyDeleted,parentId,includeInFrontendExport',
 	currentWorkingDir: undefined,
 	chunkSize: 1024 * 64,
 	fileSizeLimit: 1024 * 1024 * 1024,
@@ -39,7 +39,8 @@ let _Files = {
 	rootFolderName: 'root',
 	tooltips: {
 		includeInFrontendExport: 'If checked, this file/folder is exported in the deployment process. This flag can only be set at root level and affects all descendants.',
-		excludeSubtreeFromExport: 'If checked, only the folder itself is exported during the deployment process. Its descendants will not be exported.'
+		excludeSubtreeFromExport: 'If checked, only the folder itself is exported during the deployment process. Its descendants will not be exported.',
+		externallyDeleted: 'This file or folder no longer exists in the mounted storage. It is kept read-only until it reappears.'
 	},
 
 	getViewMode: () => LSWrapper.getItem(_Files.filesViewModeKey, 'list'),
@@ -126,7 +127,7 @@ let _Files = {
 				_Files.uploadFiles(fileUploadInput.files);
 			};
 
-			Structr.functionBar.querySelector('.mount_folder').addEventListener('click', _Files.mountDialog.show);
+			Structr.functionBar.querySelector('.mount_folder').addEventListener('click', () => _Files.mountDialog.show());
 
 			_Files.search.initSearch();
 		};
@@ -347,6 +348,18 @@ let _Files = {
 				_Entities.showProperties(entity, 'ui');
 			}
 		});
+
+		// only a mount root carries a storage configuration of its own
+		if (entity.isFolder && entity.storageConfiguration && !isMultiSelect) {
+
+			elements.push({
+				icon: _Icons.getMenuSvgIcon(_Icons.iconMountedFolderOpen),
+				name: 'Mount Configuration',
+				clickHandler: () => {
+					_Files.mountDialog.show(entity);
+				}
+			});
+		}
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
@@ -1009,6 +1022,8 @@ let _Files = {
 		let fileIcon              = (d.isFolder ? _Icons.getFolderIconSVG(d) : _Icons.getFileIconSVG(d));
 		let fileIconHTML          = _Icons.getSvgIcon(fileIcon, iconSize, iconSize, 'cursor-pointer');
 		let parentIdString        = d.parentId ? `data-parent-id="${d.parentId}"` : '';
+		let vanishedClass         = d.isExternallyDeleted ? ' externally-deleted' : '';
+		let vanishedTitle         = d.isExternallyDeleted ? ` title="${_Files.tooltips.externallyDeleted}"` : '';
 		let ownerString           = _Helpers.escapeForHtmlAttributes(d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '');
 
 		if (listModeActive) {
@@ -1037,7 +1052,7 @@ let _Files = {
 				<tr id="${rowId}" class="row${(d.isThumbnail ? ' thumbnail' : '')}">
 					${getIconColumnHTML()}
 					<td data-name-col>
-						<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} flex items-center justify-between relative" draggable="true">
+						<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'}${vanishedClass} flex items-center justify-between relative" draggable="true"${vanishedTitle}>
 							<b class="name_ leading-8 ml-8 truncate" data-key="name"></b>
 							<div class="icons-container flex items-end"></div>
 							${d.isFolder ? '' : progressIndicatorHTML}
@@ -1111,7 +1126,7 @@ let _Files = {
 			let tileId   = `tile${d.id}`;
 			let tileHTML = `
 				<div id="${tileId}" class="tile${d.isThumbnail ? ' thumbnail' : ''}${imageModeActive ? ' img-tile' : ''}">
-					<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} relative flex flex-col" draggable="true">
+					<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'}${vanishedClass} relative flex flex-col" draggable="true"${vanishedTitle}>
 					${getFileIcon()}
 					<b class="name_ abbr-ellipsis mx-2 mb-2 text-center" data-key="name"></b>
 					${d.isFolder ? '' : progressIndicatorHTML}
@@ -1848,94 +1863,307 @@ let _Files = {
 			local: 'org.structr.storage.providers.local.LocalFSStorageProvider',
 			s3: 'org.structr.storage.providers.s3.GenericS3BucketStorageProvider'
 		},
-		show: () => {
+		// credentials are never shown again once stored: in edit mode these stay empty and are only written when filled in
+		writeOnlyEntries: ['accessKey', 'secretKey'],
 
-			let { dialogText } = _Dialogs.custom.openDialog('Mount Folder', null, ['show-dialog-title']);
+		/**
+		 * Opens the dialog that creates a mount, or - given the root folder of an existing mount - the same dialog
+		 * filled with that mount's configuration, so that every mount option is edited in one place.
+		 */
+		show: async (existingFolder = null) => {
+
+			let mount = null;
+
+			if (existingFolder) {
+
+				mount = await _Files.mountDialog.loadMount(existingFolder.id);
+				if (!mount) {
+					return;
+				}
+			}
+
+			let title           = mount ? `Mount Configuration of ${_Helpers.escapeForHtmlAttributes(mount.folder.name)}` : 'Mount Folder';
+			let { dialogText }  = _Dialogs.custom.openDialog(title, null, ['show-dialog-title']);
 
 			dialogText.insertAdjacentHTML('beforeend', _Files.mountDialog.templates.dialog({}));
 			_Helpers.activateCommentsInElement(dialogText);
 
-			let providerSelect = document.querySelector('#storage-configuration-provider');
-
-			let getDataFromElements = (elements) => {
-
-				let data = {};
-
-				for (let element of elements) {
-
-					let attrName = element.dataset['attributeName'];
-					if (element.type === 'number') {
-						if (element.value != '') {
-							data[attrName] = parseInt(element.value);
-						}
-					} else if (element.type === 'checkbox') {
-						data[attrName] = element.checked;
-					} else {
-						if (element.value != '') {
-							data[attrName] = element.value;
-						}
-					}
-				}
-
-				return data;
-			};
+			let providerSelect = dialogText.querySelector('#storage-configuration-provider');
 
 			providerSelect.addEventListener('change', e => {
 
 				let el = dialogText.querySelector('[data-mount-is-provider-specific-data]');
 				_Helpers.fastRemoveAllChildren(el);
 
-				el.innerHTML = _Files.mountDialog.templates.providerSpecificConfigEntries[e.target.value]?.();
+				el.innerHTML = _Files.mountDialog.templates.providerSpecificConfigEntries[e.target.value]?.() ?? '';
+
+				if (mount) {
+					_Files.mountDialog.prepareWriteOnlyEntries(el);
+				}
 
 				_Helpers.activateCommentsInElement(el);
 			});
 
-			_Dialogs.custom.prependCustomDialogButton('<button form="mount-dialog-form" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Mount</button>');
+			if (mount) {
+				_Files.mountDialog.populate(dialogText, mount);
+			}
+
+			_Dialogs.custom.prependCustomDialogButton(`<button form="mount-dialog-form" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">${mount ? 'Save' : 'Mount'}</button>`);
 
 			let mountDialogForm = dialogText.querySelector('#mount-dialog-form');
 			mountDialogForm.addEventListener('submit', async (e) => {
 
 				e.preventDefault();
 
-				let mountConfig = Object.assign({
-					type: 'Folder',
-					parentId: (_Files.currentWorkingDir ? _Files.currentWorkingDir.id : null)
-				}, getDataFromElements(dialogText.querySelectorAll('[data-mount-is-folder-option][data-attribute-name]')));
+				let success = mount ? await _Files.mountDialog.save(dialogText, mount) : await _Files.mountDialog.create(dialogText);
 
-				let storageConfigurationData      = getDataFromElements(dialogText.querySelectorAll('[data-mount-is-storageconfiguration-option][data-attribute-name]'));
-				let storageConfigurationEntryData = getDataFromElements(dialogText.querySelectorAll(`[data-mount-is-provider-specific-data] [data-mount-is-storageconfigurationentry-option][data-attribute-name]`))
-
-				storageConfigurationData.provider = _Files.mountDialog.supportedProviders[storageConfigurationData.provider];
-
-				mountConfig.storageConfiguration         = storageConfigurationData;
-				mountConfig.storageConfiguration.name    = 'Configuration for ' + mountConfig.name;
-				mountConfig.storageConfiguration.entries = Object.entries(storageConfigurationEntryData).map(entry => ({ name: entry[0], value: entry[1]}));
-
-				let response = await fetch (`${Structr.rootUrl}Folder`, {
-					method: 'POST',
-					body: JSON.stringify(mountConfig)
-				});
-
-				if (response.ok) {
+				if (success) {
 
 					_Dialogs.custom.clickDialogCancelButton();
 
 					_Files.refreshTree();
-
-				} else {
-
-					let json = await response.json();
-
-					if (json.code === 422 && json.message === 'Unable to encrypt data, no secret key set.') {
-
-						new WarningMessage().title("Encryption Secret Configuration Required").text(_Files.mountDialog.templates.encryptionKeyMissing()).requiresConfirmation().show();
-
-					} else {
-
-						Structr.errorFromResponse(json);
-					}
 				}
 			});
+		},
+		getDataFromElements: (elements, keepEmptyValues = false) => {
+
+			let data = {};
+
+			for (let element of elements) {
+
+				let attrName = element.dataset['attributeName'];
+				if (element.type === 'number') {
+					if (element.value != '') {
+						data[attrName] = parseInt(element.value);
+					} else if (keepEmptyValues) {
+						data[attrName] = null;
+					}
+				} else if (element.type === 'checkbox') {
+					data[attrName] = element.checked;
+				} else {
+					if (element.value != '') {
+						data[attrName] = element.value;
+					} else if (keepEmptyValues) {
+						data[attrName] = null;
+					}
+				}
+			}
+
+			return data;
+		},
+		/**
+		 * Configuration entries hold strings, and an absent entry is what every setting's default means: a ticked box is
+		 * the entry "true", an unticked one is no entry, and a number is stored as its digits.
+		 */
+		toEntryValues: (data) => {
+
+			for (let [name, value] of Object.entries(data)) {
+
+				if (value === true) {
+					data[name] = 'true';
+				} else if (value === false) {
+					data[name] = null;
+				} else if (typeof value === 'number') {
+					data[name] = String(value);
+				}
+			}
+
+			return data;
+		},
+		create: async (dialogText) => {
+
+			let mountConfig = Object.assign({
+				type: 'Folder',
+				parentId: (_Files.currentWorkingDir ? _Files.currentWorkingDir.id : null)
+			}, _Files.mountDialog.getDataFromElements(dialogText.querySelectorAll('[data-mount-is-folder-option][data-attribute-name]')));
+
+			let storageConfigurationData      = _Files.mountDialog.getDataFromElements(dialogText.querySelectorAll('[data-mount-is-storageconfiguration-option][data-attribute-name]'));
+			let storageConfigurationEntryData = _Files.mountDialog.toEntryValues(_Files.mountDialog.getDataFromElements(dialogText.querySelectorAll('[data-mount-is-storageconfigurationentry-option][data-attribute-name]')));
+
+			storageConfigurationData.provider = _Files.mountDialog.supportedProviders[storageConfigurationData.provider];
+
+			mountConfig.storageConfiguration         = storageConfigurationData;
+			mountConfig.storageConfiguration.name    = 'Configuration for ' + mountConfig.name;
+			mountConfig.storageConfiguration.entries = Object.entries(storageConfigurationEntryData).filter(entry => entry[1] !== null).map(entry => ({ name: entry[0], value: entry[1]}));
+
+			return _Files.mountDialog.request(`${Structr.rootUrl}Folder`, 'POST', mountConfig);
+		},
+		loadMount: async (folderId) => {
+
+			let folder = await _Files.mountDialog.fetchResult(`${Structr.rootUrl}Folder/${folderId}/ui`);
+			if (!folder?.storageConfiguration?.id) {
+				return null;
+			}
+
+			let configurationId = folder.storageConfiguration.id;
+			let configuration   = await _Files.mountDialog.fetchResult(`${Structr.rootUrl}StorageConfiguration/${configurationId}/ui`);
+			let entryList       = await _Files.mountDialog.fetchResult(`${Structr.rootUrl}StorageConfigurationEntry/ui?configuration=${configurationId}`);
+
+			if (!configuration || !entryList) {
+				return null;
+			}
+
+			let entries = {};
+
+			for (let entry of entryList) {
+				entries[entry.name] = { id: entry.id, value: entry.value };
+			}
+
+			let providerKey = Object.keys(_Files.mountDialog.supportedProviders).find(key => _Files.mountDialog.supportedProviders[key] === configuration.provider);
+
+			return { folder, configurationId, providerKey, entries };
+		},
+		fetchResult: async (url) => {
+
+			let response = await fetch(url);
+			let json     = await response.json();
+
+			if (!response.ok) {
+				Structr.errorFromResponse(json);
+				return null;
+			}
+
+			return json.result;
+		},
+		populate: (dialogText, mount) => {
+
+			let providerSelect = dialogText.querySelector('#storage-configuration-provider');
+
+			// renders the provider-specific rows before they are filled
+			providerSelect.value = mount.providerKey ?? '';
+			providerSelect.dispatchEvent(new Event('change'));
+
+			for (let element of dialogText.querySelectorAll('[data-mount-is-folder-option][data-attribute-name]')) {
+
+				let value = mount.folder[element.dataset['attributeName']];
+
+				if (element.type === 'checkbox') {
+					element.checked = (value === true);
+				} else {
+					element.value = value ?? '';
+				}
+			}
+
+			for (let element of dialogText.querySelectorAll('[data-mount-is-storageconfigurationentry-option][data-attribute-name]')) {
+
+				let name = element.dataset['attributeName'];
+
+				if (element.type === 'checkbox') {
+					element.checked = (mount.entries[name]?.value === 'true');
+				} else if (element.tagName === 'SELECT') {
+
+					// the service reads these values leniently, so " Both" is a valid way to write "both"; a value no
+					// option matches is shown as the default, which is what the service falls back to as well
+					element.value = (mount.entries[name]?.value ?? '').trim().toLowerCase();
+
+					if (element.selectedIndex === -1) {
+						element.value = '';
+					}
+
+				} else if (!_Files.mountDialog.writeOnlyEntries.includes(name)) {
+					element.value = mount.entries[name]?.value ?? '';
+				}
+			}
+		},
+		prepareWriteOnlyEntries: (el) => {
+
+			for (let name of _Files.mountDialog.writeOnlyEntries) {
+
+				let element = el.querySelector(`[data-attribute-name="${name}"]`);
+				if (element) {
+					element.required    = false;
+					element.placeholder = 'unchanged';
+				}
+			}
+		},
+		providerEntryNames: (providerKey) => {
+
+			let tbody = document.createElement('tbody');
+			tbody.innerHTML = _Files.mountDialog.templates.providerSpecificConfigEntries[providerKey]?.() ?? '';
+
+			return [...tbody.querySelectorAll('[data-attribute-name]')].map(element => element.dataset['attributeName']);
+		},
+		/**
+		 * Writes the dialog back onto an existing mount. An emptied field removes its configuration entry, because an
+		 * absent entry is what every setting's default means; a write-only field left empty is left as it is.
+		 * Entries the dialog does not show are never touched.
+		 */
+		save: async (dialogText, mount) => {
+
+			let providerKey = dialogText.querySelector('#storage-configuration-provider').value;
+			let folderData  = _Files.mountDialog.getDataFromElements(dialogText.querySelectorAll('[data-mount-is-folder-option][data-attribute-name]'), true);
+			let entryData   = _Files.mountDialog.toEntryValues(_Files.mountDialog.getDataFromElements(dialogText.querySelectorAll('[data-mount-is-storageconfigurationentry-option][data-attribute-name]'), true));
+
+			let providerChanged = (providerKey !== mount.providerKey);
+			let targetChanged   = providerChanged || _Files.mountDialog.providerEntryNames(providerKey).some(name => {
+				return !_Files.mountDialog.writeOnlyEntries.includes(name) && (entryData[name] ?? null) !== (mount.entries[name]?.value ?? null);
+			});
+
+			if (targetChanged) {
+
+				let confirmed = await _Dialogs.confirmation.showPromise(_Files.mountDialog.templates.retargetWarning({ policy: entryData['sync.onVanished'] ?? 'ignore' }), false);
+				if (!confirmed) {
+					return false;
+				}
+			}
+
+			// entries of the previous provider that the new one does not use would otherwise linger in the configuration
+			let removedNames = providerChanged ? _Files.mountDialog.providerEntryNames(mount.providerKey).filter(name => !(name in entryData)) : [];
+
+			for (let name of removedNames) {
+
+				if (mount.entries[name] && !(await _Files.mountDialog.request(`${Structr.rootUrl}StorageConfigurationEntry/${mount.entries[name].id}`, 'DELETE'))) {
+					return false;
+				}
+			}
+
+			for (let [name, value] of Object.entries(entryData)) {
+
+				let existing = mount.entries[name];
+				let ok       = true;
+
+				if (_Files.mountDialog.writeOnlyEntries.includes(name) && value === null) {
+					continue;
+				}
+
+				if (existing && value === null) {
+					ok = await _Files.mountDialog.request(`${Structr.rootUrl}StorageConfigurationEntry/${existing.id}`, 'DELETE');
+				} else if (existing && value !== existing.value) {
+					ok = await _Files.mountDialog.request(`${Structr.rootUrl}StorageConfigurationEntry/${existing.id}`, 'PUT', { value: value });
+				} else if (!existing && value !== null) {
+					ok = await _Files.mountDialog.request(`${Structr.rootUrl}StorageConfigurationEntry`, 'POST', { configuration: mount.configurationId, name: name, value: value });
+				}
+
+				if (!ok) {
+					return false;
+				}
+			}
+
+			if (providerChanged && !(await _Files.mountDialog.request(`${Structr.rootUrl}StorageConfiguration/${mount.configurationId}`, 'PUT', { provider: _Files.mountDialog.supportedProviders[providerKey] }))) {
+				return false;
+			}
+
+			return _Files.mountDialog.request(`${Structr.rootUrl}Folder/${mount.folder.id}`, 'PUT', folderData);
+		},
+		request: async (url, method, body) => {
+
+			let response = await fetch(url, (body === undefined) ? { method } : { method, body: JSON.stringify(body) });
+			if (response.ok) {
+				return true;
+			}
+
+			let json = await response.json();
+
+			if (json.code === 422 && json.message === 'Unable to encrypt data, no secret key set.') {
+
+				new WarningMessage().title("Encryption Secret Configuration Required").text(_Files.mountDialog.templates.encryptionKeyMissing()).requiresConfirmation().show();
+
+			} else {
+
+				Structr.errorFromResponse(json);
+			}
+
+			return false;
 		},
 		templates: {
 			dialog: config => `
@@ -1970,15 +2198,15 @@ let _Files = {
 							</tr>
 							<tr>
 								<td data-comment="The scan interval for repeated scans of this mount target">Scan Interval (s)</td>
-								<td><input type="number" class="box-border w-full" data-mount-is-folder-option data-attribute-name="mountScanInterval"></td>
+								<td><input type="number" class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="sync.scanInterval"></td>
 							</tr>
 							<tr>
 								<td data-comment="Folders encountered underneath this mounted folder are created with this type">Mount Target Folder Type</td>
-								<td><input type="text" class="box-border w-full" data-mount-is-folder-option data-attribute-name="mountTargetFolderType"></td>
+								<td><input type="text" class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="sync.folderType"></td>
 							</tr>
 							<tr>
 								<td data-comment="Files encountered underneath this mounted folder are created with this type">Mount Target File Type</td>
-								<td><input type="text" class="box-border w-full" data-mount-is-folder-option data-attribute-name="mountTargetFileType"></td>
+								<td><input type="text" class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="sync.fileType"></td>
 							</tr>
 							<tr>
 								<td data-comment="List of checksum types which are being automatically calculated on file creation.<br>Supported values are: crc32, md5, sha1, sha512">Enabled Checksums</td>
@@ -1986,7 +2214,27 @@ let _Files = {
 							</tr>
 							<tr>
 								<td data-comment="Registers this path with a watch service (if supported by operating/file system)">Watch Folder Contents</td>
-								<td><input type="checkbox" data-mount-is-folder-option data-attribute-name="mountWatchContents"></td>
+								<td><input type="checkbox" data-mount-is-storageconfigurationentry-option data-attribute-name="sync.watchContents"></td>
+							</tr>
+							<tr>
+								<td data-comment="What happens in Structr when a file or folder disappears from the mounted storage.<br>Ignore keeps the node, delete removes it, read-only keeps it but marks it as deleted and refuses changes until it reappears.">When Contents Disappear</td>
+								<td>
+									<select class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="sync.onVanished">
+										<option selected value="">Ignore</option>
+										<option value="delete">Delete in Structr</option>
+										<option value="readonly">Mark deleted, read-only</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<td data-comment="Which way changes are synchronized.<br>In: changes in the storage are applied in Structr. Out: changes made in Structr are written to the storage. Both: in both directions.">Sync Direction</td>
+								<td>
+									<select class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="sync.direction">
+										<option selected value="">In (storage to Structr)</option>
+										<option value="out">Out (Structr to storage)</option>
+										<option value="both">Both</option>
+									</select>
+								</td>
 							</tr>
 						</tbody>
 						<thead>
@@ -2029,6 +2277,12 @@ let _Files = {
 					</tr>
 				`
 			},
+			retargetWarning: config => `
+				You are changing the storage this folder is mounted from.<br><br>
+				Files and folders from the previous location that do not also exist at the new one will be treated as vanished on the next scan.<br>
+				With the current setting they will be <b>${{ delete: 'deleted in Structr', readonly: 'kept, marked as deleted and made read-only', ignore: 'kept unchanged' }[config.policy] ?? 'kept unchanged'}</b>.<br><br>
+				Save anyway?
+			`,
 			encryptionKeyMissing: config => `
 				The mount configuration may contain sensitive information (credentials etc) and thus is an encrypted field.</br><br>
 				For this, the configuration key <code>application.encryption.secret</code> in structr.conf has to be set.<br><br>

@@ -894,8 +894,10 @@ public class CsvImportTest extends CsvTestBase {
 			assertEquals("Array column not split", List.of("a", "b", "c"), List.of(items.get(0).getProperty(tags)));
 			assertEquals("Array column not split", List.of("d"),           List.of(items.get(1).getProperty(tags)));
 
-			assertNull("Empty brackets must not yield an array with an empty element", items.get(2).getProperty(tags));
-			assertNull("Empty cell must not yield an array with an empty element",     items.get(3).getProperty(tags));
+			// an empty cell or "[]" is an empty array, not an array with one empty element; whether an empty
+			// array reads back as such or as null depends on the database driver
+			assertNullOrEmpty("Empty brackets must not yield an array with an empty element", items.get(2).getProperty(tags));
+			assertNullOrEmpty("Empty cell must not yield an array with an empty element",     items.get(3).getProperty(tags));
 
 			tx.success();
 
@@ -1068,5 +1070,13 @@ public class CsvImportTest extends CsvTestBase {
 
 		// wait for result (import is async.)
 		try { Thread.sleep(10000); } catch (Throwable t) {}
+	}
+
+	private static void assertNullOrEmpty(final String message, final Object[] value) {
+
+		if (value != null) {
+
+			assertEquals(message, List.of(), List.of(value));
+		}
 	}
 }

@@ -24,10 +24,9 @@ import java.util.Map;
 
 /**
  * Immutable snapshot describing one synchronization target: the sync root
- * (the AbstractFile - usually a Folder, possibly a single File - that
- * directly carries the StorageConfiguration) whose subtree mirrors the
- * external storage, and the effective configuration entries at the time
- * the synchronizer was created.
+ * (the Folder that directly carries the StorageConfiguration) whose subtree
+ * mirrors the external storage, and the effective configuration entries at
+ * the time the synchronizer was created.
  *
  * Synchronizers run on threads without a transaction context and therefore
  * MUST NOT access graph nodes; everything they need is snapshotted here.
@@ -35,7 +34,7 @@ import java.util.Map;
  * the sync service closes the synchronizer and creates a new one with a
  * fresh snapshot.
  */
-public record SyncTarget(String syncRootUuid, String syncRootPath, boolean syncRootIsFolder, String storageConfigurationUuid, Map<String, String> configuration) {
+public record SyncTarget(String syncRootUuid, String syncRootPath, String storageConfigurationUuid, Map<String, String> configuration) {
 
 	public SyncTarget {
 
