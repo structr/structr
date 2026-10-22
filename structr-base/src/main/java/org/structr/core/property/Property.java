@@ -65,6 +65,7 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	protected String fulltextIndexName          = null;
 	protected Supplier<Integer> vectorDimensions = null;
 	protected String vectorSimilarity           = null;
+	protected boolean vectorChecked             = false;
 	protected boolean compound                  = false;
 	protected boolean unique                    = false;
 	protected boolean notNull                   = false;
@@ -267,6 +268,20 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 		this.vectorDimensions = dimensions;
 		this.vectorSimilarity = similarity;
+
+		return this;
+	}
+
+	/**
+	 * A vector index of a fixed size. Vectors the index would leave out (of another size, with values that
+	 * are not finite, or all zeros with cosine similarity) are refused when they are written, see
+	 * ArrayProperty.setProperty.
+	 */
+	public Property<T> vectorIndexed(final int dimensions, final String similarity) {
+
+		vectorIndexed(() -> dimensions, similarity);
+
+		this.vectorChecked = true;
 
 		return this;
 	}

@@ -72,9 +72,7 @@ public class DoubleArrayPropertyGenerator extends NumericalArrayPropertyGenerato
 		// a vector index, see SchemaProperty.vectorDimensions
 		if (source instanceof SchemaProperty schemaProperty && schemaProperty.getVectorDimensions() != null) {
 
-			final Integer dimensions = schemaProperty.getVectorDimensions();
-
-			property.vectorIndexed(() -> dimensions, schemaProperty.getVectorSimilarity());
+			property.vectorIndexed(schemaProperty.getVectorDimensions().intValue(), schemaProperty.getVectorSimilarity());
 		}
 
 		return property;
