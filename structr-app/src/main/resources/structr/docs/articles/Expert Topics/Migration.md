@@ -161,6 +161,20 @@ If a method relies on receiving additional values, either declare them as parame
 "Allow unknown parameters" in the API tab of the method. Methods without declared parameters accept
 any parameters as before. See Method Parameters in the REST Interface chapter.
 
+### Sort Keys of sort() and the Sort Predicate
+
+The `sort()` function and the sort predicate of `find()` accept several sort keys in any combination of
+names, orders and objects. Two calls behave differently than before:
+
+- An order of `'desc'` after a name, as in `$.find('User', $.predicate.sort('createdDate', 'desc'))`,
+  now sorts in descending order. Before, every value except `true` sorted in ascending order, so these
+  calls returned the oldest objects first.
+- An order without a name, as in `sort(list, true)`, now sorts by name in descending order. Before, it
+  sorted in ascending order.
+
+When sorting nodes, a value after a name that is neither an order nor a known key, like
+`'descending'`, raises an error instead of being ignored.
+
 ## Migrating to Structr 6.x
 
 Version 6 introduces several breaking changes that require manual migration from 5.x.

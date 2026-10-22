@@ -51,6 +51,7 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 	private static final Logger logger    = LoggerFactory.getLogger(PathResolvingComparator.class.getName());
 
 	private final Map<GraphObject, Comparable> resolvedValues = new IdentityHashMap<>();
+	private Comparator<Comparable> valueComparator            = null;
 	private ActionContext actionContext                       = null;
 	private boolean sortDescending                            = false;
 	private boolean warned                                    = false;
@@ -65,10 +66,21 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 	 */
 	public PathResolvingComparator(final ActionContext actionContext, final String sortKey, final boolean sortDescending) {
 
-		this.sortDescending = sortDescending;
-		this.actionContext  = actionContext;
-		this.sortKey        = sortKey;
-		this.parts          = sortKey.split("[\\.]+");
+		this(actionContext, sortKey, sortDescending, null);
+	}
+
+	/**
+	 * Creates a new PathResolvingComparator that compares the resolved values with the given
+	 * comparator, e.g. in natural order, both for the sort itself and to choose the value of an
+	 * object with several values. Without a comparator, the values' own order is used.
+	 */
+	public PathResolvingComparator(final ActionContext actionContext, final String sortKey, final boolean sortDescending, final Comparator<Comparable> valueComparator) {
+
+		this.valueComparator = valueComparator != null ? valueComparator : Comparable::compareTo;
+		this.sortDescending  = sortDescending;
+		this.actionContext   = actionContext;
+		this.sortKey         = sortKey;
+		this.parts           = sortKey.split("[\\.]+");
 	}
 
 	@Override
@@ -101,17 +113,20 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 
 		if (sortDescending) {
 
-			return c2.compareTo(c1);
+			return valueComparator.compare(c2, c1);
 
 		} else {
 
-			return c1.compareTo(c2);
+			return valueComparator.compare(c1, c2);
 
 		}
 	}
 
-	// ----- private methods -----
-	private Comparable getValue(final GraphObject obj) {
+	/**
+	 * The value of the given object at the end of the path, or the one that comes first in the sort
+	 * order if the path leads through a collection, or null if there is none.
+	 */
+	public Comparable getValue(final GraphObject obj) {
 
 		// a sort compares each object many times, and resolving the path means traversing relationships
 		if (resolvedValues.containsKey(obj)) {
@@ -126,6 +141,7 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 		return value;
 	}
 
+	// ----- private methods -----
 	/**
 	 * Resolves the path from the given position on and returns the value that comes first in the sort order,
 	 * either the given one or one found on the path.
@@ -211,7 +227,9 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 			return true;
 		}
 
-		return sortDescending ? value.compareTo(first) > 0 : value.compareTo(first) < 0;
+		final int result = valueComparator.compare(value, first);
+
+		return sortDescending ? result > 0 : result < 0;
 	}
 
 	// the same problem would otherwise be logged for every comparison of the sort

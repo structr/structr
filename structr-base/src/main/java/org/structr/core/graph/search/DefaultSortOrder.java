@@ -38,7 +38,7 @@ public class DefaultSortOrder implements SortOrder {
 	}
 
 	/**
-	 * Rejects a sort key that neither the type nor one of its subtypes has, like SortPredicate does in find(),
+	 * Rejects a sort key that neither the type nor one of its subtypes has, like the sort predicate of find() does,
 	 * instead of returning an unsorted result. Keys for a type that is not in the schema cannot be checked and
 	 * are ignored.
 	 */
@@ -79,6 +79,11 @@ public class DefaultSortOrder implements SortOrder {
 		specs.add(new PropertySortSpec(key, descending));
 	}
 
+	public void addAll(final DefaultSortOrder other) {
+
+		specs.addAll(other.specs);
+	}
+
 	@Override
 	public List<SortSpec> getSortElements() {
 
@@ -109,7 +114,8 @@ public class DefaultSortOrder implements SortOrder {
 
 					if (c1 == null && c2 == null) {
 
-						return 0;
+						// equal in this key, so the next key decides
+						continue;
 
 					} else if (c1 == null) {
 
@@ -145,8 +151,10 @@ public class DefaultSortOrder implements SortOrder {
 		return specs.isEmpty();
 	}
 
-	// ----- private methods -----
-	private static PropertyKey resolveSortKey(final String type, final String name) {
+	/**
+	 * The key of the given type or, if the type does not have it, of one of its subtypes, or null.
+	 */
+	public static PropertyKey resolveSortKey(final String type, final String name) {
 
 		final Traits traits = Traits.of(type);
 		if (traits.hasKey(name)) {
