@@ -1522,6 +1522,24 @@ let _Code = {
 					if (okToNavigate) {
 						_Code.tree.findAndOpenNode(data.path + '/' + property.id, true);
 					}
+				},
+				editVectorIndex: async (property) => {
+
+					let okToNavigate = !_Code.persistence.isDirty();
+
+					if (!okToNavigate) {
+
+						if ((await _Dialogs.confirmation.showPromise("There are unsaved changes - discard?"))) {
+
+							okToNavigate = true;
+							_Code.persistence.forceNotDirty()
+						}
+					}
+
+					// the property details have the vector index settings
+					if (okToNavigate) {
+						_Code.tree.findAndOpenNode(data.path + '/' + property.id, true);
+					}
 				}
 			}
 		),
@@ -1866,9 +1884,36 @@ let _Code = {
 				_Helpers.fastRemoveElement($('#property-format-input').parent()[0]);
 			}
 
+			let vectorIndexContainer = null;
+
+			if (property.propertyType === 'DoubleArray') {
+
+				// the server's default, so that an existing property without a stored similarity is not dirty
+				property.vectorSimilarity = _Schema.properties.vectorIndex.similarityOf(property);
+
+				propertyUIContainer[0].querySelector('#property-options').insertAdjacentHTML('beforeend', `
+					<div id="property-vector-index" class="mb-4">
+						<label class="font-semibold">Vector Index</label>
+						<div class="mt-2">
+							${_Schema.properties.vectorIndex.templates.form({
+								vectorDimensions: property.vectorDimensions,
+								vectorSimilarity: property.vectorSimilarity,
+								indexName:        _Schema.properties.vectorIndex.indexName(property, property.schemaNode?.name)
+							})}
+						</div>
+					</div>
+				`);
+
+				vectorIndexContainer = propertyUIContainer[0].querySelector('#property-vector-index');
+			}
+
 			$('select', propertyUIContainer).on('change', changeHandler);
 			$('input[type=checkbox]', propertyUIContainer).on('change', changeHandler);
 			$('input[type=text]', propertyUIContainer).on('keyup', changeHandler);
+
+			if (vectorIndexContainer) {
+				_Schema.properties.vectorIndex.bindForm(vectorIndexContainer, changeHandler);
+			}
 
 			if (property.schemaNode.isBuiltinType) {
 

@@ -929,6 +929,10 @@ public class IndexManagementTest extends StructrTest {
 			setVectorSize(4);
 			awaitVectorIndex(db, index, 4);
 
+			// and so does a new similarity function
+			setVectorIndex(4, "euclidean");
+			awaitVectorIndex(db, index, 4, "euclidean");
+
 			try (final Tx tx = app.tx()) {
 
 				assertFalse("a hand-made vector index must not be dropped", db.getIndexInfo(custom).isEmpty());
@@ -956,6 +960,11 @@ public class IndexManagementTest extends StructrTest {
 
 	private void setVectorSize(final int dimensions) throws FrameworkException {
 
+		setVectorIndex(dimensions, "cosine");
+	}
+
+	private void setVectorIndex(final int dimensions, final String similarity) throws FrameworkException {
+
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
@@ -973,7 +982,7 @@ public class IndexManagementTest extends StructrTest {
 				embedding = type.addDoubleArrayProperty("embedding");
 			}
 
-			embedding.setVectorIndex(dimensions, "cosine");
+			embedding.setVectorIndex(dimensions, similarity);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -982,6 +991,11 @@ public class IndexManagementTest extends StructrTest {
 	}
 
 	private void awaitVectorIndex(final DatabaseService db, final String index, final int dimensions) {
+
+		awaitVectorIndex(db, index, dimensions, "cosine");
+	}
+
+	private void awaitVectorIndex(final DatabaseService db, final String index, final int dimensions, final String similarity) {
 
 		final long start = System.currentTimeMillis();
 
@@ -993,7 +1007,7 @@ public class IndexManagementTest extends StructrTest {
 
 				tx.success();
 
-				if (info.get("dimensions") instanceof Number number && number.intValue() == dimensions && "ONLINE".equals(info.get("state"))) {
+				if (info.get("dimensions") instanceof Number number && number.intValue() == dimensions && similarity.equalsIgnoreCase(String.valueOf(info.get("similarity"))) && "ONLINE".equals(info.get("state"))) {
 					return;
 				}
 
@@ -1002,7 +1016,7 @@ public class IndexManagementTest extends StructrTest {
 			}
 
 			if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
-				fail("Timeout waiting for vector index " + index + " with " + dimensions + " dimensions.");
+				fail("Timeout waiting for vector index " + index + " with " + dimensions + " dimensions and " + similarity + " similarity.");
 			}
 
 			try { Thread.sleep(1000); } catch (Throwable t) {}
