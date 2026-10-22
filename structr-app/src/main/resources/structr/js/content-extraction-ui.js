@@ -34,6 +34,17 @@ let _ContentExtraction = {
 
 	type: 'ContentExtractionConfiguration',
 
+	/**
+	 * Sections other modules add to the dialog, e.g. the embedding settings of the AI module:
+	 * { load: async (data) => state, rows: (data, state) => html, save: async (form, data, state) => boolean }
+	 *
+	 * load runs before the dialog is rendered (data is the answer of describe), rows returns table rows
+	 * shown after the options, and save runs after the configuration was saved, with data describing the
+	 * saved configuration. save returns true if it changed something, so the dialog is described again.
+	 * All three are optional.
+	 */
+	sections: [],
+
 	/** The options of a configuration, in dialog order. */
 	options: [
 		{ name: 'splitter',           label: 'Splitter',             kind: 'select',  comment: 'How extracted content is divided into chunks. structure follows headings, pages and tables; recursive splits at paragraphs, lines, sentences and words.' },
@@ -171,9 +182,35 @@ let _ContentExtraction = {
 			return;
 		}
 
+		await _ContentExtraction.loadSections(data);
+
 		let { dialogText } = _Dialogs.custom.openDialog('Content Extraction', null, ['show-dialog-title']);
 
 		_ContentExtraction.renderDialog(dialogText, data);
+	},
+	loadSections: async (data) => {
+
+		data.sectionStates = [];
+
+		for (let section of _ContentExtraction.sections) {
+
+			try {
+				data.sectionStates.push(await section.load?.(data));
+			} catch (error) {
+				console.error(error);
+				data.sectionStates.push(undefined);
+			}
+		}
+	},
+	saveSections: async (form, data, sectionStates) => {
+
+		let changed = false;
+
+		for (let [index, section] of _ContentExtraction.sections.entries()) {
+			changed = (await section.save?.(form, data, sectionStates?.[index])) || changed;
+		}
+
+		return changed;
 	},
 	renderDialog: (dialogText, data) => {
 
@@ -218,14 +255,21 @@ let _ContentExtraction = {
 				target:  data.target.id,
 				values:  _ContentExtraction.readValues(form),
 				process: form.querySelector('[name="process"]').checked
-			});
+			}, form, data.sectionStates);
 		});
 	},
-	submit: async (dialogText, method, body) => {
+	submit: async (dialogText, method, body, form, sectionStates) => {
 
 		try {
 
 			let data = await _ContentExtraction.call(method, body);
+
+			// the sections read their values from the form, which is replaced when the dialog is rendered again
+			if (method === 'save' && await _ContentExtraction.saveSections(form, data, sectionStates)) {
+				data = await _ContentExtraction.call('describe', { target: body.target });
+			}
+
+			await _ContentExtraction.loadSections(data);
 
 			_ContentExtraction.renderDialog(dialogText, data);
 
@@ -351,6 +395,7 @@ let _ContentExtraction = {
 								<td><input type="checkbox" name="enabled" ${(own ? own.enabled : true) ? 'checked' : ''}></td>
 							</tr>
 							${_ContentExtraction.options.map(option => _ContentExtraction.templates.option(option, values[option.name], data)).join('')}
+							${_ContentExtraction.sections.map((section, index) => section.rows?.(data, data.sectionStates?.[index]) ?? '').join('')}
 							<tr>
 								<td data-comment="Extracts the files this configuration covers after saving. Files whose content and options are unchanged are skipped. Without this, existing files are only extracted when their content changes or when processContent() is called.">Process Existing Files</td>
 								<td><input type="checkbox" name="process"></td>

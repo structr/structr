@@ -150,7 +150,18 @@ let _JobQueue = {
 
 		return row;
 	},
+	/**
+	 * Job types of modules, by job type, e.g. { EMBEDDING: { info: (job) => 'html', pausable: true } }: info is the
+	 * text of the info column, pausable adds pause, resume and abort buttons.
+	 */
+	jobTypes: {},
 	createJobInfoHTML: (job) => {
+
+		let moduleType = _JobQueue.jobTypes[job.jobtype];
+		if (moduleType?.info) {
+			return `<td colspan=4>${moduleType.info(job)}</td>`;
+		}
+
 		switch (job.jobtype) {
 			case 'XML':
 			case 'CSV':
@@ -172,36 +183,37 @@ let _JobQueue = {
 		}
 	},
 	createActionButtons: (job) => {
-		let actionHtml = '';
 
 		switch (job.jobtype) {
 			case 'XML':
 			case 'CSV':
 			case 'CONTENT_EXTRACTION':
-				switch (job.status) {
-					case 'QUEUED':
-						actionHtml += _JobQueue.createActionButton('cancel', job.jobId, 'Cancel');
-						break;
-
-					case 'PAUSED':
-						actionHtml += _JobQueue.createActionButton('resume', job.jobId, 'Resume');
-						actionHtml += _JobQueue.createActionButton('abort', job.jobId, 'Abort');
-						break;
-
-					case 'RUNNING':
-						actionHtml += _JobQueue.createActionButton('pause', job.jobId, 'Pause');
-						actionHtml += _JobQueue.createActionButton('abort', job.jobId, 'Abort');
-						break;
-				}
-				break;
+				return _JobQueue.createPausableJobButtons(job);
 
 			default:
-				if (job.status === 'QUEUED') {
-					actionHtml += _JobQueue.createActionButton('cancel', job.jobId, 'Cancel');
+				if (_JobQueue.jobTypes[job.jobtype]?.pausable) {
+					return _JobQueue.createPausableJobButtons(job);
 				}
-		}
 
-		return actionHtml;
+				return (job.status === 'QUEUED') ? _JobQueue.createActionButton('cancel', job.jobId, 'Cancel') : '';
+		}
+	},
+	/** Cancel while queued, pause and abort while running, resume and abort while paused. */
+	createPausableJobButtons: (job) => {
+
+		switch (job.status) {
+			case 'QUEUED':
+				return _JobQueue.createActionButton('cancel', job.jobId, 'Cancel');
+
+			case 'PAUSED':
+				return _JobQueue.createActionButton('resume', job.jobId, 'Resume') + _JobQueue.createActionButton('abort', job.jobId, 'Abort');
+
+			case 'RUNNING':
+				return _JobQueue.createActionButton('pause', job.jobId, 'Pause') + _JobQueue.createActionButton('abort', job.jobId, 'Abort');
+
+			default:
+				return '';
+		}
 	},
 	createActionButton: function (action, jobId, content) {
 		return `<button class="import-job-action" data-action="${action}" data-job-id="${jobId}">${content}</button>`;
