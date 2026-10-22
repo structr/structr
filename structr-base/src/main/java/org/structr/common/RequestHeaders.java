@@ -46,6 +46,7 @@ public enum RequestHeaders implements Documentable {
 	XForwardedFor("X-Forwarded-For", "HTTP X-Forwarded-For header", null),
 	XUser("X-User", "Structr request authentication header: username", "Custom request header to authenticate single requests with username / password, used in header-based authentication."),
 	XPassword("X-Password", "Structr request authentication header: password", "Custom request header to authenticate single requests with username / password, used in header-based authentication."),
+	XTwoFactorCode("X-TwoFactor-Code", "Structr request authentication header: second factor code", "Custom request header carrying the current code of the superuser's second factor along with X-User and X-Password. Each code is accepted once."),
 	XStructrSessionToken("X-StructrSessionToken", "Structr request authentication header: sessionToken", "Custom request header to authenticate single requests with sessionToken, used in header-based authentication."),
 	XStructrEdition("X-Structr-Edition", "Structr response header", "Custom response header sent by some Structr versions to indicate the Structr Edition that is running."),
 	XStructrClusterNode("X-Structr-Cluster-Node", null, null),

@@ -56,12 +56,33 @@ let _Config = {
 				// first start: the wizard is opened with the setup token from the server log
 				_Dialogs.configSetupDialog.show();
 
+			} else if (document.body.classList.contains('twofactor-setup')) {
+
+				// the password was just accepted and the second factor is switched on but not set up yet
+				let setup = document.getElementById('twofactor-setup').dataset;
+
+				_Dialogs.basic.append(_Config.templates.configTwoFactorSetupDialogMarkup, { width: '' });
+
+				document.getElementById('twofactor-qr').src             = setup.qr;
+				document.getElementById('twofactor-secret').textContent = setup.secret;
+				document.getElementById('superuserTwoFactorSetupCodeField').focus();
+
 			} else {
 
 				_Dialogs.configLoginDialog.show();
+
+				// with a second factor set up, the code is sent together with name and password
+				if (document.body.classList.contains('twofactor') || new URLSearchParams(location.search).has('twoFactorRequired')) {
+
+					for (let row of document.querySelectorAll('#login-form .twofactor-row')) {
+						row.classList.remove('hidden');
+					}
+
+					document.getElementById('superuserTwoFactorCodeField').required = true;
+				}
 			}
 
-			_Config.attachActiveSectionStoringBehaviourToForm(document.querySelector('#login-form, #setup-form'));
+			_Config.attachActiveSectionStoringBehaviourToForm(document.querySelector('#login-form, #setup-form, #twofactor-setup-form'));
 
 		} else {
 
@@ -814,6 +835,14 @@ let _Config = {
 							<input id="superuserPasswordField" type="password" name="superuserPassword" autocomplete="current-password" required class="w-full box-border">
 						</div>
 
+						<div class="self-center twofactor-row hidden">
+							<label for="superuserTwoFactorCodeField">Code:</label>
+						</div>
+
+						<div class="self-center twofactor-row hidden">
+							<input id="superuserTwoFactorCodeField" type="text" name="superuserTwoFactorCode" autocomplete="one-time-code" inputmode="numeric" class="w-full box-border">
+						</div>
+
 						<div class="self-center col-span-2 mt-2 text-right">
 							<button id="loginButton" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" style="font-weight: 600;">
 								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Sign In
@@ -823,7 +852,63 @@ let _Config = {
 						</div>
 
 						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('loginFailed') ? '' : 'hidden'}">
-							Invalid username or password.
+							Invalid username, password or code.
+						</div>
+
+						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('twoFactorRequired') ? '' : 'hidden'}">
+							Please enter the code from your authenticator app.
+						</div>
+
+						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('loginBlocked') ? '' : 'hidden'}">
+							Too many failed attempts, the login is blocked for now. Please try again later.
+						</div>
+					</div>
+				</form>
+			</div>
+		`,
+		configTwoFactorSetupDialogMarkup: `
+			<div id="login" class="dialog p-8 text-left" style="max-width: 480px; border: 2px solid #c62828; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+
+				<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+					${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo-login'])}
+					<span style="font-size: 11px; font-weight: 600; color: #c62828; text-transform: uppercase; letter-spacing: 0.5px;">Set Up Two-Factor Authentication</span>
+				</div>
+
+				<p class="ml-1 mr-4">Scan the code with an authenticator app, or enter the secret by hand, then confirm with the code the app shows. From now on, the login asks for such a code.</p>
+
+				<div class="ml-1 mr-4 mt-4 text-center">
+					<img id="twofactor-qr" alt="QR code" width="200" height="200">
+					<p>Secret: <code id="twofactor-secret"></code></p>
+				</div>
+
+				<form id="twofactor-setup-form" method="post">
+
+					<div class="gap-y-2 grid ml-1 mr-4 mt-4" style="grid-template-columns: 35fr 65fr;">
+
+						<input name="active_section" type="hidden">
+
+						<div class="self-center">
+							<label for="superuserTwoFactorSetupCodeField">Code:</label>
+						</div>
+
+						<div class="self-center">
+							<input id="superuserTwoFactorSetupCodeField" type="text" name="superuserTwoFactorCode" autocomplete="one-time-code" inputmode="numeric" required class="w-full box-border">
+						</div>
+
+						<div class="self-center col-span-2 mt-2 text-right">
+							<button id="twoFactorSetupButton" class="inline-flex mr-0 items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" style="font-weight: 600;">
+								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Confirm
+							</button>
+
+							<input type="hidden" name="action" value="twoFactorSetup">
+						</div>
+
+						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('twoFactorFailed') ? '' : 'hidden'}">
+							The code was not accepted.
+						</div>
+
+						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('loginBlocked') ? '' : 'hidden'}">
+							Too many failed attempts, please try again later.
 						</div>
 					</div>
 				</form>

@@ -1083,7 +1083,7 @@ public class UiAuthenticator implements Authenticator {
 					try {
 
 						final LinkedHashSet<PropertyKey<String>> authenticationPropertyKeySet = getAuthenticationPropertyKeySet();
-						user = AuthHelper.getPrincipalForKeysAndPassword(authenticationPropertyKeySet, userName, password);
+						user = AuthHelper.getPrincipalForKeysAndPassword(authenticationPropertyKeySet, userName, password, request.getHeader(RequestHeaders.XTwoFactorCode.getName()), "header authentication from " + request.getRemoteAddr() + " for " + request.getMethod() + " " + request.getRequestURI());
 
 					} catch (final AuthenticationException e) {
 
