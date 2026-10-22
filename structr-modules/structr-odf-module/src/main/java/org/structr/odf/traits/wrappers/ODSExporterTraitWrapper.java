@@ -20,11 +20,12 @@ package org.structr.odf.traits.wrappers;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.odf.entity.ODSExporter;
 
 /**
  *
  */
-public class ODSExporterTraitWrapper extends ODFExporterTraitWrapper {
+public class ODSExporterTraitWrapper extends ODFExporterTraitWrapper implements ODSExporter {
 
 	public ODSExporterTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 

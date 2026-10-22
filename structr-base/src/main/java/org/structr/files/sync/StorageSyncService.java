@@ -37,14 +37,18 @@ import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.sync.*;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FolderTraitDefinition;
+import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Central synchronization service that keeps the Structr filesystem (File
@@ -69,8 +73,8 @@ public class StorageSyncService extends Thread implements RunnableService {
 	// one bad file or one unreachable backend without taking the thread (and with it every other
 	// sync target) down; all three log before they continue.
 
-	public static final String DELETE_STALE_KEY = "sync.deleteStale";
-	public static final String DIRECTION_KEY    = SyncDirection.DIRECTION_KEY;
+	public static final String DIRECTION_KEY = SyncDirection.DIRECTION_KEY;
+	public static final String POLICY_KEY    = VanishPolicy.POLICY_KEY;
 
 	/**
 	 * SecurityContext attribute marking graph modifications that originate
@@ -86,9 +90,17 @@ public class StorageSyncService extends Thread implements RunnableService {
 	private static final Logger logger = LoggerFactory.getLogger(StorageSyncService.class);
 
 	private final Map<String, ActiveSync> targets      = new LinkedHashMap<>();
+
+	// the target each sync root's persisted scan time belongs to, guarded by the targets lock
+	private final Map<String, SyncTarget> scannedTargets = new HashMap<>();
 	private final Map<String, PendingEvent> eventQueue = new LinkedHashMap<>();
 	private final List<PendingOutbound> outboundQueue  = new LinkedList<>();
 	private final Set<Thread> scanThreads              = ConcurrentHashMap.newKeySet();
+
+	// set while the run loop holds events or outbound changes it has taken off their queues, so that
+	// isIdle() cannot report quiet between taking work and finishing it
+	private final AtomicInteger busy         = new AtomicInteger();
+	private final AtomicLong handledEvents   = new AtomicLong();
 	private volatile boolean running                   = false;
 
 	// per-transaction capture state for outbound (Structr->physical) propagation:
@@ -98,6 +110,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 	// toplevel transaction by handleTransactionFinished().
 	private static final ThreadLocal<Map<String, PreMoveLocation>> preMoveStash   = new ThreadLocal<>();
 	private static final ThreadLocal<Map<String, PendingOutbound>> capturedEvents = new ThreadLocal<>();
+	private static final ThreadLocal<List<Relocation>> deletedRelocations         = new ThreadLocal<>();
 
 	public StorageSyncService() {
 
@@ -177,11 +190,11 @@ public class StorageSyncService extends Thread implements RunnableService {
 	}
 
 	/**
-	 * Called before a parent/parentId change is applied to the given node.
-	 * Stashes the node's current absolute path and its current governing
-	 * outbound target - the old parent is not recoverable after the
+	 * Called before a parent, parentId or name change is applied to the
+	 * given node. Stashes the node's current absolute path and its current
+	 * governing outbound target - the old parent is not recoverable after the
 	 * relationship changed. The first call per node and transaction wins,
-	 * preserving the original location.
+	 * preserving the location the external storage still has.
 	 */
 	public static void stashPreMoveLocation(final AbstractFile file) {
 
@@ -254,6 +267,11 @@ public class StorageSyncService extends Thread implements RunnableService {
 			if (oldRelative != null && newRelative != null && !oldRelative.equals(newRelative)) {
 
 				capture(oldTarget.syncRootUuid(), VirtualChangeEvent.moved(uuid, directory, oldRelative, newRelative, nativeKey));
+
+				if (directory && tracksEntryPaths(oldTarget)) {
+
+					captureMovesBelow(oldTarget, file.as(Folder.class), oldRelative, newRelative);
+				}
 			}
 
 			return true;
@@ -275,15 +293,56 @@ public class StorageSyncService extends Thread implements RunnableService {
 	}
 
 	/**
+	 * @return true if the synchronizer of the given target needs a moved folder sent as a move of
+	 * every file below it
+	 */
+	private static boolean tracksEntryPaths(final OutboundTarget target) {
+
+		final StorageSyncService service = runningService();
+		final ActiveSync sync            = service != null ? service.getActiveSync(target.syncRootUuid()) : null;
+
+		return sync != null && sync.synchronizer.tracksEntryPaths();
+	}
+
+	/**
+	 * Captures a MOVED event for every file below the given folder, which has just moved from
+	 * oldRelative to newRelative within the given target.
+	 */
+	private static void captureMovesBelow(final OutboundTarget target, final Folder folder, final String oldRelative, final String newRelative) {
+
+		for (final NodeInterface node : folder.getAllChildNodes()) {
+
+			if (node.is(StructrTraits.FOLDER)) {
+
+				continue;
+			}
+
+			final AbstractFile child        = node.as(AbstractFile.class);
+			final String childNewRelative   = relativize(target, child.getPath());
+
+			if (childNewRelative != null && childNewRelative.startsWith(newRelative + "/")) {
+
+				final String childOldRelative = oldRelative + childNewRelative.substring(newRelative.length());
+
+				capture(target.syncRootUuid(), VirtualChangeEvent.moved(child.getUuid(), false, childOldRelative, childNewRelative, child.getStorageKey()));
+			}
+		}
+	}
+
+	/**
 	 * Called from the pre-delete callback while the node and its parent
-	 * chain are still intact. Captures a DELETED event.
+	 * chain are still intact. Captures a DELETED event at the location the
+	 * external storage still has: a node moved or renamed earlier in the same
+	 * transaction is deleted where it was, because its move is never sent.
 	 *
 	 * @return true if the deletion is covered by outbound synchronization
 	 * (the direct physical delete must then be skipped)
 	 */
 	public static boolean recordOutboundDeletion(final AbstractFile file) {
 
-		final OutboundTarget target = getOutboundTarget(file);
+		final Map<String, PreMoveLocation> stash = preMoveStash.get();
+		final PreMoveLocation stashed            = stash != null ? stash.get(file.getUuid()) : null;
+		final OutboundTarget target              = stashed != null ? stashed.target() : getOutboundTarget(file);
 		if (target == null) {
 
 			return false;
@@ -298,13 +357,32 @@ public class StorageSyncService extends Thread implements RunnableService {
 			return true;
 		}
 
-		final String relativePath = relativize(target, file.getPath());
+		final String relativePath = relativize(target, stashed != null ? stashed.absolutePath() : file.getPath());
 		if (relativePath == null) {
 
 			return false;
 		}
 
-		capture(target.syncRootUuid(), VirtualChangeEvent.deleted(uuid, file.is(StructrTraits.FOLDER), relativePath, file.getStorageKey()));
+		final boolean directory = file.is(StructrTraits.FOLDER);
+		if (stashed != null && directory) {
+
+			// a folder moved or renamed and then deleted in one transaction never has its move sent,
+			// so what was below it is still below its old location on the storage
+			final String currentPath = relativize(target, file.getPath());
+			if (currentPath != null && !currentPath.equals(relativePath)) {
+
+				List<Relocation> relocations = deletedRelocations.get();
+				if (relocations == null) {
+
+					relocations = new LinkedList<>();
+					deletedRelocations.set(relocations);
+				}
+
+				relocations.add(new Relocation(target.syncRootUuid(), currentPath, relativePath));
+			}
+		}
+
+		capture(target.syncRootUuid(), VirtualChangeEvent.deleted(uuid, directory, relativePath, file.getStorageKey()));
 
 		return true;
 	}
@@ -346,9 +424,11 @@ public class StorageSyncService extends Thread implements RunnableService {
 	public static void handleTransactionFinished(final boolean successful) {
 
 		final Map<String, PendingOutbound> captured = capturedEvents.get();
+		final List<Relocation> relocations          = deletedRelocations.get();
 
 		preMoveStash.remove();
 		capturedEvents.remove();
+		deletedRelocations.remove();
 
 		if (!successful || captured == null || captured.isEmpty()) {
 
@@ -371,7 +451,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 			if (VirtualChangeEvent.Type.DELETED.equals(pending.event().type())) {
 
-				deleted.add(pending);
+				deleted.add(relocated(pending, relocations));
 
 			} else {
 
@@ -410,6 +490,11 @@ public class StorageSyncService extends Thread implements RunnableService {
 		if (service != null) {
 
 			service.detach(uuid);
+
+			synchronized (service.targets) {
+
+				service.scannedTargets.remove(uuid);
+			}
 		}
 	}
 
@@ -487,6 +572,15 @@ public class StorageSyncService extends Thread implements RunnableService {
 			return;
 		}
 
+		// only folders are sync roots: a file linked to a storage configuration keeps its content there
+		// and is not scanned or watched
+		if (!abstractFile.is(StructrTraits.FOLDER)) {
+
+			detach(uuid);
+
+			return;
+		}
+
 		final StorageProvider provider = StorageProviderFactory.getStorageProvider(abstractFile);
 		if (!(provider instanceof SynchronizableStorageProvider synchronizable)) {
 
@@ -495,17 +589,15 @@ public class StorageSyncService extends Thread implements RunnableService {
 			return;
 		}
 
-		final boolean isFolder      = abstractFile.is(StructrTraits.FOLDER);
 		final String path           = abstractFile.getPath();
-		final SyncTarget syncTarget = new SyncTarget(uuid, path, isFolder, config.getUuid(), config.getConfiguration());
+		final SyncTarget syncTarget = new SyncTarget(uuid, path, config.getUuid(), config.getConfiguration());
 
-		// folder-level sync settings, defaults for single-file sync roots
-		final Traits folderTraits    = Traits.of(StructrTraits.FOLDER);
-		final boolean watchContents  = isFolder && Boolean.TRUE.equals(abstractFile.getProperty(folderTraits.key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY)));
-		final Integer scanInterval   = isFolder ? abstractFile.getProperty(folderTraits.key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY)) : null;
-		final Long lastScanned       = isFolder ? abstractFile.getProperty(folderTraits.key(FolderTraitDefinition.MOUNT_LAST_SCANNED_PROPERTY)) : null;
-		final boolean deleteStale    = Boolean.parseBoolean(syncTarget.configuration().get(DELETE_STALE_KEY));
-		final SyncDirection direction = SyncDirection.fromConfiguration(syncTarget.configuration());
+		final SyncSettings settings  = SyncSettings.fromConfiguration(syncTarget.configuration());
+		final boolean watchContents  = settings.watchContents();
+		final Integer scanInterval   = settings.scanInterval();
+		final Long lastScanned       = config.getProperty(Traits.of(StructrTraits.STORAGE_CONFIGURATION).key(StorageConfigurationTraitDefinition.LAST_SCANNED_PROPERTY));
+		final VanishPolicy vanishPolicy = VanishPolicy.fromConfiguration(syncTarget.configuration());
+		final SyncDirection direction   = SyncDirection.fromConfiguration(syncTarget.configuration());
 
 		synchronized (targets) {
 
@@ -546,7 +638,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 			logger.info("Synchronizing {} via {}..", path, synchronizer.getClass().getSimpleName());
 
-			final ActiveSync sync = new ActiveSync(syncTarget, synchronizer, scanInterval, watchContents, deleteStale, direction);
+			final ActiveSync sync = new ActiveSync(syncTarget, synchronizer, scanInterval, watchContents, vanishPolicy, direction);
 
 			targets.put(uuid, sync);
 
@@ -571,17 +663,34 @@ public class StorageSyncService extends Thread implements RunnableService {
 			}
 
 			// upon creation, set the last scanned date correctly to prevent early scanning
+			// the persisted scan time records when this root was scanned, not what from: once the
+			// configuration points it at different storage, an earlier scan says nothing about the
+			// new location. Known only for targets attached in this run, so a restart still trusts
+			// the persisted time. Intermediate states of a multi-step edit attach no synchronizer
+			// and therefore leave the remembered target alone.
+			final SyncTarget previouslyScanned = scannedTargets.put(uuid, syncTarget);
+			final boolean retargeted           = previouslyScanned != null && !previouslyScanned.equals(syncTarget);
+
 			final boolean wasNeverScanned = (lastScanned == null);
 			if (!wasNeverScanned) {
 
 				sync.lastScanned = lastScanned;
 			}
 
-			if (wasNeverScanned || sync.shouldScan()) {
+			if (wasNeverScanned || retargeted || sync.shouldScan()) {
 
 				sync.lastScanned = System.currentTimeMillis();
 
-				startScan(sync);
+				if (running) {
+
+					startScan(sync);
+
+				} else {
+
+					// attached while the service starts: a scan started now would find the service
+					// layer not yet initialized and give up, so the run loop starts it once it is
+					sync.fullScanRequested = true;
+				}
 
 			} else {
 
@@ -665,9 +774,114 @@ public class StorageSyncService extends Thread implements RunnableService {
 		}
 	}
 
+	// ----- quiescence, for callers that must know the service has caught up -----
+	/**
+	 * Waits until no external change event is queued or being handled, no outbound change is pending
+	 * and no scan is running or requested.
+	 *
+	 * @return true if the service became idle within the given time
+	 */
+	boolean awaitIdle(final long timeoutMillis) {
+
+		final long deadline = System.currentTimeMillis() + timeoutMillis;
+
+		while (System.currentTimeMillis() < deadline) {
+
+			if (isIdle()) {
+
+				return true;
+			}
+
+			try { Thread.sleep(50); } catch (InterruptedException ex) {
+
+				Thread.currentThread().interrupt();
+
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * @return the number of external change events the run loop has handled, including the ones it
+	 * dropped because the service was shutting down
+	 */
+	long getHandledEventCount() {
+
+		return handledEvents.get();
+	}
+
+	/**
+	 * @return what keeps the service from being idle, for a failure message
+	 */
+	String describeActivity() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		synchronized (eventQueue) {
+
+			buf.append("queued events: ").append(eventQueue.keySet());
+		}
+
+		synchronized (outboundQueue) {
+
+			buf.append(", pending outbound: ").append(outboundQueue.size());
+		}
+
+		buf.append(", running scans: ").append(scanThreads.stream().map(Thread::getName).toList());
+
+		synchronized (targets) {
+
+			buf.append(", requested scans: ").append(targets.values().stream().filter(sync -> sync.fullScanRequested).map(sync -> sync.target.syncRootPath()).toList());
+		}
+		buf.append(", busy: ").append(busy.get());
+
+		synchronized (targets) {
+
+			buf.append(", attached roots: ").append(targets.values().stream().map(sync -> sync.target.syncRootPath()).toList());
+		}
+
+		return buf.toString();
+	}
+
+	private boolean isIdle() {
+
+		synchronized (eventQueue) {
+
+			if (!eventQueue.isEmpty()) {
+
+				return false;
+			}
+		}
+
+		synchronized (outboundQueue) {
+
+			if (!outboundQueue.isEmpty()) {
+
+				return false;
+			}
+		}
+
+		synchronized (targets) {
+
+			for (final ActiveSync sync : targets.values()) {
+
+				if (sync.fullScanRequested && sync.direction.isInbound()) {
+
+					return false;
+				}
+			}
+		}
+
+		return scanThreads.isEmpty() && busy.get() == 0;
+	}
+
 	// ----- interface RunnableService -----
 	@Override
 	public void run() {
+
+		boolean attachedAfterInitialization = false;
 
 		while (running) {
 
@@ -689,11 +903,29 @@ public class StorageSyncService extends Thread implements RunnableService {
 				continue;
 			}
 
+			if (!attachedAfterInitialization) {
+
+				attachedAfterInitialization = true;
+
+				// the migrations run after this service has attached the mounts, and while the service
+				// layer starts, changes to a configuration reach no running service: a mount whose
+				// configuration a migration changed is rebuilt here
+				try {
+
+					attachConfigured();
+
+				} catch (Throwable t) {
+
+					logger.warn("Unable to attach the configured mounts again after startup: {}", t.getMessage());
+				}
+			}
+
 			synchronized (targets) {
 
 				for (final ActiveSync sync : targets.values()) {
 
-					if (sync.direction.isInbound() && (sync.fullScanRequested || sync.shouldScan())) {
+					// a request that arrives while a scan is running stays pending until it ends
+					if (sync.direction.isInbound() && !sync.scanning.get() && (sync.fullScanRequested || sync.shouldScan())) {
 
 						sync.fullScanRequested = false;
 						sync.lastScanned       = System.currentTimeMillis();
@@ -704,6 +936,8 @@ public class StorageSyncService extends Thread implements RunnableService {
 			}
 
 			try { Thread.sleep(100); } catch (InterruptedException i) {}
+
+			busy.incrementAndGet();
 
 			// collect all events that are older than the debounce window
 			final List<PendingEvent> dueEvents = new LinkedList<>();
@@ -721,31 +955,26 @@ public class StorageSyncService extends Thread implements RunnableService {
 				}
 			}
 
-			if (!dueEvents.isEmpty() && isReady()) {
+			if (!dueEvents.isEmpty() && isReady() && handleInOneTransaction(dueEvents) != null) {
 
-				final SecurityContext securityContext = createSyncContext();
+				// validation runs when the batch commits, so one invalid entry fails all of them:
+				// handle each on its own so that only the offending one is lost
+				for (final PendingEvent item : dueEvents) {
 
-				try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, true, false)) {
+					final Throwable failure = handleInOneTransaction(List.of(item));
+					if (failure != null) {
 
-					tx.prefetchHint("StorageSyncService main loop");
-
-					for (final PendingEvent item : dueEvents) {
-
-						handleEvent(item);
+						logger.warn("Unable to handle {} of {} in sync target {}: {}", item.event.type(), item.describeEntry(), item.syncRootUuid, failure.getMessage());
 					}
-
-					tx.success();
-
-				} catch (Throwable t) {
-
-					logger.warn("Unable to process storage sync event queue, waiting for 1 minute before trying again: {}", t.getMessage());
-
-					try { Thread.sleep(TimeUnit.MINUTES.toMillis(1)); } catch (InterruptedException i) {}
 				}
 			}
 
+			handledEvents.addAndGet(dueEvents.size());
+
 			// propagate committed Structr-side changes to the external storages
 			dispatchOutbound();
+
+			busy.decrementAndGet();
 		}
 
 		logger.info("StorageSyncService stopped");
@@ -754,23 +983,36 @@ public class StorageSyncService extends Thread implements RunnableService {
 	@Override
 	public void startService() throws Exception {
 
-		final PropertyKey<String> storageConfigurationKey = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY);
-		final App app                                     = StructrApp.getInstance();
-
-		try (final Tx tx = app.tx(false, false, false)) {
-
-			// find all files/folders that directly carry a storage configuration and try to attach them
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.ABSTRACT_FILE).notBlank(storageConfigurationKey).getAsList()) {
-
-				attach(node.as(AbstractFile.class));
-			}
-
-			tx.success();
-		}
+		attachConfigured();
 
 		running = true;
 
 		this.start();
+	}
+
+	/**
+	 * Attaches every folder that directly carries a storage configuration, found from the
+	 * configuration side: a query for a non-blank relationship property on the files does not match on
+	 * every driver, and there are few configurations. A mount that is attached already is only rebuilt
+	 * if its configuration changed.
+	 */
+	private void attachConfigured() throws FrameworkException {
+
+		final PropertyKey<Iterable<NodeInterface>> configuredKey = Traits.of(StructrTraits.STORAGE_CONFIGURATION).key(StorageConfigurationTraitDefinition.FOLDERS_PROPERTY);
+		final App app                                            = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx(false, false, false)) {
+
+			for (final NodeInterface configuration : app.nodeQuery(StructrTraits.STORAGE_CONFIGURATION).getAsList()) {
+
+				for (final NodeInterface node : configuration.getProperty(configuredKey)) {
+
+					attach(node.as(AbstractFile.class));
+				}
+			}
+
+			tx.success();
+		}
 	}
 
 	@Override
@@ -822,12 +1064,20 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 	/**
 	 * Starts a tracked scan thread for the given target, unless the service is
-	 * already stopping. Tracked threads are interrupted and joined by
-	 * stopService() so no scan touches the graph after shutdown.
+	 * already stopping or the target is being scanned already. Tracked threads
+	 * are interrupted and joined by stopService() so no scan touches the graph
+	 * after shutdown.
 	 */
 	private void startScan(final ActiveSync sync) {
 
 		if (!running) {
+
+			return;
+		}
+
+		// two scans of one target would both create the entries the other has
+		// not committed yet, so a target is scanned by one thread at a time
+		if (!sync.scanning.compareAndSet(false, true)) {
 
 			return;
 		}
@@ -841,6 +1091,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 			} finally {
 
 				scanThreads.remove(Thread.currentThread());
+				sync.scanning.set(false);
 			}
 
 		}, "StorageSyncScan-" + sync.target.syncRootUuid());
@@ -851,6 +1102,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 		if (!running) {
 
 			scanThreads.remove(scan);
+			sync.scanning.set(false);
 
 			return;
 		}
@@ -918,6 +1170,30 @@ public class StorageSyncService extends Thread implements RunnableService {
 	}
 
 	// ----- private methods -----
+	/**
+	 * @return null if the given events were handled and committed, the failure otherwise
+	 */
+	private Throwable handleInOneTransaction(final List<PendingEvent> items) {
+
+		try (final Tx tx = StructrApp.getInstance(createSyncContext()).tx(true, true, false)) {
+
+			tx.prefetchHint("StorageSyncService main loop");
+
+			for (final PendingEvent item : items) {
+
+				handleEvent(item);
+			}
+
+			tx.success();
+
+			return null;
+
+		} catch (Throwable t) {
+
+			return t;
+		}
+	}
+
 	private void handleEvent(final PendingEvent item) {
 
 		final ActiveSync sync = getActiveSync(item.syncRootUuid);
@@ -930,7 +1206,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 		try (final Tx tx = StructrApp.getInstance(createSyncContext()).tx()) {
 
-			final ExternalFileSyncHandler handler = new ExternalFileSyncHandler(sync.target);
+			final ExternalFileSyncHandler handler = new ExternalFileSyncHandler(sync.target, sync.vanishPolicy);
 			final ExternalChangeEvent event       = item.event;
 
 			switch (event.type()) {
@@ -961,6 +1237,9 @@ public class StorageSyncService extends Thread implements RunnableService {
 				final ExternalChangeEvent.Type existingType = existingItem.event.type();
 				final ExternalChangeEvent.Type newType      = item.event.type();
 
+				// whatever replaces a MODIFY or a DELETE refers to an entry Structr already knows
+				item.existedBefore = existingItem.existedBefore || ExternalChangeEvent.Type.MODIFIED.equals(existingType) || ExternalChangeEvent.Type.DELETED.equals(existingType);
+
 				switch (existingType) {
 
 					case CREATED, MOVED -> {
@@ -970,8 +1249,26 @@ public class StorageSyncService extends Thread implements RunnableService {
 							// delay existing item (duplicate CREATE / additional MODIFY)
 							case CREATED, MODIFIED -> existingItem.time = item.time;
 
-							// remove CREATE due to DELETE
-							case DELETED           -> eventQueue.remove(key);
+							case DELETED -> {
+
+								eventQueue.remove(key);
+
+								// an entry that only came and went is never handled, but one that
+								// was there before still has to go
+								if (existingItem.existedBefore) {
+
+									eventQueue.put(key, item);
+								}
+
+								// the queued move never reached Structr, so its source is still there,
+								// unless a later event at the source path says what is there now
+								if (ExternalChangeEvent.Type.MOVED.equals(existingType)) {
+
+									final PendingEvent sourceDeletion = existingItem.deletionOfMoveSource();
+
+									eventQueue.putIfAbsent(sourceDeletion.getKey(), sourceDeletion);
+								}
+							}
 
 							// MOVED replaces the pending item
 							case MOVED             -> eventQueue.put(key, item);
@@ -1008,6 +1305,35 @@ public class StorageSyncService extends Thread implements RunnableService {
 				eventQueue.put(key, item);
 			}
 		}
+	}
+
+	/**
+	 * @return the given deletion at the location the storage still has, if it lies below a folder
+	 * that was moved and then deleted in the same transaction
+	 */
+	private static PendingOutbound relocated(final PendingOutbound pending, final List<Relocation> relocations) {
+
+		if (relocations == null) {
+
+			return pending;
+		}
+
+		final VirtualChangeEvent event = pending.event();
+		final String path              = event.previousRelativePath();
+
+		for (final Relocation relocation : relocations) {
+
+			final String prefix = relocation.currentPath() + "/";
+
+			if (relocation.syncRootUuid().equals(pending.syncRootUuid()) && path.startsWith(prefix)) {
+
+				final String oldPath = relocation.storagePath() + "/" + path.substring(prefix.length());
+
+				return new PendingOutbound(pending.syncRootUuid(), VirtualChangeEvent.deleted(event.nodeUuid(), event.directory(), oldPath, event.nativeKey()));
+			}
+		}
+
+		return pending;
 	}
 
 	/**
@@ -1200,19 +1526,20 @@ public class StorageSyncService extends Thread implements RunnableService {
 		final SyncTarget target;
 		final StorageSynchronizer synchronizer;
 		final boolean watchContents;
-		final boolean deleteStale;
+		final VanishPolicy vanishPolicy;
 		final SyncDirection direction;
 
+		final AtomicBoolean scanning       = new AtomicBoolean(false);
 		volatile boolean fullScanRequested = false;
 		private long scanInterval          = 0L;
 		long lastScanned                   = 0L;
 
-		ActiveSync(final SyncTarget target, final StorageSynchronizer synchronizer, final Integer scanInterval, final boolean watchContents, final boolean deleteStale, final SyncDirection direction) {
+		ActiveSync(final SyncTarget target, final StorageSynchronizer synchronizer, final Integer scanInterval, final boolean watchContents, final VanishPolicy vanishPolicy, final SyncDirection direction) {
 
 			this.target        = target;
 			this.synchronizer  = synchronizer;
 			this.watchContents = watchContents;
-			this.deleteStale   = deleteStale;
+			this.vanishPolicy  = vanishPolicy;
 			this.direction     = direction;
 			this.lastScanned   = System.currentTimeMillis();
 
@@ -1242,6 +1569,9 @@ public class StorageSyncService extends Thread implements RunnableService {
 	 */
 	private record PreMoveLocation(OutboundTarget target, String absolutePath) {}
 
+	/** A folder deleted after it was moved: its path in Structr at the time, and on the storage. */
+	private record Relocation(String syncRootUuid, String currentPath, String storagePath) {}
+
 	/**
 	 * A captured, committed outbound event awaiting dispatch.
 	 */
@@ -1255,6 +1585,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 		private final String syncRootUuid;
 		private final ExternalChangeEvent event;
+		private boolean existedBefore;
 		private long time;
 
 		public PendingEvent(final String syncRootUuid, final ExternalChangeEvent event) {
@@ -1269,6 +1600,25 @@ public class StorageSyncService extends Thread implements RunnableService {
 			final ExternalEntry entry = event.entry();
 
 			return syncRootUuid + "\0" + (entry.hasUuid() ? "#" + entry.nodeUuid() : entry.relativePath());
+		}
+
+		/**
+		 * @return a DELETED item for the entry this MOVED item moves away from: by uuid where the
+		 * backend identifies entries by uuid, by the previous path otherwise
+		 */
+		public PendingEvent deletionOfMoveSource() {
+
+			final ExternalEntry entry  = event.entry();
+			final ExternalEntry source = entry.hasUuid() ? entry : new ExternalEntry(event.previousRelativePath(), null, entry.directory(), null, null, null, false);
+
+			return new PendingEvent(syncRootUuid, ExternalChangeEvent.deleted(source));
+		}
+
+		public String describeEntry() {
+
+			final ExternalEntry entry = event.entry();
+
+			return entry.hasPath() ? entry.relativePath() : "#" + entry.nodeUuid();
 		}
 
 		public boolean olderThan(final long milliseconds) {

@@ -2295,7 +2295,6 @@ public class BasicTest extends StructrTest {
 			final Node six   = createTestNode("TestSix").getNode();
 			final Node one   = createTestNode("TestOne").getNode();
 			final Node three = createTestNode("TestThree").getNode();
-
 			final RelationshipType firstType  = RelationshipType.forName("FIRST_TYPE");
 			final RelationshipType secondType = RelationshipType.forName("SECOND_TYPE");
 
@@ -2328,7 +2327,6 @@ public class BasicTest extends StructrTest {
 			final Node six   = createTestNode("TestSix").getNode();
 			final Node one   = createTestNode("TestOne").getNode();
 			final Node three = createTestNode("TestThree").getNode();
-
 			final RelationshipType type = RelationshipType.forName("DELETED_TYPE");
 
 			six.createRelationshipTo(one, type);

@@ -89,7 +89,6 @@ public class FlowServlet extends JsonRestServlet {
 
 			// evaluate constraints and measure query time
 			double queryTimeStart = System.nanoTime();
-
 			final SecurityContext context = securityContext;
 
 			evaluateWithRetry(request, response, () -> {
@@ -235,7 +234,6 @@ public class FlowServlet extends JsonRestServlet {
 
 			// evaluate constraints and measure query time
 			double queryTimeStart    = System.nanoTime();
-
 			final SecurityContext context = securityContext;
 
 			evaluateWithRetry(request, response, () -> {

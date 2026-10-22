@@ -155,6 +155,18 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
+	public boolean isExternallyDeleted() {
+
+		return Boolean.TRUE.equals(wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.IS_EXTERNALLY_DELETED_PROPERTY)));
+	}
+
+	@Override
+	public void setExternallyDeleted(final boolean externallyDeleted) throws FrameworkException {
+
+		wrappedObject.setProperty(traits.key(AbstractFileTraitDefinition.IS_EXTERNALLY_DELETED_PROPERTY), externallyDeleted);
+	}
+
+	@Override
 	public boolean getHasParent() {
 
 		return wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY));
@@ -183,7 +195,9 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 	@Override
 	public boolean isBinaryDataAccessible(final SecurityContext securityContext) {
 
-		return !isExternal() || isMounted();
+		// a node whose external counterpart has vanished has no content to hand out,
+		// even while its mount is still synchronized
+		return (!isExternal() || isMounted()) && !isExternallyDeleted();
 	}
 
 	@Override

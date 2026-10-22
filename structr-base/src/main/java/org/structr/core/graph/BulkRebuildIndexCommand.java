@@ -208,10 +208,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.optional("mode", "`nodesOnly` or `relsOnly`"),
-			Parameter.optional("type", "Limit to this node/relationship type")
-		);
+		return List.of(Parameter.optional("mode", "`nodesOnly` or `relsOnly`"), Parameter.optional("type", "Limit to this node/relationship type"));
 	}
 
 	@Override

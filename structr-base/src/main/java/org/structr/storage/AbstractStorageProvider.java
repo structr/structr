@@ -24,6 +24,7 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.StorageConfiguration;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -47,6 +48,21 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 	public String getProviderName() {
 
 		return name;
+	}
+
+	/**
+	 * Refuses a write to a node whose counterpart has vanished from the external storage. The write
+	 * would put the file back where it was removed, and the next scan would then report it as having
+	 * reappeared, undoing the mark.
+	 */
+	protected void refuseWriteIfExternallyDeleted() {
+
+		final AbstractFile abstractFile = getAbstractFile();
+
+		if (abstractFile != null && abstractFile.isExternallyDeleted()) {
+
+			throw new UncheckedIOException(new IOException("Cannot write " + abstractFile.getPath() + ", the external file or folder it represents no longer exists."));
+		}
 	}
 
 	@Override

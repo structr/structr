@@ -148,7 +148,6 @@ public class AccessControlTest extends StructrTest {
 
 			final RelationshipInterface publicRel  = createTestRelationship(createTestNode("TestOne", props), createTestNode("TestFour", props), "OneFourOneToOne");
 			final RelationshipInterface privateRel = createTestRelationship(createTestNode("TestOne"), createTestNode("TestFour"), "OneFourOneToOne");
-
 			final SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 			final App publicApp                 = StructrApp.getInstance(publicContext);
 

@@ -1941,6 +1941,7 @@ public class UiScriptingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
+
 			return;
 		}
 

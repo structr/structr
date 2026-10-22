@@ -194,6 +194,31 @@ described in [Getting Started](/structr/docs/ontology/Introduction/Getting%20Sta
 recommended instead of required, like Tesseract for OCR, so `apt-get install --no-install-recommends`
 skips both.
 
+### Undeclared Method Parameters Are Rejected
+
+A method with declared parameters no longer ignores parameters it does not declare. Previously, such
+values were silently dropped, so `$.args` and `$.retrieve()` did not see them, while the call itself
+succeeded. Now a REST or script call fails with a `422 Unprocessable Entity` error and the method is not
+executed. Event Action Mappings still drop such values, and Structr logs a warning.
+
+If a method relies on receiving additional values, either declare them as parameters or enable
+"Allow unknown parameters" in the API tab of the method. Methods without declared parameters accept
+any parameters as before. See Method Parameters in the REST Interface chapter.
+
+### Sort Keys of sort() and the Sort Predicate
+
+The `sort()` function and the sort predicate of `find()` accept several sort keys in any combination of
+names, orders and objects. Two calls behave differently than before:
+
+- An order of `'desc'` after a name, as in `$.find('User', $.predicate.sort('createdDate', 'desc'))`,
+  now sorts in descending order. Before, every value except `true` sorted in ascending order, so these
+  calls returned the oldest objects first.
+- An order without a name, as in `sort(list, true)`, now sorts by name in descending order. Before, it
+  sorted in ascending order.
+
+When sorting nodes, a value after a name that is neither an order nor a known key, like
+`'descending'`, raises an error instead of being ignored.
+
 ## Migrating to Structr 6.x
 
 Version 6 introduces several breaking changes that require manual migration from 5.x.

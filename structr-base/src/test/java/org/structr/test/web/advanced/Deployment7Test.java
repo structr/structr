@@ -265,7 +265,6 @@ public class Deployment7Test extends DeploymentTestBase {
 			final PropertyKey<Iterable<NodeInterface>> linkingPagesKey = Traits.of(StructrTraits.PAGE).key("linkingPages");
 			final PropertyKey<Iterable<NodeInterface>> linkingFilesFromPagesKey = Traits.of(StructrTraits.PAGE).key("linkedFiles");
 			final PropertyKey<Iterable<NodeInterface>> linkingPagesFromFileKey = Traits.of(StructrTraits.FILE).key("linkingPages");
-
 			final NodeInterface page1 = app.nodeQuery(StructrTraits.PAGE).name("test01").getFirst();
 			final NodeInterface page2 = app.nodeQuery(StructrTraits.PAGE).name("test02").getFirst();
 			final NodeInterface file  = app.nodeQuery(StructrTraits.FILE).name("myfile.txt").getFirst();

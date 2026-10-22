@@ -450,7 +450,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		if (sortOrder != null) {
 
 			this.doNotSort = false;
-			this.sortOrder = sortOrder;
+			this.sortOrder = combine(this.sortOrder, sortOrder);
 		}
 
 		return this;
@@ -459,12 +459,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> sort(final PropertyKey sortKey, final boolean sortDescending) {
 
-		this.doNotSort  = false;
-
-		if (sortOrder instanceof DefaultSortOrder) {
-
-			((DefaultSortOrder)sortOrder).addElement(sortKey, sortDescending);
-		}
+		this.doNotSort = false;
+		this.sortOrder = combine(this.sortOrder, new DefaultSortOrder(sortKey, sortDescending));
 
 		return this;
 	}
@@ -590,6 +586,29 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private String getQueryDescription() {
 
 		return null;
+	}
+
+	// ----- private methods -----
+	/**
+	 * A query can be sorted by several sort predicates, each one adds its keys after the ones before.
+	 * Keys the database can sort by stay in one sort order for the database, otherwise the result is
+	 * sorted in Java.
+	 */
+	private SortOrder combine(final SortOrder existing, final SortOrder added) {
+
+		if (existing == null || existing.isEmpty()) {
+
+			return added;
+		}
+
+		if (existing instanceof DefaultSortOrder existingOrder && added instanceof DefaultSortOrder addedOrder) {
+
+			existingOrder.addAll(addedOrder);
+
+			return existingOrder;
+		}
+
+		return new CompositeSortOrder(existing, added);
 	}
 
 	// ----- nested classes -----

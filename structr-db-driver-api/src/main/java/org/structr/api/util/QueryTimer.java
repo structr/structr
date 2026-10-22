@@ -35,6 +35,7 @@ public class QueryTimer {
 	QueryTimer() {}
 
 	public String getStatement() {
+
 		return statement;
 	}
 
@@ -46,18 +47,22 @@ public class QueryTimer {
 	}
 
 	public void querySent() {
+
 		touch();
 	}
 
 	public void nextPage() {
+
 		touch();
 	}
 
 	public void finishReceived() {
+
 		touch();
 	}
 
 	public void closed() {
+
 		touch();
 	}
 

@@ -162,6 +162,7 @@ public interface DatabaseService<IDType> {
 	String GLOBAL_SEARCH_CONTEXT_LOCALIZATIONS  = "localizations";
 	String GLOBAL_SEARCH_CONTEXT_MAIL_TEMPLATES = "mail-templates";
 	String GLOBAL_SEARCH_CONTEXT_DEPLOY_SCRIPTS = "deploy-scripts";
+
 	List<Map<String, Object>> globalSearch(final Set<String> searchContexts, final String searchString, final boolean searchIgnoreCase);
 
 	// native

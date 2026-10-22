@@ -204,7 +204,8 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 						if (v1 == null && v2 == null) {
 
-							return 0;
+							// equal for this key, the next one decides
+							continue;
 
 						} else if (v1 == null) {
 

@@ -187,7 +187,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			final HeadObjectResponse head = RustFsTestSupport.head(bucket, fileUuid);
 
 			assertNotNull("Object should be stored under the node uuid", head);
-			assertEquals("Invalid path metadata", "/s3stream/test.txt", head.metadata().get("path"));
+			assertEquals("Invalid path metadata", "test.txt", head.metadata().get("path"));
 
 			// physical delete through the provider
 			provider.delete();
@@ -307,7 +307,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			final HeadObjectResponse head = RustFsTestSupport.head(bucket, fileUuid);
 
 			assertNotNull("Object should exist", head);
-			assertEquals("Channel write should store path metadata", "/s3channel/channel.txt", head.metadata().get("path"));
+			assertEquals("Channel write should store the path below the configured folder", "channel.txt", head.metadata().get("path"));
 
 			// VirtualFileChannel wrapping fired notifyUploadCompletion -> version increment
 			final Integer versionAfter = file.as(File.class).getVersion();

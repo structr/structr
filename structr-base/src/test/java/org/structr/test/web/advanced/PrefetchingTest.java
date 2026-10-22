@@ -113,6 +113,9 @@ public class PrefetchingTest extends StructrUiTest {
 		appender.start();
 		logger.addAppender(appender);
 
+		// the debug log is only read by the test, so it must not reach the console as well
+		logger.setAdditive(false);
+
 		try {
 
 			// 1st request: learns the pattern
@@ -149,6 +152,7 @@ public class PrefetchingTest extends StructrUiTest {
 		} finally {
 
 			logger.detachAppender(appender);
+			logger.setAdditive(true);
 			appender.stop();
 
 			Settings.CypherDebugLogging.setValue(previousLogging);
@@ -200,6 +204,9 @@ public class PrefetchingTest extends StructrUiTest {
 		appender.start();
 		logger.addAppender(appender);
 
+		// the debug log is only read by the test, so it must not reach the console as well
+		logger.setAdditive(false);
+
 		try {
 
 			final String first  = UUID.randomUUID().toString();
@@ -230,6 +237,7 @@ public class PrefetchingTest extends StructrUiTest {
 		} finally {
 
 			logger.detachAppender(appender);
+			logger.setAdditive(true);
 			appender.stop();
 
 			Settings.CypherDebugLogging.setValue(previousLogging);
@@ -285,6 +293,9 @@ public class PrefetchingTest extends StructrUiTest {
 		appender.start();
 		logger.addAppender(appender);
 
+		// the debug log is only read by the test, so it must not reach the console as well
+		logger.setAdditive(false);
+
 		try {
 
 			// 1st request: looks up the source side only, which learns the pattern for the incoming direction
@@ -329,6 +340,7 @@ public class PrefetchingTest extends StructrUiTest {
 		} finally {
 
 			logger.detachAppender(appender);
+			logger.setAdditive(true);
 			appender.stop();
 
 			Settings.CypherDebugLogging.setValue(previousLogging);

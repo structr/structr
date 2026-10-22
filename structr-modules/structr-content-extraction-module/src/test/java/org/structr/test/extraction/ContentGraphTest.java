@@ -56,6 +56,7 @@ import org.structr.extraction.traits.properties.ContentFileStateProperties;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
+import org.structr.storage.sync.SyncSettings;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -63,7 +64,6 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.User;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FolderTraitDefinition;
 import org.structr.websocket.command.SearchNodesCommand;
 import org.testng.SkipException;
 import org.testng.annotations.Test;
@@ -363,10 +363,13 @@ public class ContentGraphTest extends StructrUiTest {
 			try (final Tx tx = app.tx()) {
 
 				final StorageConfiguration mount = StorageProviderFactory.createConfig("contentMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString()));
+
+				// the scan interval is a setting of the mount's storage configuration
+				mount.addEntry(SyncSettings.SCAN_INTERVAL_KEY, "2");
+
 				final NodeInterface folder       = app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mountedDocs"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY), 2)
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount)
 				);
 
 				createConfiguration(folder, Map.of());

@@ -343,6 +343,8 @@ let _Helpers = {
 			});
 		}
 	},
+	// file and folder names can contain characters like # and ? that would end the path part of the URL
+	encodePathForURL: (path) => path?.split('/').map(encodeURIComponent).join('/'),
 	getURLParameter: (name) => {
 		return new URLSearchParams(location.search).get(name) ?? '';
 	},
@@ -539,7 +541,6 @@ let _Helpers = {
 			case 'schema-enum':    return '#docs:troubleshooting-guide#enum-property';
 
 			case 'mail-templates':
-			case 'virtual-types':
 			case 'localization':   return '#docs:Admin%20User%20Interface/Localization';
 			default:
 				return '#docs';

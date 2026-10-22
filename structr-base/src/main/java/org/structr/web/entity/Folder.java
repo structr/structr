@@ -24,9 +24,6 @@ import java.util.List;
 
 public interface Folder extends AbstractFile {
 
-	String getMountTarget();
-	String getMountTargetFileType();
-	String getMountTargetFolderType();
 	String getEnabledChecksums();
 	boolean isExcludeSubtreeFromExport();
 
@@ -35,6 +32,11 @@ public interface Folder extends AbstractFile {
 	Iterable<Image> getImages();
 	Iterable<File> getFiles();
 
+	/**
+	 * @return every file and folder below this folder, each folder after all of its own descendants.
+	 * Deleting in this order keeps the parent chain of every node intact while it is deleted, which
+	 * its delete callbacks need to resolve the storage that holds it.
+	 */
 	List<NodeInterface> getAllChildNodes();
 
 	static String removeDuplicateSlashes(final String src) {

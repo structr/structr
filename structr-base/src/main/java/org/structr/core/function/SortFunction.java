@@ -19,10 +19,11 @@
 package org.structr.core.function;
 
 import org.structr.api.util.Iterables;
-import org.structr.common.PathResolvingComparator;
+import org.structr.common.SortKeysComparator;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.search.DefaultSortOrder;
+import org.structr.core.function.SortKeyArguments.SortKey;
+import org.structr.core.function.search.SortKeysPredicate;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
@@ -32,9 +33,10 @@ import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SortFunction extends CoreFunction {
 
@@ -47,7 +49,7 @@ public class SortFunction extends CoreFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("collection [, sortKey = 'name' [, descending = false ]]");
+		return Signature.forAllScriptingLanguages("collection [, sortKey1 [, sortKey2 ... ]]");
 	}
 
 	@Override
@@ -58,113 +60,67 @@ public class SortFunction extends CoreFunction {
 			return null;
 		}
 
-		// default sort key and order
-		final String sortKey     = (sources.length > 1 && sources[1] instanceof String) ? (String) sources[1] : "name";
-		final boolean descending = (sources.length > 2 && sources[2] != null && "true".equals(sources[2].toString()));
+		if (!(sources[0] instanceof Iterable)) {
 
-		if (sources.length >= 1) {
+			return sources[0];
+		}
 
-			if (sources[0] instanceof Iterable) {
+		final List list = Iterables.toList((Iterable)sources[0]);
 
-				final List list = Iterables.toList((Iterable)sources[0]);
-				if (!list.isEmpty()) {
+		// an empty collection, or one of nulls only, has nothing to sort
+		if (!hasElements(list)) {
 
-					final Object firstElement = list.get(0);
-					if (firstElement instanceof GraphObject) {
+			return sources[0];
+		}
 
-						final List<GraphObject> sortCollection = (List<GraphObject>)list;
+		final List<SortKey> keys            = SortKeyArguments.parse(getName(), Arrays.asList(sources).subList(1, sources.length));
+		final SortKeysComparator comparator = new SortKeysComparator(ctx);
 
-						if (sortKey.contains(".")) {
+		if (containsOnly(list, GraphObject.class)) {
 
-							final PathResolvingComparator comparator = new PathResolvingComparator(ctx, sortKey, descending);
+			final List<GraphObject> sortCollection = (List<GraphObject>)list;
 
-							// experimental: use path-resolving comparator
-							Collections.sort(sortCollection, comparator);
+			for (final SortKey spec : keys) {
 
-						} else {
+				if (spec.key().contains(".")) {
 
-							if (sources.length <= 3) {
+					assertPathIsKnown(sortCollection, spec.key());
 
-								// as-documented code path with 1 set of sortKey/descending (supports sortKey = null so we can use the default key descending)
+					comparator.addPath(spec.key(), spec.descending(), spec.natural(), spec.nulls());
 
-								final PropertyKey key        = resolveSortKey(sortCollection, sortKey);
-								final DefaultSortOrder order = new DefaultSortOrder(key, descending);
+				} else {
 
-								Collections.sort(sortCollection, order);
-
-							} else {
-
-								// hidden functionality: code path with multiple set of sortKey/descending (all sortKeys must exist, otherwise we get errors)
-
-								final DefaultSortOrder order           = new DefaultSortOrder();
-
-								for (int i = 1; i < sources.length; i += 2) {
-
-									final String name        = (String)sources[i];
-									final PropertyKey key    = resolveSortKey(sortCollection, name);
-									final boolean keyDescending = sources.length > i+1 && sources[i+1] != null && "true".equals(sources[i+1].toString());
-
-									order.addElement(key, keyDescending);
-								}
-
-								if (!order.isEmpty()) {
-
-									Collections.sort(sortCollection, order);
-								}
-							}
-						}
-
-						return sortCollection;
-
-					} else if (firstElement instanceof String) {
-
-						final Comparator<String> order = descending ? Comparator.reverseOrder() : Comparator.naturalOrder();
-
-						list.sort(order);
-
-						return list;
-
-					} else {
-
-						logger.error("{}(): Only collections of nodes or strings are supported. Returning input as-is. Caller: {}, class: {}", getName(), caller, sources[0].getClass().getSimpleName());
-						logger.debug("{}(): Parameters: {}", getName(), getParametersAsString(sources));
-					}
+					comparator.addKey(resolveSortKey(sortCollection, spec.key()), spec.descending(), spec.natural(), spec.nulls());
 				}
 			}
 
-		} else {
+			sortCollection.sort(comparator);
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			return sortCollection;
 		}
+
+		if (containsOnly(list, String.class)) {
+
+			// strings have no keys, so only the order, natural order and position of nulls of the first sort key apply
+			final SortKey order = keys.get(0);
+
+			list.sort(comparator.forValues(order.descending(), order.natural(), order.nulls()));
+
+			return list;
+		}
+
+		logger.error("{}(): Only collections of nodes or strings are supported. Returning input as-is. Caller: {}, class: {}", getName(), caller, sources[0].getClass().getSimpleName());
+		logger.debug("{}(): Parameters: {}", getName(), getParametersAsString(sources));
 
 		return sources[0];
-	}
-
-	/**
-	 * Resolves the sort key from the first element that has it, so a key that only some elements of a list with
-	 * mixed types have still counts as known. Rejects a key that no element has, like SortPredicate does in find(),
-	 * instead of returning the collection unsorted.
-	 */
-	private PropertyKey resolveSortKey(final List<GraphObject> collection, final String name) throws FrameworkException {
-
-		for (final GraphObject obj : collection) {
-
-			final Traits traits = obj.getTraits();
-			if (traits.hasKey(name)) {
-
-				return traits.key(name);
-			}
-		}
-
-		throw new FrameworkException(422, "Unknown sort key '" + name + "' for type " + collection.get(0).getType());
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
 		return List.of(
-				Usage.structrScript("Usage: ${sort(collection, [ sortKey = 'name' [, descending = false ]])}."),
-				Usage.javaScript("Usage: ${{ $.sort(collection, [ sortKey = 'name' [, descending = false ]]) }}.")
+				Usage.structrScript("Usage: ${sort(collection [, sortKey1 [, sortKey2 ... ]])}."),
+				Usage.javaScript("Usage: ${{ $.sort(collection [, sortKey1 [, sortKey2 ... ]]) }}.")
 		);
 	}
 
@@ -180,10 +136,31 @@ public class SortFunction extends CoreFunction {
 		return """
 			Supported collection types:
 
-			* **Collection of nodes**: Sorted by `sortKey`. The `descending` flag controls the order. A `sortKey` that none of the nodes has raises an error.
-			* **Collection of strings**: Sorted lexicographically. The `sortKey` is ignored. The `descending` flag controls the order.
+			* **Collection of nodes**: Sorted by one or more sort keys, `name` by default. A sort key that none of the nodes has raises an error.
+			* **Collection of strings**: Sorted as text. A key does not apply, only the order, natural order and position of nulls of the first sort key.
 
-			For nodes, `sortKey` can also be a path through related nodes, like `owner.name`. If the path leads through a collection, like `projects.name`, a node can have several values. Ascending order then uses the smallest of them and descending order the largest. Nodes without a value at the end of the path sort last in ascending and first in descending order.
+			Each sort key can be given in one of these forms, and the forms can be combined freely:
+
+			* The name of a property, like `'lastName'`, sorted in ascending order.
+			* The name followed by its order: `true` or `'desc'` for descending, `false` or `'asc'` for ascending, like `'lastName', 'desc'`.
+			* An object with the following options, all of them optional:
+
+			| Option | Description |
+			| --- | --- |
+			| `key` | Name of the property to sort by, or a path through related nodes. Default: `name` |
+			| `descending` or `desc` | If `true`, sorts in descending order. Default: `false` |
+			| `natural` | If `true`, strings are sorted in natural order: numbers by their value, so `Item 2` comes before `Item 10`, upper and lower case letters together, and accented letters according to the language of the request. Default: `false`, which sorts by character codes, so all upper case letters come before all lower case letters. |
+			| `nulls` | `first` or `last` places nodes without a value, and `null` elements of a collection, at the beginning or the end, regardless of the order. Without this option, they come last in ascending and first in descending order. |
+
+			With several sort keys, the first one decides, and each further key only decides between nodes that are equal in all keys before it. For example, `sort(list, 'lastName', 'desc', { key: 'firstName', natural: true })` sorts by last name in descending order, and nodes with the same last name by first name in natural order.
+
+			An order without a name before it belongs to the default key, so `sort(list, true)` sorts by name in descending order.
+
+			A key can also be a path through related nodes, like `owner.name`. If the path leads through a collection, like `projects.name`, a node can have several values. Ascending order then uses the smallest of them and descending order the largest. A path with a key that does not exist raises an error, like an unknown sort key.
+
+			In StructrScript, you can create a sort key object with `fromJson()`, for example `fromJson('{"key": "title", "natural": true}')`.
+
+			To sort the result of a query, use the sort predicate of `find()` instead, which takes the same sort keys and lets the database sort where possible.
 			""";
 	}
 
@@ -191,10 +168,14 @@ public class SortFunction extends CoreFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-				Example.structrScript("${extract(sort(find('User'), 'name'), 'name')}"),
-				Example.structrScript("${extract(sort(find('User'), 'name', true), 'name')}"),
-				Example.javaScript("${{ $.sort($.find('User'), 'name') }}"),
-				Example.javaScript("${{ $.sort($.find('Project'), 'owner.name') }}", "Sort projects by the name of their owner")
+				Example.javaScript("${{ $.sort($.this.projects) }}", "Sort the projects of the current object by name"),
+				Example.javaScript("${{ $.sort($.this.members, 'lastName', 'firstName') }}", "Sort members by last name and, for the same last name, by first name"),
+				Example.javaScript("${{ $.sort($.this.projects, 'owner.name', 'desc', 'name') }}", "Sort projects by the name of their owner in descending order, and projects of the same owner by name"),
+				Example.javaScript("${{ $.sort($.this.documents, { key: 'title', natural: true }) }}", "Sort documents by title in natural order, so that Chapter 2 comes before Chapter 10"),
+				Example.javaScript("${{ $.sort($.this.tasks, { key: 'dueDate', nulls: 'first' }, 'name') }}", "Sort tasks by due date, tasks without a due date first, and tasks of the same date by name"),
+				Example.javaScript("${{ $.sort(['b', 'A', 'a', 'B'], { natural: true, desc: true }) }}", "Sort strings in natural order, descending"),
+				Example.structrScript("${extract(sort(this.members, 'lastName', 'firstName'), 'name')}", "Sort members by last and first name"),
+				Example.structrScript("${extract(sort(this.documents, fromJson('{\"key\": \"title\", \"natural\": true}')), 'name')}", "Natural order in StructrScript")
 		);
 	}
 
@@ -203,8 +184,7 @@ public class SortFunction extends CoreFunction {
 
 		return List.of(
 				Parameter.mandatory("collection", "collection to be sorted"),
-				Parameter.optional("sortKey", "property name or path through related nodes used for sorting (applies only to collections of nodes). Default: `name`"),
-				Parameter.optional("descending", "if `true`, sorts in descending order; otherwise ascending. Default: `false`")
+				Parameter.optional("sortKey1, sortKey2, ...", "names of properties, each optionally followed by its order, or objects with the options `key`, `descending` (or `desc`), `natural` and `nulls`, see above. Default: `name`")
 		);
 	}
 
@@ -212,7 +192,7 @@ public class SortFunction extends CoreFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-				"This function is often used in conjunction with `find()`",
+				"A sort key that is a path is resolved for each node of the collection and traverses its relationships, which takes noticeably longer than a plain property for large collections. Prefer the sort predicate of `find()` where the database can sort, or sort by a property of the node itself.",
 				"The `sort()` and `find()` functions are often used in repeater elements in a function query, see Repeater Elements.",
 				"Do not use JavaScript built-in function `sort` on remote collections for a node because it mutates the collection which leads to database writes and can lead to undesired effects."
 		);
@@ -222,5 +202,88 @@ public class SortFunction extends CoreFunction {
 	public FunctionCategory getCategory() {
 
 		return FunctionCategory.Collection;
+	}
+
+	// ----- private methods -----
+	private boolean hasElements(final List list) {
+
+		for (final Object element : list) {
+
+			if (element != null) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	// null elements have no value and are allowed in any collection
+	private boolean containsOnly(final List list, final Class<?> type) {
+
+		for (final Object element : list) {
+
+			if (element != null && !type.isInstance(element)) {
+
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Rejects a path with an unknown key, like find() does. Only the elements with a type of the schema
+	 * can be checked, maps created from JSON or by a query have none.
+	 */
+	private void assertPathIsKnown(final List<GraphObject> collection, final String path) throws FrameworkException {
+
+		final Set<String> types = new LinkedHashSet<>();
+
+		for (final GraphObject obj : collection) {
+
+			if (obj != null && obj.getType() != null && Traits.exists(obj.getType())) {
+
+				types.add(obj.getType());
+			}
+		}
+
+		if (!types.isEmpty()) {
+
+			SortKeysPredicate.assertPathIsKnown(types, path);
+		}
+	}
+
+	private Set<String> getTypes(final List<GraphObject> collection) {
+
+		final Set<String> types = new LinkedHashSet<>();
+
+		for (final GraphObject obj : collection) {
+
+			if (obj != null && obj.getType() != null) {
+
+				types.add(obj.getType());
+			}
+		}
+
+		return types;
+	}
+
+	/**
+	 * Resolves the sort key from the first element that has it, so a key that only some elements of a list with
+	 * mixed types have still counts as known. Rejects a key that no element has, like the sort predicate of find() does,
+	 * instead of returning the collection unsorted.
+	 */
+	private PropertyKey resolveSortKey(final List<GraphObject> collection, final String name) throws FrameworkException {
+
+		for (final GraphObject obj : collection) {
+
+			if (obj != null && obj.getTraits().hasKey(name)) {
+
+				return obj.getTraits().key(name);
+			}
+		}
+
+		throw new FrameworkException(422, "Unknown sort key '" + name + "' for type(s) " + String.join(", ", getTypes(collection)));
 	}
 }

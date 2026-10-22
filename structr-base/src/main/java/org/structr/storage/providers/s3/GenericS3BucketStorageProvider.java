@@ -21,6 +21,7 @@ package org.structr.storage.providers.s3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.storage.AbstractStorageProvider;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.sync.StorageSynchronizer;
 import org.structr.storage.sync.SyncTarget;
 import org.structr.storage.sync.SynchronizableStorageProvider;
@@ -132,8 +133,31 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 			final String storageKey = file.getStorageKey();
 
 			setKey(storageKey != null ? storageKey : file.getUuid());
-			setPath(file.getPath());
+			setPath(storagePath(file));
 		}
+	}
+
+	/**
+	 * @return the path of the given file below the folder that carries its storage configuration, so
+	 * that renaming a folder above that one does not make the stored path stale; the absolute path if
+	 * there is no such folder
+	 */
+	private static String storagePath(final AbstractFile file) {
+
+		final String path           = file.getPath();
+		final AbstractFile supplier = StorageProviderFactory.getStorageConfigurationSupplier(file);
+
+		if (path != null && supplier != null && !supplier.getUuid().equals(file.getUuid())) {
+
+			final String prefix = supplier.getPath() + "/";
+
+			if (path.startsWith(prefix)) {
+
+				return path.substring(prefix.length());
+			}
+		}
+
+		return path;
 	}
 
 	@Override
@@ -200,6 +224,9 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 	@Override
 	public OutputStream getOutputStream(final boolean append) {
 
+		// outside the try below, which would turn the refusal into a null stream
+		refuseWriteIfExternallyDeleted();
+
 		setKeyFromAbstractFile();
 
 		try {
@@ -239,6 +266,11 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 			}
 
 			final boolean write = options.contains(StandardOpenOption.WRITE) || options.contains(StandardOpenOption.CREATE) || options.contains(StandardOpenOption.CREATE_NEW);
+
+			if (write) {
+
+				refuseWriteIfExternallyDeleted();
+			}
 
 			logger.debug("Opening {} seekable channel for S3 object: {}", write ? "writable" : "readable", key);
 

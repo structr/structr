@@ -65,7 +65,15 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 
 			ensureFileExists();
 
-			return new FileInputStream(fsHelper.getFileOnDisk(getAbstractFile()));
+			final java.io.File fileOnDisk = fsHelper.getFileOnDisk(getAbstractFile());
+
+			// a missing external file has no content, the same as a missing object on S3
+			if (getAbstractFile().isExternal() && !fileOnDisk.exists()) {
+
+				return InputStream.nullInputStream();
+			}
+
+			return new FileInputStream(fileOnDisk);
 
 		} catch (FileNotFoundException ex) {
 
@@ -83,6 +91,8 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 
 	@Override
 	public OutputStream getOutputStream(final boolean append) {
+
+		refuseWriteIfExternallyDeleted();
 
 		try {
 
@@ -123,6 +133,12 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 
 			final AbstractFile file = getAbstractFile();
 			final SeekableByteChannel channel;
+
+			// no options opens the channel for reading and writing
+			if (options.isEmpty() || options.contains(WRITE) || options.contains(APPEND) || options.contains(CREATE) || options.contains(CREATE_NEW)) {
+
+				refuseWriteIfExternallyDeleted();
+			}
 
 			if (options.isEmpty()) {
 
@@ -211,6 +227,12 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 				return Files.size(fileOnDisk.toPath());
 			}
 
+			// a missing external file has no content, matching what getInputStream() hands out
+			if (getAbstractFile().isExternal()) {
+
+				return 0L;
+			}
+
 		} catch (IOException ex) {
 
 			logger.error("Could not read size of file.", ex);
@@ -220,6 +242,14 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 	}
 
 	private void ensureFileExists() {
+
+		// an empty node reads as an empty file only for storage Structr owns: an external file that
+		// is missing was removed by someone else, and recreating it would put an empty file back in
+		// their directory
+		if (getAbstractFile().isExternal()) {
+
+			return;
+		}
 
 		try {
 

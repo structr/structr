@@ -93,7 +93,6 @@ public class DatabaseQueryCountTest extends StructrUiTest {
 		createItemSchema();
 
 		final String uuid = createItem("tags", 0);
-
 		final long read      = queries("read the item", () -> node(uuid));
 		final long unchanged = queries("set the same tags", () -> node(uuid).setProperty("tags", new String[] { "a", "b" }));
 		final long changed   = queries("set other tags", () -> node(uuid).setProperty("tags", new String[] { "a", "c" }));
@@ -111,7 +110,6 @@ public class DatabaseQueryCountTest extends StructrUiTest {
 		createItemSchema();
 
 		final String uuid = createItem("name", 0);
-
 		final long read    = queries("read the item for a name", () -> app.getNodeById("Item", uuid));
 		final long changed = queries("set another name", () -> app.getNodeById("Item", uuid).setProperty(Traits.of("Item").key("name"), "other name"));
 

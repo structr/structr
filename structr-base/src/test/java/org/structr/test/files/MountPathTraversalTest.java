@@ -30,13 +30,11 @@ import org.testng.annotations.Test;
 import static org.testng.AssertJUnit.fail;
 
 /**
- * Ticket 1587: LocalFSHelper builds the path on disk as mountTarget + "/" + relativize(parentPath) +
- * "/" + name, by string concatenation, and the name validation ([^\/\x00]+) allows "..". Nothing
- * normalises the result and nothing checks it against the mount target, so a folder named ".." walks
- * out of the mount - and the very next line creates the escaped directory with mkdirs().
- *
- * <p>"." and ".." are not names. They are the two path segments every filesystem reserves, and a node
- * carrying one of them as its name cannot mean anything else.
+ * Ticket 1587: "." and ".." are not names, they are the two path segments every filesystem reserves.
+ * LocalFSHelper builds the path on disk by concatenating the mount target with the names along the
+ * way, so a folder named ".." would walk out of the mount, and the next step creates the directory it
+ * points at. These tests pin that such names are refused and that names which merely contain dots
+ * stay valid.
  */
 public class MountPathTraversalTest extends StructrUiTest {
 

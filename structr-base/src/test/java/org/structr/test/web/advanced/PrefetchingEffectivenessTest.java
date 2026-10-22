@@ -112,6 +112,9 @@ public class PrefetchingEffectivenessTest extends StructrUiTest {
 		appender.start();
 		boltLogger.addAppender(appender);
 
+		// the debug log is only read by the test, so it must not reach the console as well
+		boltLogger.setAdditive(false);
+
 		try {
 
 			Settings.CypherDebugLogging.setValue(true);
@@ -189,6 +192,7 @@ public class PrefetchingEffectivenessTest extends StructrUiTest {
 		} finally {
 
 			boltLogger.detachAppender(appender);
+			boltLogger.setAdditive(true);
 			appender.stop();
 
 			Settings.CypherDebugLogging.setValue(previousLogging);

@@ -703,6 +703,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 			case AuthenticationRequired:
 
 				// the embedded database has no users, so a connection needs no credentials
+
 				return false;
 
 			case RelationshipIndexes:

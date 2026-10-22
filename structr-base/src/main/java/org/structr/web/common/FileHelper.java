@@ -1184,6 +1184,18 @@ public class FileHelper {
 
 	public static Long getChecksum(final InputStream inputStream, long size) throws IOException {
 
+		// the hash reads exactly size bytes and an exhausted stream keeps answering -1, so an unknown
+		// (negative) size would never terminate
+		if (size < 0) {
+
+			if (inputStream != null) {
+
+				inputStream.close();
+			}
+
+			return null;
+		}
+
 		try (final BufferedInputStream is = new BufferedInputStream(inputStream, 131072)) {
 
 			final long hash = LongHashFunction.xx().hash(is, new Access<BufferedInputStream>() {

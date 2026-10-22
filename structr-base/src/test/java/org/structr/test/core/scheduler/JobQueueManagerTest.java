@@ -47,10 +47,12 @@ public class JobQueueManagerTest extends StructrTest {
 		private final CountDownLatch release = new CountDownLatch(1);
 
 		TestJob(final String name) {
+
 			this(name, JobQueueManager.DEFAULT_QUEUE_NAME);
 		}
 
 		TestJob(final String name, final String queueName) {
+
 			super(name, null, Collections.emptyMap(), securityContext.getContextStore(), queueName);
 		}
 
@@ -169,8 +171,7 @@ public class JobQueueManagerTest extends StructrTest {
 			JobQueueManager.getInstance().addJob(job);
 
 			assertTrue("the job must start", job.awaitStart(5_000));
-			assertEquals("a job that names no queue runs in the default one",
-				JobQueueManager.DEFAULT_QUEUE_NAME, JobQueueManager.getInstance().jobInfo(job.jobId()).get("queue"));
+			assertEquals("a job that names no queue runs in the default one", JobQueueManager.DEFAULT_QUEUE_NAME, JobQueueManager.getInstance().jobInfo(job.jobId()).get("queue"));
 
 		} catch (FrameworkException fex) {
 

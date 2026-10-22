@@ -1351,7 +1351,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				assertEquals("When searching case-sensitive (ignoreCase = false), we expect 0 results", 0, results.size());
 
-
 				results = SearchNodesCommand.executeSearch("Initial body text", List.of(DatabaseService.GLOBAL_SEARCH_CONTEXT_DOM), true);
 
 				assertEquals("When searching case-insensitive (ignoreCase = true), we expect 1 result",1, results.size());
@@ -1385,5 +1384,28 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
+	}
+
+	@Test
+	public void testSearchKeyOfRelatedCollection() {
+
+		final String uuid = createTestFourWithTestOnes(1, 2, 2);
+
+		// a key that both types have filters the related objects
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result_count",   equalTo(1))
+			.body("result[0].name", equalTo("name2"))
+			.when().get("/TestFour/" + uuid + "/manyToManyTestOnes?name=name2");
+
+		// the search key belongs to the type of the collection, which TestFour itself does not have
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result_count",   equalTo(2))
+			.body("result[0].name", equalTo("name2"))
+			.body("result[1].name", equalTo("name3"))
+			.when().get("/TestFour/" + uuid + "/manyToManyTestOnes?anInt=2&_sort=name");
+
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(400)
+			.body("message", equalTo("Unknown search key unknownKey"))
+			.when().get("/TestFour/" + uuid + "/manyToManyTestOnes?unknownKey=1");
 	}
 }

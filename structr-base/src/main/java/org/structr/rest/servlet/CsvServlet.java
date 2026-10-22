@@ -723,6 +723,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 		if (propertySet != null) {
 
 			// handlers may remove entries, so a repeated transaction needs a fresh copy
+
 			return new LinkedHashMap<>(propertySet.getAttributes());
 		}
 

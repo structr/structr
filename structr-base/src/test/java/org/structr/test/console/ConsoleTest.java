@@ -63,6 +63,7 @@ public class ConsoleTest extends StructrUiTest {
 	public void testCypherMode() {
 
 		if (!Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+
 			return;
 		}
 
@@ -82,7 +83,6 @@ public class ConsoleTest extends StructrUiTest {
 		try {
 
 			final Console console = new Console(securityContext, ConsoleMode.Cypher, Collections.emptyMap());
-
 			final String nodes = console.runForTest("MATCH (n:Group:" + randomTenantId + ") RETURN n ORDER BY n.name");
 
 			assertTrue("Invalid console execution result: " + nodes, nodes.startsWith("Query returned 2 objects in "));

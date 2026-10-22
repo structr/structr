@@ -40,24 +40,6 @@ public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Fold
 	}
 
 	@Override
-	public String getMountTarget() {
-
-		return wrappedObject.getProperty(traits.key(FolderTraitDefinition.MOUNT_TARGET_PROPERTY));
-	}
-
-	@Override
-	public String getMountTargetFileType() {
-
-		return wrappedObject.getProperty(traits.key(FolderTraitDefinition.MOUNT_TARGET_FILE_TYPE_PROPERTY));
-	}
-
-	@Override
-	public String getMountTargetFolderType() {
-
-		return wrappedObject.getProperty(traits.key(FolderTraitDefinition.MOUNT_TARGET_FOLDER_TYPE_PROPERTY));
-	}
-
-	@Override
 	public String getEnabledChecksums() {
 
 		return wrappedObject.getProperty(traits.key(FolderTraitDefinition.ENABLED_CHECKSUMS_PROPERTY));
@@ -109,9 +91,9 @@ public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Fold
 
 		for (Folder child : getFolders()) {
 
-			allChildren.add(child);
-
 			allChildren.addAll(child.getAllChildNodes());
+
+			allChildren.add(child);
 		}
 
 		return allChildren;

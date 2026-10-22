@@ -563,7 +563,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 			for (final Segment s : p) {
 
 				final org.neo4j.driver.types.Relationship relationship = s.relationship();
-
 				if (relsSeen.add(relationship.id())) {
 
 					getNodeWrapper(s.start()).storeRelationship(getRelationshipWrapper(relationship), true);
@@ -1025,7 +1024,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 		// the set is shared by all transactions with this hint and is iterated in prefetchHint() while other
 		// requests learn or combine patterns, so it must allow concurrent modification (ticket 1420)
 		final Set<PrefetchInfo> infos = prefetchInfos.computeIfAbsent(prefetchHint, k -> new CopyOnWriteArraySet<>());
-
 		if (infos.contains(info)) {
 
 			return;

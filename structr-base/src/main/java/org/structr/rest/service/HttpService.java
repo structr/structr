@@ -624,8 +624,8 @@ public class HttpService implements RunnableService, StatsCallback {
 			if (forceHttps) {
 
 				final int redirectCode = Settings.ForceHttpsPermanent.getValue(false) ? HttpStatus.MOVED_PERMANENTLY_301 : HttpStatus.MOVED_TEMPORARILY_302;
-
 				SecuredRedirectHandler securedHandler = new SecuredRedirectHandler(redirectCode);
+
 				securedHandler.setHandler(rewriteHandler);
 				server.setHandler(securedHandler);
 			}
@@ -1112,6 +1112,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			final Thread thread = new Thread(runnable, "HttpStatsSnapshot");
 			thread.setDaemon(true);
+
 			return thread;
 		});
 
