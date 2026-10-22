@@ -60,6 +60,12 @@ public class EnterpriseOnlyFunction extends ContentExtractionFunction {
 	}
 
 	@Override
+	public boolean isEnterprise() {
+
+		return true;
+	}
+
+	@Override
 	public String getName() {
 
 		return NAMESPACE + "." + name;

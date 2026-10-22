@@ -18,6 +18,8 @@
  */
 package org.structr.docs.formatter.markdown;
 
+import org.structr.docs.Badges;
+import org.structr.docs.Documentable;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
@@ -32,9 +34,11 @@ public class MarkdownFunctionDetailsFormatter extends Formatter {
 	@Override
 	public boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> seenConcepts) {
 
-		final Concept concept = link.getTarget();
+		final Concept concept           = link.getTarget();
+		final Documentable documentable = concept.getDocumentable();
+		final List<String> details      = documentable.createMarkdownDocumentation(Set.of(Details.all), 3);
 
-		lines.addAll(concept.getDocumentable().createMarkdownDocumentation(Set.of(Details.all), 3));
+		lines.addAll(documentable.isEnterprise() ? Badges.markFirstSection(details) : details);
 
 		return false;
 	}

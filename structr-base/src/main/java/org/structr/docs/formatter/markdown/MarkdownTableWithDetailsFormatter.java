@@ -19,6 +19,7 @@
 package org.structr.docs.formatter.markdown;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.docs.Badges;
 import org.structr.docs.Documentable;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
@@ -80,7 +81,8 @@ public class MarkdownTableWithDetailsFormatter extends Formatter {
 						"displayName", documentable.getDisplayName(false),
 						"shortDescription", MarkdownTableWithDetailsFormatter.coalesce(childLink.getShortDescription(), documentable.getShortDescription()),
 						"longDescription", documentable.getLongDescription(),
-						"details", detailToggleMarkup
+						"details", detailToggleMarkup,
+						"badge", documentable.isEnterprise() ? Badges.inlineHtml() : null
 					));
 
 				} else {
@@ -115,7 +117,11 @@ public class MarkdownTableWithDetailsFormatter extends Formatter {
 				if (headerName.startsWith("`") && headerName.endsWith("`")) {
 
 					final String name = headerName.substring(1, headerName.length() - 1);
-					row.add("<code id=\"" + DOMNode.escapeForHtmlAttributes(documentable.get(name)) + "\">" + documentable.get(name) + "</code>");
+					final String code  = "<code id=\"" + DOMNode.escapeForHtmlAttributes(documentable.get(name)) + "\">" + documentable.get(name) + "</code>";
+					final String badge = documentable.get("badge");
+
+					// the badge stays on the line of the name
+					row.add(badge != null ? "<span class=\"badge-line\">" + code + badge + "</span>" : code);
 
 				} else {
 

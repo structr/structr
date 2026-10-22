@@ -34,6 +34,7 @@ import com.vladsch.flexmark.util.sequence.BasedSequence;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.core.function.tokenizer.Token;
+import org.structr.docs.Badges;
 import org.structr.docs.ResourceUtil;
 import org.structr.docs.formatter.markdown.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.*;
@@ -219,7 +220,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 
 			final int newHeadingLevel     = newHeading.getLevel() - 1;
 			final int currentHeadingLevel = current.getLevel();
-			final String name             = newHeading.getText().unescape();
+			final String name             = Badges.strip(newHeading.getText().unescape());
 
 			if (newHeadingLevel > currentHeadingLevel) {
 

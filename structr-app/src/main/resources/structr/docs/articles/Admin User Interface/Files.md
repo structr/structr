@@ -41,7 +41,9 @@ The dialog includes:
 
 The search field on the right searches across all files by name and, with the content-extraction module, by their contents. Content search covers files in folders with a content extraction configuration (see the Content Extraction button and context menu entry, available to admins); it ignores case, finds words by their beginning or inside longer words (such as `sendReminder` in `$.invoices.sendReminder()`) and tolerates small typos. Type your query and press Enter to see results; the search icon next to a result shows the places in the file that match.
 
-In Structr Enterprise, the Content Extraction dialog also has an **Embedding** section: there you choose the LLM provider and embedding model that make the files of a folder searchable by meaning, and see how far the embedding is (see Content Extraction, section "Embeddings and Semantic Search").
+{enterprise}
+The Content Extraction dialog also has an **Embedding** section: there you choose the LLM provider and embedding model that make the files of a folder searchable by meaning, and see how far the embedding is (see Content Extraction, section "Embeddings and Semantic Search").
+{/enterprise}
 
 ## Left Sidebar
 

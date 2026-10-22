@@ -33,7 +33,11 @@ The main area displays a table of all jobs with the following columns:
 
 ## Content Extraction and Embedding Jobs
 
-With the content-extraction module, the extraction of files runs as jobs of the type `CONTENT_EXTRACTION` in the queue `content`; in Structr Enterprise, embedding them for semantic search runs as jobs of the type `EMBEDDING` in the queue `embedding`. Their row shows the progress in files, and they can be paused, resumed and aborted. Automatic jobs, started by uploads, have no user and only appear here; jobs you start yourself, e.g. with `$.documents.processContent()`, also show notifications if they are switched on in the settings of this area.
+With the content-extraction module, the extraction of files runs as jobs of the type `CONTENT_EXTRACTION` in the queue `content`. Their row shows the progress in files, and they can be paused, resumed and aborted. Automatic jobs, started by uploads, have no user and only appear here; jobs you start yourself, e.g. with `$.documents.processContent()`, also show notifications if they are switched on in the settings of this area.
+
+{enterprise}
+Embedding the files for semantic search runs as jobs of the type `EMBEDDING` in the queue `embedding`, which work the same way.
+{/enterprise}
 
 ## Background
 

@@ -20,6 +20,7 @@ package org.structr.docs.formatter.text;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.resource.Resource;
+import org.structr.docs.Badges;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ResourceUtil;
@@ -50,7 +51,7 @@ public class RawMarkdownFileFormatter extends Formatter {
 			final String folderName = StringUtils.substringBeforeLast(path, "/");
 			final Resource resource = baseResource.resolve("docs/" + folderName);
 
-			lines.addAll(ResourceUtil.readAllLines(resource.resolve(fileName)));
+			lines.addAll(Badges.toText(ResourceUtil.readAllLines(resource.resolve(fileName))));
 
 		} catch (IOException e) {
 
