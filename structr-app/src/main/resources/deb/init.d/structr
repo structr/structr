@@ -22,13 +22,14 @@ case "$1" in
         exit 0
         ;;
   status|info)
-		PID=$(pgrep -P 1 -f org.structr.Server)
-		if [[ ! -z $PID ]]; then
-			echo "There may be a Structr instance running with pid $PID, exiting."
-			exit 1
+		. bin/config > /dev/null
+		PID=$(running_pid)
+		if [ -n "$PID" ]; then
+			echo "Structr is running with pid $PID."
+			exit 0
         else
             printf "%s\n" "Service not running"
-            exit 1
+            exit 3
         fi
   ;;
   restart)

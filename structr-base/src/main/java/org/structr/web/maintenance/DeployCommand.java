@@ -1146,6 +1146,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					data.put(PagePathParameterTraitDefinition.IS_REQUIRED_PROPERTY,            parameter.getIsRequired());
 					data.put(PagePathParameterTraitDefinition.USE_DEFAULT_IF_INVALID_PROPERTY,  parameter.getUseDefaultIfInvalid());
+					data.put(PagePathParameterTraitDefinition.IS_CURRENT_OBJECT_PROPERTY,       parameter.getIsCurrentObject());
 				}
 
 				entry.put(PagePathTraitDefinition.PARAMETERS_PROPERTY, parameters);

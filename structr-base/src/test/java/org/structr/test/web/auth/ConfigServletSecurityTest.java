@@ -22,9 +22,14 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.structr.api.config.Settings;
+import org.structr.rest.auth.SuperUserLoginGuard;
+import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
 import org.structr.rest.servlet.ConfigServlet;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -192,7 +197,205 @@ public class ConfigServletSecurityTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void testSecondFactorForTheSuperuserLogin() throws Exception {
+
+		final String secret = TimeBasedOneTimePasswordHelper.generateBase32Secret();
+		final String name   = Settings.SuperUserName.getValue();
+		final String pwd    = Settings.SuperUserPassword.getValue();
+
+		SuperUserLoginGuard.reset();
+		Settings.SetupWizardCompleted.setValue(true);
+		Settings.SuperUserTwoFactorEnabled.setValue(true);
+		Settings.SuperUserTwoFactorSecret.setValue(secret);
+
+		try {
+
+			assertTrue("the login page must announce the code field", get(null).getBody().asString().contains("class=\"login twofactor"));
+
+			// without a code the answer is the same for a right and a wrong password
+			for (final String password : new String[] { pwd, "not-the-password" }) {
+
+				final Response response = postSameOrigin(null, "action", "login", "superuserName", name, "superuserPassword", password);
+
+				assertTrue("a login without code must ask for it", response.getHeader("Location").contains("?twoFactorRequired"));
+				assertLoginPage(get(response.getSessionId()));
+			}
+
+			final Response wrongCode = postSameOrigin(null, "action", "login", "superuserName", name, "superuserPassword", pwd, "superuserTwoFactorCode", "no-code");
+
+			assertTrue("a wrong code must fail like a wrong password", wrongCode.getHeader("Location").contains("?loginFailed"));
+			assertLoginPage(get(wrongCode.getSessionId()));
+
+			final String code     = currentCode(secret);
+			final Response login  = postSameOrigin(null, "action", "login", "superuserName", name, "superuserPassword", pwd, "superuserTwoFactorCode", code);
+
+			assertFalse("the right code must log in", login.getHeader("Location").contains("?"));
+			assertConfigPage(get(login.getSessionId()));
+
+			// a code is accepted once
+			final Response replay = postSameOrigin(null, "action", "login", "superuserName", name, "superuserPassword", pwd, "superuserTwoFactorCode", code);
+
+			assertTrue("a code must not be accepted twice", replay.getHeader("Location").contains("?loginFailed"));
+
+		} finally {
+
+			Settings.SuperUserTwoFactorEnabled.setValue(false);
+			Settings.SuperUserTwoFactorSecret.setValue("");
+			Settings.SetupWizardCompleted.setValue(false);
+			SuperUserLoginGuard.reset();
+		}
+	}
+
+	@Test
+	public void testSecondFactorIsSetUpInTheLoginArea() throws Exception {
+
+		final String name = Settings.SuperUserName.getValue();
+		final String pwd  = Settings.SuperUserPassword.getValue();
+
+		SuperUserLoginGuard.reset();
+		Settings.SetupWizardCompleted.setValue(true);
+		Settings.SuperUserTwoFactorEnabled.setValue(true);
+		Settings.SuperUserTwoFactorSecret.setValue("");
+
+		try {
+
+			assertFalse("no QR code before the password is proven", get(null).getBody().asString().contains("twofactor-setup"));
+
+			final Response login   = postSameOrigin(null, "action", "login", "superuserName", name, "superuserPassword", pwd);
+			final String sessionId = login.getSessionId();
+
+			assertTrue("the right password must lead to the setup", login.getHeader("Location").contains("?twoFactorSetup"));
+
+			final String page   = get(sessionId).getBody().asString();
+			final Matcher match = Pattern.compile("data-secret=\"([A-Z2-7]+)\"").matcher(page);
+
+			assertTrue("the setup page must carry the new secret", match.find());
+			assertFalse("the session must not be logged in before a code is confirmed", page.contains("config-form"));
+
+			final String secret = match.group(1);
+
+			final Response wrong = postSameOrigin(sessionId, "action", "twoFactorSetup", "superuserTwoFactorCode", "no-code");
+
+			assertTrue(wrong.getHeader("Location").contains("twoFactorFailed"));
+			assertEquals("a wrong code must not save the secret", "", Settings.SuperUserTwoFactorSecret.getValue());
+
+			final Response right = postSameOrigin(sessionId, "action", "twoFactorSetup", "superuserTwoFactorCode", currentCode(secret));
+
+			assertFalse("the right code must log in", right.getHeader("Location").contains("?"));
+
+			// a successful login issues a new session id
+			assertConfigPage(get(right.getSessionId() != null ? right.getSessionId() : sessionId));
+			assertEquals(secret, Settings.SuperUserTwoFactorSecret.getValue());
+
+		} finally {
+
+			Settings.SuperUserTwoFactorEnabled.setValue(false);
+			Settings.SuperUserTwoFactorSecret.setValue("");
+			Settings.SetupWizardCompleted.setValue(false);
+			SuperUserLoginGuard.reset();
+		}
+	}
+
+	@Test
+	public void testFailedPasswordsBlockTheSuperuserEverywhereWithoutASecondFactor() {
+
+		final String name = Settings.SuperUserName.getValue();
+		final String pwd  = Settings.SuperUserPassword.getValue();
+
+		SuperUserLoginGuard.reset();
+		Settings.SetupWizardCompleted.setValue(true);
+
+		try {
+
+			// one through the REST API and two through the login form, the counter is shared
+			restAsSuperuser(name, "not-the-password", null).then().statusCode(401);
+
+			for (int i = 0; i < 2; i++) {
+
+				assertTrue(postSameOrigin(null, "action", "login", "superuserName", name, "superuserPassword", "not-the-password").getHeader("Location").contains("?loginFailed"));
+			}
+
+			assertTrue("the right password must be refused while blocked", postSameOrigin(null, "action", "login", "superuserName", name, "superuserPassword", pwd).getHeader("Location").contains("?loginBlocked"));
+			restAsSuperuser(name, pwd, null).then().statusCode(401);
+
+			// switching the block off ends it
+			Settings.ConfigLoginLockoutSeconds.setValue(0);
+
+			restAsSuperuser(name, pwd, null).then().statusCode(200);
+
+		} finally {
+
+			Settings.ConfigLoginLockoutSeconds.setValue(Settings.ConfigLoginLockoutSeconds.getDefaultValue());
+			Settings.SetupWizardCompleted.setValue(false);
+			SuperUserLoginGuard.reset();
+		}
+	}
+
+	@Test
+	public void testSuperuserHeaderAuthenticationNeedsTheCode() throws Exception {
+
+		final String secret = TimeBasedOneTimePasswordHelper.generateBase32Secret();
+		final String name   = Settings.SuperUserName.getValue();
+		final String pwd    = Settings.SuperUserPassword.getValue();
+
+		SuperUserLoginGuard.reset();
+		Settings.SuperUserTwoFactorEnabled.setValue(true);
+
+		try {
+
+			// switched on, not set up yet: no REST access at all
+			restAsSuperuser(name, pwd, null).then().statusCode(401);
+
+			Settings.SuperUserTwoFactorSecret.setValue(secret);
+
+			restAsSuperuser(name, pwd, null).then().statusCode(401);
+
+			final String code = currentCode(secret);
+
+			restAsSuperuser(name, pwd, code).then().statusCode(200);
+			restAsSuperuser(name, pwd, code).then().statusCode(401);
+
+			// wrong codes on the right password count, three of them block even the next right code
+			restAsSuperuser(name, pwd, "000000x").then().statusCode(401);
+			restAsSuperuser(name, pwd, "000000y").then().statusCode(401);
+
+			assertTrue("three failures must block the superuser", SuperUserLoginGuard.isBlocked());
+
+		} finally {
+
+			Settings.SuperUserTwoFactorEnabled.setValue(false);
+			Settings.SuperUserTwoFactorSecret.setValue("");
+			SuperUserLoginGuard.reset();
+		}
+	}
+
 	// ----- private methods -----
+	private Response restAsSuperuser(final String name, final String password, final String code) {
+
+		RequestSpecification request = RestAssured.given().basePath("/structr/rest").header("X-User", name).header("X-Password", password);
+
+		if (code != null) {
+
+			request = request.header("X-TwoFactor-Code", code);
+		}
+
+		return request.when().get("/User");
+	}
+
+	private String currentCode(final String secret) throws Exception {
+
+		final int period = Settings.TwoFactorPeriod.getValue();
+
+		// not at the end of a time step, or the server could already be in the next one
+		while ((System.currentTimeMillis() / 1000) % period > period - 3) {
+
+			Thread.sleep(500);
+		}
+
+		return TimeBasedOneTimePasswordHelper.generateCurrentNumberString(secret, "Hmac" + Settings.TwoFactorAlgorithm.getValue(), period, Settings.TwoFactorDigits.getValue());
+	}
+
 	private String authenticateWithSetupToken(final String token) {
 
 		final Response response = postSameOrigin(null, "action", "setup", "setupToken", token);

@@ -70,3 +70,19 @@ JAVA_OPTS="$JAVA_AGENT_PATH -Djava.awt.headless=true -Djava.net.preferIPv4Stack=
 MAIN_CLASS="-m structr.base/org.structr.Server"
 DISPLAY_NAME="FINAL_NAME"
 PID_FILE="/var/run/structr.pid"
+
+# the PID bin/start recorded, if that process is still a running Structr, empty otherwise: never a search by name, which would find other instances on the host too
+running_pid() {
+
+	local pid
+
+	if [ -s "$PID_FILE" ]; then
+
+		pid=$(cat "$PID_FILE")
+
+		if ps -p "$pid" -o args= 2>/dev/null | grep -q org.structr.Server; then
+
+			echo "$pid"
+		fi
+	fi
+}

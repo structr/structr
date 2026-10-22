@@ -2,15 +2,13 @@
 
 . bin/config
 
-PID=$(pgrep -P 1 -f org.structr.Server)
+PID=$(running_pid)
 
-if [[ ! -z $PID ]]; then
+if [ -n "$PID" ]; then
 
-	echo "ERROR: server already running."
+	echo "ERROR: server already running (PID $PID)."
 	echo
-	echo "Please stop any running instances before starting a"
-	echo "new one. (Remove $PID_FILE if this message appears"
-	echo "even if no server is running.)"
+	echo "Please stop the running instance before starting a new one."
 	echo
 	exit 0
 

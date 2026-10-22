@@ -31,6 +31,7 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.common.LogThrottle;
+import org.structr.common.RequestHeaders;
 import org.structr.core.auth.HashHelper;
 import org.structr.core.auth.exception.*;
 import org.structr.core.entity.Principal;
@@ -128,6 +129,12 @@ public class AuthHelper {
 		return getPrincipalForPassword(keys, value, password);
 	}
 
+	/** Header authentication, the only way besides the configuration interface that can carry the superuser's second factor. */
+	public static Principal getPrincipalForKeysAndPassword(final LinkedHashSet<PropertyKey<String>> keys, final String value, final String password, final String twoFactorCode, final String source) throws FrameworkException {
+
+		return getPrincipalForPassword(keys, value, password, twoFactorCode, source);
+	}
+
 	/**
 	 * Find a {@link Principal} with matching password and given key or name
 	 *
@@ -149,6 +156,11 @@ public class AuthHelper {
 	 * password once per key and counted each of those as a failed attempt (ticket 1544).
 	 */
 	public static Principal getPrincipalForPassword(final Set<PropertyKey<String>> keys, final String value, final String password) throws AuthenticationException, TooManyFailedLoginAttemptsException, PasswordChangeRequiredException {
+
+		return getPrincipalForPassword(keys, value, password, null, "password authentication");
+	}
+
+	private static Principal getPrincipalForPassword(final Set<PropertyKey<String>> keys, final String value, final String password, final String twoFactorCode, final String source) throws AuthenticationException, TooManyFailedLoginAttemptsException, PasswordChangeRequiredException {
 
 		Principal principal  = null;
 		final String superuserName = Settings.SuperUserName.getValue();
@@ -180,15 +192,55 @@ public class AuthHelper {
 		   superuser name, whatever it was renamed to. Treat "no password set" exactly as an empty
 		   superuser.username is treated: superuser access is off, and the name falls through to the
 		   normal principal lookup like any other unknown one. */
-		if (StringUtils.isNotEmpty(superuserName) && StringUtils.isNotEmpty(superUserPwd)
-			&& value.equals(superuserName)
-			&& java.security.MessageDigest.isEqual(password.getBytes(java.nio.charset.StandardCharsets.UTF_8), superUserPwd.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
+		final boolean isSuperuserName = StringUtils.isNotEmpty(superuserName) && StringUtils.isNotEmpty(superUserPwd) && value.equals(superuserName);
+
+		final boolean twoFactor = isSuperuserName && SuperUserLoginGuard.isTwoFactorEnabled();
+
+		// refused before the password is looked at, so the answer cannot confirm a guess: while blocked, while the second factor is not set up yet, or without a code
+		if (isSuperuserName && (SuperUserLoginGuard.isBlocked() || (twoFactor && (!SuperUserLoginGuard.isTwoFactorActive() || StringUtils.isBlank(twoFactorCode))))) {
+
+			HashHelper.spendVerificationTime(password);
+
+			if (failedLoginLog.allow("superuser refused")) {
+
+				logger.info("Superuser {} refused: {}", source, SuperUserLoginGuard.isBlocked() ? "blocked after too many failed attempts" : "the superuser has a second factor, send its code in " + RequestHeaders.XTwoFactorCode.getName() + " or use the configuration interface");
+			}
+
+			throw new AuthenticationException(STANDARD_ERROR_MSG);
+		}
+
+		if (twoFactor) {
+
+			final boolean passwordMatches = java.security.MessageDigest.isEqual(password.getBytes(java.nio.charset.StandardCharsets.UTF_8), superUserPwd.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+			// a wrong code counts like a wrong password: the comparison is fast, so the code must not be guessable either
+			if (passwordMatches && SuperUserLoginGuard.isValidCode(SuperUserLoginGuard.getSecret(), twoFactorCode)) {
+
+				principal = new SuperUser();
+
+				logger.warn("Superuser authenticated with a second factor by {}", source);
+				RuntimeEventLog.login("Superuser authenticated with a second factor", Map.of("source", source));
+
+				return principal;
+			}
+
+			SuperUserLoginGuard.registerFailure(source);
+
+			throw new AuthenticationException(STANDARD_ERROR_MSG);
+		}
+
+		if (isSuperuserName && java.security.MessageDigest.isEqual(password.getBytes(java.nio.charset.StandardCharsets.UTF_8), superUserPwd.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
 
 			principal = new SuperUser();
 
 			RuntimeEventLog.login("Authenticate", Map.of("id", principal.getUuid(), "name", principal.getName()));
 
 		} else {
+
+			if (isSuperuserName) {
+
+				SuperUserLoginGuard.registerFailure(source);
+			}
 
 			try {
 

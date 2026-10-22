@@ -31,6 +31,10 @@ self.onmessage = (e) => {
 			reconnect(e.data);
 			break;
 		}
+		case 'renew': {
+			renew(e.data);
+			break;
+		}
 		case 'stopReconnect': {
 			stopReconnect();
 			break;
@@ -141,6 +145,26 @@ let reconnect = (data) => {
 			connect(data);
 		}, 1000);
 	}
+};
+
+// a new connection whose handshake carries the current session cookie, without the reconnect handling of a lost connection
+let renew = (data) => {
+
+	stopPing();
+	stopReconnect();
+
+	if (websocket) {
+
+		websocket.onclose = undefined;
+
+		try {
+			websocket.close();
+		} catch (e) {}
+
+		websocket = null;
+	}
+
+	connect(data);
 };
 
 let stopReconnect = () => {

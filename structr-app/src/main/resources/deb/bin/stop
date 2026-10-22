@@ -2,19 +2,32 @@
 
 . bin/config
 
-PID=$(pgrep -P 1 -f org.structr.Server)
+# systemd waits TimeoutSec=120 for this script, so give up a little earlier and let it report the failure
+MAX_WAIT=110
 
-if [[ -z $PID ]]; then
-	echo "ERROR: server not running."
+PID=$(running_pid)
 
-else
-  echo "Stopping Structr instance '$DISPLAY_NAME'..."
-  while [ ! -z $PID ]
-  do
-    kill $PID
-    sleep 1
-    PID=$(pgrep -f org.structr.Server)
-  done
-  echo "Structr instance '$DISPLAY_NAME' stopped"
+if [ -z "$PID" ]; then
+
+	echo "ERROR: server not running (no running process in $PID_FILE)."
+	exit 0
 fi
-exit 0
+
+echo "Stopping Structr instance '$DISPLAY_NAME' (PID $PID)..."
+
+kill "$PID"
+
+for (( i = 0; i < MAX_WAIT; i++ )); do
+
+	if ! kill -0 "$PID" 2>/dev/null; then
+
+		rm -f "$PID_FILE"
+		echo "Structr instance '$DISPLAY_NAME' stopped"
+		exit 0
+	fi
+
+	sleep 1
+done
+
+echo "ERROR: Structr instance '$DISPLAY_NAME' (PID $PID) is still running after $MAX_WAIT seconds."
+exit 1
