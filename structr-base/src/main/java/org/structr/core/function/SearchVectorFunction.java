@@ -126,9 +126,9 @@ public class SearchVectorFunction extends CoreFunction implements QueryFunction 
 	public List<Parameter> getParameters() {
 
 		return List.of(
-			Parameter.mandatory("indexName", "the name of the vector index, `<type name>_<attribute name>_vector`"),
-			Parameter.mandatory("vector", "a list of numbers of the size of the index"),
-			Parameter.optional("limit", "the number of nearest neighbours, default 10, at most 1000")
+			Parameter.mandatory("indexName", "name of the vector index, `<type name>_<attribute name>_vector`"),
+			Parameter.mandatory("vector", "list of numbers of the size of the index"),
+			Parameter.optional("limit", "number of nearest neighbours, default 10, at most 1000")
 		);
 	}
 
