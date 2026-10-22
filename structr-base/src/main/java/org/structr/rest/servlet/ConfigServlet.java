@@ -20,6 +20,7 @@ package org.structr.rest.servlet;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.gson.Gson;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,17 +37,20 @@ import org.structr.api.service.DatabaseConnection;
 import org.structr.api.util.html.*;
 import org.structr.api.util.html.attr.Href;
 import org.structr.api.util.html.attr.Rel;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Services;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.ManageDatabasesCommand;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.docs.Documentation;
 import org.structr.rest.auth.SuperUserLoginGuard;
 import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.BarcodeFunction;
+import org.structr.web.maintenance.RetrieveCertificateCommand;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -58,6 +62,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
@@ -74,6 +79,7 @@ public class ConfigServlet extends AbstractServletBase {
 	   session that once logged in here stayed valid until the next restart (ticket 1581). */
 	private static final Map<String, Long> sessions   = new ConcurrentHashMap<>();
 	private static final String setupToken            = generateSetupToken();
+	private static final AtomicBoolean certificateRetrievalRunning = new AtomicBoolean(false);
 	private static final String TITLE                 = "Structr Configuration Editor";
 
 	// Brute-force protection for ConfigServlet login. Keyed by remote IP so
@@ -539,6 +545,11 @@ public class ConfigServlet extends AbstractServletBase {
 				sendRedirectHeader(response, ConfigServletLocation + "#maintenance");
 				break;
 
+			case "letsencrypt":
+
+				retrieveCertificate(request, response);
+				break;
+
 			default:
 
 				response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown action");
@@ -612,6 +623,76 @@ public class ConfigServlet extends AbstractServletBase {
 
 			TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
 		}
+	}
+
+	/**
+	 * Runs the letsencrypt maintenance command with the saved settings and answers with its result as JSON.
+	 */
+	private void retrieveCertificate(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+
+		final Map<String, Object> result = new LinkedHashMap<>();
+		final String server              = "staging".equals(request.getParameter("server")) ? "staging" : "production";
+
+		if (!isDatabaseAvailable()) {
+
+			sendJson(response, HttpServletResponse.SC_SERVICE_UNAVAILABLE, Map.of("success", false, "errors", List.of("Structr is not connected to a database.")));
+			return;
+		}
+
+		if (StringUtils.isBlank(Settings.LetsEncryptDomains.getValue())) {
+
+			sendJson(response, 422, Map.of("success", false, "errors", List.of("No domains configured in " + Settings.LetsEncryptDomains.getKey() + ".")));
+			return;
+		}
+
+		if (!certificateRetrievalRunning.compareAndSet(false, true)) {
+
+			sendJson(response, HttpServletResponse.SC_CONFLICT, Map.of("success", false, "errors", List.of("A certificate retrieval is already running.")));
+			return;
+		}
+
+		try {
+
+			final RetrieveCertificateCommand command = Services.getInstance().command(SecurityContext.getSuperUserInstance(), RetrieveCertificateCommand.class);
+			final Map<String, Object> attributes     = new HashMap<>();
+
+			attributes.put("server", server);
+			attributes.put("reload", Boolean.parseBoolean(request.getParameter("reload")));
+
+			logger.info("Certificate retrieval started from the configuration editor ({} server)", server);
+
+			command.execute(attributes);
+
+			result.putAll((Map<String, Object>) command.getCommandResult());
+
+		} catch (Throwable t) {
+
+			logger.error("Certificate retrieval from the configuration editor failed", t);
+
+			result.put("success", false);
+			result.put("errors",  List.of(StringUtils.defaultString(t.getMessage(), t.getClass().getSimpleName())));
+
+		} finally {
+
+			certificateRetrievalRunning.set(false);
+		}
+
+		sendJson(response, HttpServletResponse.SC_OK, result);
+	}
+
+	private boolean isDatabaseAvailable() {
+
+		final Services services = Services.getInstance();
+
+		return services.isInitialized() && services.isReady(NodeService.class, services.getNameOfActiveService(NodeService.class));
+	}
+
+	private void sendJson(final HttpServletResponse response, final int status, final Map<String, Object> data) throws IOException {
+
+		response.setContentType("application/json; charset=utf-8");
+		response.setStatus(status);
+		response.getWriter().print(new Gson().toJson(data));
+		response.getWriter().flush();
 	}
 
 	private void sendFrameworkException(final HttpServletResponse response, final FrameworkException fex) throws IOException {
@@ -807,6 +888,8 @@ public class ConfigServlet extends AbstractServletBase {
 
 			button.text(maintenanceModeActive ? "Disable" : "Enable");
 
+			letsencryptControls(form);
+
 			// buttons
 			final Tag buttons = form.block("div").css("buttons");
 
@@ -819,6 +902,30 @@ public class ConfigServlet extends AbstractServletBase {
 		form.empty("input").attr(new Type("hidden"), new Name("active_section")).id("active_section");
 
 		return doc;
+	}
+
+	private void letsencryptControls(final Tag parent) {
+
+		final Tag controls = parent.block("div").id("letsencrypt-controls").css("form-group").attr(new Style("display: none;"));
+
+		controls.block("label").text("Retrieve certificate").attr(new Attr("class", "font-bold basis-full sm:basis-auto sm:min-w-128 has-comment"), new Attr("data-comment", "Runs the letsencrypt maintenance command with the saved settings above. The request blocks for the configured wait time plus the verification, the result is shown below the button."));
+
+		final Tag inputs        = controls.block("div").css("flex items-center flex-grow gap-x-4");
+		final Tag select        = inputs.block("select").id("letsencrypt-server");
+
+		select.block("option").attr(new Value("production")).text("Production");
+		select.block("option").attr(new Value("staging")).text("Staging");
+
+		inputs.block("label").css("flex items-center gap-x-1").empty("input").attr(new Type("checkbox"), new Attr("checked", "checked")).id("letsencrypt-reload").parent().block("span").text("Reload certificate");
+
+		final Tag button = inputs.block("button").attr(new Type("button")).id("letsencrypt-button").text("Retrieve certificate");
+
+		if (!isDatabaseAvailable()) {
+
+			button.attr(new Attr("disabled", "disabled"), new Attr("data-unavailable", "Structr is not connected to a database."));
+		}
+
+		controls.block("div").id("letsencrypt-result").css("basis-full");
 	}
 
 	private Document createLoginDocument(final HttpServletRequest request, final PrintWriter writer) {

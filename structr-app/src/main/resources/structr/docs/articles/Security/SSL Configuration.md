@@ -49,7 +49,11 @@ All file names are resolved against the working directory of the Structr process
 
 ### Running the Command
 
-The command is available as a maintenance resource and as a scripting function. Both require a superuser or admin session. Over REST you call it with a JSON body:
+The command is available in the Configuration Interface, as a maintenance resource and as a scripting function. The maintenance resource and the scripting function require a superuser or admin session.
+
+In the Configuration Interface, the Letsencrypt section ends with a Retrieve certificate button. Choose Production or Staging, leave Reload certificate checked to have the running HttpService pick up the new certificate, and click the button. The command runs with the saved settings, so save the configuration first; the button is disabled while the form has unsaved changes, and when Structr is not connected to a database. The request blocks for the waiting time plus the validation, and the result or the error messages appear below the button.
+
+Over REST you call it with a JSON body:
 
 ```bash
 curl -X POST http://your-domain.com/structr/rest/maintenance/letsencrypt \
@@ -93,7 +97,7 @@ Back up `user.key`, `domain.key` and the keystore together with `structr.conf`. 
 
 Jetty reads the keystore when the HttpService starts. Two things follow from that. When you enable HTTPS for the first time, the HttpService must be restarted after the keystore exists, because the HTTPS connector is created at startup. For every later run, passing `reload: true` is enough: the command asks the running HttpService to re-read `application.keystore.path` and `application.keystore.password` and to reload the TLS context, and new connections use the new certificate without a restart or a dropped connection. If HTTPS was not active when the server started, the reload does nothing and logs `Server started without SSL. Need to restart service.`
 
-The order for a new installation is therefore: set `letsencrypt.domains` and `application.keystore.password`, run the command once against staging and then against production, set `application.https.enabled` to `true`, and restart the HttpService.
+The order for a new installation is therefore: set `letsencrypt.domains` and `application.keystore.password`, run the command once against staging and then against production (the Retrieve certificate button in the Configuration Interface does both), set `application.https.enabled` to `true`, and restart the HttpService.
 
 ### Scheduled Renewal
 
