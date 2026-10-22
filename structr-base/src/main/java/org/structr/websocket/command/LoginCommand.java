@@ -119,11 +119,12 @@ public class LoginCommand extends AbstractCommand {
 
 					SessionHelper.clearInvalidSessions(user);
 
-					String sessionId = webSocketData.getSessionId();
+					final boolean sessionIdFromMessage = webSocketData.getSessionId() != null;
+					String sessionId                   = getWebSocket().getSessionId(webSocketData);
 					if (sessionId == null) {
 
 						logger.debug("Unable to login {}: No sessionId found", username);
-						getWebSocket().send(MessageBuilder.status().code(HttpServletResponse.SC_FORBIDDEN).build(), true);
+						getWebSocket().send(MessageBuilder.status().code(HttpServletResponse.SC_FORBIDDEN).data("reason", "noSessionCookie").build(), true);
 
 					} else if (SessionHelper.getSessionBySessionId(SessionHelper.getShortSessionId(sessionId)) == null) {
 
@@ -135,7 +136,7 @@ public class LoginCommand extends AbstractCommand {
 						   page that already has a session; requiring it to exist costs that flow nothing. */
 						logger.info("Refusing websocket login for {}: no session exists for the id the client sent.", username);
 
-						getWebSocket().send(MessageBuilder.status().code(HttpServletResponse.SC_FORBIDDEN).build(), true);
+						getWebSocket().send(MessageBuilder.status().code(HttpServletResponse.SC_FORBIDDEN).data("reason", "noSessionCookie").build(), true);
 
 					} else {
 
@@ -156,7 +157,8 @@ public class LoginCommand extends AbstractCommand {
 
 							// store token in response data
 							webSocketData.getNodeData().clear();
-							webSocketData.setSessionId(sessionId);
+							// a session id taken from the HttpOnly cookie is not handed to the page
+							webSocketData.setSessionId(sessionIdFromMessage ? sessionId : null);
 							webSocketData.getNodeData().put("username", user.getName());
 
 							if (result == AuthHelper.TwoFactorAuthenticationResult.SUCCESS && userRequestedTrust) {

@@ -41,7 +41,7 @@ public class PingCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final String sessionId = webSocketData.getSessionId();
+		final String sessionId = getWebSocket().getSessionId(webSocketData);
 		logger.debug("PING received from session {}", sessionId);
 
 		final Principal currentUser = AuthHelper.getPrincipalForSessionId(SessionHelper.getShortSessionId(sessionId), true);

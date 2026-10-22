@@ -46,7 +46,7 @@ class Module {
 			if (ws.readyState < 2) {
 				wsCommand({
 					command: 'LOGIN',
-					sessionId: document.cookie ? document.cookie.match(/JSESSIONID=[^;]+/)[0].split('=')[1] : '',
+					sessionId: (document.cookie.match(/JSESSIONID=([^;]+)/) || [])[1],
 					data: {
 						username: 'admin',
 						password: 'admin'
