@@ -49,7 +49,11 @@ All file names are resolved against the working directory of the Structr process
 
 ### Running the Command
 
-The command is available as a maintenance resource and as a scripting function. Both require a superuser or admin session. Over REST you call it with a JSON body:
+The command is available in the Configuration Interface, as a maintenance resource and as a scripting function. The maintenance resource and the scripting function require a superuser or admin session.
+
+In the Configuration Interface, the Letsencrypt section ends with a Retrieve certificate button. Choose Production or Staging, leave Reload certificate checked to have the running HttpService pick up the new certificate, and click the button. The command runs with the saved settings, so save the configuration first; the button is disabled while the form has unsaved changes, and when Structr is not connected to a database. The request blocks for the waiting time plus the validation, and the result or the error messages appear below the button.
+
+Over REST you call it with a JSON body:
 
 ```bash
 curl -X POST http://your-domain.com/structr/rest/maintenance/letsencrypt \
@@ -93,7 +97,7 @@ Back up `user.key`, `domain.key` and the keystore together with `structr.conf`. 
 
 Jetty reads the keystore when the HttpService starts. Two things follow from that. When you enable HTTPS for the first time, the HttpService must be restarted after the keystore exists, because the HTTPS connector is created at startup. For every later run, passing `reload: true` is enough: the command asks the running HttpService to re-read `application.keystore.path` and `application.keystore.password` and to reload the TLS context, and new connections use the new certificate without a restart or a dropped connection. If HTTPS was not active when the server started, the reload does nothing and logs `Server started without SSL. Need to restart service.`
 
-The order for a new installation is therefore: set `letsencrypt.domains` and `application.keystore.password`, run the command once against staging and then against production, set `application.https.enabled` to `true`, and restart the HttpService.
+The order for a new installation is therefore: set `letsencrypt.domains` and `application.keystore.password`, run the command once against staging and then against production (the Retrieve certificate button in the Configuration Interface does both), set `application.https.enabled` to `true`, and restart the HttpService.
 
 ### Scheduled Renewal
 
@@ -159,7 +163,7 @@ By default the plain HTTP connector stays available next to HTTPS. Setting `http
 
 Enable this setting only after HTTPS works. The redirect is installed whether or not the HTTPS connector actually came up, so with a broken keystore or `application.https.enabled` still `false` every HTTP request is redirected to a port nobody listens on. Changing the setting requires a restart of the HttpService.
 
-Two related cookie settings matter here. `httpservice.cookies.secure` (default `true`) sets the Secure flag on the JSESSIONID cookie so browsers only send it over HTTPS, which is the desired behaviour for any HTTPS installation; on a plain HTTP installation it must be turned off, otherwise logins do not persist. `httpservice.cookies.samesite` (default `Lax`) sets the SameSite attribute; the value `None` only works together with the Secure flag.
+Two related cookie settings matter here. `httpservice.cookies.secure` (default `true`) sets the Secure flag on the JSESSIONID cookie so browsers only send it over HTTPS, which is the desired behaviour for any HTTPS installation; on a plain HTTP installation it must be turned off, otherwise logins do not persist. `httpservice.cookies.samesite` (default `Lax`) sets the SameSite attribute; the value `None` only works together with the Secure flag. `httpservice.cookies.httponly` (default `true`) sets the HttpOnly flag, so JavaScript in the page cannot read the session cookie, which keeps a cross-site scripting flaw from stealing it. The Admin UI does not need to read the cookie. Turn it off only if your own frontend code reads `JSESSIONID`, for example to send the session id itself.
 
 ## Protocols and Cipher Suites
 

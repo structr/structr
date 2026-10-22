@@ -55,7 +55,7 @@ import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.ContentHandler;
-import org.structr.web.traits.wrappers.dom.ContentTraitWrapper;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 
 import java.io.IOException;
 import java.util.*;
@@ -97,7 +97,7 @@ public abstract class AbstractHintProvider {
 				try {
 
 					final AutocompleteContentHandler handler = new AutocompleteContentHandler();
-					ContentTraitWrapper.renderContentWithScripts(textBefore, handler);
+					ContentTraitDefinition.renderContentWithScripts(textBefore, handler);
 
 					if (handler.inScript()) {
 

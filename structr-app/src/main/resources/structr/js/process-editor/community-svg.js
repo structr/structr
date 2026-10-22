@@ -265,7 +265,6 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		return await new Promise((resolve) => {
 			const obj = {
 				command:   'BPMN_DIAGRAM_BATCH',
-				sessionId: (typeof Structr !== 'undefined' && Structr.getSessionId) ? Structr.getSessionId() : null,
 				data: {
 					definitionId: this._definitionId,
 					creates:      payload.creates,

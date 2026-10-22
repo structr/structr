@@ -51,7 +51,7 @@ public class LogoutCommand extends AbstractCommand {
 			final Principal user = getWebSocket().getCurrentUser();
 			if (user != null) {
 
-				final String sessionId = SessionHelper.getShortSessionId(webSocketData.getSessionId());
+				final String sessionId = SessionHelper.getShortSessionId(getWebSocket().getSessionId(webSocketData));
 				if (sessionId != null) {
 
 					SessionHelper.clearSession(sessionId);
