@@ -325,6 +325,81 @@ let _Config = {
 		cronSuffix: '.cronExpression',
 		isCronExpressionSetting: (name) => name.endsWith(_Config.cron.cronSuffix),
 		getCronInfoText: () => document.querySelector('#cron-info-text').dataset['value'],
+		fields: [
+			{ name: 'seconds', min: 0, max: 59 },
+			{ name: 'minutes', min: 0, max: 59 },
+			{ name: 'hours',   min: 0, max: 23 },
+			{ name: 'days',    min: 1, max: 31 },
+			{ name: 'months',  min: 1, max: 12 },
+			{ name: 'weeks',   min: 0, max: 6  }
+		],
+		// the rules of CronEntry.parseField(), so nothing is described here that the server would refuse
+		validate: (expression) => {
+
+			let values = expression.trim().split(/[ \t]+/);
+
+			if (values.length !== _Config.cron.fields.length) {
+				return `A cron expression has ${_Config.cron.fields.length} fields, starting with seconds, not ${values.length}.`;
+			}
+
+			for (let i = 0; i < values.length; i++) {
+
+				let { name, min, max } = _Config.cron.fields[i];
+				let value   = values[i];
+				let inRange = (n) => n >= min && n <= max;
+
+				if (value === '*') {
+					continue;
+				}
+
+				if (/^\*\/[0-9]+$/.test(value)) {
+
+					let step = parseInt(value.slice(2));
+					if (step > 0 && step <= max) {
+						continue;
+					}
+
+					return `Field '${name}': illegal step ${step}.`;
+				}
+
+				if (/^[0-9]{1,2}$/.test(value)) {
+
+					if (inRange(parseInt(value))) {
+						continue;
+					}
+
+					return `Field '${name}': ${value} is not between ${min} and ${max}.`;
+				}
+
+				if (/^[0-9]{1,2}-[0-9]{1,2}$/.test(value)) {
+
+					let [start, end] = value.split('-').map((n) => parseInt(n));
+					if (inRange(start) && inRange(end)) {
+						continue;
+					}
+
+					return `Field '${name}': ${value} is not between ${min} and ${max}.`;
+				}
+
+				if (/^[0-9]+(,[0-9]+)+$/.test(value)) {
+
+					let outside = value.split(',').find((n) => !inRange(parseInt(n)));
+					if (outside === undefined) {
+						continue;
+					}
+
+					return `Field '${name}': ${outside} is not between ${min} and ${max}.`;
+				}
+
+				if (value.startsWith('/')) {
+					return `Field '${name}': '${value}' is not supported, use '*${value}'.`;
+				}
+
+				return `Field '${name}': '${value}' is not supported.`;
+			}
+
+			return null;
+		},
 		getValidationMessage: () => {
 
 			let validationMessage = _Config.cron.getCronInfoText().replace('<pre>', '');
@@ -387,7 +462,6 @@ let _Config = {
 			newParent.insertAdjacentElement('afterbegin', input.parentElement);
 
 			input.required = true;
-			input.pattern  = '([^ \\\\t]+[ \\\\t]){5}[^ \\\\t]+';
 
 			let validationMessage = _Config.cron.getValidationMessage();
 
@@ -405,14 +479,12 @@ let _Config = {
 
 			let updateDescription = () => {
 
-				let basicValidity       = !input.validity.patternMismatch && !input.validity.valueMissing;
-				let hasUnsupportedChars = (input.value.replaceAll(/[\- 0-9,*/]/g, '').length > 0);
+				let error = input.value.trim() === '' ? validationMessage : _Config.cron.validate(input.value);
 
-				if (basicValidity && !hasUnsupportedChars) {
-					showCronInfoText(describeCronExpression());
-				} else {
-					showCronInfoText(validationMessage);
-				}
+				// marks the field invalid, so the form is not saved with an expression the server would refuse
+				input.setCustomValidity(error ?? '');
+
+				showCronInfoText(error ?? describeCronExpression());
 			};
 
 			updateDescription();
