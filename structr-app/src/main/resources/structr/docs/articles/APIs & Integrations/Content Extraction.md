@@ -33,6 +33,12 @@ The dialog contains further options, for example how large the chunks are and wh
 
 If you change an option for a folder whose files are already extracted, check **Process Existing Files** when you save. Changing an option alone does not extract the files again.
 
+### Archives, Attachments and Images
+
+With the option **Include Embedded**, the entries of archives (ZIP and others), the attachments of e-mails and documents embedded in office files are extracted as well. Each chunk then has an `embeddedPath`: the path of the entry inside the archive, such as `docs/guide.txt`, with nested archives joined by `/`, as in `inner.zip/docs/guide.txt`. Chunks of the file itself have no embedded path. A chunk never contains text of two entries, and page numbers and section headings start over in every entry.
+
+With the option **Include Images**, images inside documents are read with OCR, too: the images of a PDF page, pictures in office documents and inline images of e-mails. Tiny images such as icons are left out, and so are the images of PDF pages that OCR reads as a whole anyway, like scanned pages, so their text does not appear twice. An image that is an attachment or an archive entry of its own is a document, which **Include Embedded** covers. Reading images takes time, so the option is off by default.
+
 ## Disabling Automatic Extraction
 
 There are three ways to stop automatic extraction, depending on what you want to exclude:
@@ -47,12 +53,12 @@ Disabling automatic extraction does not delete text that was already extracted, 
 
 The search box of the Files area and the global search find files by their content once the files are extracted. The search ignores case, matches word beginnings and parts of words, and tolerates small typos. A file is found when its text contains all search words, and the results show snippets around the matches.
 
-In scripts, `$.documents.searchExtractedContent()` searches the chunks and returns the matching chunks with their file, page and section:
+In scripts, `$.documents.fulltextSearch()` searches the chunks and returns the matching chunks with their file, page and section. The functions in the `documents` namespace only search the text extracted from files; to search the attributes of your own types, use `searchFulltext()` and `searchVector()`. The article [Searching](/structr/docs/ontology/Building%20Applications/Searching) compares all search functions and explains which to use when. An example:
 
 ```javascript
 {
     let manuals = $.first($.find('Folder', { path: '/manuals' }));
-    let hits    = $.documents.searchExtractedContent('"reset password"', { folder: manuals, limit: 5, contextChunks: 1 });
+    let hits    = $.documents.fulltextSearch('"reset password"', { folder: manuals, limit: 5, contextChunks: 1 });
 
     for (let hit of hits) {
         $.log(hit.file.name + ', page ' + hit.pageStart + ': ' + hit.context);
@@ -98,13 +104,7 @@ LIMIT 10
 RETURN { file: file, matches: matches, score: score }
 ```
 
-The query uses Lucene syntax, like `searchExtractedContent()`: phrases in quotes, `AND`, `OR`, wildcards such as `remind*`, and fuzzy terms such as `reminder~`. Each chunk node also has `position`, `pageStart`, `pageEnd` and `headingPath`, which tell you where in the document the text is. To search only one property of the index, put its name in front of the term, for example `text:invoice` or `embeddedPath:invoice*`.
-
-### Archives, Attachments and Images
-
-With the option **Include Embedded**, the entries of archives (ZIP and others), the attachments of e-mails and documents embedded in office files are extracted as well. Each chunk then has an `embeddedPath`: the path of the entry inside the archive, such as `docs/guide.txt`, with nested archives joined by `/`, as in `inner.zip/docs/guide.txt`. Chunks of the file itself have no embedded path. A chunk never contains text of two entries, and page numbers and section headings start over in every entry.
-
-With the option **Include Images**, images inside documents are read with OCR, too: the images of a PDF page, pictures in office documents and inline images of e-mails. Tiny images such as icons are left out, and so are the images of PDF pages that OCR reads as a whole anyway, like scanned pages, so their text does not appear twice. An image that is an attachment or an archive entry of its own is a document, which **Include Embedded** covers. Reading images takes time, so the option is off by default.
+The query uses Lucene syntax, like `fulltextSearch()`: phrases in quotes, `AND`, `OR`, wildcards such as `remind*`, and fuzzy terms such as `reminder~`. Each chunk node also has `position`, `pageStart`, `pageEnd` and `headingPath`, which tell you where in the document the text is. To search only one property of the index, put its name in front of the term, for example `text:invoice` or `embeddedPath:invoice*`.
 
 > **Important:** Return nodes, not their properties. Structr checks permissions for every node a Cypher query returns and leaves out files and chunks the current user cannot read, so `hit.file` is empty for them. Plain values such as `node.text` are returned without this check, so returning them directly would show the text of files the user is not allowed to read.
 
@@ -184,9 +184,7 @@ Files that have not changed since their last extraction are skipped. Pass `force
 | `stopWords(language)` | Returns the common words of a language, such as "the" and "and" |
 | `getContentContext(chunk)` | Returns a chunk together with the chunks before and after it |
 
-## Embeddings and Semantic Search (Enterprise Edition)
-
-Available in Structr Enterprise with the AI module.
+## Embeddings and Semantic Search {enterprise}
 
 Keyword search finds the words of a query. Semantic search finds the meaning: a question like "How do I get back into my account?" finds a passage about resetting a password, although they share no word. For this, each chunk is turned into an embedding, a vector of numbers that describes its meaning, by an embedding model such as `nomic-embed-text` (Ollama) or `text-embedding-3-small` (OpenAI). Structr stores the vector in the chunk's `embedding` property and keeps a vector index over it, `ExtractedContentNode_embedding_vector`.
 
@@ -202,15 +200,15 @@ Documents are only sent to an embedding provider for folders where an administra
 
 | Function | Finds | Edition |
 |---|---|---|
-| `$.documents.searchExtractedContent(query)` | the words of the query, through the full-text index | Community |
-| `$.documents.searchContentSemantic(query)` | the meaning of the query, through the vector index | Enterprise |
-| `$.documents.searchContentSemantic(query, { hybrid: true })` | the meaning and the words: chunks that match both come first, and rare words such as product numbers are found even if the model does not know them | Enterprise |
+| `$.documents.fulltextSearch(query)` | the words of the query, through the full-text index | Community |
+| `$.documents.vectorSearch(query)` | the meaning of the query, through the vector index | Enterprise |
+| `$.documents.vectorSearch(query, { hybrid: true })` | the meaning and the words: chunks that match both come first, and rare words such as product numbers are found even if the model does not know them | Enterprise |
 
-`$.documents.answerFromContent(question, { config })` goes one step further: it finds the best chunks and has a chat model answer the question from them, with citations like [1], [2] that point to file, page and section. The chunks reach the model as data that is never followed, so an instruction written into a document is quoted, not obeyed. LLM agents get the same search as the `knowledge-search` tool.
+`$.documents.answer(question, { config })` goes one step further: it finds the best chunks and has a chat model answer the question from them, with citations like [1], [2] that point to file, page and section. The chunks reach the model as data that is never followed, so an instruction written into a document is quoted, not obeyed. LLM agents get the same search as the `knowledge-search` tool.
 
 ```javascript
 {
-    let hits = $.documents.searchContentSemantic('How do I get back into my account?', { hybrid: true, limit: 3, contextChunks: 1 });
+    let hits = $.documents.vectorSearch('How do I get back into my account?', { hybrid: true, limit: 3, contextChunks: 1 });
 
     for (let hit of hits) {
         $.log(hit.file.name + ', page ' + hit.pageStart + ' (' + hit.source + '): ' + hit.context);
@@ -218,9 +216,34 @@ Documents are only sent to an embedding provider for folders where an administra
 }
 ```
 
-As with keyword search, only chunks of files the current user can read are found. `$.documents.embeddingStatus()` shows how many chunks are embedded, which files failed and the state of the vector index; `$.documents.embedContent()` embeds files again. The article *LLM Agents and Chatbots* (Enterprise) describes providers, models and the agent tool in detail.
+As with keyword search, only chunks of files the current user can read are found. `$.documents.embeddingStatus()` shows how many chunks are embedded, which files failed and the state of the vector index; `$.documents.embedContent()` embeds files again. The article *LLM Agents and Chatbots* describes providers, models and the agent tool in detail.
 
-The vector index is an ordinary Structr vector index, so the Community function `$.searchVector('ExtractedContentNode_embedding_vector', vector, limit)` queries it as well, with a vector from the same model.
+### Semantic Search With Cypher
+
+The vector index is an ordinary vector index, so you can also query it with Cypher, for example to combine the semantic search with your own data model. Embed the query with `llmEmbed()` first, with the same provider, model and query prefix as the folder, and pass the vector to `db.index.vector.queryNodes`:
+
+```javascript
+{
+    const config = $.first($.find('LLMProviderConfiguration', { name: 'ollama' }));
+    const vector = $.llmEmbed(config, 'nomic-embed-text', 'How do I get back into my account?', { prefix: 'search_query: ' });
+
+    let hits = $.cypher(`
+        CALL db.index.vector.queryNodes('ExtractedContentNode_embedding_vector', 10, $vector) YIELD node, score
+        MATCH (file:File)-[:HAS_EXTRACTED_CONTENT]->(node)
+        RETURN { file: file, chunk: node, score: score }
+    `, { vector: vector });
+
+    for (let hit of hits) {
+        if (hit.file) {
+            $.log(hit.file.name + ', page ' + hit.chunk.pageStart + ': ' + hit.score);
+        }
+    }
+}
+```
+
+The score is the cosine similarity, between 0 and 1; higher is closer. As with keyword search in Cypher, return nodes, not their properties, so Structr can leave out the files and chunks the current user cannot read. A vector from a different model, or without the query prefix, finds unrelated chunks without any error. `$.searchVector('ExtractedContentNode_embedding_vector', vector, 10)` runs the same query without Cypher.
+
+When you do not need Cypher, prefer `$.documents.vectorSearch()`: it embeds the query with the model and query prefix of the files for you, filters by folder and file, and returns the file, page and context of every hit.
 
 ### Jobs and Settings
 
@@ -237,7 +260,7 @@ When an instance that used embeddings runs the Community Edition again, nothing 
 
 - The embeddings stay on the chunks and the vector index stays in the database. They are used again after a return to Structr Enterprise, without embedding anything again. At startup, Structr logs once how many chunks carry embeddings.
 - Keyword search and automatic extraction work as before.
-- Scripts that call `$.documents.searchContentSemantic()`, `answerFromContent()` or the other Enterprise functions get an error that says they need Structr Enterprise.
+- Scripts that call `$.documents.vectorSearch()`, `answer()` or the other Enterprise functions get an error that says they need Structr Enterprise.
 - The links between folders and LLM providers and the embedding state of files are ignored.
 
 A deployment export of the Community Edition into a folder that holds an earlier export of Structr Enterprise keeps the old files in `modules/ai/`, including the LLM provider configurations and their API keys. Export into an empty folder, or remove that folder.

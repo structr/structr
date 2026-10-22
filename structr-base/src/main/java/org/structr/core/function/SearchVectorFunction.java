@@ -110,14 +110,26 @@ public class SearchVectorFunction extends CoreFunction implements QueryFunction 
 
 		return """
 			Finds the nearest neighbours of a vector in a vector index and returns a list of objects with `node` and `score`, best first. The \
-			score is the similarity between 0 and 1 (1 for the same direction with cosine similarity).
+			score is the similarity between 0 and 1: `(1 + cos) / 2` with cosine similarity (1 for the same direction, 0.5 for unrelated \
+			vectors), `1 / (1 + d²)` with euclidean similarity (1 for the same vector, falling towards 0 with the distance `d`).
 
-			A vector index is created for a `Double[]` attribute whose *Vector* size is set in the schema (`vectorDimensions`, and optionally \
-			`vectorSimilarity`, cosine or euclidean). Its name is generated as `<type name>_<attribute name>_vector`, for example \
-			`Product_embedding_vector`. Only vectors of exactly that size are indexed.
+			A vector index is created for a `Double[]` attribute whose vector size is set in its Vector Index settings in the schema \
+			(`vectorDimensions`, and `vectorSimilarity`: cosine, the default, for embeddings, or euclidean for vectors whose length matters). Its name is generated as `<type name>_<attribute name>_vector`, for example \
+			`Product_embedding_vector`. Only vectors of exactly that size are indexed, so writing a vector of another size, with values \
+			that are not finite numbers, or (with cosine similarity) of only zeros is refused with an error. Vectors written with Cypher \
+			directly are not checked, and changing the size does not check the vectors stored before.
 
-			The vectors can come from anywhere, e.g. from an embedding model (in Structr Enterprise, `llmEmbed()`), and the vector given here \
-			must come from the same source. Only entities the current user can read are returned, so there can be fewer than `limit` results.
+			`searchVector()` searches the attributes of your own types, and you provide both sides: the stored vectors and the vector to search \
+			with. To search by meaning, it is used together with an embedding model, in Structr Enterprise `llmEmbed()`: embed each record when \
+			it is saved (e.g. in `onSave`) and store the vector in the attribute, then embed the search text with the same model (and the same \
+			`dimensions` option) and pass that vector here. Vectors of different models cannot be compared, even if they have the same size. \
+			The vectors can also come from anywhere else, as long as both sides come from the same source.
+
+			Only entities the current user can read are returned, so there can be fewer than `limit` results.
+
+			To search the text that content extraction stored for uploaded files, use `documents.vectorSearch()` instead (Structr Enterprise): \
+			it takes the search text itself and embeds it with the model of the files. The article *Searching* (Building Applications) \
+			explains which search function to use when.
 
 			Vector indexes need Neo4j 5.13 or later.""";
 	}

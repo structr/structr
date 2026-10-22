@@ -171,7 +171,7 @@ instead.
 |-----------|-----------|
 | `stopWords(language)` | `$.documents.stopWords(language)` |
 | `File.extractedContent` | `$.documents.getExtractedText(file)` |
-| Searching `File?extractedContent=<word>` | `$.documents.searchExtractedContent(query)` |
+| Searching `File?extractedContent=<word>` | `$.documents.fulltextSearch(query)` |
 | "Fulltext indexing" checkbox of a mounted folder | A content extraction configuration on the mount folder |
 | `file-import` with `index` / `rebuildIndex mode=fulltext` | `$.documents.processContent(folder)` |
 | `application.filesystem.indexing.*` settings | `contentextraction.*` settings |
