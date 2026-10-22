@@ -21,9 +21,11 @@ package org.structr.test.core.script;
 import org.structr.core.script.Scripting;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * Unit tests for Scripting.extractScripts() — verifies that braces inside
@@ -120,5 +122,105 @@ public class ScriptExtractTest {
 		assertEquals("Two script blocks must be extracted", 2, r.size());
 		assertEquals("${{ $.log('a'); }}", r.get(0));
 		assertEquals("${{ $.log('b'); }}", r.get(1));
+	}
+
+	@Test
+	public void testUnclosedBlockIsReportedWithItsState() {
+
+		final List<String> reports = new ArrayList<>();
+
+		// a string that is opened and never closed
+		final List<String> r = Scripting.extractScripts("<main>${{ const html = $.this.body; return html.replace('<', '); }}</main>", (excerpt, state) -> reports.add(excerpt + " | " + state));
+
+		assertEquals("the unclosed block is not extracted", 0, r.size());
+		assertEquals(1, reports.size());
+		assertTrue(reports.get(0), reports.get(0).startsWith("${{ const html = $.this.body;"));
+		assertTrue(reports.get(0), reports.get(0).endsWith("inside a single-quoted string"));
+
+		reports.clear();
+
+		Scripting.extractScripts("${ concat('a', 'b') ", (excerpt, state) -> reports.add(state));
+
+		assertEquals(List.of("1 brace(s) still open"), reports);
+	}
+
+	@Test
+	public void testClosedBlocksAreNotReported() {
+
+		final List<String> reports = new ArrayList<>();
+
+		for (final String source : new String[] {
+			"${{ $.log('Test'); }}",
+			"${{ $.log('it\\'s \\\"quoted\\\"'); }}",
+			"<p>${current.name}</p><p>${{ return 1; }}</p>",
+			"<script>const greeting = `Hello ${name}`; ${{ return 'x'; }}</script>",
+			"no expression at all"
+		}) {
+
+			Scripting.extractScripts(source, (excerpt, state) -> reports.add(source + " | " + state));
+		}
+
+		assertEquals(List.of(), reports);
+	}
+
+	@Test
+	public void testRegularExpressionLiteralsAreSkippedWhole() {
+
+		for (final String block : new String[] {
+			// the production case: quotes inside a regular expression literal
+			"${{ const html = $.this.body; return html.replace(/href=\"([^\"]+)'/g, '$1'); }}",
+			"${{ s.replace(/[{}'\"`]/g, '') }}",
+			"${{ s.split(/[/]/) }}",
+			"${{ s.replace(/a\\/b'/, \"x\") }}",
+			"${{ return /}/.test(x); }}",
+			"${{ if (typeof /x'/ === 'object') { $.log(1); } }}",
+			"${{ const m = s.match(/\\d+\"/gi); }}",
+			"${{ list.filter(x => /^'/.test(x)) }}"
+		}) {
+
+			assertBlock(block);
+		}
+	}
+
+	@Test
+	public void testDivisionIsNotARegularExpression() {
+
+		for (final String block : new String[] {
+			"${{ a / b }}",
+			"${{ x[i] / 2 }}",
+			"${{ f() / 3 }}",
+			"${{ (a + b) / c }}",
+			"${{ total / count / 2 }}",
+			// read as a regular expression, '/ b; y = \"/' would swallow a quote and the block would never end
+			"${{ x = a / b; y = \"/\"; }}",
+			"${{ ratio = 'a'.length / 2; z = '}'; }}"
+		}) {
+
+			assertBlock(block);
+		}
+	}
+
+	@Test
+	public void testCommentsAndStructrScriptWithSlashes() {
+
+		for (final String block : new String[] {
+			"${{ // it's a \"comment\" with / slashes\n return 1; }}",
+			"${{ /* don't / \"quote\" */ return 1; }}",
+			"${concat('a/b', \"c/d\")}",
+			"${{ $.log('http://example.com/') }}"
+		}) {
+
+			assertBlock(block);
+		}
+	}
+
+	// ----- private methods -----
+	private void assertBlock(final String block) {
+
+		final List<String> reports = new ArrayList<>();
+		final List<String> r       = Scripting.extractScripts("<p>" + block + "</p>", (excerpt, state) -> reports.add(state));
+
+		assertEquals(block + " must not be reported", List.of(), reports);
+		assertEquals(block, List.of(block), r);
 	}
 }
