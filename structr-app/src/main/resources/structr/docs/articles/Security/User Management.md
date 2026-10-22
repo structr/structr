@@ -66,7 +66,7 @@ The following properties are available on user objects:
 | `passwordAttempts` | Integer | Counter for failed login attempts; triggers account lockout when threshold is exceeded |
 | `locale` | String | Preferred locale for localization (e.g., `de_DE`, `en_US`). Structr uses this value in the `$.locale()` function and for locale-aware formatting. |
 | `publicKey` | String | SSH public key for filesystem access via the SSH service |
-| `skipSecurityRelationships` | Boolean | Disables automatic creation of OWNS and SECURITY relationships when this user creates objects. Useful for admin users creating many objects where individual ownership tracking is not needed. |
+| `skipSecurityRelationships` | Boolean | Disables automatic creation of OWNS and SECURITY relationships when this user creates objects. Useful for admin users creating many objects where individual ownership tracking is not needed and also for systems where individual ownership and access rights should not exist and are supposed to be handled by group membership and also. This requires the application code to set up the access controls for each node individually. |
 | `confirmationKey` | String | Temporary authentication key used during self-registration. Replaces the password until the user confirms their account via the confirmation link. |
 | `twoFactorSecret` | String | Secret key for TOTP two-factor authentication (see Two-Factor Authentication chapter) |
 | `twoFactorConfirmed` | Boolean | Indicates whether the user has completed two-factor setup |
@@ -426,9 +426,9 @@ When an anonymous user creates an object (if a Resource Access Permission allows
 
 > **Note:** An object must first be visible to a user before they can modify it.
 
-For admin users, you can disable automatic ownership creation by setting `skipSecurityRelationships = true`. This improves performance when creating many objects that do not need individual ownership tracking.
+You can disable automatic ownership creation by setting `skipSecurityRelationships = true`. This improves performance when creating many objects that do not need individual ownership tracking.
 
-To prevent ownership for non-admin users, add an `onCreate` lifecycle method:
+For non-admin users, the `skipSecurityRelationships` flag works as well, or you can also add an `onCreate` lifecycle method:
 
 ```javascript
 {
@@ -452,7 +452,7 @@ $.grant(user, node, 'read, write');
 $.revoke(user, node, 'write');
 ```
 
-Structr creates SECURITY relationships automatically when users create objects. To skip this for admin users, set `skipSecurityRelationships = true`. For non-admin users, use a lifecycle method:
+Structr creates SECURITY relationships automatically when users create objects. To skip this for users, set `skipSecurityRelationships = true` or use an `onCreate` lifecycle method:
 
 ```javascript
 {
@@ -460,7 +460,17 @@ Structr creates SECURITY relationships automatically when users create objects. 
 }
 ```
 
-> **Note:** If you skip both OWNS and SECURITY relationships, the creating user may lose access to the object. Use `grant()` or `copy_permissions()` to assign appropriate access.
+> **Note:** If you remove both OWNS and SECURITY relationships (or set `skipSecurityRelationships = true`), the application must handle granting access rights to the object to prevent losing access. Use `grant()` or `copy_permissions()` to assign appropriate access.
+>
+> An example `onCreate` method that would handle access rights could look like this:
+```javascript
+{
+&nbsp;     $.doPrivileged(() => {
+&nbsp;&nbsp;        let groupThatNeedsToSeeAndEditNode = $.find('Group', { name: 'clerks' })[0];
+&nbsp;&nbsp;        $.grant(groupThatNeedsToSeeAndEditNode, $.this, 'read,write,delete');
+&nbsp;    });
+}
+```
 
 #### The `grantees` Property
 
