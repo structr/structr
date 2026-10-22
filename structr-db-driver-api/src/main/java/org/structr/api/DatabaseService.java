@@ -142,6 +142,15 @@ public interface DatabaseService<IDType> {
 	void updateIndexConfiguration(final List<NewIndexConfig> indexConfigList);
 	boolean isIndexUpdateFinished();
 
+	/**
+	 * The state of an index by its name: "type", "state", "populationPercent" and, for a vector index,
+	 * "dimensions" and "similarity". Empty if the index does not exist or the database cannot tell.
+	 */
+	default Map<String, Object> getIndexInfo(final String indexName) {
+
+		return Map.of();
+	}
+
 	// utils
 	CountResult getNodeAndRelationshipCount();
 

@@ -67,8 +67,11 @@ public abstract class AbstractIndex<Q extends DatabaseQuery, R extends PropertyC
 		return false;
 	}
 
-	// ----- private methods -----
-	private Q getQuery(final QueryContext context, final QueryPredicate predicate, final int requestedPageSize, final int requestedPage) {
+	// ----- protected methods -----
+	/**
+	 * The database query for a predicate, for an index that runs it in another way, e.g. as a count.
+	 */
+	protected Q getQuery(final QueryContext context, final QueryPredicate predicate, final int requestedPageSize, final int requestedPage) {
 
 		final Q query = createQuery(context, requestedPageSize, requestedPage);
 

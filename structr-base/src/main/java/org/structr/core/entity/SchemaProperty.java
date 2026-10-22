@@ -30,6 +30,13 @@ import java.util.Set;
 
 public interface SchemaProperty extends PropertyDefinition, NodeInterface {
 
+	/** The size of the vectors of a vector-indexed Double[] property, or null if it has no vector index. */
+	Integer getVectorDimensions();
+
+	/** The similarity function of the vector index, "cosine" if none is set. */
+	String getVectorSimilarity();
+
+
 	AbstractSchemaNode getSchemaNode();
 	String getSourceContentType();
 	String getStaticSchemaNodeName();

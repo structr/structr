@@ -95,7 +95,7 @@ The type controls what values are accepted as input. For example, an integer att
 | `Date` | Date and time, stored as milliseconds. Accepts ISO-8601 or custom format patterns. |
 | `Date[]` | Array of date values. |
 | `Double` | Floating point numbers with decimal precision. |
-| `Double[]` | Array of double values. |
+| `Double[]` | Array of double values. Supports a vector index for nearest-neighbour search (see Vector below). |
 | `Encrypted` | String stored with AES encryption. Automatically encrypted on write and decrypted on read with key from structr.conf. |
 | `Enum` | String constrained to allowed values defined in the Format field. |
 | `Enum[]` | Array of enum values, each constrained to the allowed values. |
@@ -136,6 +136,15 @@ Idx. stands for Indexed. When you activate the indexed checkbox on an attribute,
 Fulltext stands for fulltext indexing. When you activate the fulltext checkbox on a string attribute, the system creates a fulltext index with advanced search capabilities and scoring.
 
 You can query fulltext indexed attributes by passing the index name to the `searchFulltext()` function. The index name is automatically generated from the type and attribute name plus the string "fulltext", e.g. `Project_projectId_fulltext`.
+
+#### Vector
+Vector stands for a vector index, for attributes of type `Double[]` that hold vectors, for example embeddings that describe the meaning of a text. Enter the size of the vectors (the number of values in each) to create a vector index; leave it empty for none. Only vectors of exactly that size are indexed. The similarity function is cosine; to use euclidean distance instead, set `vectorSimilarity` on the schema property.
+
+You can find the objects whose vectors are nearest to a given vector by passing the index name to the `searchVector()` function, for example `$.searchVector('Product_embedding_vector', vector, 10)`. The index name is automatically generated from the type and attribute name plus the string "vector", e.g. `Product_embedding_vector`. Vector indexes need Neo4j 5.13 or later.
+
+Where the vectors come from is up to you: an external service, your own code, or in Structr Enterprise the `llmEmbed()` function, which turns a text into a vector with an embedding model. The vector you search with must come from the same source as the stored ones.
+
+Vector indexes that you create yourself with Cypher are left alone by Structr, as long as their name does not end in `_vector`.
 
 #### Default Value
 The default value field specifies a value that is returned when an attribute has no value in the database. You can use default values to ensure attributes always return a meaningful value, even for newly created objects or when values have not been set.

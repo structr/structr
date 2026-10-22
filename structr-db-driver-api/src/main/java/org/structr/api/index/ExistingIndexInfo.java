@@ -19,6 +19,7 @@
 package org.structr.api.index;
 
 import java.util.List;
+import java.util.Map;
 
 public class ExistingIndexInfo {
 
@@ -26,6 +27,7 @@ public class ExistingIndexInfo {
 	private final String state;
 	private final String type;
 	private final List<String> properties;
+	private final Map<String, Object> options;
 
 	public ExistingIndexInfo(final String identifier, final String state, final String type) {
 
@@ -37,10 +39,20 @@ public class ExistingIndexInfo {
 	 */
 	public ExistingIndexInfo(final String identifier, final String state, final String type, final List<String> properties) {
 
+		this(identifier, state, type, properties, Map.of());
+	}
+
+	/**
+	 * @param options settings of the index that decide whether it still matches its configuration, e.g.
+	 *                "dimensions" and "similarity" of a vector index; never null
+	 */
+	public ExistingIndexInfo(final String identifier, final String state, final String type, final List<String> properties, final Map<String, Object> options) {
+
 		this.identifier = identifier;
 		this.state      = state;
 		this.type       = type;
 		this.properties = properties != null ? properties.stream().sorted().toList() : null;
+		this.options    = options != null ? options : Map.of();
 	}
 
 	public String getIdentifier() {
@@ -64,5 +76,13 @@ public class ExistingIndexInfo {
 	public List<String> getProperties() {
 
 		return properties;
+	}
+
+	/**
+	 * Settings of the index, e.g. "dimensions" and "similarity" of a vector index; empty if there are none.
+	 */
+	public Map<String, Object> getOptions() {
+
+		return options;
 	}
 }

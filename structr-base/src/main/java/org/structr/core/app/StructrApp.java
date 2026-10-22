@@ -37,6 +37,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.graph.*;
 import org.structr.core.graph.search.FulltextSearchCommand;
+import org.structr.core.graph.search.VectorSearchCommand;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.PropertyMap;
@@ -305,6 +306,12 @@ public class StructrApp implements App {
 	public Map<NodeInterface, Double> getNodesFromFulltextIndex(final String indexName, final String searchTerm, int page, int pageSize) throws FrameworkException {
 
 		return command(FulltextSearchCommand.class).getNodes(indexName, searchTerm, pageSize, page);
+	}
+
+	@Override
+	public Map<NodeInterface, Double> getNodesFromVectorIndex(final String indexName, final int k, final double[] vector) throws FrameworkException {
+
+		return command(VectorSearchCommand.class).getNodes(indexName, k, vector);
 	}
 
 	@Override

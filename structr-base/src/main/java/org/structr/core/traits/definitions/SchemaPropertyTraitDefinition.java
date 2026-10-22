@@ -73,6 +73,8 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String UNIQUE_PROPERTY                     = "unique";
 	public static final String INDEXED_PROPERTY                    = "indexed";
 	public static final String FULLTEXT_PROPERTY                   = "fulltext";
+	public static final String VECTOR_DIMENSIONS_PROPERTY          = "vectorDimensions";
+	public static final String VECTOR_SIMILARITY_PROPERTY          = "vectorSimilarity";
 	public static final String READ_ONLY_PROPERTY                  = "readOnly";
 	public static final String IS_ABSTRACT_PROPERTY                = "isAbstract";
 	public static final String IS_DYNAMIC_PROPERTY                 = "isDynamic";
@@ -110,6 +112,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 						errorBuffer);
 
 					valid &= ValidationHelper.isNotReservedWordForPropertyNames(obj, nameProperty, "Property name", errorBuffer);
+					valid &= isValidVectorIndex(obj, errorBuffer);
 
 					// check name uniqueness among the properties of the same schema node
 					final SchemaProperty schemaProperty = obj.as(SchemaProperty.class);
@@ -207,6 +210,8 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean>            unique                  = new BooleanProperty(UNIQUE_PROPERTY);
 		final Property<Boolean>            indexed                 = new BooleanProperty(INDEXED_PROPERTY);
 		final Property<Boolean>            fulltext                = new BooleanProperty(FULLTEXT_PROPERTY);
+		final Property<Integer>            vectorDimensions        = new IntProperty(VECTOR_DIMENSIONS_PROPERTY).description("Size of the vectors of a Double[] property; creates a vector index for nearest-neighbour search with searchVector(). Empty means no vector index.");
+		final Property<String>             vectorSimilarity        = new EnumProperty(VECTOR_SIMILARITY_PROPERTY, Set.of("cosine", "euclidean")).description("Similarity function of the vector index: cosine (default) or euclidean.");
 		final Property<Boolean>            readOnly                = new BooleanProperty(READ_ONLY_PROPERTY);
 		final Property<Boolean>            isAbstract              = new BooleanProperty(IS_ABSTRACT_PROPERTY);
 		final Property<Boolean>            isDynamic               = new BooleanProperty(IS_DYNAMIC_PROPERTY);
@@ -244,6 +249,8 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 			unique,
 			indexed,
 			fulltext,
+			vectorDimensions,
+			vectorSimilarity,
 			readOnly,
 			isAbstract,
 			isDynamic,
@@ -262,6 +269,37 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 		);
 	}
 
+	/**
+	 * A vector index needs a Double[] property and a positive size.
+	 */
+	private static boolean isValidVectorIndex(final GraphObject obj, final ErrorBuffer errorBuffer) {
+
+		final Traits traits       = obj.getTraits();
+		final Integer dimensions  = obj.getProperty(traits.key(VECTOR_DIMENSIONS_PROPERTY));
+		final String propertyType = obj.getProperty(traits.key(PROPERTY_TYPE_PROPERTY));
+
+		if (dimensions == null) {
+
+			return true;
+		}
+
+		if (!SchemaHelper.Type.DoubleArray.name().equals(propertyType)) {
+
+			errorBuffer.add(new SemanticErrorToken(obj.getType(), VECTOR_DIMENSIONS_PROPERTY, "vector_index_needs_double_array").withValue(dimensions).withDetail("A vector index is only possible on a Double[] property."));
+
+			return false;
+		}
+
+		if (dimensions < 1) {
+
+			errorBuffer.add(new SemanticErrorToken(obj.getType(), VECTOR_DIMENSIONS_PROPERTY, "must_be_positive").withValue(dimensions).withDetail("The vector size must be at least 1."));
+
+			return false;
+		}
+
+		return true;
+	}
+
 	@Override
 	public Map<String, Set<String>> getViews() {
 
@@ -271,7 +309,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 				newSet(
 						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
 						FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
-						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, FULLTEXT_PROPERTY, READ_ONLY_PROPERTY,
+						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, FULLTEXT_PROPERTY, VECTOR_DIMENSIONS_PROPERTY, VECTOR_SIMILARITY_PROPERTY, READ_ONLY_PROPERTY,
 						DEFAULT_VALUE_PROPERTY, IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY,
 						READ_FUNCTION_PROPERTY, WRITE_FUNCTION_PROPERTY, READ_FUNCTION_WRAP_JS_PROPERTY, WRITE_FUNCTION_WRAP_JS_PROPERTY,
 						IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
@@ -281,7 +319,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 				newSet(
 						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
 						FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
-						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, FULLTEXT_PROPERTY, READ_ONLY_PROPERTY,
+						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, FULLTEXT_PROPERTY, VECTOR_DIMENSIONS_PROPERTY, VECTOR_SIMILARITY_PROPERTY, READ_ONLY_PROPERTY,
 						DEFAULT_VALUE_PROPERTY, IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY,
 						READ_FUNCTION_PROPERTY, WRITE_FUNCTION_PROPERTY, READ_FUNCTION_WRAP_JS_PROPERTY, WRITE_FUNCTION_WRAP_JS_PROPERTY,
 						IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
@@ -292,7 +330,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
 						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
 						FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
-						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, FULLTEXT_PROPERTY, READ_ONLY_PROPERTY,
+						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, FULLTEXT_PROPERTY, VECTOR_DIMENSIONS_PROPERTY, VECTOR_SIMILARITY_PROPERTY, READ_ONLY_PROPERTY,
 						DEFAULT_VALUE_PROPERTY, IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY,
 						READ_FUNCTION_PROPERTY, WRITE_FUNCTION_PROPERTY, READ_FUNCTION_WRAP_JS_PROPERTY, WRITE_FUNCTION_WRAP_JS_PROPERTY,
 						IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY

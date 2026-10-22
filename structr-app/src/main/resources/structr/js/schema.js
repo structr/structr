@@ -1746,7 +1746,7 @@ let _Schema = {
 
 			let gridConfig = {
 				class: 'local schema-props grid',
-				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((showDatabaseName) ? '[ dbName ] minmax(0, 1fr) ' : '') + '[ type ] minmax(min-content, max-content) [ format ] minmax(10%, max-content) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ fulltext ] minmax(5%, max-content) [ defaultValue ] minmax(0, 1fr) [ actions ] 4rem',
+				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((showDatabaseName) ? '[ dbName ] minmax(0, 1fr) ' : '') + '[ type ] minmax(min-content, max-content) [ format ] minmax(10%, max-content) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ fulltext ] minmax(5%, max-content) [ vector ] minmax(5%, max-content) [ defaultValue ] minmax(0, 1fr) [ actions ] 4rem',
 				cols: [
 					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'JSON Name' },
 					{ class: 'py-2 px-1 font-bold items-center justify-center ' + dbNameClass, title: 'DB Name' },
@@ -1757,6 +1757,7 @@ let _Schema = {
 					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Uniq.', longTitle: 'Unique'  },
 					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Idx', longTitle: 'Indexed'  },
 					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Fulltext', longTitle: 'Fulltext Indexed'  },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Vector', longTitle: 'Vector index: size of the vectors (Double[] only), for searchVector()'  },
 					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Default', longTitle: 'Default Value'  },
 					{ class: 'actions-col pb-1 px-1 font-bold flex items-center justify-center', title: 'Action' }
 				],
@@ -1842,6 +1843,13 @@ let _Schema = {
 					let checked         = (allowFulltext && !fulltextCb.disabled && fulltextCb.checked);
 					fulltextCb.disabled = !allowFulltext;
 					fulltextCb.checked  = checked;
+
+					let allowVector      = (selectedOption.value === 'DoubleArray');
+					let vectorInput      = gridRow.querySelector('.vector-dimensions');
+					vectorInput.disabled = !allowVector;
+					if (!allowVector) {
+						vectorInput.value = '';
+					}
 				});
 
 				gridRow.querySelector('.discard-changes').addEventListener('click', () => {
@@ -1993,6 +2001,7 @@ let _Schema = {
 			$('.unique',           gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
 			$('.indexed',          gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
 			$('.fulltext-indexed', gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.vector-dimensions', gridRow).on('keyup change', propertyInfoChangeHandler).prop('disabled', isProtected);
 			$('.property-default', gridRow).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
 
 			let propertyTypeSelect = gridRow[0].querySelector('.property-type');
@@ -2015,6 +2024,12 @@ let _Schema = {
 				let fulltextCb    = gridRow[0].querySelector('.fulltext-indexed');
 				fulltextCb.disabled = (!allowFulltext || isProtected);
 				fulltextCb.checked = allowFulltext && property.fulltext === true;
+
+				// a vector index needs a Double[] property
+				let allowVector     = (selectedOption.value === 'DoubleArray');
+				let vectorInput     = gridRow[0].querySelector('.vector-dimensions');
+				vectorInput.disabled = (!allowVector || isProtected);
+				vectorInput.value    = allowVector ? (property.vectorDimensions ?? '') : '';
 
 				propertyInfoChangeHandler();
 			};
@@ -2096,6 +2111,13 @@ let _Schema = {
 				$('.remove-action', gridRow).hide();
 			}
 		},
+		/** The vector size from the input: a positive whole number, or null for no vector index. */
+		parseVectorDimensions: (value) => {
+
+			let dimensions = parseInt(value ?? '', 10);
+
+			return (Number.isInteger(dimensions) && dimensions > 0) ? dimensions : null;
+		},
 		getDataFromRow: (gridRow) => {
 
 			let obj = {
@@ -2108,6 +2130,7 @@ let _Schema = {
 				unique:           gridRow.querySelector('.unique').checked,
 				indexed:          gridRow.querySelector('.indexed').checked,
 				fulltext:         gridRow.querySelector('.fulltext-indexed').checked,
+				vectorDimensions: _Schema.properties.parseVectorDimensions(gridRow.querySelector('.vector-dimensions')?.value),
 				defaultValue:     gridRow.querySelector('.property-default').value,
 				isCachingEnabled: gridRow.querySelector('.caching-enabled')?.checked ?? false,
 				typeHint:         gridRow.querySelector('.type-hint')?.value ?? null
@@ -2130,6 +2153,7 @@ let _Schema = {
 			$('.unique', gridRow).prop('checked', property.unique);
 			$('.indexed', gridRow).prop('checked', property.indexed);
 			$('.fulltext-indexed', gridRow).prop('checked', property.fulltext);
+			$('.vector-dimensions', gridRow).val(property.vectorDimensions ?? '');
 			$('.property-default', gridRow).val(property.defaultValue);
 			$('.caching-enabled', gridRow).prop('checked', property.isCachingEnabled);
 			$('.type-hint', gridRow).val(property.typeHint ?? "null");
@@ -2453,7 +2477,7 @@ let _Schema = {
 
 			let tableConfig = {
 				class: 'builtin schema-props grid',
-				style: 'grid-template-columns: [ declaringClass ] minmax(0, 1fr) [ jsonName ] minmax(0, 1fr) [ type ] minmax(0, 1fr) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ fulltext ] minmax(5%, max-content);',
+				style: 'grid-template-columns: [ declaringClass ] minmax(0, 1fr) [ jsonName ] minmax(0, 1fr) [ type ] minmax(0, 1fr) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ fulltext ] minmax(5%, max-content) [ vector ] minmax(5%, max-content);',
 				cols: [
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Declaring Trait' },
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'JSON Name' },
@@ -2462,7 +2486,8 @@ let _Schema = {
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Comp.' },
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Uniq.' },
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Idx' },
-					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Fulltext' }
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Fulltext' },
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Vector' }
 				],
 				noButtons: true
 			};
@@ -2491,6 +2516,7 @@ let _Schema = {
 							unique: prop.unique,
 							indexed: prop.indexed,
 							fulltext: prop.fulltext,
+							vectorDimensions: prop.vectorDimensions,
 							declaringClass: prop.declaringClass
 						};
 
@@ -2520,6 +2546,7 @@ let _Schema = {
 					<div class="flex items-center justify-center">
 						<input class="fulltext-indexed" type="checkbox" disabled="disabled" ${(config.property.fulltext ? 'checked' : '')} style="margin-right: 0;">
 					</div>
+					<div class="flex items-center justify-center">${config.property.vectorDimensions ?? ''}</div>
 				</div>
 			`,
 			propertyLocal: config => `
@@ -2568,6 +2595,9 @@ let _Schema = {
 					<div class="flex items-center justify-center">
 						<input class="fulltext-indexed" type="checkbox" ${(config.property.fulltext ? 'checked' : '')} style="margin-right: 0;">
 					</div>
+					<div class="flex items-center justify-center">
+						<input class="vector-dimensions" type="number" min="1" style="width: 5rem;" placeholder="size" value="${config.property.vectorDimensions ?? ''}">
+					</div>
 					<div class="py-3 px-2"><input type="text" size="10" class="property-default" value="${_Helpers.escapeForHtmlAttributes(config.property.defaultValue)}"></div>
 					<div class="actions-col flex items-center justify-center">
 						${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
@@ -2601,6 +2631,9 @@ let _Schema = {
 					</div>
 					<div class="flex items-center justify-center">
 						<input class="fulltext-indexed" type="checkbox" style="margin-right: 0;" disabled>
+					</div>
+					<div class="flex items-center justify-center">
+						<input class="vector-dimensions" type="number" min="1" style="width: 5rem;" placeholder="size" disabled>
 					</div>
 					<div class="p-2 flex items-center">
 						<input class="property-default" size="10" type="text" placeholder="Default Value">

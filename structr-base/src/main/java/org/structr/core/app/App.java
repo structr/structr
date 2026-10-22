@@ -61,6 +61,12 @@ public interface App extends Closeable {
 	Map<RelationshipInterface, Double> getRelationshipsFromFulltextIndex(final String indexName, final String searchString, int pageSize, int page) throws FrameworkException;
 	Map<NodeInterface, Double> getNodesFromFulltextIndex(final String indexName, final String searchString, int page, int pageSize) throws FrameworkException;
 
+	/**
+	 * The k nearest neighbours of a vector in a vector index (see PropertyKey.vectorIndexed()), best first, with
+	 * their similarity score between 0 and 1; without the nodes the security context of this app may not read.
+	 */
+	Map<NodeInterface, Double> getNodesFromVectorIndex(final String indexName, final int k, final double[] vector) throws FrameworkException;
+
 	Query<NodeInterface> nodeQuery();
 	QueryGroup<NodeInterface> nodeQuery(final String type);
 

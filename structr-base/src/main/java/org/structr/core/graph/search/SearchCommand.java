@@ -371,6 +371,53 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
+	public long count() throws FrameworkException {
+
+		final SearchConfig config                 = new SearchConfig();
+		final List<SourceSearchAttribute> sources = new ArrayList<>();
+		final Index<S> index                      = getIndex();
+
+		handleSearchAttributeGroup(config, rootGroup, sources);
+
+		// the database count knows nothing about permissions, and nothing about what is filtered in Java
+		final boolean databaseCanCount = index != null && securityContext.isSuperUser() && comparator == null && !isRelationshipSearch()
+			&& !config.hasGraphSources && !config.hasSpatialSource && !config.hasRelationshipVisibilitySearch;
+
+		if (databaseCanCount) {
+
+			if (!includeHidden) {
+
+				final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, this, Operation.NOT);
+
+				group.getSearchAttributes().add(new PropertySearchAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), true, true));
+
+				rootGroup.add(group);
+			}
+
+			try {
+
+				final long count = index.count(getQueryContext(), rootGroup);
+				if (count >= 0) {
+
+					return count;
+				}
+
+			} catch (UnknownClientException uclex) {
+
+				throw new FrameworkException(500, uclex.getMessage());
+			}
+		}
+
+		long count = 0;
+
+		for (final T ignored : doSearch("count" + getQueryDescription())) {
+			count++;
+		}
+
+		return count;
+	}
+
+	@Override
 	public Traits getTraits() {
 
 		return traits;

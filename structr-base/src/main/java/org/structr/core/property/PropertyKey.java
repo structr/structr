@@ -33,6 +33,7 @@ import org.structr.web.datasource.FieldDefinition;
 
 import java.util.Comparator;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Base interface for typed property keys.
@@ -125,6 +126,21 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * @return the Property to satisfy the builder pattern
 	 */
 	Property<T> fulltextIndexed(final String indexName);
+
+	/**
+	 * Use this method to mark a property that holds number arrays (vectors) to be
+	 * indexed in a vector index, for nearest-neighbour queries. The index is named
+	 * {@code <Type>_<property>_vector} and managed like every other index: it is
+	 * created, and created again when the size changes.
+	 *
+	 * @param dimensions the size of the indexed vectors, asked for whenever the
+	 *                   indexes are updated; null or less than 1 means no index (yet),
+	 *                   e.g. while the size is not known
+	 * @param similarity "cosine" or "euclidean"
+	 *
+	 * @return the Property to satisfy the builder pattern
+	 */
+	Property<T> vectorIndexed(final Supplier<Integer> dimensions, final String similarity);
 
 	/**
 	 * Returns the desired type name that will be used in the error message if a
@@ -320,6 +336,23 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * @return the name of the fulltext index, or null if the property is not fulltext indexed
 	 */
 	String fulltextIndexName();
+
+	/**
+	 * Indicates whether this property is indexed in a vector index.
+	 */
+	boolean isVectorIndexed();
+
+	/**
+	 * The current size of the vectors of the vector index, or null if the property
+	 * is not vector indexed or the size is not known yet.
+	 */
+	Integer vectorDimensions();
+
+	/**
+	 * The similarity function of the vector index, or null if the property is not
+	 * vector indexed.
+	 */
+	String vectorSimilarity();
 
 	/**
 	 * Indicates whether this property represents a collection or a single

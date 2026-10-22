@@ -38,6 +38,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FieldDefinition;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,6 +63,8 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	protected boolean indexedWhenEmpty          = false;
 	protected boolean fulltextIndexed           = false;
 	protected String fulltextIndexName          = null;
+	protected Supplier<Integer> vectorDimensions = null;
+	protected String vectorSimilarity           = null;
 	protected boolean compound                  = false;
 	protected boolean unique                    = false;
 	protected boolean notNull                   = false;
@@ -250,6 +253,20 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 		this.fulltextIndexed   = true;
 		this.fulltextIndexName = indexName;
+
+		return this;
+	}
+
+	@Override
+	public Property<T> vectorIndexed(final Supplier<Integer> dimensions, final String similarity) {
+
+		if (!"cosine".equals(similarity) && !"euclidean".equals(similarity)) {
+
+			throw new IllegalArgumentException("Vector similarity must be cosine or euclidean, got " + similarity + ".");
+		}
+
+		this.vectorDimensions = dimensions;
+		this.vectorSimilarity = similarity;
 
 		return this;
 	}
@@ -643,6 +660,31 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 		}
 
 		return fulltextIndexName != null ? fulltextIndexName : dbName();
+	}
+
+	@Override
+	public boolean isVectorIndexed() {
+
+		return vectorDimensions != null;
+	}
+
+	@Override
+	public Integer vectorDimensions() {
+
+		if (vectorDimensions == null) {
+
+			return null;
+		}
+
+		final Integer dimensions = vectorDimensions.get();
+
+		return dimensions != null && dimensions > 0 ? dimensions : null;
+	}
+
+	@Override
+	public String vectorSimilarity() {
+
+		return vectorDimensions != null ? vectorSimilarity : null;
 	}
 
 	@Override

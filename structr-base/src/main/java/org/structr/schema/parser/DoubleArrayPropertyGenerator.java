@@ -23,6 +23,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.common.helper.ValidationHelper;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.Property;
 import org.structr.core.traits.StructrTraits;
@@ -66,7 +67,17 @@ public class DoubleArrayPropertyGenerator extends NumericalArrayPropertyGenerato
 	@Override
 	protected Property newInstance() throws FrameworkException {
 
-		return new ArrayProperty(source.getPropertyName(), Double.class);
+		final Property property = new ArrayProperty(source.getPropertyName(), Double.class);
+
+		// a vector index, see SchemaProperty.vectorDimensions
+		if (source instanceof SchemaProperty schemaProperty && schemaProperty.getVectorDimensions() != null) {
+
+			final Integer dimensions = schemaProperty.getVectorDimensions();
+
+			property.vectorIndexed(() -> dimensions, schemaProperty.getVectorSimilarity());
+		}
+
+		return property;
 	}
 
 	@Override

@@ -74,13 +74,19 @@ public abstract class IndexUpdater {
 
 			for (final NewIndexConfig newIndexConfig : indexesToBeCreated) {
 
+				if (newIndexConfig.isVectorIndex() && !supportsVectorIndexes()) {
+
+					logger.warn("Vector index for {}.{} skipped, this database version has no vector indexes.", newIndexConfig.getType(), newIndexConfig.getPropertyKey());
+					continue;
+				}
+
 				final String identifier = getIndexIdentifier(newIndexConfig);
 				if (existingIndexes.containsKey(identifier)) {
 
 					final ExistingIndexInfo existing = existingIndexes.get(identifier);
-					if (getExpectedIndexType(newIndexConfig).equals(existing.getType()) && hasSameProperties(existing, newIndexConfig)) {
+					if (getExpectedIndexType(newIndexConfig).equals(existing.getType()) && hasSameProperties(existing, newIndexConfig) && hasSameOptions(existing, newIndexConfig)) {
 
-						// same type and properties: nothing to do, remove from drop candidates
+						// same type, properties and options: nothing to do, remove from drop candidates
 						existingIndexes.remove(identifier);
 
 					} else {
@@ -126,6 +132,14 @@ public abstract class IndexUpdater {
 
 	// ----- protected methods -----
 	/**
+	 * Whether the database can create vector indexes; only Neo4j 5.13 and later can.
+	 */
+	protected boolean supportsVectorIndexes() {
+
+		return false;
+	}
+
+	/**
 	 * The properties of an index as the database reports them, or null if it does not.
 	 */
 	protected static List<String> properties(final Object value) {
@@ -151,6 +165,26 @@ public abstract class IndexUpdater {
 
 		// unknown properties count as a match, so an index is never re-created only because they are not reported
 		return existing.getProperties() == null || existing.getProperties().equals(config.getPropertyKeys());
+	}
+
+	/**
+	 * A vector index matches only with the same size and similarity function, so a changed size creates
+	 * the index again. Unknown options count as a match, like unknown properties.
+	 */
+	private static boolean hasSameOptions(final ExistingIndexInfo existing, final NewIndexConfig config) {
+
+		if (!config.isVectorIndex()) {
+
+			return true;
+		}
+
+		final Object dimensions = existing.getOptions().get("dimensions");
+		final Object similarity = existing.getOptions().get("similarity");
+
+		final boolean sameDimensions = !(dimensions instanceof Number number) || number.intValue() == config.getVectorDimensions();
+		final boolean sameSimilarity = similarity == null || similarity.toString().equalsIgnoreCase(config.getVectorSimilarity());
+
+		return sameDimensions && sameSimilarity;
 	}
 
 	private Map<String, ExistingIndexInfo> getExistingIndexes() {

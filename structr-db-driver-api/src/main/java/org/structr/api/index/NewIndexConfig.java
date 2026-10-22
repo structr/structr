@@ -29,6 +29,8 @@ public class NewIndexConfig {
 	private final boolean isNodeIndex;
 	private final boolean isTextIndex;
 	private final boolean isFulltextIndex;
+	private final Integer vectorDimensions;
+	private final String vectorSimilarity;
 
 	public NewIndexConfig(final String type, final String propertyKey, final boolean isNodeIndex, final boolean isTextIndex, final boolean isFulltextIndex) {
 
@@ -41,13 +43,31 @@ public class NewIndexConfig {
 	 */
 	public NewIndexConfig(final String type, final String indexName, final String propertyKey, final boolean isNodeIndex, final boolean isTextIndex, final boolean isFulltextIndex) {
 
-		this.isNodeIndex     = isNodeIndex;
-		this.isTextIndex     = isTextIndex;
-		this.isFulltextIndex = isFulltextIndex;
-		this.indexName       = indexName;
-		this.type            = type;
+		this(type, indexName, propertyKey, isNodeIndex, isTextIndex, isFulltextIndex, null, null);
+	}
+
+	private NewIndexConfig(final String type, final String indexName, final String propertyKey, final boolean isNodeIndex, final boolean isTextIndex, final boolean isFulltextIndex, final Integer vectorDimensions, final String vectorSimilarity) {
+
+		this.isNodeIndex      = isNodeIndex;
+		this.isTextIndex      = isTextIndex;
+		this.isFulltextIndex  = isFulltextIndex;
+		this.indexName        = indexName;
+		this.type             = type;
+		this.vectorDimensions = vectorDimensions;
+		this.vectorSimilarity = vectorSimilarity;
 
 		this.propertyKeys.add(propertyKey);
+	}
+
+	/**
+	 * A vector index on a node property that holds number arrays, for nearest-neighbour queries.
+	 *
+	 * @param dimensions the size of the indexed vectors; vectors of another size are not indexed
+	 * @param similarity "cosine" or "euclidean"
+	 */
+	public static NewIndexConfig vector(final String type, final String propertyKey, final int dimensions, final String similarity) {
+
+		return new NewIndexConfig(type, propertyKey, propertyKey, true, false, false, dimensions, similarity);
 	}
 
 	/**
@@ -71,6 +91,27 @@ public class NewIndexConfig {
 	public boolean isTextIndex() {
 
 		return isTextIndex;
+	}
+
+	public boolean isVectorIndex() {
+
+		return vectorDimensions != null;
+	}
+
+	/**
+	 * The size of the vectors of a vector index, or null for other indexes.
+	 */
+	public Integer getVectorDimensions() {
+
+		return vectorDimensions;
+	}
+
+	/**
+	 * The similarity function of a vector index ("cosine" or "euclidean"), or null for other indexes.
+	 */
+	public String getVectorSimilarity() {
+
+		return vectorSimilarity;
 	}
 
 	public String getType() {

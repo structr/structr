@@ -46,10 +46,33 @@ public class StructrNumberArrayProperty extends StructrPropertyDefinition implem
 	private boolean exclusiveMaximum = false;
 	private Double minimum             = null;
 	private Double maximum             = null;
+	private Integer vectorDimensions   = null;
+	private String vectorSimilarity    = null;
 
 	public StructrNumberArrayProperty(final StructrTypeDefinition parent, final String name) {
 
 		super(parent, name);
+	}
+
+	@Override
+	public JsonDoubleArrayProperty setVectorIndex(final int dimensions, final String similarity) {
+
+		this.vectorDimensions = dimensions;
+		this.vectorSimilarity = similarity;
+
+		return this;
+	}
+
+	@Override
+	public Integer getVectorDimensions() {
+
+		return vectorDimensions;
+	}
+
+	@Override
+	public String getVectorSimilarity() {
+
+		return vectorSimilarity;
 	}
 
 	@Override
@@ -151,6 +174,12 @@ public class StructrNumberArrayProperty extends StructrPropertyDefinition implem
 			items.put(JsonSchema.KEY_MAXIMUM, maximum);
 		}
 
+		if (vectorDimensions != null) {
+
+			map.put(JsonSchema.KEY_VECTOR_DIMENSIONS, vectorDimensions);
+			map.put(JsonSchema.KEY_VECTOR_SIMILARITY, vectorSimilarity != null ? vectorSimilarity : "cosine");
+		}
+
 		return map;
 	}
 
@@ -158,6 +187,12 @@ public class StructrNumberArrayProperty extends StructrPropertyDefinition implem
 	void deserialize(final Map<String, Object> source) {
 
 		super.deserialize(source);
+
+		if (source.get(JsonSchema.KEY_VECTOR_DIMENSIONS) instanceof Number dimensions) {
+
+			this.vectorDimensions = dimensions.intValue();
+			this.vectorSimilarity = source.get(JsonSchema.KEY_VECTOR_SIMILARITY) instanceof String similarity ? similarity : "cosine";
+		}
 
 		final Object _items = source.get(JsonSchema.KEY_ITEMS);
 		if (_items != null && _items instanceof Map) {
@@ -195,6 +230,12 @@ public class StructrNumberArrayProperty extends StructrPropertyDefinition implem
 
 		super.deserialize(schemaNodes, property);
 
+		if (property.getVectorDimensions() != null) {
+
+			this.vectorDimensions = property.getVectorDimensions();
+			this.vectorSimilarity = property.getVectorSimilarity();
+		}
+
 		final DoublePropertyGenerator doublePropertyParser = property.getDoublePropertyParser();
 		if (doublePropertyParser != null) {
 
@@ -223,6 +264,8 @@ public class StructrNumberArrayProperty extends StructrPropertyDefinition implem
 		final PropertyMap properties  = new PropertyMap();
 
 		properties.put(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), Type.DoubleArray.name());
+		properties.put(traits.key(SchemaPropertyTraitDefinition.VECTOR_DIMENSIONS_PROPERTY), vectorDimensions);
+		properties.put(traits.key(SchemaPropertyTraitDefinition.VECTOR_SIMILARITY_PROPERTY), vectorDimensions != null ? vectorSimilarity : null);
 
 		if (minimum != null && maximum != null) {
 

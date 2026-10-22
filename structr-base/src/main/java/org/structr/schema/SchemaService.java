@@ -22,8 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseFeature;
 import org.structr.api.DatabaseService;
 import org.structr.api.Predicate;
+import org.structr.api.Transaction;
 import org.structr.api.index.NewIndexConfig;
 import org.structr.api.service.*;
 import org.structr.common.error.ErrorBuffer;
@@ -372,6 +374,68 @@ public class SchemaService implements Service {
 		}
 	}
 
+	/**
+	 * Adds the vector index of a property, if its size is known and the database has vector indexes.
+	 * The size is asked for here, every time the indexes are updated, because it can depend on data,
+	 * e.g. on the embedding model a module is configured with.
+	 */
+	private static void addVectorIndexConfig(final DatabaseService graphDb, final Map<String, NewIndexConfig> schemaIndexConfig, final String typeName, final PropertyKey key, final boolean vectorIndexes) {
+
+		final String identifier = typeName + "_" + key.dbName() + "_vector";
+		Integer dimensions;
+
+		try {
+
+			dimensions = key.vectorDimensions();
+
+		} catch (Throwable t) {
+
+			// keep the index that exists, an index without a configuration would be dropped
+			dimensions = existingVectorDimensions(graphDb, identifier);
+
+			logger.warn("Unable to determine the vector size of {}.{}, its vector index is left as it is: {}", typeName, key.jsonName(), t.getMessage());
+		}
+
+		if (dimensions == null) {
+
+			return;
+		}
+
+		if (!vectorIndexes) {
+
+			logger.warn("{}.{} is declared vector-indexed, but this database has no vector indexes (Neo4j 5.13 or later is needed).", typeName, key.jsonName());
+
+			return;
+		}
+
+		schemaIndexConfig.put(identifier, NewIndexConfig.vector(typeName, key.dbName(), dimensions, key.vectorSimilarity()));
+	}
+
+	private static Integer existingVectorDimensions(final DatabaseService graphDb, final String identifier) {
+
+		try (final Transaction tx = graphDb.beginTx()) {
+
+			final Object dimensions = graphDb.getIndexInfo(identifier).get("dimensions");
+
+			tx.success();
+
+			return dimensions instanceof Number number ? number.intValue() : null;
+
+		} catch (Throwable t) {
+
+			return null;
+		}
+	}
+
+	/**
+	 * Updates the indexes of the current schema in the background, e.g. after the size of a vector index
+	 * became known. The same update runs after every schema change.
+	 */
+	public static void triggerIndexUpdate() {
+
+		updateIndexConfiguration(TraitsManager.getRootInstance(), Map.of());
+	}
+
 	private static void updateIndexConfiguration(final TraitsInstance traitsInstance, final Map<String, Map<String, PropertyKey>> removedTypes) {
 
 		if (Services.overrideIndexManagement()) {
@@ -406,6 +470,7 @@ public class SchemaService implements Service {
 
 				final Set<String> whitelist   = new LinkedHashSet<>(Set.of(StructrTraits.GRAPH_OBJECT, StructrTraits.NODE_INTERFACE));
 				final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
+				final boolean vectorIndexes   = graphDb.supportsFeature(DatabaseFeature.VectorIndexes);
 				final Map<String, NewIndexConfig> schemaIndexConfig  = new LinkedHashMap<>();
 
 				for (final String type : traitsInstance.getAllTypes()) {
@@ -454,6 +519,11 @@ public class SchemaService implements Service {
 								if (key.isFulltextIndexed()) {
 
 									addFulltextIndexConfig(schemaIndexConfig, typeName, key, true);
+								}
+
+								if (key.isVectorIndexed()) {
+
+									addVectorIndexConfig(graphDb, schemaIndexConfig, typeName, key, vectorIndexes);
 								}
 							}
 						}

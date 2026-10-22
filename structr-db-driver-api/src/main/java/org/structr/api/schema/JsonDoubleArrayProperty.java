@@ -23,4 +23,14 @@ package org.structr.api.schema;
  *
  */
 public interface JsonDoubleArrayProperty extends JsonDoubleProperty {
+
+	/**
+	 * Adds a vector index for vectors of the given size, for nearest-neighbour search.
+	 *
+	 * @param similarity "cosine" or "euclidean"
+	 */
+	JsonDoubleArrayProperty setVectorIndex(final int dimensions, final String similarity);
+
+	Integer getVectorDimensions();
+	String getVectorSimilarity();
 }
