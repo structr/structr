@@ -37,9 +37,13 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.SuperUserAuthenticator;
 import org.structr.core.graph.FlushCachesCommand;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.attribute.Name;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsManager;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaService;
@@ -329,6 +333,39 @@ public abstract class StructrRestTestBase {
 		}
 
 		return nodes;
+	}
+
+	/**
+	 * Creates a TestFour whose manyToManyTestOnes are TestOne objects named name1, name2, ... with the given anInt values,
+	 * for tests of the collection endpoint /TestFour/{uuid}/manyToManyTestOnes, and returns the UUID of the TestFour.
+	 */
+	protected String createTestFourWithTestOnes(final int... anInts) {
+
+		try (final Tx tx = app.tx()) {
+
+			final PropertyKey<Integer> anIntKey = Traits.of("TestOne").key("anInt");
+			final List<NodeInterface> testOnes  = new LinkedList<>();
+
+			for (int i = 0; i < anInts.length; i++) {
+
+				testOnes.add(app.create("TestOne", new Name("name" + (i + 1)), new NodeAttribute<>(anIntKey, anInts[i])));
+			}
+
+			final NodeInterface testFour = app.create("TestFour", new Name("four"));
+
+			testFour.setProperty(Traits.of("TestFour").key("manyToManyTestOnes"), testOnes);
+
+			tx.success();
+
+			return testFour.getUuid();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+
+			return null;
+		}
 	}
 
 	protected String createEntity(final String resource, final String... body) {

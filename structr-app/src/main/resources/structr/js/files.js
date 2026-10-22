@@ -256,7 +256,7 @@ let _Files = {
 			let fileIconHTML = _Icons.getSvgIcon(fileIcon, iconSize, iconSize);
 			let ownerString  = (node.owner ? (node.owner.name ? node.owner.name : '[unnamed]') : '');
 
-			container.querySelector('[data-key=path]')?.setAttribute('href', node.path);
+			container.querySelector('[data-key=path]')?.setAttribute('href', _Helpers.encodePathForURL(node.path));
 			container.querySelector('[data-key=name]')?.replaceChildren(name);
 			container.querySelector('[data-key=name]')?.setAttribute('title', name);
 			container.querySelector('[data-key=lastModifiedDate]')?.replaceChildren(modifiedDate);
@@ -410,8 +410,7 @@ let _Files = {
 
 						// fake the a element so we do not need to look up the server
 						let a = document.createElement('a');
-						let possiblyUpdatedEntity = StructrModel.obj(entity.id);
-						a.href = possiblyUpdatedEntity.path;
+						a.href = _Helpers.encodePathForURL(entity.path);
 						await navigator.clipboard.writeText(a.href);
 					}
 				});
@@ -422,8 +421,7 @@ let _Files = {
 					clickHandler: () => {
 
 						let a = document.createElement('a');
-						let possiblyUpdatedEntity = StructrModel.obj(entity.id);
-						a.href = `${possiblyUpdatedEntity.path}?filename=${possiblyUpdatedEntity.name}`;
+						a.href = `${_Helpers.encodePathForURL(entity.path)}?${Structr.getRequestParameterName('filename')}=${encodeURIComponent(entity.name)}`;
 						a.click();
 					}
 				});
@@ -920,8 +918,12 @@ let _Files = {
 			if (id != _Files.rootFolderName) {
 
 				Command.getPromise(id, null).then(obj => {
+
+					// the context menu keeps a reference to the folder, so it must be the model object, which receives later updates
+					StructrModel.createOrUpdateFromData(obj, null, false);
+
 					let ctxMenuContainer = _Files.getFolderContentsElement().querySelector('.context-menu-container');
-					_Entities.appendContextMenuIcon(ctxMenuContainer, obj, true);
+					_Entities.appendContextMenuIcon(ctxMenuContainer, StructrModel.obj(obj.id), true);
 				});
 			}
 
@@ -1006,6 +1008,9 @@ let _Files = {
 
 		StructrModel.createOrUpdateFromData(d, null, false);
 
+		// the row and its context menu keep a reference to the object, so it must be the model object, which receives later updates
+		d = StructrModel.obj(d.id);
+
 		// Skip rendering if there's nothing to append to
 		if (!container) return;
 
@@ -1017,7 +1022,7 @@ let _Files = {
 		let listModeActive        = _Files.isViewModeActive('list');
 		let tilesModeActive       = _Files.isViewModeActive('tiles');
 		let imageModeActive       = _Files.isViewModeActive('img');
-		let filePath              = d.path;
+		let filePath              = _Helpers.encodePathForURL(d.path);
 		let iconSize              = (tilesModeActive || imageModeActive) ? 40 : 16;
 		let fileIcon              = (d.isFolder ? _Icons.getFolderIconSVG(d) : _Icons.getFileIconSVG(d));
 		let fileIconHTML          = _Icons.getSvgIcon(fileIcon, iconSize, iconSize, 'cursor-pointer');
@@ -1111,7 +1116,7 @@ let _Files = {
 				} else {
 
 					let thumbnailProperty = (tilesModeActive ? 'tnSmall' : 'tnMid');
-					let displayImagePath  = (d.isThumbnail) ? filePath : (d[thumbnailProperty]?.path ?? filePath);
+					let displayImagePath  = (d.isThumbnail) ? filePath : (_Helpers.encodePathForURL(d[thumbnailProperty]?.path) ?? filePath);
 					let canShowImage      = d.isImage && !d.name.includes('.svg');
 					let iconOrThumbnail   = canShowImage ? `<img class="tn" src="${displayImagePath}" draggable="false">` : fileIconHTML;
 
@@ -1460,7 +1465,7 @@ let _Files = {
 
 		let { dialogText } = _Dialogs.custom.openDialog(image.name);
 
-		let imagePath = image.path;
+		let imagePath = _Helpers.encodePathForURL(image.path);
 
 		dialogText.insertAdjacentHTML('beforeend', `
 			<div class="image-editor-menubar">

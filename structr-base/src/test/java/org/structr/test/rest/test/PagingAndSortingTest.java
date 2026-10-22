@@ -430,6 +430,31 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 	}
 
 	@Test
+	public void testSortKeyOfRelatedCollection() {
+
+		final String uuid = createTestFourWithTestOnes(2, 3, 1);
+
+		// the sort key belongs to the type of the collection, which TestFour itself does not have
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result_count",   equalTo(3))
+			.body("result[0].name", equalTo("name3"))
+			.body("result[1].name", equalTo("name1"))
+			.body("result[2].name", equalTo("name2"))
+			.when().get("/TestFour/" + uuid + "/manyToManyTestOnes?_sort=anInt");
+
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result[0].name", equalTo("name2"))
+			.body("result[1].name", equalTo("name1"))
+			.body("result[2].name", equalTo("name3"))
+			.when().get("/TestFour/" + uuid + "/manyToManyTestOnes?_sort=anInt&_order=desc");
+
+		// an unknown key is reported for the type of the collection
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(422)
+			.body("message", equalTo("Unknown sort key 'unknownKey' for type TestOne"))
+			.when().get("/TestFour/" + uuid + "/manyToManyTestOnes?_sort=unknownKey");
+	}
+
+	@Test
 	public void testLegacyModeRequestParameterNames() {
 
 		try {

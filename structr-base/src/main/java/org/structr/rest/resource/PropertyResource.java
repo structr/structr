@@ -95,8 +95,8 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 
 			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
 
-			// use search context from type resource
-			collectSearchAttributes(securityContext, typeName, query.and());
+			// the search keys belong to the type of the related objects the predicate is applied to
+			collectSearchAttributes(securityContext, getTypeName(securityContext), query.and());
 
 			final Predicate<GraphObject> predicate = query.toPredicate();
 			final GraphObject sourceEntity = getEntity(securityContext, typeName, uuid);
@@ -317,9 +317,11 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
 
-			if (typeName == null && propertyKey != null) {
+			// a relationship property addresses the related objects, so this endpoint has their type
+			final String relatedType = propertyKey.relatedType();
+			if (relatedType != null) {
 
-				return propertyKey.relatedType();
+				return relatedType;
 			}
 
 			return typeName;

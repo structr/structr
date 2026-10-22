@@ -265,11 +265,11 @@ let _Icons = {
 	getImageOrIcon: (image) => {
 
 		if (image.contentType && image.contentType.startsWith('image/svg')) {
-			return `<img class="icon" src="${image.path}">`;
+			return `<img class="icon" src="${_Helpers.encodePathForURL(image.path)}">`;
 		}
 
 		if (image.tnSmall) {
-			return `<img class="icon" src="${image.tnSmall.path}">`;
+			return `<img class="icon" src="${_Helpers.encodePathForURL(image.tnSmall.path)}">`;
 		}
 
 		return _Icons.getSvgIcon(_Icons.iconFileTypeImage);
