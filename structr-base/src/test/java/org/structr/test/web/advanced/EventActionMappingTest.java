@@ -30,6 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -135,6 +136,99 @@ public class EventActionMappingTest extends StructrUiTest {
 			assertEquals("Wrong name on the created object", "test1", created.getName());
 			assertFalse("currentObjectId is element configuration and must not be stored on the created object",
 				created.getNode().hasProperty(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CURRENTOBJECTID));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testAttributesRenderedByTheServerAreNotStoredOnTheCreatedObject() {
+
+		// the browser sends back every data-* attribute of the trigger, including the ones the server renders for its
+		// own use: a repeater element carries data-repeater-data-object-id, and every built-in data-* property is
+		// rendered as an attribute of the same name, so each of them has to be stripped like the action parameters
+		final Set<String> builtInDataAttributes = new LinkedHashSet<>();
+		String buttonUuid                       = null;
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			schema.addType("Test");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			app.create("Test", "existing");
+
+			final Page page1        = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div       = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn    = page1.createElement("button");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+			div.appendChild(btn);
+
+			buttonUuid = btn.getUuid();
+
+			btn.setProperty(btn.getTraits().key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Test')");
+			btn.setProperty(btn.getTraits().key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "item");
+
+			// data-structr-id is rendered by the server itself, a second attribute of that name would be dropped by the parser
+			for (final PropertyKey key : btn.getTraits().getAllPropertyKeys()) {
+
+				final String name = key.jsonName();
+
+				if (name.startsWith("data-") && !DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY.equals(name)) {
+
+					btn.setProperty(key, key instanceof BooleanProperty ? true : "value");
+					builtInDataAttributes.add(name);
+				}
+			}
+
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		final Map<String, Object> payload = BrowserEventPayload.of(fetchPageHtml("/html/page1"), buttonUuid);
+
+		assertTrue("Repeater element does not carry the ID of its data object", payload.containsKey(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_REPEATERDATAOBJECTID));
+		assertTrue("Built-in data-* property not rendered as an attribute", payload.containsKey(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRRELOADTARGET));
+
+		postEvent(buttonUuid, Map.of("name", "test1"), 200);
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface created = app.nodeQuery("Test").name("test1").getFirst();
+			final Set<String> stored    = new LinkedHashSet<>();
+
+			assertNotNull("Create action did not create an object", created);
+
+			for (final String key : payload.keySet()) {
+
+				if (created.getNode().hasProperty(key)) {
+
+					stored.add(key);
+				}
+			}
+
+			assertTrue("Rendered by the server for the element and stored on the created object: " + stored
+				+ " (built-in data-* properties: " + builtInDataAttributes + "). Add them to DOMElement.EVENT_ACTION_MAPPING_INTERNAL_KEYS.", stored.isEmpty());
 
 			tx.success();
 

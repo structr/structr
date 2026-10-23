@@ -2237,7 +2237,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private void removeInternalDataBindingKeys(final Map<String, Object> parameters) {
 
 		// an explicit set, not a structr* prefix rule: a property a developer happens to name structrSomething
-		// is theirs, and must not be swallowed silently. DOMElementTest keeps the set in step with the constants
+		// is theirs, and must not be swallowed silently. EventActionMappingTest keeps the set in step with the constants
 		parameters.keySet().removeAll(DOMElement.EVENT_ACTION_MAPPING_INTERNAL_KEYS);
 	}
 

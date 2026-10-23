@@ -78,8 +78,18 @@ public interface DOMElement extends DOMNode  {
 	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFAILURENOTIFICATIONSEVENT    = "structrFailureNotificationsEvent";
 	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFAILURENOTIFICATIONSDIALOG   = "structrFailureNotificationsCustomDialogElement";
 
+	// rendered on the element by the server for its own use, so the browser sends them back with every event
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRREQUESTKEYS                  = "structrRequestKeys";
+	String EVENT_ACTION_MAPPING_PARAMETER_REPEATERDATAOBJECTID                = "repeaterDataObjectId";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRRENDERINGMODE                = "structrRenderingMode";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRRELOADTARGET                 = "structrReloadTarget";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRINSERT                       = "structrInsert";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFROMWIDGET                   = "structrFromWidget";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTREECHILDREN                  = "structrTreeChildren";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRHASH                         = "structrHash";
+
 	// every parameter above is element configuration, never data: the event handler strips exactly this set
-	// before the rest becomes properties, and SchemaTest-style reflection keeps the set in step with the list
+	// before the rest becomes properties, and EventActionMappingTest keeps the set in step with the list
 	Set<String> EVENT_ACTION_MAPPING_INTERNAL_KEYS = Set.of(
 		EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT,
 		EVENT_ACTION_MAPPING_PARAMETER_STRUCTRID,
@@ -119,7 +129,15 @@ public interface DOMElement extends DOMNode  {
 		EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFAILURENOTIFICATIONSPARTIAL,
 		EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFAILURENOTIFICATIONSEVENT,
 		EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFAILURENOTIFICATIONSDIALOG,
-		EVENT_ACTION_MAPPING_PARAMETER_CURRENTOBJECTID
+		EVENT_ACTION_MAPPING_PARAMETER_CURRENTOBJECTID,
+		EVENT_ACTION_MAPPING_PARAMETER_STRUCTRREQUESTKEYS,
+		EVENT_ACTION_MAPPING_PARAMETER_REPEATERDATAOBJECTID,
+		EVENT_ACTION_MAPPING_PARAMETER_STRUCTRRENDERINGMODE,
+		EVENT_ACTION_MAPPING_PARAMETER_STRUCTRRELOADTARGET,
+		EVENT_ACTION_MAPPING_PARAMETER_STRUCTRINSERT,
+		EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFROMWIDGET,
+		EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTREECHILDREN,
+		EVENT_ACTION_MAPPING_PARAMETER_STRUCTRHASH
 	);
 	int HtmlPrefixLength = PropertyView.Html.length();
 
