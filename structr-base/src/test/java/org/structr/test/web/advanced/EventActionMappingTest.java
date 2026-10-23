@@ -164,6 +164,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// the new type is only registered when the schema transaction commits
+		try (final Tx tx = app.tx()) {
+
 			app.create("Test", "existing");
 
 			final Page page1        = Page.createSimplePage(securityContext, "page1");

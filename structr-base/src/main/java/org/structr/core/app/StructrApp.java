@@ -82,7 +82,13 @@ public class StructrApp implements App {
 	@Override
 	public NodeInterface create(final String type, final String name) throws FrameworkException {
 
-		return create(type, new NodeAttribute(Traits.of(type).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name));
+		final Traits traits = Traits.of(type);
+		if (traits == null) {
+
+			throw new FrameworkException(422, "Unknown type " + type + ", cannot create a node of this type.");
+		}
+
+		return create(type, new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name));
 	}
 
 	@Override

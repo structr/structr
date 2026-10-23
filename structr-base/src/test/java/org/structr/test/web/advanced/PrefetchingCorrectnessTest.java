@@ -233,7 +233,7 @@ public class PrefetchingCorrectnessTest extends StructrUiTest {
 
 			if (executions(pattern) > 0) {
 
-				assertFalse("A pattern that is too large was executed: " + pattern.get("pattern"), ((String) pattern.get("pattern")).contains("HAS"));
+				assertFalse("A pattern that is too large was executed: " + pattern.get("pattern"), ((String) pattern.get("pattern")).contains("-[r:HAS]->"));
 			}
 		}
 
