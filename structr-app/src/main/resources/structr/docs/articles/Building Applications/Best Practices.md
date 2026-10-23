@@ -12,10 +12,16 @@ Security requires attention at multiple levels. A system is only as strong as it
 All production deployments should use HTTPS. Structr integrates with Let's Encrypt for free SSL certificates:
 
 1. Configure `letsencrypt.domains` in `structr.conf` with your domain
-2. Request the certificate with the `letsencrypt` maintenance command, for example via `POST /structr/rest/maintenance/letsencrypt`
+2. Request the certificate with the **Retrieve certificate** button in the Letsencrypt section of the Configuration Interface, or with the `letsencrypt` maintenance command, for example via `POST /structr/rest/maintenance/letsencrypt`
 3. Enable HTTPS: `application.https.enabled = true`
 4. Configure ports: `application.http.port = 80` and `application.https.port = 443`
 5. Force HTTPS: `httpservice.force.https = true`
+
+### Protect the Superuser and the Session Cookie
+
+The superuser can change every setting of the instance. Switch on `superuser.twofactor.enabled` so that its login also needs a code from an authenticator app, and use admin users, not the superuser, for scripts and integrations. Without a second factor, 3 failed superuser logins within 15 minutes block the superuser login for 15 minutes; see Two Factor Authentication.
+
+Keep `httpservice.cookies.httponly` on, which is the default, so that a cross-site scripting flaw cannot read the session cookie. Turn it off only if your own frontend code reads `JSESSIONID`.
 
 ### Automate Certificate Renewal
 

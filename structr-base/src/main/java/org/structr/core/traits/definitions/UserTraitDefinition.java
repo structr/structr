@@ -113,7 +113,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 		// an application with its own invitation flow sets it with setPrivileged().
 		final Property<String> confirmationKeyProperty            = new StringProperty(CONFIRMATION_KEY_PROPERTY).indexed().readOnly().description("Temporary token for email verification during self-registration. Set automatically when a user registers and cleared after successful confirmation.");
 		final Property<String> localStorageProperty               = new StringProperty(LOCAL_STORAGE_PROPERTY);
-		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty(SKIP_SECURITY_RELATIONSHIPS_PROPERTY).defaultValue(false).indexed().description("When true, excludes this user from relationship-based permission checks. Useful for system users or service accounts that should bypass normal access control evaluation.");
+		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty(SKIP_SECURITY_RELATIONSHIPS_PROPERTY).defaultValue(false).readOnly().indexed().description("If enabled, no OWNS and SECURITY relationships are created for nodes created by this user. For this to work for non-admins this requires access rights to be set up in application code or the schema.");
 		final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty(IS_USER_PROPERTY, true);
 
 		return Set.of(homeDirectoryProperty, workingDirectoryProperty, imgProperty, confirmationKeyProperty, localStorageProperty, skipSecurityRelationshipsProperty, isUserProperty);
@@ -191,7 +191,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 			final PropertyKey<Boolean> skipSecurityRelationships = Traits.of(StructrTraits.USER).key(SKIP_SECURITY_RELATIONSHIPS_PROPERTY);
 			if (user.getProperty(skipSecurityRelationships).equals(Boolean.TRUE) && !user.isAdmin()) {
 
-				TransactionCommand.simpleBroadcastWarning("Info", "This user has the '" + SKIP_SECURITY_RELATIONSHIPS_PROPERTY + "' flag set to true. This flag only works for admin accounts!", Predicate.only(securityContext.getSessionId()));
+				TransactionCommand.simpleBroadcastWarning("Info", "This non-admin user has the '" + SKIP_SECURITY_RELATIONSHIPS_PROPERTY + "' flag set to true. This requires the application to set up access rights on node creation.", Predicate.only(securityContext.getSessionId()));
 			}
 
 			if (user.getTwoFactorSecret() == null) {

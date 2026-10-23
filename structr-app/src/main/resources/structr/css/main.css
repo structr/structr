@@ -4915,6 +4915,12 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .break-word {
 	word-break: break-word;
 }
+.break-all {
+	word-break: break-all;
+}
+.table-fixed {
+	table-layout: fixed;
+}
 .align-baseline {
 	vertical-align: baseline;
 }
@@ -5044,6 +5050,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .grid-cols-\[auto_1fr\] {
 	grid-template-columns: auto 1fr;
 }
+.grid-cols-\[max-content_1fr\] {
+	grid-template-columns: max-content minmax(0, 1fr);
+}
 .overflow-hidden {
 	overflow: hidden;
 }
@@ -5089,8 +5098,17 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .max-w-120 {
 	max-width: 30rem;
 }
+.max-w-2xl {
+	max-width: 42rem;
+}
+.max-w-4xl {
+	max-width: 56rem;
+}
 .max-w-max {
 	max-width: max-content;
+}
+.min-w-0 {
+	min-width: 0;
 }
 .min-w-16 {
 	min-width: 4rem;

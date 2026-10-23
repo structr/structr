@@ -34,6 +34,7 @@ import org.eclipse.jetty.util.resource.Resource;
 import org.structr.core.Services;
 import org.structr.core.function.tokenizer.FactsTokenizer;
 import org.structr.core.function.tokenizer.Token;
+import org.structr.docs.Badges;
 import org.structr.docs.Documentation;
 import org.structr.docs.Formatter;
 import org.structr.docs.MarkdownLinkTargetBlankAttributeProvider;
@@ -181,7 +182,7 @@ public class DocumentationServlet extends HttpServlet {
 
 		final Parser parser         = Parser.builder(options).build();
 		final HtmlRenderer renderer = HtmlRenderer.builder(options).attributeProviderFactory(new MarkdownLinkTargetBlankAttributeProvider.Factory()).build();
-		final Document doc          = parser.parse(StringUtils.join(lines, "\n"));
+		final Document doc          = parser.parse(StringUtils.join(Badges.toHtml(lines), "\n"));
 		final Writer writer         = response.getWriter();
 
 		renderer.render(doc, writer);
@@ -198,7 +199,7 @@ public class DocumentationServlet extends HttpServlet {
 
 		final Parser parser         = Parser.builder(options).build();
 		final HtmlRenderer renderer = HtmlRenderer.builder(options).attributeProviderFactory(new MarkdownLinkTargetBlankAttributeProvider.Factory()).build();
-		final Document doc          = parser.parse(StringUtils.join(lines, "\n"));
+		final Document doc          = parser.parse(StringUtils.join(Badges.toHtml(lines), "\n"));
 		final Writer writer         = response.getWriter();
 
 		writer.write("<!DOCTYPE html>\n");

@@ -208,7 +208,7 @@ public class ExtractionFunctionsTest extends StructrUiTest {
 			${{
 			    [
 			        Object.keys($.documents).length,
-			        Object.keys($.documents).includes('searchExtractedContent'),
+			        Object.keys($.documents).includes('fulltextSearch'),
 			        typeof $.documents.splitContent,
 			        'countTokens' in $.documents,
 			        'noSuchFunction' in $.documents
@@ -242,8 +242,8 @@ public class ExtractionFunctionsTest extends StructrUiTest {
 
 		// without the Enterprise AI module, its functions in the documents namespace explain themselves
 		for (final String script : new String[] {
-			"${{ $.documents.searchContentSemantic('reset password'); }}",
-			"${documents.answerFromContent('Which port?', null)}",
+			"${{ $.documents.vectorSearch('reset password'); }}",
+			"${documents.answer('Which port?', null)}",
 			"${{ $.documents.embeddingStatus(); }}"
 		}) {
 
@@ -251,7 +251,7 @@ public class ExtractionFunctionsTest extends StructrUiTest {
 
 			assertEquals(script, 422, error.getStatus());
 			assertTrue(error.getMessage(), error.getMessage().contains("needs Structr Enterprise"));
-			assertTrue(error.getMessage(), error.getMessage().contains("documents.searchExtractedContent()"));
+			assertTrue(error.getMessage(), error.getMessage().contains("documents.fulltextSearch()"));
 		}
 	}
 

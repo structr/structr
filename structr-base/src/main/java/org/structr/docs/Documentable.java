@@ -501,6 +501,14 @@ public interface Documentable {
 		return this.getClass().isAnnotationPresent(Experimental.class);
 	}
 
+	/**
+	 * Whether this needs Structr Enterprise, which the documentation shows with a badge, see Badges.
+	 */
+	default boolean isEnterprise() {
+
+		return false;
+	}
+
 	class ConceptReference {
 
 		public ConceptType type;

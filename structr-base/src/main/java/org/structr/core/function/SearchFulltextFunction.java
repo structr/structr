@@ -128,6 +128,9 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 			Query modifiers:
 
 			- `~` enables fuzzy matching for the preceding term, allowing similar words rather than exact equality.
+
+			This function searches the attributes of your own types. To search the text that content extraction stored for uploaded files, \
+			use `documents.fulltextSearch()` instead. The article *Search & Retrieval* (Building Applications) explains which search function to use when.
 			""";
 	}
 

@@ -66,8 +66,8 @@ public final class EnterpriseDataCheck {
 
 				logger.warn("{} chunks of extracted content carry embeddings created by Structr Enterprise (AI module). They are kept, together with "
 					+ "their vector index, and are used again after a return to Structr Enterprise. Semantic search, automatic embedding and the "
-					+ "documents.searchContentSemantic() and documents.answerFromContent() functions need Structr Enterprise; keyword search with "
-					+ "documents.searchExtractedContent() works as before. See the documentation: APIs & Integrations > Content Extraction.", embedded);
+					+ "documents.vectorSearch() and documents.answer() functions need Structr Enterprise; keyword search with "
+					+ "documents.fulltextSearch() works as before. See the documentation: APIs & Integrations > Content Extraction.", embedded);
 			}
 
 		} catch (Throwable t) {

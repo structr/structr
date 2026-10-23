@@ -24,7 +24,7 @@
 		font-size: 8pt;
 	}
 	.article {
-		padding: 0 5% 1rem 5% !important;
+		padding: 0 5% 4rem 5% !important;
 		margin: 0;
 	}
 }
@@ -132,8 +132,97 @@ html.documentation {
 
 .article {
 	background-color: white;
-	padding: 0 10% 2rem 10%;
-	height: 100%;
+	padding: 0 10% 6rem 10%;
+	min-height: 100%;
+}
+
+/* A passage marked in the markdown, e.g. a section or block of a Structr Enterprise feature: a line along
+   the passage and the badge in the margin next to its start. The passage is shifted left by its padding
+   and line, so its text stays aligned with the rest of the article. */
+.article .badge-passage {
+	position: relative;
+	margin: 1rem 0 1rem calc(-1rem - 3px);
+	padding: .25rem 0 .25rem 1rem;
+	border-left: 3px solid var(--badge-color);
+}
+
+.article .badge-passage::before {
+	position: absolute;
+	top: 0;
+	right: calc(100% + .5rem);
+	padding: .2rem .55rem;
+	border: 1px solid var(--badge-color);
+	border-radius: 1rem;
+	color: var(--badge-color);
+	background-color: var(--badge-background);
+	font-size: .7rem;
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: .02em;
+	white-space: nowrap;
+}
+
+.article .badge-enterprise {
+	--badge-color: var(--icon-color-dark-blue, #5555cc);
+	--badge-background: #f0f0fb;
+}
+
+.article .badge-enterprise::before {
+	content: 'Enterprise';
+}
+
+/* the badge inline, e.g. next to the name of a function in a reference table, on the line of the name */
+.article .badge-line {
+	white-space: nowrap;
+}
+
+.article .badge-inline::before {
+	display: inline-block;
+	margin-left: .5rem;
+	padding: .1rem .45rem;
+	border: 1px solid var(--badge-color);
+	border-radius: 1rem;
+	color: var(--badge-color);
+	background-color: var(--badge-background);
+	font-size: .65rem;
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: .02em;
+	white-space: nowrap;
+	vertical-align: middle;
+}
+
+/* a heading that starts a passage would push its text below the badge */
+.article .badge-passage > :first-child {
+	margin-top: 0;
+}
+
+.article .badge-passage > :last-child {
+	margin-bottom: 0;
+}
+
+/* in a table, e.g. the details of a function in a reference table, there is no margin for the badge: it
+   goes above the passage */
+.article td .badge-passage {
+	margin-left: 0;
+	padding-top: 1.9rem;
+}
+
+.article td .badge-passage::before {
+	right: auto;
+	left: 1rem;
+}
+
+/* too little margin for the badge: it goes above the passage */
+@media (max-width: 1000px) {
+	.article .badge-passage {
+		margin-left: 0;
+		padding-top: 1.9rem;
+	}
+	.article .badge-passage::before {
+		right: auto;
+		left: 1rem;
+	}
 }
 
 #docs-area iframe {

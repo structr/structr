@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class SearchExtractedContentFunction extends ContentExtractionFunction {
+public class DocumentsFulltextSearchFunction extends ContentExtractionFunction {
 
 	private static final String FILES          = "files";
 	private static final String FOLDER         = "folder";
@@ -53,7 +53,7 @@ public class SearchExtractedContentFunction extends ContentExtractionFunction {
 	@Override
 	public String getName() {
 
-		return NAMESPACE + ".searchExtractedContent";
+		return NAMESPACE + ".fulltextSearch";
 	}
 
 	@Override
@@ -81,27 +81,31 @@ public class SearchExtractedContentFunction extends ContentExtractionFunction {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(Usage.structrScript("Usage: ${ documents.searchExtractedContent(query [, options ]) }"), Usage.javaScript("Usage: ${{ $.documents.searchExtractedContent(query [, options ]); }}"));
+		return List.of(Usage.structrScript("Usage: ${ documents.fulltextSearch(query [, options ]) }"), Usage.javaScript("Usage: ${{ $.documents.fulltextSearch(query [, options ]); }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
 
-		return "Keyword search over the stored chunks of all files.";
+		return "Searches the text extracted from files by words (fulltext search).";
 	}
 
 	@Override
 	public String getLongDescription() {
 
 		return """
-			Searches the text of all `ExtractedContentNode`s through the fulltext index and returns the best hits as objects with `node`, `score`, \
+			Searches only the text that content extraction stored for files (the chunks in `ExtractedContentNode`s), not the attributes of \
+			your own types; for those, use `searchFulltext()` with the fulltext index of an attribute.
+
+			Searches the chunks through their fulltext index and returns the best hits as objects with `node`, `score`, \
 			`text`, `file`, `position`, `pageStart`, `pageEnd`, `headingPath`, `embeddedPath` (the archive entry or attachment the chunk is in), \
 			and with `contextChunks` also `context`, the hit together with its neighbouring chunks in the same embedded document. The index \
 			covers `embeddedPath` as well, so a chunk is also found by the name of the archive entry or attachment it is in. By default the query uses Lucene syntax: words, "quoted phrases", AND/OR, wildcards. With `mode: 'simple'` \
 			it is read like the input of a search box instead: every word must occur, as a prefix or with small typos, ignoring case.
 
-			Only chunks of files the current user can read are found. Keyword search complements the vector search of the AI module, which \
-			finds text by meaning rather than by words.""";
+			Only chunks of files the current user can read are found. To find text by meaning rather than by words, use \
+			`documents.vectorSearch()` (Structr Enterprise). The article *Search & Retrieval* (Building Applications) explains which search function \
+			to use when.""";
 	}
 
 	@Override
@@ -121,7 +125,7 @@ public class SearchExtractedContentFunction extends ContentExtractionFunction {
 			${{
 			    let manuals = $.first($.find('Folder', { name: 'manuals' }));
 
-			    return $.documents.searchExtractedContent('"reset password"', { folder: manuals, limit: 5, contextChunks: 1 })
+			    return $.documents.fulltextSearch('"reset password"', { folder: manuals, limit: 5, contextChunks: 1 })
 			        .map(hit => hit.file.name + ', page ' + hit.pageStart + ': ' + hit.context);
 			}}
 			""", "Search manuals and show where the hits are"));

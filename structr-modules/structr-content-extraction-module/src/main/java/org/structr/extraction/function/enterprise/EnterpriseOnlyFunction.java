@@ -50,13 +50,19 @@ public class EnterpriseOnlyFunction extends ContentExtractionFunction {
 	public static List<EnterpriseOnlyFunction> all() {
 
 		return List.of(
-			new EnterpriseOnlyFunction("searchContentSemantic", "query [, options ]",        "Searches extracted content by meaning (semantic search), optionally together with the words."),
-			new EnterpriseOnlyFunction("answerFromContent",     "question, options",          "Answers a question from extracted content with a chat model, with citations."),
+			new EnterpriseOnlyFunction("vectorSearch",          "query [, options ]",         "Searches extracted content by meaning (semantic search), optionally together with the words."),
+			new EnterpriseOnlyFunction("answer",                "question, options",          "Answers a question from extracted content with a chat model, with citations."),
 			new EnterpriseOnlyFunction("embedContent",          "[ fileOrFolderOrList [, options ] ]", "Embeds the chunks of extracted files."),
 			new EnterpriseOnlyFunction("linkEmbeddingProvider", "folderOrFile, config, model [, options ]", "Sets the provider and model that embed the extracted content of a folder's files."),
 			new EnterpriseOnlyFunction("embeddingStatus",       "",                           "Returns the state of the embeddings of extracted content."),
 			new EnterpriseOnlyFunction("resetEmbeddings",       "[ options ]",                "Removes the embeddings of extracted content and embeds it again.")
 		);
+	}
+
+	@Override
+	public boolean isEnterprise() {
+
+		return true;
 	}
 
 	@Override
@@ -75,7 +81,7 @@ public class EnterpriseOnlyFunction extends ContentExtractionFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		throw new FrameworkException(422, getName() + "() needs Structr Enterprise with the AI module. In the Community Edition, extracted content is searched by words with "
-			+ NAMESPACE + ".searchExtractedContent(). See the documentation: APIs & Integrations > Content Extraction > Embeddings and Semantic Search.");
+			+ NAMESPACE + ".fulltextSearch(). See the documentation: APIs & Integrations > Content Extraction > Embeddings and Semantic Search.");
 	}
 
 	@Override

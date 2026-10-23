@@ -27,6 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NumberFormatToken;
 import org.structr.common.error.PropertyInputParsingException;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
@@ -61,6 +62,17 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 		this.componentType = componentType;
 		this.valueOfMethod = methodOrNull();
+	}
+
+	@Override
+	public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T[] value) throws FrameworkException {
+
+		if (vectorChecked && value != null && value.length > 0) {
+
+			checkVector(value);
+		}
+
+		return super.setProperty(securityContext, obj, value);
 	}
 
 	@Override
@@ -497,6 +509,49 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		}
 
 		return (T)source;
+	}
+
+	/**
+	 * Refuses a vector the vector index would silently leave out: one of another size, one with values
+	 * that are not finite, or all zeros with cosine similarity (which has no direction).
+	 */
+	private void checkVector(final T[] value) throws FrameworkException {
+
+		final Integer dimensions = vectorDimensions();
+		if (dimensions == null) {
+
+			return;
+		}
+
+		final String type = declaringTrait != null ? declaringTrait.getLabel() : null;
+		final String name = (type != null ? type + "." : "") + jsonName();
+
+		if (value.length != dimensions) {
+
+			throw new FrameworkException(422, name + " has a vector index for vectors of " + dimensions + " values, got " + value.length + ". Set the Vector size in the schema to the size of the vectors your embedding model returns.",
+				new SemanticErrorToken(type, jsonName(), "vector_size_mismatch").withValue(value.length).withDetail(dimensions));
+		}
+
+		boolean allZero = true;
+
+		for (int i = 0; i < value.length; i++) {
+
+			final Object element = value[i];
+
+			if (!(element instanceof Number number) || !Double.isFinite(number.doubleValue())) {
+
+				throw new FrameworkException(422, name + " has a vector index, which leaves out vectors with values that are not finite numbers, like value " + i + ": " + element + ".",
+					new SemanticErrorToken(type, jsonName(), "vector_value_not_finite").withValue(String.valueOf(element)).withDetail(i));
+			}
+
+			allZero &= number.doubleValue() == 0.0;
+		}
+
+		if (allZero && "cosine".equals(vectorSimilarity())) {
+
+			throw new FrameworkException(422, name + " has a vector index with cosine similarity, which leaves out vectors of only zeros.",
+				new SemanticErrorToken(type, jsonName(), "vector_zero_with_cosine"));
+		}
 	}
 
 	private Method methodOrNull() {

@@ -136,8 +136,6 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 	@Override
 	public boolean shouldSkipSecurityRelationships() {
 
-		// fixme: this should be overridable
-
 		return wrappedObject.getProperty(traits.key(UserTraitDefinition.SKIP_SECURITY_RELATIONSHIPS_PROPERTY));
 	}
 
