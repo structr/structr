@@ -42,6 +42,7 @@ Because the credentials travel with every request:
 
 - **Use HTTPS.** Over plain HTTP the password is exposed on every call, not only at login. See SSL Configuration.
 - **Every request counts as a login attempt.** Structr blocks a user after `security.passwordpolicy.maxfailedattempts` failed attempts (default 4). A client that retries with wrong credentials locks the account within a few requests, so treat a 401 as a stop condition rather than something to retry automatically.
+- **Do not use the superuser.** The superuser credentials work in these headers, but they are meant for a request sent by hand. With `superuser.twofactor.enabled`, a superuser request also needs the current code in the `X-TwoFactor-Code` header, one request per code. Without a second factor, 3 wrong superuser passwords within 15 minutes block the superuser everywhere for 15 minutes, including the Configuration Interface. Use an admin user for scripts and integrations. See Two Factor Authentication.
 
 Prefer a dedicated service user that holds only the permissions its client needs, rather than an administrator account. Such a user can be revoked without affecting anyone else, and a misconfigured client then blocks only that account.
 

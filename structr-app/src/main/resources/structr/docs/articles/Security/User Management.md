@@ -237,6 +237,15 @@ The superuser account is not stored in the database. It exists only through the 
 
 > **Important:** During authentication, Structr first compares the login name and the password with the configured superuser credentials. Only when both match does it authenticate the request as the superuser. In every other case the normal user lookup continues, so a regular user account that has the same name as the superuser can still log in with its own password.
 
+#### Protecting the Superuser
+
+The superuser password guards the whole instance, so Structr protects it in two ways:
+
+- **Second factor:** with `superuser.twofactor.enabled`, the superuser also needs a code from an authenticator app. The Configuration Interface sets it up at the next login with a QR code. Superuser requests over HTTP then need the current code in the `X-TwoFactor-Code` header, and HTTP Basic authentication is refused for the superuser.
+- **Login block:** while the superuser has no active second factor, 3 failed attempts within 15 minutes block the superuser login for everyone, from every address and on every way in: the Configuration Interface, the `X-User` and `X-Password` headers and HTTP Basic authentication. This also applies to the right password. `configservlet.login.maxattempts` and `configservlet.login.lockout.seconds` adjust the block.
+
+Scripts and integrations should not use the superuser: give them an admin user instead. The details are in the section Superuser Login of the Configuration Interface in the Two Factor Authentication chapter.
+
 ## Authentication Methods
 
 Authentication determines who is making a request. Structr supports multiple authentication methods that you can use depending on your application's needs.
