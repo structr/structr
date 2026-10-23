@@ -4340,7 +4340,7 @@ let _Entities = {
 
 							<div class="mb-2 flex items-center">
 								<input type="checkbox" name="skipSecurityRelationships" id="skipSecurityRelationships">
-								<label for="skipSecurityRelationships" data-comment="If enabled, no OWNS and SECURITY relationships are created for nodes created by this user. Admin-only feature because admin users have access to all nodes by default.">Skip Security Relationships</label>
+								<label for="skipSecurityRelationships" data-comment="If enabled, no OWNS and SECURITY relationships are created for nodes created by this user. For this to work for non-admins this requires access rights to be set up in application code or the schema.">Skip Security Relationships</label>
 							</div>
 
 							<label class="block mb-2 mt-6">Two-Factor Authentication</label>

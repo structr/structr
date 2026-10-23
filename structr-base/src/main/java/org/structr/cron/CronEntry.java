@@ -103,7 +103,7 @@ public class CronEntry implements Delayed {
 	// ----- static methods -----
 	public static CronEntry parse(String task, String expression) {
 
-		String[] fields = expression.split("[ \\t]+");
+		String[] fields = expression.trim().split("[ \\t]+");
 		if (fields.length == CronService.NUM_FIELDS) {
 
 			CronEntry cronEntry = new CronEntry(task);
@@ -213,14 +213,23 @@ public class CronEntry implements Delayed {
 
 			for (final String value : listValues) {
 
+				final int number;
+
 				try {
 
-					values.add(Integer.parseInt(value));
+					number = Integer.parseInt(value);
 
 				} catch (Throwable t) {
 
 					throw new IllegalArgumentException("Field '" + fieldName + "'. Invalid list value: '" + value + "'");
 				}
+
+				if (number < minValue || number > maxValue) {
+
+					throw new IllegalArgumentException("Field '" + fieldName + "'. List value not within range: '" + value + "'");
+				}
+
+				values.add(number);
 			}
 
 			return new CronField(values);
@@ -233,12 +242,25 @@ public class CronEntry implements Delayed {
 			throw new IllegalArgumentException("Field '" + fieldName + "'. Steps are not supported.");
 		}
 
+		if (fieldValue.startsWith("/")) {
+
+			throw new IllegalArgumentException("Field '" + fieldName + "'. '" + fieldValue + "' is not supported, use '*" + fieldValue + "'.");
+		}
+
 		throw new IllegalArgumentException("Field '" + fieldName + "'. Invalid content: '" + fieldValue + "'");
 	}
 
 	private void calculateNextExecutionTime() {
 
+		nextScheduledExecution = getNextExecutionAfter(System.currentTimeMillis());
+	}
+
+	/** The first full second after the given time at which the expression matches, in the server's time zone. */
+	public long getNextExecutionAfter(final long time) {
+
 		Calendar now       = GregorianCalendar.getInstance();
+		now.setTimeInMillis(time);
+		now.set(Calendar.MILLISECOND, 0);
 		now.add(Calendar.SECOND, 1);								// next execution is at least 1 sec away
 		int nowSeconds     = now.get(Calendar.SECOND);
 		int nowMinutes     = now.get(Calendar.MINUTE);
@@ -319,7 +341,7 @@ public class CronEntry implements Delayed {
 
 		now.set(Calendar.MILLISECOND, 0);
 
-		nextScheduledExecution = now.getTimeInMillis();
+		return now.getTimeInMillis();
 	}
 
 	private void addAndResetLowerFields (Calendar cal, int field, int amount) {

@@ -5,6 +5,12 @@ The Configuration Interface provides access to all runtime settings that control
 
 This separation is intentional. The Configuration Interface provides access to sensitive operations that go beyond normal application administration: you can configure database connections, restart services, and define cron expressions for scheduled functions. These capabilities would otherwise require direct access to maintenance commands or configuration files. By requiring a separate authentication with the superuser password, Structr adds an additional layer of security that protects these critical settings even if an attacker gains access to a regular admin account.
 
+### Login Protection
+
+The login can ask for a second factor. Switch on `superuser.twofactor.enabled` in the Superuser section: the next login with the right name and password shows a QR code for an authenticator app, and confirming a code from the app completes the setup. From then on, the login form has a Code field.
+
+While no second factor is active, 3 failed logins within 15 minutes block the superuser login for 15 minutes, for every address and including the right password. The login page then says that the login is blocked. Failed superuser logins over the REST interface count as well. The settings `configservlet.login.maxattempts` and `configservlet.login.lockout.seconds` adjust the block; the section Superuser Login of the Configuration Interface in the Two Factor Authentication chapter describes both features in detail.
+
 ## Interface Layout
 
 ![Configuration Interface](/structr/docs/configuration-interface.png)
@@ -23,6 +29,8 @@ Some settings display a small red button next to them. Clicking this button rese
 Settings are organized into categories such as application settings, database configuration, HTTP server options, security settings, and more. Most changes take effect immediately, though some require a server restart.
 
 Beyond simple configuration values, the Configuration Interface is currently the only place where you can define cron expressions for user-defined functions. This allows you to schedule functions to run at specific intervals without writing additional code.
+
+The Letsencrypt section of the security settings ends with a **Retrieve certificate** button. It obtains a TLS certificate from Let's Encrypt with the saved settings, from the production or the staging server, and can reload it in the running server. See SSL Configuration.
 
 ## Database Connections
 

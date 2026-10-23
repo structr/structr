@@ -56,12 +56,33 @@ let _Config = {
 				// first start: the wizard is opened with the setup token from the server log
 				_Dialogs.configSetupDialog.show();
 
+			} else if (document.body.classList.contains('twofactor-setup')) {
+
+				// the password was just accepted and the second factor is switched on but not set up yet
+				let setup = document.getElementById('twofactor-setup').dataset;
+
+				_Dialogs.basic.append(_Config.templates.configTwoFactorSetupDialogMarkup, { width: '' });
+
+				document.getElementById('twofactor-qr').src             = setup.qr;
+				document.getElementById('twofactor-secret').textContent = setup.secret;
+				document.getElementById('superuserTwoFactorSetupCodeField').focus();
+
 			} else {
 
 				_Dialogs.configLoginDialog.show();
+
+				// with a second factor set up, the code is sent together with name and password
+				if (document.body.classList.contains('twofactor') || new URLSearchParams(location.search).has('twoFactorRequired')) {
+
+					for (let row of document.querySelectorAll('#login-form .twofactor-row')) {
+						row.classList.remove('hidden');
+					}
+
+					document.getElementById('superuserTwoFactorCodeField').required = true;
+				}
 			}
 
-			_Config.attachActiveSectionStoringBehaviourToForm(document.querySelector('#login-form, #setup-form'));
+			_Config.attachActiveSectionStoringBehaviourToForm(document.querySelector('#login-form, #setup-form, #twofactor-setup-form'));
 
 		} else {
 
@@ -83,6 +104,8 @@ let _Config = {
 			document.querySelector('#maintenance-toggle-button')?.addEventListener('click', (e) => {
 				_Config.postAction('setMaintenance', { enabled: e.target.dataset.enabled });
 			});
+
+			_Config.letsencrypt.init();
 
 			let configureSuperuserCredentialsFormContainer = document.getElementById('superuser-credentials-form');
 			if (configureSuperuserCredentialsFormContainer) {
@@ -304,6 +327,81 @@ let _Config = {
 		cronSuffix: '.cronExpression',
 		isCronExpressionSetting: (name) => name.endsWith(_Config.cron.cronSuffix),
 		getCronInfoText: () => document.querySelector('#cron-info-text').dataset['value'],
+		fields: [
+			{ name: 'seconds', min: 0, max: 59 },
+			{ name: 'minutes', min: 0, max: 59 },
+			{ name: 'hours',   min: 0, max: 23 },
+			{ name: 'days',    min: 1, max: 31 },
+			{ name: 'months',  min: 1, max: 12 },
+			{ name: 'weeks',   min: 0, max: 6  }
+		],
+		// the rules of CronEntry.parseField(), so nothing is described here that the server would refuse
+		validate: (expression) => {
+
+			let values = expression.trim().split(/[ \t]+/);
+
+			if (values.length !== _Config.cron.fields.length) {
+				return `A cron expression has ${_Config.cron.fields.length} fields, starting with seconds, not ${values.length}.`;
+			}
+
+			for (let i = 0; i < values.length; i++) {
+
+				let { name, min, max } = _Config.cron.fields[i];
+				let value   = values[i];
+				let inRange = (n) => n >= min && n <= max;
+
+				if (value === '*') {
+					continue;
+				}
+
+				if (/^\*\/[0-9]+$/.test(value)) {
+
+					let step = parseInt(value.slice(2));
+					if (step > 0 && step <= max) {
+						continue;
+					}
+
+					return `Field '${name}': illegal step ${step}.`;
+				}
+
+				if (/^[0-9]{1,2}$/.test(value)) {
+
+					if (inRange(parseInt(value))) {
+						continue;
+					}
+
+					return `Field '${name}': ${value} is not between ${min} and ${max}.`;
+				}
+
+				if (/^[0-9]{1,2}-[0-9]{1,2}$/.test(value)) {
+
+					let [start, end] = value.split('-').map((n) => parseInt(n));
+					if (inRange(start) && inRange(end)) {
+						continue;
+					}
+
+					return `Field '${name}': ${value} is not between ${min} and ${max}.`;
+				}
+
+				if (/^[0-9]+(,[0-9]+)+$/.test(value)) {
+
+					let outside = value.split(',').find((n) => !inRange(parseInt(n)));
+					if (outside === undefined) {
+						continue;
+					}
+
+					return `Field '${name}': ${outside} is not between ${min} and ${max}.`;
+				}
+
+				if (value.startsWith('/')) {
+					return `Field '${name}': '${value}' is not supported, use '*${value}'.`;
+				}
+
+				return `Field '${name}': '${value}' is not supported.`;
+			}
+
+			return null;
+		},
 		getValidationMessage: () => {
 
 			let validationMessage = _Config.cron.getCronInfoText().replace('<pre>', '');
@@ -366,7 +464,6 @@ let _Config = {
 			newParent.insertAdjacentElement('afterbegin', input.parentElement);
 
 			input.required = true;
-			input.pattern  = '([^ \\\\t]+[ \\\\t]){5}[^ \\\\t]+';
 
 			let validationMessage = _Config.cron.getValidationMessage();
 
@@ -384,14 +481,12 @@ let _Config = {
 
 			let updateDescription = () => {
 
-				let basicValidity       = !input.validity.patternMismatch && !input.validity.valueMissing;
-				let hasUnsupportedChars = (input.value.replaceAll(/[\- 0-9,*/]/g, '').length > 0);
+				let error = input.value.trim() === '' ? validationMessage : _Config.cron.validate(input.value);
 
-				if (basicValidity && !hasUnsupportedChars) {
-					showCronInfoText(describeCronExpression());
-				} else {
-					showCronInfoText(validationMessage);
-				}
+				// marks the field invalid, so the form is not saved with an expression the server would refuse
+				input.setCustomValidity(error ?? '');
+
+				showCronInfoText(error ?? describeCronExpression());
 			};
 
 			updateDescription();
@@ -399,6 +494,81 @@ let _Config = {
 			input.addEventListener('input', () => {
 				updateDescription();
 			});
+		}
+	},
+	letsencrypt: {
+		init: () => {
+
+			let controls = document.getElementById('letsencrypt-controls');
+			let group    = document.querySelector('[name="letsencrypt.domains"]')?.closest('.config-group');
+
+			if (!controls || !group) {
+				return;
+			}
+
+			group.appendChild(controls);
+			controls.style.display = '';
+
+			let button = document.getElementById('letsencrypt-button');
+			let result = document.getElementById('letsencrypt-result');
+
+			if (button.dataset.unavailable) {
+				_Config.letsencrypt.showResult(false, [button.dataset.unavailable]);
+				return;
+			}
+
+			// the command reads the saved settings, so an unsaved edit anywhere in the form must be saved first
+			let markUnsaved = (e) => {
+
+				if (controls.contains(e.target)) {
+					return;
+				}
+
+				button.disabled = true;
+				_Config.letsencrypt.showResult(false, ['Save the configuration first, the certificate retrieval uses the saved settings.']);
+			};
+
+			let form = document.querySelector('form.config-form');
+			form.addEventListener('input', markUnsaved);
+			form.addEventListener('change', markUnsaved);
+
+			button.addEventListener('click', async () => {
+
+				button.disabled = true;
+				button.textContent = 'Retrieving certificate...';
+				result.textContent = '';
+
+				try {
+
+					let response = await fetch(_Helpers.getPrefixedRootUrl('/structr/config'), {
+						method: 'POST',
+						body: new URLSearchParams({
+							action: 'letsencrypt',
+							server: document.getElementById('letsencrypt-server').value,
+							reload: document.getElementById('letsencrypt-reload').checked
+						})
+					});
+
+					let data = await response.json().catch(() => ({ success: false, errors: [`Unexpected response (HTTP ${response.status}), the session may have expired.`] }));
+
+					_Config.letsencrypt.showResult(data.success === true, data.errors);
+
+				} catch (e) {
+
+					_Config.letsencrypt.showResult(false, [e.message]);
+				}
+
+				button.disabled = false;
+				button.textContent = 'Retrieve certificate';
+			});
+		},
+		showResult: (success, errors = []) => {
+
+			let result = document.getElementById('letsencrypt-result');
+			let lines  = success ? ['Certificate successfully retrieved.'] : (errors?.length ? errors : ['Certificate retrieval failed, see the server log for details.']);
+
+			result.className   = `basis-full whitespace-pre-wrap ${success ? 'text-green' : 'text-red'}`;
+			result.textContent = lines.join('\n');
 		}
 	},
 	databaseConnections: {
@@ -814,6 +984,14 @@ let _Config = {
 							<input id="superuserPasswordField" type="password" name="superuserPassword" autocomplete="current-password" required class="w-full box-border">
 						</div>
 
+						<div class="self-center twofactor-row hidden">
+							<label for="superuserTwoFactorCodeField">Code:</label>
+						</div>
+
+						<div class="self-center twofactor-row hidden">
+							<input id="superuserTwoFactorCodeField" type="text" name="superuserTwoFactorCode" autocomplete="one-time-code" inputmode="numeric" class="w-full box-border">
+						</div>
+
 						<div class="self-center col-span-2 mt-2 text-right">
 							<button id="loginButton" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" style="font-weight: 600;">
 								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Sign In
@@ -823,7 +1001,63 @@ let _Config = {
 						</div>
 
 						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('loginFailed') ? '' : 'hidden'}">
-							Invalid username or password.
+							Invalid username, password or code.
+						</div>
+
+						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('twoFactorRequired') ? '' : 'hidden'}">
+							Please enter the code from your authenticator app.
+						</div>
+
+						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('loginBlocked') ? '' : 'hidden'}">
+							Too many failed attempts, the login is blocked for now. Please try again later.
+						</div>
+					</div>
+				</form>
+			</div>
+		`,
+		configTwoFactorSetupDialogMarkup: `
+			<div id="login" class="dialog p-8 text-left" style="max-width: 480px; border: 2px solid #c62828; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+
+				<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+					${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo-login'])}
+					<span style="font-size: 11px; font-weight: 600; color: #c62828; text-transform: uppercase; letter-spacing: 0.5px;">Set Up Two-Factor Authentication</span>
+				</div>
+
+				<p class="ml-1 mr-4">Scan the code with an authenticator app, or enter the secret by hand, then confirm with the code the app shows. From now on, the login asks for such a code.</p>
+
+				<div class="ml-1 mr-4 mt-4 text-center">
+					<img id="twofactor-qr" alt="QR code" width="200" height="200">
+					<p>Secret: <code id="twofactor-secret"></code></p>
+				</div>
+
+				<form id="twofactor-setup-form" method="post">
+
+					<div class="gap-y-2 grid ml-1 mr-4 mt-4" style="grid-template-columns: 35fr 65fr;">
+
+						<input name="active_section" type="hidden">
+
+						<div class="self-center">
+							<label for="superuserTwoFactorSetupCodeField">Code:</label>
+						</div>
+
+						<div class="self-center">
+							<input id="superuserTwoFactorSetupCodeField" type="text" name="superuserTwoFactorCode" autocomplete="one-time-code" inputmode="numeric" required class="w-full box-border">
+						</div>
+
+						<div class="self-center col-span-2 mt-2 text-right">
+							<button id="twoFactorSetupButton" class="inline-flex mr-0 items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" style="font-weight: 600;">
+								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Confirm
+							</button>
+
+							<input type="hidden" name="action" value="twoFactorSetup">
+						</div>
+
+						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('twoFactorFailed') ? '' : 'hidden'}">
+							The code was not accepted.
+						</div>
+
+						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('loginBlocked') ? '' : 'hidden'}">
+							Too many failed attempts, please try again later.
 						</div>
 					</div>
 				</form>

@@ -4725,6 +4725,17 @@ let _Pages = {
 
 						_Pages.routingDialog.updateParameterRowUI(paramRow);
 
+						// a route has one current object, the server unmarks the others as well
+						if (attrName === 'isCurrentObject' && newValue === true) {
+
+							for (let other of paramsContainer.querySelectorAll('[data-structr-attribute="isCurrentObject"]')) {
+
+								if (other !== element) {
+									other.checked = false;
+								}
+							}
+						}
+
 						if (attrName === 'isMandatory') {
 
 							let data = await Command.getPromise(pagePathRow.dataset.structrPagePathId, 'warnings');
@@ -4806,6 +4817,11 @@ let _Pages = {
 						<label class="flex items-start p-1" title="For a route with a required parameter to match a request, a value must be present for all required parameters.">
 							<input class="mt-1" type="checkbox" data-structr-attribute="isRequired" ${config.isRequired ? 'checked' : ''}>
 							<div class="text-sm mt-0.5">Required</div>
+						</label>
+
+						<label class="flex items-start p-1" title="The object this parameter resolves to becomes the current object of the page (keyword current). Without a marked parameter, the only Node parameter of a route is used.">
+							<input class="mt-1" type="checkbox" data-structr-attribute="isCurrentObject" ${config.isCurrentObject ? 'checked' : ''}>
+							<div class="text-sm mt-0.5">Current object</div>
 						</label>
 					</div>
 

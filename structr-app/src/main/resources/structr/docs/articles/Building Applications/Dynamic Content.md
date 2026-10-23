@@ -78,6 +78,12 @@ ${{ $.request.page || 1 }}
 
 As a rule of thumb: if it fits in a single-line input field, use StructrScript. If you need variables, loops, or calculations, switch to JavaScript.
 
+#### When an Expression Is Not Evaluated
+
+Structr finds the end of a `${{ ... }}` block by counting braces, while skipping strings, comments and regular expression literals. A block whose end it cannot find is not evaluated, and that part of the page renders empty. Structr then logs a warning that names the element and says what was still open at the end, such as a string or a number of braces.
+
+The usual cause is an unbalanced quote or brace. A quote inside a regular expression literal is fine, for example `html.replace(/href="([^"]+)"/g, ...)`. If a block still is not evaluated, write the quote as `\x22` or `\x27`, or build the expression with `new RegExp(...)`.
+
 ### Keywords
 
 Template expressions have access to built-in keywords that provide context about the current request, user, and page. The most commonly used keywords are:

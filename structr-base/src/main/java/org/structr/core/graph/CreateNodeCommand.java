@@ -185,9 +185,12 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 				TransactionCommand.nodeCreated(user, node);
 
-				securityContext.disableModificationOfAccessTime();
-				node.setProperties(securityContext, properties, true);
-				securityContext.enableModificationOfAccessTime();
+				if (!properties.isEmpty()) {
+
+					securityContext.disableModificationOfAccessTime();
+					node.setProperties(securityContext, properties, true);
+					securityContext.enableModificationOfAccessTime();
+				}
 
 				// ensure modification callbacks are called (necessary for validation)
 				for (final Entry<PropertyKey, Object> entry : toNotify.entrySet()) {

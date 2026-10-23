@@ -348,12 +348,13 @@ let Structr = {
 
 		document.title = `Structr ${activeMenuEntry}${instance}`;
 	},
-	getSessionId: () => {
-		return Cookies.get('JSESSIONID');
-	},
 	doLogin: (loginData) => {
+
+		// the session may have changed since the websocket was opened (logout, timeout, restart), and the server reads it from the handshake
 		Structr.renewSessionId(() => {
-			Command.login(loginData);
+			StructrWS.renew(() => {
+				Command.login(loginData);
+			});
 		});
 	},
 	doLogout: () => {
@@ -365,8 +366,6 @@ let Structr = {
 
 		if (Command.logout(StructrWS.user)) {
 
-			Cookies.remove('JSESSIONID');
-			StructrWS.sessionId = '';
 			Structr.renewSessionId();
 			Structr.clearMain();
 
@@ -383,39 +382,36 @@ let Structr = {
 	},
 	renewSessionId: (callback) => {
 
+		// makes sure a session exists; the page never reads the cookie, so it works with httpservice.cookies.httponly = true
 		fetch(Structr.viewRootUrl, {redirect: 'manual'}).then(response => {
-
-			StructrWS.sessionId = Structr.getSessionId();
-
-			if (!StructrWS.sessionId) {
-
-				let message = `
-					There are three possible reasons for not being able to retrieve the session cookie:
-
-					<ul>
-						<li>An old secure cookie exists from a previous HTTPS visit. Browsers block it over HTTP. Delete it to continue.</li>
-						<li>You’re using HTTP on a non-local address. Browsers only allow secure cookies over HTTP on localhost or 127.0.0.1. Use HTTPS, or connect via localhost.</li>
-						<li><code>httpservice.cookies.httponly</code> may be set to <code>true</code>, which blocks JavaScript from reading the cookie. If so, set it to <code>false</code>.</li>
-					</ul>
-
-					If none of these apply, please contact Structr support.<br><br>
-
-					<b>Workaround</b> (for the first two cases): set <code>httpservice.cookies.secure = false</code>. This lowers security, so don't use it in production.
-				`;
-
-				new WarningMessage()
-					.title("Unable to read session id cookie")
-					.text(message)
-					.requiresConfirmation()
-					.uniqueClass("unable-to-read-cookie")
-					.show();
-			}
 
 			if (typeof callback === "function") {
 				callback();
 			}
 
 		}).catch(error => {console.error(error); });
+	},
+	showSessionCookieWarning: () => {
+
+		let message = `
+			The browser did not send a session cookie. There are two possible reasons:
+
+			<ul>
+				<li>An old secure cookie exists from a previous HTTPS visit. Browsers block it over HTTP. Delete it to continue.</li>
+				<li>You’re using HTTP on a non-local address. Browsers only allow secure cookies over HTTP on localhost or 127.0.0.1. Use HTTPS, or connect via localhost.</li>
+			</ul>
+
+			If none of these apply, please contact Structr support.<br><br>
+
+			<b>Workaround</b>: set <code>httpservice.cookies.secure = false</code>. This lowers security, so don't use it in production.
+		`;
+
+		new WarningMessage()
+			.title("Unable to use the session cookie")
+			.text(message)
+			.requiresConfirmation()
+			.uniqueClass("unable-to-read-cookie")
+			.show();
 	},
 	loadInitialModule: (isLogin, callback) => {
 

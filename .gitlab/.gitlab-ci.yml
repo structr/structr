@@ -87,6 +87,7 @@ test:modules:
           - structr-base
           - structr-db-driver-api
           - structr-modules
+          - structr-neo4j-embedded-driver
         DB_DRIVER: embedded
         DB_EXTRA_ARGS: "-DtestDatabaseDriver=org.structr.embedded.EmbeddedDatabaseService"
       - MODULE:

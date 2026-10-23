@@ -88,7 +88,15 @@ This means that custom routes take precedence over the default name-based resolu
 
 Multiple routes can point to the same page, allowing a single page to serve different URL patterns. For example, a product page could be reachable via both `/product/{id}` and `/shop/{category}/{id}`.
 
-> **Note:** Using a UUID to automatically resolve to a `current` object, which is possible with default page access, is not possible with URL Routes. If such functionality is desired, a separate path parameter must be explicitly introduced in the route.
+### The Current Object of a Route
+
+A route can set the `current` object as well. Mark one of its parameters as **Current object** in the URL routing dialog: the object it resolves to becomes `current`, and with it the `id` keyword and the `data-current-object-id` attribute that partial reloads use.
+
+- A parameter of type Node is resolved as described under Node below, by UUID and by the attributes in `htmlservlet.resolveproperties`.
+- A parameter of any other type is looked up as a UUID. If no visible object has that UUID, `current` stays empty, while the parameter itself still holds its value.
+- Without a marked parameter, a route with exactly one Node parameter uses that one. A route with several Node parameters and none marked has no current object.
+
+A route has at most one current object: marking a parameter unmarks the others. For `/projects/{project}/tasks/{task}` with both parameters of type Node, mark `task` to make the task `current`, while the project stays available as `${project}`.
 
 ### Path Parameters and Configuration
 
@@ -301,3 +309,5 @@ In this example, the first UUID addresses the partial and the second UUID is res
 Instead of reloading the entire page, you can update individual elements independently. Configure this via Event Action Mapping by specifying the target element either by its CSS ID or by linking it directly in the mapping configuration.
 
 For details on configuring partial reloads, see the Event Action Mapping chapter.
+
+A partial reload on a page reached through a URL route sees the same values as the page: the reload request sends the path of the page in the `structr-route-path` parameter, and Structr resolves the route again, with the permissions of the current user, and makes its parameters and its current object available to the partial. Only a route of the page the partial belongs to is applied.
