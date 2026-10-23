@@ -1853,6 +1853,28 @@ let _Files = {
 
 		previewArea.querySelector('textarea').value = text;
 	},
+	/**
+	 * Whether the content of a file can be shown in the text editor: templates, files without a content
+	 * type, text, SVG and the common structured text formats. PDFs, office documents, images, archives
+	 * and other binary files cannot.
+	 */
+	isEditableAsText: (file) => {
+
+		let contentType = (file.contentType ?? '').toLowerCase().split(';')[0].trim();
+
+		if (file.isTemplate || contentType === '' || contentType.startsWith('text/') || contentType.startsWith('image/svg')) {
+			return true;
+		}
+
+		if (contentType.endsWith('+xml') || contentType.endsWith('+json')) {
+			return true;
+		}
+
+		return [
+			'application/javascript', 'application/x-javascript', 'application/ecmascript', 'application/json', 'application/xml',
+			'application/x-sh', 'application/sql', 'application/yaml', 'application/x-yaml', 'application/graphql', 'application/x-httpd-php'
+		].includes(contentType);
+	},
 	isArchive: (file) => {
 
 		let contentType = file.contentType;
@@ -2198,10 +2220,6 @@ let _Files = {
 								<td><input required type="text" class="box-border w-full" data-mount-is-folder-option data-attribute-name="name"></td>
 							</tr>
 							<tr>
-								<td>Do Fulltext Indexing</td>
-								<td><input type="checkbox" data-mount-is-folder-option data-attribute-name="mountDoFulltextIndexing"></td>
-							</tr>
-							<tr>
 								<td data-comment="The scan interval for repeated scans of this mount target">Scan Interval (s)</td>
 								<td><input type="number" class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="sync.scanInterval"></td>
 							</tr>
@@ -2329,8 +2347,15 @@ let _Files = {
 			});
 
 		},
-		getCurrentSearchTerm: () => {
-			return _Files.getFolderContentsElement().querySelector('#search-results').dataset['for'];
+		/**
+		 * Searches the content of files. Without a module that provides content search this finds
+		 * nothing; the content-extraction module replaces it (content-extraction-ui.js).
+		 *
+		 * Resolves to a list of hits: { file, snippets: [{ before, match, after, page }] }, where file
+		 * is a file object in the ui view.
+		 */
+		contentSearch: async (searchString) => {
+			return [];
 		},
 		fulltextSearch: async (searchString) => {
 
@@ -2349,131 +2374,118 @@ let _Files = {
 				container.appendChild(_Helpers.createSingleDOMElementFromHTML(`
 					<div class="flex items-center">
 						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, ['mr-2', 'fill-green'])}
-						<span>Running fulltext search for "${searchString}" - please stand by</span>
+						<span>Searching for "${_Helpers.escapeTags(searchString)}" - please stand by</span>
 					</div>`)
 				);
 			}, 250);
 
-			let data = await Promise.all([
-				fetch(`${Structr.rootUrl}File/ui?${Structr.getRequestParameterName('inexact')}=1&name=${searchString}`).then(response => {
-					if (response.ok) {
-						return response.json();
-					} else {
-						return {};
-					}
-				}),
-				fetch(`${Structr.rootUrl}File/ui?${Structr.getRequestParameterName('inexact')}=1${searchString.split(' ').map(str => '&extractedContent=' + str).join('')}`).then(response => {
-					if (response.ok) {
-						return response.json();
-					} else {
-						return {};
-					}
-				})
+			let [nameMatches, contentMatches] = await Promise.all([
+				fetch(`${Structr.rootUrl}File/ui?${Structr.getRequestParameterName('inexact')}=1&name=${encodeURIComponent(searchString)}`).then(response => {
+					return response.ok ? response.json().then(data => data?.result ?? []) : [];
+				}).catch(() => []),
+				_Files.search.contentSearch(searchString).catch(() => [])
 			]);
 
-			let matches = {
-				name: data[0]?.result ?? [],
-				content: data[1]?.result ?? []
-			};
+			// a file found by name and by content is listed once, with the snippets of its content
+			let hits = new Map();
+
+			for (let file of nameMatches) {
+				hits.set(file.id, { file: file, snippets: [] });
+			}
+
+			for (let hit of contentMatches) {
+				let existing = hits.get(hit.file.id);
+				if (existing) {
+					existing.snippets = hit.snippets;
+				} else {
+					hits.set(hit.file.id, hit);
+				}
+			}
 
 			window.clearTimeout(timeoutIt);
 			_Helpers.fastRemoveAllChildren(container);
 
-			if (matches.name.length === 0 && matches.content.length === 0) {
+			if (hits.size === 0) {
 
 				container.insertAdjacentHTML('beforeend', `
-					<h1>No results for "${searchString}"</h1>
+					<h1>No results for "${_Helpers.escapeTags(searchString)}"</h1>
 					<h2>Press ESC or click <a href="javascript:_Files.search.clearSearch();" class="clear-results">here to clear</a> empty result list.</h2>
 				`);
 
 			} else {
 
-				let resultCount = matches.name.length + matches.content.length;
-
 				container.insertAdjacentHTML('beforeend', `
-					<div class="font-bold mb-4 text-3xl">${resultCount} result${resultCount > 1 ? 's' : ''}:</div>
+					<div class="font-bold mb-4 text-3xl">${hits.size} result${hits.size > 1 ? 's' : ''}:</div>
 					${_Files.templates.folderContentsTableSkeleton({})}
 				`);
 
 				container.querySelector('th[data-icon-col]').classList.add('with-search-icon');
 
-				for (let fileHit of [...matches.name, ...matches.content]) {
+				for (let hit of hits.values()) {
 
-					_Files.appendFileOrFolder(fileHit, container);
+					_Files.appendFileOrFolder(hit.file, container);
 
-					let row           = container.querySelector('#row' + fileHit.id);
-					let iconContainer = row.querySelector('td[data-icon-col] div[data-row-icon-container]');
-					let icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconSearch, 16, 16, ['mr-2', 'cursor-pointer'], 'Toggle search context'));
+					if (hit.snippets?.length > 0) {
 
-					icon.addEventListener('click', (e) => {
+						let row           = container.querySelector('#row' + hit.file.id);
+						let iconContainer = row.querySelector('td[data-icon-col] div[data-row-icon-container]');
+						let icon          = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconSearch, 16, 16, ['mr-2', 'cursor-pointer'], 'Toggle search context'));
 
-						_Files.search.getAndAppendSearchContext(fileHit.id, searchString);
-					});
+						icon.addEventListener('click', (e) => {
+							_Files.search.toggleSnippets(hit.file.id, hit.snippets);
+						});
 
-					iconContainer.insertAdjacentElement('afterbegin', icon);
-					iconContainer.classList.add('with-search-icon');
+						iconContainer.insertAdjacentElement('afterbegin', icon);
+						iconContainer.classList.add('with-search-icon');
+					}
 				}
 			}
 		},
-		getAndAppendSearchContext: async (fileId, searchString) => {
+		toggleSnippets: (fileId, snippets) => {
 
-			let searchResultContextRowId = `searchContext_${fileId}`;
-			let contextElement           = _Files.getFolderContentsElement().querySelector(`#${searchResultContextRowId}`);
-			let searchResultRow          = _Files.getFolderContentsElement().querySelector(`#search-results #row${fileId}`);
+			let snippetsRowId   = `searchContext_${fileId}`;
+			let snippetsElement = _Files.getFolderContentsElement().querySelector(`#${snippetsRowId}`);
+			let searchResultRow = _Files.getFolderContentsElement().querySelector(`#search-results #row${fileId}`);
 
 			if (!searchResultRow) {
 				return;
 			}
 
-			if (contextElement) {
-				contextElement.style.display = (contextElement.style.display === 'none') ? 'table-row' : 'none';
+			if (snippetsElement) {
+				snippetsElement.style.display = (snippetsElement.style.display === 'none') ? 'table-row' : 'none';
 				return;
 			}
 
-			let contextResponse = await fetch(`${Structr.rootUrl}File/${fileId}/getSearchContext`, {
-				method: 'POST',
-				body: JSON.stringify({
-					searchString: searchString,
-					contextLength: 30
-				})
+			let maxHClassname = 'max-h-24';
+			let numCols       = searchResultRow.querySelectorAll('td').length;
+			let snippetsRow   = _Helpers.createSingleDOMElementFromHTML(`<div id="${snippetsRowId}" style="display: table-row;"></div>`);
+			let snippetsCell  = _Helpers.createSingleDOMElementFromHTML(`
+				<td colspan="${numCols}">
+					<div class="flex items-start gap-2 p-4 mb-2 bg-gray ${maxHClassname} overflow-y-auto">
+						<div class="flex-shrink-0">
+							<i class="toggle-height fa fa-expand cursor-pointer"></i>
+						</div>
+						<div context-container class="grid grid-cols-3 gap-8 items-start"></div>
+					</div>
+				</td>
+			`);
+			searchResultRow.insertAdjacentElement('afterend', snippetsRow);
+			snippetsRow.appendChild(snippetsCell);
+
+			snippetsCell.querySelector('.toggle-height').addEventListener('click', e => {
+				snippetsCell.firstElementChild.classList.toggle(maxHClassname);
+				e.target.classList.toggle('fa-expand');
+				e.target.classList.toggle('fa-compress');
 			});
 
-			if (contextResponse.ok) {
+			let escape = _Helpers.escapeTags;
+			let html   = snippets.map(snippet => `
+				<div class="bg-white px-2 py-1">
+					${snippet.page ? `<span class="text-gray">p. ${snippet.page}:</span> ` : ''}${escape(snippet.before ?? '')}<span class="highlight">${escape(snippet.match ?? '')}</span>${escape(snippet.after ?? '')}
+				</div>
+			`);
 
-				let data = await contextResponse.json();
-
-				if (data.result) {
-
-					let maxHClassname = 'max-h-24';
-					let numCols        = searchResultRow.querySelectorAll('td').length;
-					let newContextRow  = _Helpers.createSingleDOMElementFromHTML(`<div id="${searchResultContextRowId}" style="display: table-row;"></div>`);
-					let newContextCell = _Helpers.createSingleDOMElementFromHTML(`
-						<td colspan="${numCols}">
-							<div class="flex items-start gap-2 p-4 mb-2 bg-gray ${maxHClassname} overflow-y-auto">
-								<div class="flex-shrink-0">
-									<i class="toggle-height fa fa-expand cursor-pointer"></i>
-								</div>
-								<div context-container class="grid grid-cols-3 gap-8 items-start"></div>
-							</div>
-						</td>
-					`);
-					searchResultRow.insertAdjacentElement('afterend', newContextRow);
-					newContextRow.appendChild(newContextCell);
-
-					let contextsContainer = newContextCell.querySelector('[context-container]');
-
-					newContextCell.querySelector('.toggle-height').addEventListener('click', e => {
-						newContextCell.firstElementChild.classList.toggle(maxHClassname);
-						e.target.classList.toggle('fa-expand');
-						e.target.classList.toggle('fa-compress');
-					});
-
-					let splitSearchStringRegex    = new RegExp('(' + searchString.split(/[\s,;]/).join('|') + ')', 'gi');
-					let highlightedContextStrings = data.result.context.map(contextString => `<div class="bg-white px-2 py-1">${contextString.replace(splitSearchStringRegex, '<span class="highlight">$1</span>')}</div>`);
-
-					contextsContainer.insertAdjacentHTML('beforeend', highlightedContextStrings.join(''));
-				}
-			}
+			snippetsCell.querySelector('[context-container]').insertAdjacentHTML('beforeend', html.join(''));
 		},
 		clearSearch: () => {
 
@@ -2524,7 +2536,13 @@ let _Files = {
 					new Promise(resolve => window.setTimeout(resolve, _Files.search.nodeRenderTimeout))
 				]);
 
-				_Files.editFile(node);
+				// a hit in the content of a PDF, an office document or an image cannot be shown in the editor;
+				// a template (isTemplate) always opens in the editor, whatever its content type says
+				if (_Files.isEditableAsText(node)) {
+					_Files.editFile(node);
+				} else {
+					_Entities.showProperties(node, 'general');
+				}
 			}
 		},
 		nodeRenderTimeout: 3000

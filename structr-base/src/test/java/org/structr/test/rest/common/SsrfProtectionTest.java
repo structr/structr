@@ -36,7 +36,7 @@ import static org.testng.AssertJUnit.fail;
  * request actually ended up. Redirects were followed by the client itself
  * (HttpHelper.getClient installed a plain LaxRedirectStrategy), so
  * {@code https://attacker/redir -> http://169.254.169.254/latest/meta-data/} passed every check there
- * was - and through RemoteDocument the answer comes back out again, indexed into extractedContent.
+ * was.
  *
  * <p>Literal addresses throughout, so nothing here depends on DNS or on reaching a network.
  */

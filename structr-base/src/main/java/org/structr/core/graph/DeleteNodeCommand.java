@@ -31,6 +31,7 @@ import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Deletes a node. Caution, this command cannot be used multiple times, please instantiate
@@ -40,6 +41,9 @@ import java.util.Set;
 public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeleteNodeCommand.class.getName());
+
+	/** relationship types without a schema definition that were already reported, so each is reported once */
+	private static final Set<String> reportedUnknownTypes = ConcurrentHashMap.newKeySet();
 
 	public void execute(final NodeInterface node) throws FrameworkException {
 
@@ -209,9 +213,9 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 						relsToDelete.add(rel);
 
-					} else {
+					} else if (rel != null) {
 
-						logger.warn("Unable to determine relation information from {}: {}", rel.getUuid(), rel.getType());
+						reportUnknownRelationshipType(rel.getType());
 					}
 				}
 			}
@@ -352,4 +356,17 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		}
 	}
 	*/
+
+	/**
+	 * A relationship whose type is not part of the schema, e.g. from a module that is not loaded (after a
+	 * change from Structr Enterprise to the Community Edition). It has no cascading rules, and it is removed
+	 * together with the node, so it is reported once per type and not as a problem.
+	 */
+	private static void reportUnknownRelationshipType(final String type) {
+
+		if (reportedUnknownTypes.add(String.valueOf(type))) {
+
+			logger.info("Relationships of type {} are not part of the schema, e.g. because they were created by a module that is not loaded. They are removed together with their nodes.", type);
+		}
+	}
 }

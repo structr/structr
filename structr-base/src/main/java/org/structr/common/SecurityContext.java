@@ -78,7 +78,6 @@ public class SecurityContext {
 	private boolean doMultiThreadedJsonOutput             = false;
 	private boolean returnRawResult                       = false;
 	private boolean ignoreMissingNodesInDeserialization   = false;
-	private boolean doIndexing                            = Settings.IndexingEnabled.getValue(true);
 	private int serializationDepth                        = -1;
 
 	private final Map<String, List<String>> requestParameters = new LinkedHashMap<>();
@@ -1082,16 +1081,6 @@ public class SecurityContext {
 	public boolean doMultiThreadedJsonOutput() {
 
 		return doMultiThreadedJsonOutput;
-	}
-
-	public void setDoIndexing(final boolean doIndexing) {
-
-		this.doIndexing = doIndexing;
-	}
-
-	public boolean doIndexing() {
-
-		return doIndexing;
 	}
 
 	public void storeTemporary(final String uuid) {

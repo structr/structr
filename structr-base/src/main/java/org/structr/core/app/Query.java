@@ -43,6 +43,12 @@ public interface Query<T> {
 	ResultStream<T> getResultStream() throws FrameworkException;
 	List<T> getAsList() throws FrameworkException;
 	T getFirst() throws FrameworkException;
+
+	/**
+	 * The number of results. Counted by the database where that gives the same number, i.e. for a caller
+	 * who may read everything and a query the database answers alone; otherwise by reading the results.
+	 */
+	long count() throws FrameworkException;
 	Traits getTraits();
 
 	// ----- builder methods -----

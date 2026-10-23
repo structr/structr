@@ -33,6 +33,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -229,6 +230,19 @@ public class MigrationService {
 
 	private record MigrationStep(String name, Kind kind, boolean requiresCypher, Step action) {}
 
+	/** Properties the removed text-search module wrote or read, by label. */
+	private static final Map<String, List<String>> LEGACY_FULLTEXT_PROPERTIES = Map.of(
+		StructrTraits.FILE,                List.of("extractedContent", "indexed"),
+		StructrTraits.FOLDER,              List.of("mountDoFulltextIndexing"),
+		StructrTraits.FEED_ITEM,           List.of("extractedContent"),
+		StructrTraits.FEED_ITEM_CONTENT,   List.of("extractedContent"),
+		StructrTraits.FEED_ITEM_ENCLOSURE, List.of("extractedContent"),
+		StructrTraits.REMOTE_DOCUMENT,     List.of("extractedContent")
+	);
+
+	private static final String LEGACY_FULLTEXT_INDEX    = "File_extractedContent_fulltext";
+	private static final int LEGACY_FULLTEXT_BATCH_SIZE = 10_000;
+
 	/** The migration steps in the order they have to run. */
 	private static final List<MigrationStep> STEPS = List.of(
 		new MigrationStep("migrateStaticSchema",                        Kind.WRITING, false, apply -> migrateStaticSchema()),
@@ -249,6 +263,7 @@ public class MigrationService {
 		new MigrationStep("migrateRestQueryRepeaters",                  Kind.WRITING, true, apply -> migrateRestQueryRepeaters()),
 		new MigrationStep("migrateActionMappingControlsToProcess",      Kind.WRITING, true, apply -> migrateActionMappingControlsToProcess()),
 		new MigrationStep("migrateVisibilityMappingForToProcess",       Kind.WRITING, true, apply -> migrateVisibilityMappingForToProcess()),
+		new MigrationStep("removeLegacyFulltextIndexing",               Kind.WRITING, true, MigrationService::removeLegacyFulltextIndexing),
 		new MigrationStep("warnAboutWrongNotionProperties",             Kind.REPORTING, false, apply -> warnAboutWrongNotionProperties()),
 		new MigrationStep("warnAboutMountsWithoutSyncService",          Kind.REPORTING, false, apply -> warnAboutMountsWithoutSyncService())
 	);
@@ -1855,6 +1870,149 @@ public class MigrationService {
 
 			tx.success();
 		}
+	}
+
+	/**
+	 * Removes what the text-search module wrote and configured, now that it is gone: the extracted text
+	 * and the per-file switch on files, the per-mount switch on folders, the extracted text the feed
+	 * types could carry, and the fulltext index on File.extractedContent. The content-extraction module
+	 * replaces all of it with chunk nodes.
+	 *
+	 * <p>The properties are removed with Cypher in batches, one transaction each, since a large file
+	 * store can hold gigabytes of extracted text. The schema index management would drop the index by
+	 * itself once the property is gone, but not in test mode or with index management overridden, so it
+	 * is dropped here as well. Both writes bypass the modification queue, so the step reports through
+	 * stepReportedChanges.
+	 */
+	private static void removeLegacyFulltextIndexing(final boolean apply) throws FrameworkException {
+
+		final Map<String, Long> pending = new TreeMap<>();
+
+		for (final Map.Entry<String, List<String>> entry : LEGACY_FULLTEXT_PROPERTIES.entrySet()) {
+
+			final long count = countNodesWithAnyProperty(entry.getKey(), entry.getValue());
+			if (count > 0) {
+
+				pending.put(entry.getKey() + "." + entry.getValue(), count);
+			}
+		}
+
+		final boolean indexExists = legacyFulltextIndexExists();
+		if (pending.isEmpty() && !indexExists) {
+
+			return;
+		}
+
+		logger.info("MigrationService: removing the data of the removed text-search module: nodes per property {}, index {} {}.", pending, LEGACY_FULLTEXT_INDEX, indexExists ? "present" : "absent");
+
+		if (!apply) {
+
+			stepReportedChanges = true;
+
+			return;
+		}
+
+		for (final Map.Entry<String, List<String>> entry : LEGACY_FULLTEXT_PROPERTIES.entrySet()) {
+
+			removeProperties(entry.getKey(), entry.getValue());
+		}
+
+		if (indexExists) {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				StructrApp.getInstance().query("DROP INDEX `" + LEGACY_FULLTEXT_INDEX + "` IF EXISTS", Map.of());
+
+				tx.success();
+			}
+		}
+	}
+
+	private static long countNodesWithAnyProperty(final String label, final List<String> properties) throws FrameworkException {
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final long count = firstNumber(app.query("MATCH (n:`" + label + "`) WHERE " + anyPropertySet(properties) + " RETURN count(n) AS count", Map.of()));
+
+			tx.success();
+
+			return count;
+		}
+	}
+
+	private static void removeProperties(final String label, final List<String> properties) throws FrameworkException {
+
+		final App app      = StructrApp.getInstance();
+		final String query = "MATCH (n:`" + label + "`) WHERE " + anyPropertySet(properties) + " WITH n LIMIT " + LEGACY_FULLTEXT_BATCH_SIZE
+			+ " REMOVE " + String.join(", ", properties.stream().map(p -> "n.`" + p + "`").toList()) + " RETURN count(n) AS count";
+
+		long removed;
+		long total = 0;
+
+		do {
+
+			try (final Tx tx = app.tx()) {
+
+				removed = firstNumber(app.query(query, Map.of()));
+
+				tx.success();
+			}
+
+			total += removed;
+
+		} while (removed > 0);
+
+		if (total > 0) {
+
+			logger.info("MigrationService: removed {} from {} {} nodes.", properties, total, label);
+		}
+	}
+
+	private static boolean legacyFulltextIndexExists() {
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final boolean exists = app.query("SHOW INDEXES YIELD name WHERE name = $name RETURN name", Map.of("name", LEGACY_FULLTEXT_INDEX)).iterator().hasNext();
+
+			tx.success();
+
+			return exists;
+
+		} catch (final Throwable t) {
+
+			// databases without SHOW INDEXES: the schema index management drops the index instead
+			logger.debug("MigrationService: unable to list indexes: {}", t.getMessage());
+
+			return false;
+		}
+	}
+
+	private static String anyPropertySet(final List<String> properties) {
+
+		return String.join(" OR ", properties.stream().map(p -> "n.`" + p + "` IS NOT NULL").toList());
+	}
+
+	private static long firstNumber(final Iterable<GraphObject> result) {
+
+		for (final GraphObject row : result) {
+
+			if (row instanceof GraphObjectMap map) {
+
+				for (final Object value : map.toMap().values()) {
+
+					if (value instanceof Number number) {
+
+						return number.longValue();
+					}
+				}
+			}
+		}
+
+		return 0;
 	}
 
 	private static void migrateRestQueryRepeaters() throws FrameworkException {

@@ -65,7 +65,6 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String FOLDER_PARENT_PROPERTY               = "folderParent";
 	public static final String HOME_FOLDER_OF_USER_PROPERTY         = "homeFolderOfUser";
 	public static final String IS_FOLDER_PROPERTY                   = "isFolder";
-	public static final String MOUNT_DO_FULLTEXT_INDEXING_PROPERTY  = "mountDoFulltextIndexing";
 	public static final String ENABLED_CHECKSUMS_PROPERTY           = "enabledChecksums";
 	public static final String FILES_COUNT_PROPERTY                 = "filesCount";
 	public static final String FOLDERS_COUNT_PROPERTY               = "foldersCount";
@@ -259,7 +258,6 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> folderParentProperty                = new StartNode(traitsInstance, FOLDER_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_FOLDER);
 		final Property<NodeInterface> homeFolderOfUserProperty            = new StartNode(traitsInstance, HOME_FOLDER_OF_USER_PROPERTY, StructrTraits.USER_HOME_DIR_FOLDER);
 		final Property<Boolean> isFolderProperty                          = new ConstantBooleanProperty(IS_FOLDER_PROPERTY, true).readOnly();
-		final Property<Boolean> mountDoFulltextIndexingProperty           = new BooleanProperty(MOUNT_DO_FULLTEXT_INDEXING_PROPERTY);
 		final Property<String> enabledChecksumsProperty                   = new StringProperty(ENABLED_CHECKSUMS_PROPERTY).description("Override for the global checksums setting, allows you to enable or disable individual checksums for all files in this folder (and sub-folders).");
 		final Property<Object> filesCountProperty                         = new FunctionProperty(FILES_COUNT_PROPERTY).readFunction("size(this.files)").typeHint("int");
 		final Property<Object> foldersCountProperty                       = new FunctionProperty(FOLDERS_COUNT_PROPERTY).readFunction("size(this.folders)").typeHint("int");
@@ -274,7 +272,6 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 			homeFolderOfUserProperty,
 			workFolderOfUsersProperty,
 			isFolderProperty,
-			mountDoFulltextIndexingProperty,
 			enabledChecksumsProperty,
 			filesCountProperty,
 			foldersCountProperty,
@@ -289,13 +286,12 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Public,
 			newSet(
 					EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY, FILES_PROPERTY, FOLDERS_PROPERTY, IMAGES_PROPERTY, ENABLED_CHECKSUMS_PROPERTY, IS_FOLDER_PROPERTY,
-					MOUNT_DO_FULLTEXT_INDEXING_PROPERTY, FILES_COUNT_PROPERTY, FOLDERS_COUNT_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY
+					FILES_COUNT_PROPERTY, FOLDERS_COUNT_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-					EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY, FILES_PROPERTY, FOLDERS_PROPERTY, IMAGES_PROPERTY, ENABLED_CHECKSUMS_PROPERTY, IS_FOLDER_PROPERTY,
-					MOUNT_DO_FULLTEXT_INDEXING_PROPERTY
+					EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY, FILES_PROPERTY, FOLDERS_PROPERTY, IMAGES_PROPERTY, ENABLED_CHECKSUMS_PROPERTY, IS_FOLDER_PROPERTY
 			)
 		);
 	}

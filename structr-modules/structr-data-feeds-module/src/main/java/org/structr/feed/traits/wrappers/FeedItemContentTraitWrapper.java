@@ -18,18 +18,12 @@
  */
 package org.structr.feed.traits.wrappers;
 
-import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.StructrTraits;
-import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.core.traits.Traits;
 import org.structr.feed.entity.FeedItemContent;
 import org.structr.feed.traits.definitions.FeedItemContentTraitDefinition;
 import org.structr.feed.traits.relationship.AbstractFeedItemTraitDefinition;
-
-import java.io.InputStream;
-import java.nio.charset.Charset;
 
 /**
  * Represents a content element of a feed item
@@ -41,12 +35,6 @@ public class FeedItemContentTraitWrapper extends AbstractFeedItemTraitWrapper im
 		super(traits, wrappedObject);
 	}
 
-	@Override
-	public InputStream getInputStream() {
-
-		return IOUtils.toInputStream(getValue(), Charset.forName("utf-8"));
-	}
-
 	public String getValue() {
 
 		return wrappedObject.getProperty(traits.key(FeedItemContentTraitDefinition.VALUE_PROPERTY));
@@ -55,16 +43,6 @@ public class FeedItemContentTraitWrapper extends AbstractFeedItemTraitWrapper im
 	public void setValue(final String value) throws FrameworkException {
 
 		wrappedObject.setProperty(traits.key(FeedItemContentTraitDefinition.VALUE_PROPERTY), value);
-	}
-
-	@Override
-	public String getExtractedContent() {
-
-		// The fulltext indexer stores the extracted text under the File key for every node it indexes
-		// (see FulltextIndexingAgent), so it has to be read with that same key: this type does not
-		// declare the property itself since it no longer has the removed "Indexable" trait.
-
-		return wrappedObject.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY));
 	}
 
 	@Override

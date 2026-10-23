@@ -33,12 +33,11 @@ import org.structr.api.service.Service;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.DummyFulltextIndexer;
-import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.graph.*;
 import org.structr.core.graph.search.FulltextSearchCommand;
+import org.structr.core.graph.search.VectorSearchCommand;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.PropertyMap;
@@ -47,7 +46,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.module.StructrModule;
 import org.structr.schema.ConfigurationProvider;
 
 import java.io.IOException;
@@ -311,6 +309,12 @@ public class StructrApp implements App {
 	}
 
 	@Override
+	public Map<NodeInterface, Double> getNodesFromVectorIndex(final String indexName, final int k, final double[] vector) throws FrameworkException {
+
+		return command(VectorSearchCommand.class).getNodes(indexName, k, vector);
+	}
+
+	@Override
 	public Query<NodeInterface> nodeQuery() {
 
 		return command(SearchNodeCommand.class);
@@ -417,20 +421,6 @@ public class StructrApp implements App {
 		}
 
 		return graphDb;
-	}
-
-	@Override
-	public FulltextIndexer getFulltextIndexer(final Object... params) {
-
-		final Map<String, StructrModule> modules = StructrApp.getConfiguration().getModules();
-		final StructrModule module               = modules.get("text-search");
-
-		if (module != null && module instanceof FulltextIndexer) {
-
-			return (FulltextIndexer)module;
-		}
-
-		return new DummyFulltextIndexer();
 	}
 
 	// ----- public static methods ----

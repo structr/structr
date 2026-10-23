@@ -92,7 +92,7 @@ To import from a remote location, enter a URL to a ZIP file in the "Import appli
 import /path/to/application/
 ```
 
-The Admin Console also offers `file-import <source> <target> <mode> <existing> <index>`, which imports files from a directory on the server straight into the virtual filesystem without a deployment export. Type `help file-import` in the console for the parameters. The REST maintenance commands, including `deploy`, `deployData` and `maintenanceMode` (which takes `action` with the value `enable` or `disable`), are listed in the [Maintenance Commands](/structr/docs/ontology/References/Maintenance%20Commands) reference.
+The Admin Console also offers `file-import <source> <target> <mode> <existing>`, which imports files from a directory on the server straight into the virtual filesystem without a deployment export. Type `help file-import` in the console for the parameters. The REST maintenance commands, including `deploy`, `deployData` and `maintenanceMode` (which takes `action` with the value `enable` or `disable`), are listed in the [Maintenance Commands](/structr/docs/ontology/References/Maintenance%20Commands) reference.
 
 #### Via REST API
 

@@ -382,6 +382,28 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 		}
 	}
 
+	/**
+	 * Runs in the current transaction, like the other queries of this service.
+	 */
+	@Override
+	public Map<String, Object> getIndexInfo(final String indexName) {
+
+		final Map<String, Object> info = new LinkedHashMap<>();
+
+		for (final Map<String, Object> row : execute("SHOW INDEXES YIELD name, type, state, populationPercent, options WHERE name = $name "
+			+ "RETURN type, state, populationPercent, options.indexConfig['vector.dimensions'] AS dimensions, options.indexConfig['vector.similarity_function'] AS similarity", Map.of("name", indexName))) {
+
+			for (final Map.Entry<String, Object> entry : row.entrySet()) {
+
+				if (entry.getValue() != null) {
+					info.put(entry.getKey(), entry.getValue());
+				}
+			}
+		}
+
+		return info;
+	}
+
 	@Override
 	public boolean isIndexUpdateFinished() {
 
@@ -706,6 +728,11 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 			case RangeIndexes:
 
 				return neo4jMajorVersion >= 5;
+
+			case VectorIndexes:
+				// CREATE VECTOR INDEX exists from Neo4j 5.13 on
+
+				return neo4jMajorVersion >= 2025 || (neo4jMajorVersion >= 5 && neo4jMinorVersion >= 13);
 
 			case GlobalSearch:
 

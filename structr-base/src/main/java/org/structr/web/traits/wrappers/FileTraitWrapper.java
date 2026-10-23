@@ -28,12 +28,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.graph.PropertyContainer;
 import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
-import org.structr.common.fulltext.FulltextIndexer;
-import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.api.UnnamedArguments;
@@ -84,20 +81,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	public FileTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 
 		super(traits, wrappedObject);
-	}
-
-	@Override
-	public GraphObject getSearchContext(final SecurityContext ctx, final String searchTerm, final int contextLength) {
-
-		final String text = getExtractedContent();
-		if (text != null) {
-
-			final FulltextIndexer indexer = StructrApp.getInstance(ctx).getFulltextIndexer();
-
-			return indexer.getContextObject(searchTerm, text, contextLength);
-		}
-
-		return null;
 	}
 
 	@Override
@@ -333,12 +316,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	public OutputStream getOutputStream() {
 
 		return getOutputStream(true, false);
-	}
-
-	@Override
-	public String getExtractedContent() {
-
-		return wrappedObject.getProperty(traits.key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY));
 	}
 
 	@Override
@@ -605,25 +582,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 		final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(this, newParent != null ? newParent.as(Folder.class).getStorageConfiguration(): null);
 
 		previousSP.moveTo(newSP);
-	}
-
-	@Override
-	public boolean doIndexing() {
-
-		// we need to use the low-level API here because BooleanProperty returns false if no value is set
-		final PropertyContainer container = wrappedObject.getPropertyContainer();
-		if (container != null) {
-
-			if (container.hasProperty(FileTraitDefinition.INDEXED_PROPERTY)) {
-
-				return Boolean.TRUE.equals(container.getProperty(FileTraitDefinition.INDEXED_PROPERTY));
-
-			}
-		}
-
-		// default to setting in security context
-
-		return wrappedObject.getSecurityContext().doIndexing();
 	}
 
 	@Override

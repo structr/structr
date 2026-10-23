@@ -6,12 +6,6 @@ Synchronizes the Structr filesystem (File and Folder nodes) with external storag
 
 A folder is synchronized when it is directly linked to a StorageConfiguration whose provider supports synchronization. A file linked to such a configuration only stores its content there; it is not scanned or watched. For the local filesystem provider, mount a directory by adding a `mountTarget` entry to the storage configuration. The service watches for changes and periodically rescans the backend.
 
-## Folder Properties
-
-| Property | Description |
-|----------|-------------|
-| `mountDoFulltextIndexing` | Add discovered files to the fulltext index |
-
 ## Storage Configuration Entries
 
 | Entry | Description |

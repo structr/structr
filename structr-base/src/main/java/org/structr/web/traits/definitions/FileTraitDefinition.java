@@ -26,7 +26,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
-import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
@@ -73,8 +72,6 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String FILE_PARENT_PROPERTY               = "fileParent";
 	public static final String CONTENT_TYPE_PROPERTY              = "contentType";
 	public static final String DONT_CACHE_PROPERTY                = "dontCache";
-	public static final String INDEXED_PROPERTY                   = "indexed";
-	public static final String EXTRACTED_CONTENT_PROPERTY         = "extractedContent";
 	public static final String IS_FILE_PROPERTY                   = "isFile";
 	public static final String IS_TEMPLATE_PROPERTY               = "isTemplate";
 	public static final String TRUSTED_PROPERTY                   = "trusted";
@@ -255,20 +252,13 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 							FileHelper.updateMetadata(file, true);
 							file.increaseVersion();
 
-							// indexing can be controlled for each file separately
-							if (file.doIndexing()) {
-
-								final FulltextIndexer indexer = StructrApp.getInstance().getFulltextIndexer();
-								indexer.addToFulltextIndex(file);
-							}
-
 							tx.success();
 						}
 
 					} catch (FrameworkException fex) {
 
 						final Logger logger = LoggerFactory.getLogger(File.class);
-						logger.warn("Unable to index {}: {}", this, fex.getMessage());
+						logger.warn("Unable to update metadata of {}: {}", file.getPath(), fex.getMessage());
 					}
 				}
 			}
@@ -368,26 +358,6 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 					return "Analyzes the structure of an XML file and returns it as a JSON representation.";
 				}
 
-			},
-
-			new JavaMethod("getSearchContext", false, false) {
-
-				@Override
-				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
-
-					final SecurityContext securityContext = actionContext.getSecurityContext();
-					final Number contextLength = (Number)arguments.get("contextLength");
-					final String searchString  = (String)arguments.get("searchString");
-
-					return entity.as(File.class).getSearchContext(securityContext, searchString, contextLength.intValue());
-				}
-
-				@Override
-				public String getDescription() {
-
-					return "Searches for a term in the file's extracted text content and returns the surrounding context.";
-				}
-
 			}
 		);
 	}
@@ -410,8 +380,6 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> fileParentProperty        = new StartNode(traitsInstance, FILE_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_FILE);
 		final Property<String> contentTypeProperty              = new StringProperty(CONTENT_TYPE_PROPERTY).description("Content type of the file.");
 		final Property<Boolean> dontCacheProperty               = new BooleanProperty(DONT_CACHE_PROPERTY).defaultValue(false);
-		final Property<Boolean> indexedProperty                 = new BooleanProperty(INDEXED_PROPERTY);
-		final Property<String> extractedContentProperty         = new StringProperty(EXTRACTED_CONTENT_PROPERTY).fulltextIndexed().disableSerialization(true);
 		final Property<Boolean> isFileProperty                  = new ConstantBooleanProperty(IS_FILE_PROPERTY, true).readOnly();
 		final Property<Boolean> isTemplateProperty              = new BooleanProperty(IS_TEMPLATE_PROPERTY).readOnly().description("When checked, the content of this file is evaluated as a script and the resulting content is returned.");
 		final Property<Boolean> trustedProperty                 = new BooleanProperty(TRUSTED_PROPERTY).readOnly().defaultValue(false).description("Set by the upload servlet when an admin uploads the file interactively. A trusted file is delivered as its content type says, an untrusted one is sandboxed, because only the content of an untrusted file can be an attacker's.");
@@ -431,8 +399,6 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			fileParentProperty,
 			contentTypeProperty,
 			dontCacheProperty,
-			indexedProperty,
-			extractedContentProperty,
 			isFileProperty,
 			isTemplateProperty,
 			trustedProperty,
@@ -456,14 +422,14 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, INDEXED_PROPERTY, EXTRACTED_CONTENT_PROPERTY, SIZE_PROPERTY,
+					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, SIZE_PROPERTY,
 					DONT_CACHE_PROPERTY, CONTENT_TYPE_PROPERTY, CHECKSUM_PROPERTY,
 					NodeInterfaceTraitDefinition.OWNER_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, INDEXED_PROPERTY, EXTRACTED_CONTENT_PROPERTY, SIZE_PROPERTY,
+					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, SIZE_PROPERTY,
 					DONT_CACHE_PROPERTY, CONTENT_TYPE_PROPERTY, CHECKSUM_PROPERTY,
 					CACHE_FOR_SECONDS_PROPERTY, VERSION_PROPERTY, TRUSTED_PROPERTY
 			)

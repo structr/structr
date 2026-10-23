@@ -150,6 +150,50 @@ Images, stylesheets and fonts are read from the Structr filesystem by path, unde
 user the page is rendered as. External URLs are not fetched unless `pdf.resources.external.allowed` is
 enabled.
 
+### Content Search Replaces the Text-Search Module
+
+The text-search module is removed. It extracted the text of every file into the `extractedContent`
+property. The new content-extraction module replaces it: it extracts files into chunks, adds OCR for
+scanned documents and images, and powers the content search of the Files area and the global search. See
+[Content Extraction](/structr/docs/ontology/APIs%20&%20Integrations/Content%20Extraction).
+
+**Content search is now opt-in.** Files are only extracted, and found by their content, in folders that
+have a content extraction configuration. After the upgrade, no file is found by its content until an admin
+creates a configuration with the Content Extraction dialog of the Files area and processes the existing
+files with "Process Existing Files".
+
+**Old data is removed on startup.** With the default `application.migration.mode = apply`, a migration
+step deletes the `extractedContent` and `indexed` properties of all files, `mountDoFulltextIndexing` of all folders and the `File_extractedContent_fulltext`
+index. Code that reads `file.extractedContent` gets nothing; use `$.documents.getExtractedText(file)`
+instead.
+
+| Old (7.0) | New (7.1) |
+|-----------|-----------|
+| `stopWords(language)` | `$.documents.stopWords(language)` |
+| `File.extractedContent` | `$.documents.getExtractedText(file)` |
+| Searching `File?extractedContent=<word>` | `$.documents.fulltextSearch(query)` |
+| "Fulltext indexing" checkbox of a mounted folder | A content extraction configuration on the mount folder |
+| `file-import` with `index` / `rebuildIndex mode=fulltext` | `$.documents.processContent(folder)` |
+| `application.filesystem.indexing.*` settings | `contentextraction.*` settings |
+
+```javascript
+// Old (7.0)
+let words = $.stopWords('de');
+let text  = file.extractedContent;
+
+// New (7.1)
+let words = $.documents.stopWords('de');
+let text  = $.documents.getExtractedText(file);
+```
+
+### Debian Package No Longer Installs Java
+
+The Debian package no longer depends on `openjdk-11-jdk-headless`, which was outdated: Structr 7 requires
+GraalVM 25, which is not available as a Debian package. Install GraalVM 25 before installing the package, as
+described in [Getting Started](/structr/docs/ontology/Introduction/Getting%20Started). `logrotate` is now
+recommended instead of required, like Tesseract for OCR, so `apt-get install --no-install-recommends`
+skips both.
+
 ### Undeclared Method Parameters Are Rejected
 
 A method with declared parameters no longer ignores parameters it does not declare. Previously, such

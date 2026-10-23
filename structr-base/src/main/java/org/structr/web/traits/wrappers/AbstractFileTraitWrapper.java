@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
@@ -127,10 +128,13 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 	@Override
 	public boolean isMounted() {
 
-		final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
-		if (service != null && service.isSynchronized(getUuid())) {
+		if (Services.getInstance().isConfigured(StorageSyncService.class)) {
 
-			return true;
+			final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
+			if (service != null && service.isSynchronized(getUuid())) {
+
+				return true;
+			}
 		}
 
 		final NodeInterface parent = getParent();

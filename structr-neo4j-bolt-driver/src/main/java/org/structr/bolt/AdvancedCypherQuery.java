@@ -48,6 +48,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 	private QueryTimer queryTimer                   = null;
 	private int fetchSize                           = Settings.FetchSize.getValue();
 	private boolean hasOptionalParts                = false;
+	private boolean countOnly                       = false;
 	private int graphPartIdentifierIndex            = 1;
 	private String currentGraphPartIdentifier       = null;
 	private String sourceTypeLabel                  = null;
@@ -209,6 +210,12 @@ public class AdvancedCypherQuery implements CypherQuery {
 				break;
 		}
 
+		// a count has no order and no page
+		if (countOnly) {
+
+			return buf.toString();
+		}
+
 		if (sortOrder != null) {
 
 			boolean first     = true;
@@ -242,6 +249,27 @@ public class AdvancedCypherQuery implements CypherQuery {
 		buf.append(fetchPage * fetchSize);
 
 		return buf.toString();
+	}
+
+	/**
+	 * Makes the statement return the number of results instead of the results, see CypherNodeIndex.count().
+	 */
+	public void setCountOnly(final boolean countOnly) {
+
+		this.countOnly = countOnly;
+	}
+
+	public boolean isCountOnly() {
+
+		return countOnly;
+	}
+
+	/**
+	 * Whether the statement is a single MATCH; a UNION over several type labels cannot be counted in one statement.
+	 */
+	public boolean hasSingleTypeLabel() {
+
+		return typeLabels.size() <= 1;
 	}
 
 	@Override

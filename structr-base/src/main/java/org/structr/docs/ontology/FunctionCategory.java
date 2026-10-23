@@ -32,6 +32,7 @@ public enum FunctionCategory implements Category {
 	Geocoding("Geocoding", ""),
 	Http("Http", ""),
 	InputOutput("Input Output", ""),
+	LLM("LLM", "Functions of the AI module: prompts, chat and agent sessions, embeddings, similarity and document search."),
 	Logic("Logic", ""),
 	Mathematical("Mathematical", ""),
 	Miscellaneous("Miscellaneous", ""),

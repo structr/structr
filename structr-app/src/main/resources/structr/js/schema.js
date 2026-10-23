@@ -2072,6 +2072,27 @@ let _Schema = {
 
 			}).prop('disabled', isProtected);
 
+			$('.edit-vector-index', gridRow).on('click', async () => {
+
+				if (overrides && overrides.editVectorIndex) {
+
+					// in the code area we override this to open the property in the tree, which has the vector index settings
+					overrides.editVectorIndex(property);
+
+				} else {
+
+					let containerElementForChangeDetection = gridRow[0].closest('.schema-details').querySelector('#tabs');
+					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(containerElementForChangeDetection);
+
+					if (!unsavedChanges || (true === await _Dialogs.confirmation.showPromise("Really switch to the vector index? There are unsaved changes which will be lost!"))) {
+						_Schema.properties.vectorIndex.openDialog(property.id, () => {
+							_Schema.clearObjStack();
+						});
+					}
+				}
+
+			}).prop('disabled', isProtected);
+
 			if (!isProtected) {
 
 				$('.remove-action', gridRow).on('click', function() {
@@ -2094,6 +2115,194 @@ let _Schema = {
 
 			} else {
 				$('.remove-action', gridRow).hide();
+			}
+		},
+		/** The vector size from the input: a positive whole number, or null for no vector index. */
+		parseVectorDimensions: (value) => {
+
+			let dimensions = parseInt(value ?? '', 10);
+
+			return (Number.isInteger(dimensions) && dimensions > 0) ? dimensions : null;
+		},
+		/**
+		 * The vector index of a Double[] property (vectorDimensions, vectorSimilarity): a dialog opened from the
+		 * properties grid, and the same form in the property details of the Code area.
+		 */
+		vectorIndex: {
+			similarityHelp: `
+				<p><strong>Cosine</strong> (default) compares only the direction of two vectors (the angle between them) and ignores their length. Embedding models are made for this: texts with the same meaning point in the same direction. Use it for vectors from <code>llmEmbed()</code> and other embedding models. Scores are <code>(1 + cos) / 2</code>: 1 for the same direction, 0.5 for unrelated vectors. Vectors of only zeros have no direction and are refused.</p>
+				<p><strong>Euclidean</strong> compares the distance between two points, so the length of the vectors counts as well. Use it for vectors whose size means something, e.g. measurements, coordinates or colours. Scores are <code>1 / (1 + d²)</code>: 1 for the same vector, falling towards 0 with the distance <code>d</code>.</p>
+				<p>For normalized vectors (length 1, as most embedding APIs return them) both rank the results the same. Changing the similarity rebuilds the index.</p>
+			`,
+			/** The stored similarity, with the default the server uses when none is stored. */
+			similarityOf: (property) => property.vectorSimilarity ?? 'cosine',
+			indexName: (property, typeName) => typeName ? `${typeName}_${property.dbName || property.name}_vector` : null,
+			templates: {
+				button: (property) => `<button class="edit-vector-index mr-0 flex items-center whitespace-nowrap hover:bg-gray-100 focus:border-gray-666 active:border-green" title="Vector index: ${property.vectorDimensions ? `${property.vectorDimensions} values, ${_Schema.properties.vectorIndex.similarityOf(property)}` : 'none'}">Vector Index${property.vectorDimensions ? ` · ${property.vectorDimensions}` : ''}</button>`,
+				form: (config) => `
+					<div class="vector-index-form grid gap-x-4 gap-y-3 items-start" style="grid-template-columns: max-content minmax(0, 1fr);">
+						<label class="font-bold pt-1">Vector size</label>
+						<div>
+							<div class="flex items-center">
+								<input class="vector-dimensions" data-property="vectorDimensions" type="number" min="1" style="width: 8rem;" placeholder="no index" value="${config.vectorDimensions ?? ''}">
+							</div>
+							<div class="text-sm mt-1">The number of values in each vector. It must be exactly the size of the vectors your embedding model returns, e.g. 384 for all-minilm, 768 for nomic-embed-text or 1536 for OpenAI text-embedding-3-small (unless shortened with its <code>dimensions</code> option). Vectors of another size, with values that are not finite numbers, or (with cosine similarity) of only zeros are refused when they are saved. Changing the size rebuilds the index; vectors stored before are not checked again. Leave it empty for no vector index.</div>
+						</div>
+						<label class="font-bold pt-1 flex items-center vector-similarity-label">Similarity</label>
+						<div>
+							<select class="vector-similarity" data-property="vectorSimilarity">
+								<option value="cosine" ${config.vectorSimilarity !== 'euclidean' ? 'selected' : ''}>cosine</option>
+								<option value="euclidean" ${config.vectorSimilarity === 'euclidean' ? 'selected' : ''}>euclidean</option>
+							</select>
+							<div class="text-sm mt-1">How close two vectors are: <em>cosine</em> by direction (for embeddings), <em>euclidean</em> by distance (for vectors whose length matters).</div>
+						</div>
+						${config.indexName ? `
+							<label class="font-bold">Index name</label>
+							<div>
+								<code>${_Helpers.escapeTags(config.indexName)}</code>
+								<div class="text-sm mt-1">Search it with <code>$.searchVector('${_Helpers.escapeTags(config.indexName)}', vector, limit)</code>. Vector indexes need Neo4j 5.13 or later.</div>
+							</div>
+						` : ''}
+					</div>
+				`
+			},
+			/** Enables the similarity only with a size, and reports every change. */
+			bindForm: (container, onChange) => {
+
+				let sizeInput        = container.querySelector('.vector-dimensions');
+				let similaritySelect = container.querySelector('.vector-similarity');
+
+				let update = () => {
+					similaritySelect.disabled = sizeInput.disabled || _Schema.properties.parseVectorDimensions(sizeInput.value) === null;
+					onChange?.();
+				};
+
+				sizeInput.addEventListener('input', update);
+				sizeInput.addEventListener('change', update);
+				similaritySelect.addEventListener('change', () => onChange?.());
+
+				similaritySelect.disabled = sizeInput.disabled || _Schema.properties.parseVectorDimensions(sizeInput.value) === null;
+
+				_Helpers.appendInfoTextToElement({
+					text: _Schema.properties.vectorIndex.similarityHelp,
+					element: container.querySelector('.vector-similarity-label'),
+					customToggleIconClasses: ['ml-1', 'icon-blue'],
+					noSpan: true
+				});
+			},
+			/** The values of the form; without a size there is no index and no similarity. */
+			readForm: (container) => {
+
+				let dimensions = _Schema.properties.parseVectorDimensions(container.querySelector('.vector-dimensions').value);
+
+				return {
+					vectorDimensions: dimensions,
+					vectorSimilarity: dimensions !== null ? container.querySelector('.vector-similarity').value : null
+				};
+			},
+			openDialog: (id, closeCallback) => {
+
+				Command.get(id, null, (entity) => {
+
+					let { dialogText } = _Dialogs.custom.openDialog(`Vector index of ${entity.name}`, closeCallback, []);
+
+					let initial = {
+						vectorDimensions: entity.vectorDimensions ?? null,
+						vectorSimilarity: entity.vectorDimensions ? _Schema.properties.vectorIndex.similarityOf(entity) : null
+					};
+
+					let isChanged = () => JSON.stringify(_Schema.properties.vectorIndex.readForm(dialogText)) !== JSON.stringify(initial);
+
+					let showBackButton = (_Schema.objStack.length > 0);
+					_Schema.objStack.push(id);
+
+					if (showBackButton) {
+
+						let backBtn = _Dialogs.custom.prependCustomDialogButton(_Dialogs.custom.templates.backButton());
+
+						backBtn.addEventListener('click', async e => {
+
+							let okToNavigate = !isChanged() || (await _Dialogs.confirmation.showPromise("There are unsaved changes - really go back?"));
+							if (okToNavigate) {
+
+								_Schema.objStack.pop();
+								let prev = _Schema.objStack.pop();
+								_Schema.openEditDialog(prev);
+							}
+						});
+					}
+
+					dialogText.insertAdjacentHTML('beforeend', `
+						<div class="p-4" style="max-width: 50rem;">
+							<p class="mb-4">A vector index makes this <code>Double[]</code> attribute searchable by similarity with <code>searchVector()</code>, e.g. to find records by meaning when it holds embeddings.</p>
+							${_Schema.properties.vectorIndex.templates.form({
+								vectorDimensions: initial.vectorDimensions,
+								vectorSimilarity: _Schema.properties.vectorIndex.similarityOf(entity),
+								indexName: _Schema.properties.vectorIndex.indexName(entity, entity.schemaNode?.name)
+							})}
+							<div class="vector-index-error text-red-600 mt-4 hidden"></div>
+						</div>
+					`);
+
+					let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
+					let saveAndClose     = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
+					let errorElement     = dialogText.querySelector('.vector-index-error');
+
+					_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
+
+					_Schema.properties.vectorIndex.bindForm(dialogText, () => {
+						_Helpers.disableElements(!isChanged(), dialogSaveButton, saveAndClose);
+					});
+
+					let save = async (close) => {
+
+						if (!isChanged()) {
+							return;
+						}
+
+						let data     = _Schema.properties.vectorIndex.readForm(dialogText);
+						let response = await fetch(Structr.rootUrl + entity.id, {
+							method: 'PUT',
+							body: JSON.stringify(data)
+						});
+
+						if (response.ok) {
+
+							initial = data;
+							errorElement.classList.add('hidden');
+
+							_Dialogs.custom.showAndHideInfoBoxMessage('Vector index saved.', 'success', 2000, 200);
+							_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
+
+							if (entity.schemaNode?.name) {
+								_Schema.caches.invalidateTypeInfoCache(entity.schemaNode.name);
+							}
+
+							if (close === true) {
+								_Dialogs.custom.clickDialogCancelButton();
+							}
+
+						} else {
+
+							let json = await response.json().catch(() => null);
+
+							let details = (json?.errors ?? []).map(error => typeof error.detail === 'string' ? error.detail : error.token).join(' ');
+
+							errorElement.textContent = details || json?.message || `Saving failed (HTTP ${response.status}).`;
+							errorElement.classList.remove('hidden');
+						}
+					};
+
+					dialogSaveButton.addEventListener('click', (e) => {
+						e.stopPropagation();
+						save(false);
+					});
+
+					saveAndClose.addEventListener('click', (e) => {
+						e.stopPropagation();
+						save(true);
+					});
+				});
 			}
 		},
 		getDataFromRow: (gridRow) => {
@@ -2547,7 +2756,14 @@ let _Schema = {
 										</div>
 									`;
 								case 'Cypher':
-									return `<button class="edit-cypher-query hover:bg-gray-100 focus:border-gray-666 active:border-green">Query</button>`;
+									return `<button class="edit-cypher-query mr-0 hover:bg-gray-100 focus:border-gray-666 active:border-green">Query</button>`;
+								case 'DoubleArray':
+									return `
+										<div class="flex items-center">
+											<input size="15" type="text" class="property-format mr-1" value="${(config.property.format ? _Helpers.escapeForHtmlAttributes(config.property.format) : '')}">
+											${_Schema.properties.vectorIndex.templates.button(config.property)}
+										</div>
+									`;
 								default:
 									return `<input size="15" type="text" class="property-format" value="${(config.property.format ? _Helpers.escapeForHtmlAttributes(config.property.format) : '')}">`;
 							};

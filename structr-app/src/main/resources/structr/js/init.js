@@ -1185,7 +1185,67 @@ let Structr = {
 		// console.log(isRight, leftResizer.classList.contains('hidden'), rightResizer.classList.contains('hidden'), val);
 		return val;
 	},
+	/**
+	 * Handlers that modules add for their own generic message types, by type, e.g. the job status messages of
+	 * the Enterprise AI module: { EMBEDDING_STATUS: (data) => { ... } }. They take precedence over the built-in ones.
+	 */
+	genericMessageHandlers: {},
+	/**
+	 * The notification of a job's status message (BEGIN, CHUNK, END, ...), for jobs of modules: shown to the user
+	 * who started the job, if job notifications are switched on, and updating the job queue panel.
+	 *
+	 * @param label    what the job does, e.g. 'Content extraction'
+	 * @param progress HTML with the progress, e.g. '3 / 10 file(s)'
+	 */
+	showJobStatusMessage: (data, label, progress) => {
+
+		// automatic jobs run without a user, so they only show up in the job queue panel
+		if (_JobQueue.isShowNotifications() && StructrWS.me.username === data.username) {
+
+			let titles = {
+				QUEUED:     `${label} added to queue`,
+				BEGIN:      `${label} started`,
+				CHUNK:      `${label} status`,
+				END:        `${label} finished`,
+				WAIT_ABORT: `${label} waiting to abort`,
+				ABORTED:    `${label} aborted`,
+				WAIT_PAUSE: `${label} waiting to pause`,
+				PAUSED:     `${label} paused`,
+				RESUMED:    `${label} resumed`
+			};
+
+			let messageBuilder = (data.subtype === 'END') ? new SuccessMessage() : new InfoMessage();
+			messageBuilder.title(titles[data.subtype] ?? label).text(`Job #${data.jobId} (${_Helpers.escapeTags(data.jobName ?? '')}), queue '${_Helpers.escapeTags(data.queue ?? '')}'<br>${progress}`).uniqueClass(`${data.jobtype}-${data.jobId}`);
+
+			if (data.subtype !== 'QUEUED') {
+				messageBuilder.updatesText().requiresConfirmation();
+			}
+
+			messageBuilder.show();
+		}
+
+		if (Structr.isModuleActive(_JobQueue)) {
+			_JobQueue.updateJobTable();
+		}
+	},
+	/** The notification of an exception in a job of a module. */
+	showJobExceptionMessage: (data, label) => {
+
+		if (_JobQueue.isShowNotifications() && StructrWS.me.username === data.username) {
+			new ErrorMessage().title(`Exception in ${label}`).text(_Helpers.escapeForHtmlAttributes(data.message ?? '')).requiresConfirmation().show();
+		}
+
+		if (Structr.isModuleActive(_JobQueue)) {
+			_JobQueue.updateJobTable();
+		}
+	},
 	handleGenericMessage: (data) => {
+
+		let moduleHandler = Structr.genericMessageHandlers[data.type];
+		if (moduleHandler) {
+			moduleHandler(data);
+			return;
+		}
 
 		let showScheduledJobsNotifications = _JobQueue.isShowNotifications();
 		let showScriptingErrorPopups       = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showScriptingErrorPopupsKey);
@@ -1317,6 +1377,16 @@ let Structr = {
 				if (Structr.isModuleActive(_JobQueue)) {
 					_JobQueue.updateJobTable();
 				}
+				break;
+
+			case "CONTENT_EXTRACTION_STATUS":
+
+				Structr.showJobStatusMessage(data, 'Content extraction', `${data.processed} / ${data.files} file(s)<br>Extracted: ${data.done}, unchanged: ${data.unchanged}, skipped: ${data.skipped}, failed: ${data.failed}`);
+				break;
+
+			case "CONTENT_EXTRACTION_EXCEPTION":
+
+				Structr.showJobExceptionMessage(data, 'content extraction');
 				break;
 
 			case 'DEPLOYMENT_IMPORT_STATUS':

@@ -20,16 +20,12 @@ package org.structr.feed.entity;
 
 import org.structr.common.error.FrameworkException;
 
-import java.io.InputStream;
-
 /**
  * Represents a content element of a feed item
  */
 public interface FeedItemContent extends AbstractFeedItem {
 
-	InputStream getInputStream();
 	String getValue();
 	void setValue(final String value) throws FrameworkException;
-	String getExtractedContent();
 	String getContentType();
 }

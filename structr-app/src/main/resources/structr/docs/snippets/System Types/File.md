@@ -4,4 +4,4 @@ Represents files in Structr's virtual filesystem. Files can live on different st
 
 ## Details
 
-Structr automatically calculates checksums, extracts text via Apache Tika for full-text search, and supports OCR when Tesseract is installed. Files use the same permission system as all other objects. You can extend the File type with custom properties or create subtypes like InvoiceDocument or ProductImage.
+Structr automatically calculates checksums. With the content-extraction module, the text of files in configured folders is extracted via Apache Tika (with OCR when Tesseract is installed), split into chunks and indexed for full-text search. Files use the same permission system as all other objects. You can extend the File type with custom properties or create subtypes like InvoiceDocument or ProductImage.

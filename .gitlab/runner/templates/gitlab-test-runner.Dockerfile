@@ -47,6 +47,7 @@ RUN microdnf install -y dnf dnf-plugins-core \
      && dnf -y install docker-ce-cli docker-buildx-plugin git \
      && dnf -y install socat \
   	 && dnf -y install jq \
+     && dnf -y install tesseract tesseract-langpack-eng tesseract-langpack-deu fontconfig dejavu-sans-fonts \
      && dnf install -y glab_${GLAB_VERSION}_linux_${TARGETARCH}.rpm \
      && dnf clean all \
      && rm -f *.rpm

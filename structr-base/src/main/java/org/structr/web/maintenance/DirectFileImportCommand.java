@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.helper.PathHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -63,7 +62,6 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 	private enum Mode     { COPY, MOVE }
 	private enum Existing { SKIP, OVERWRITE, RENAME }
 
-	private FulltextIndexer indexer = null;
 	private Integer folderCount     = 0;
 	private Integer fileCount       = 0;
 	private Integer stepCounter     = 0;
@@ -71,12 +69,9 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
-		indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
-
 		final String sourcePath     = getParameterValueAsString(attributes, "source", null);
 		final String modeString     = getParameterValueAsString(attributes, "mode", Mode.COPY.name()).toUpperCase();
 		final String existingString = getParameterValueAsString(attributes, "existing", Existing.SKIP.name()).toUpperCase();
-		final boolean doIndex       = Boolean.parseBoolean(getParameterValueAsString(attributes, "index", Boolean.TRUE.toString()));
 
 		if (StringUtils.isBlank(sourcePath)) {
 
@@ -190,7 +185,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 						parentPath = path;
 					}
 
-					createFileOrFolder(ctx, app, parentPath, path, Files.readAttributes(path, BasicFileAttributes.class), sourcePath, targetPath, mode, existing, doIndex);
+					createFileOrFolder(ctx, app, parentPath, path, Files.readAttributes(path, BasicFileAttributes.class), sourcePath, targetPath, mode, existing);
 
 					newTargetPath = targetPath + PathHelper.PATH_SEP + PathHelper.clean(path.getFileName().toString());
 
@@ -210,7 +205,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 					@Override
 					public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
 
-						return createFileOrFolder(ctx, app, path, file, attrs, sourcePath, newTargetPath, mode, existing, doIndex);
+						return createFileOrFolder(ctx, app, path, file, attrs, sourcePath, newTargetPath, mode, existing);
 					}
 
 					@Override
@@ -239,7 +234,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 	}
 
 	private FileVisitResult createFileOrFolder(final SecurityContext ctx, final App app, final Path path, final Path file, final BasicFileAttributes attrs,
-			final String sourcePath, final String targetPath, final Mode mode, final Existing existing, final boolean doIndex) {
+			final String sourcePath, final String targetPath, final Mode mode, final Existing existing) {
 
 		ctx.setDoTransactionNotifications(false);
 
@@ -333,11 +328,6 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 				FileHelper.updateMetadata(newFile.as(File.class));
 
-				if (doIndex) {
-
-					indexer.addToFulltextIndex(newFile);
-				}
-
 				fileCount++;
 			}
 
@@ -428,8 +418,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 		return List.of(
 			Parameter.mandatory("source", "Source directory path on the server"),
 			Parameter.mandatory("mode", "`copy` (keep originals) or `move` (delete after import)"),
-			Parameter.optional("existing", "Handle duplicates: `skip`, `overwrite`, or `rename` (default: skip)"),
-			Parameter.optional("index", "Enable fulltext indexing for imported files (default: true)")
+			Parameter.optional("existing", "Handle duplicates: `skip`, `overwrite`, or `rename` (default: skip)")
 		);
 	}
 

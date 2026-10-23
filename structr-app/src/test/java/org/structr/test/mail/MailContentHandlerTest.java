@@ -47,7 +47,7 @@ import static org.testng.AssertJUnit.assertTrue;
  * stopped the fetch of the whole folder at that message.
  *
  * <p>Runs in structr-app because only here is the class path what an installation ships: the mail module's
- * own tests never see the jars of the text-search module.
+ * own tests never see the jars of the content-extraction module.
  */
 public class MailContentHandlerTest {
 

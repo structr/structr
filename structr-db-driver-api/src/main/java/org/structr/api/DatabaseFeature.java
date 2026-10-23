@@ -35,5 +35,6 @@ public enum DatabaseFeature {
 	ShowIndexesQuery,
 	TypePredicateExpressions,
 	RangeIndexes,
+	VectorIndexes,
 	GlobalSearch,
 }

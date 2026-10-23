@@ -38,6 +38,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FieldDefinition;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,6 +62,10 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	protected boolean indexedPassively          = false;
 	protected boolean indexedWhenEmpty          = false;
 	protected boolean fulltextIndexed           = false;
+	protected String fulltextIndexName          = null;
+	protected Supplier<Integer> vectorDimensions = null;
+	protected String vectorSimilarity           = null;
+	protected boolean vectorChecked             = false;
 	protected boolean compound                  = false;
 	protected boolean unique                    = false;
 	protected boolean notNull                   = false;
@@ -242,6 +247,43 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 		return this;
 
+	}
+
+	@Override
+	public Property<T> fulltextIndexed(final String indexName) {
+
+		this.fulltextIndexed   = true;
+		this.fulltextIndexName = indexName;
+
+		return this;
+	}
+
+	@Override
+	public Property<T> vectorIndexed(final Supplier<Integer> dimensions, final String similarity) {
+
+		if (!"cosine".equals(similarity) && !"euclidean".equals(similarity)) {
+
+			throw new IllegalArgumentException("Vector similarity must be cosine or euclidean, got " + similarity + ".");
+		}
+
+		this.vectorDimensions = dimensions;
+		this.vectorSimilarity = similarity;
+
+		return this;
+	}
+
+	/**
+	 * A vector index of a fixed size. Vectors the index would leave out (of another size, with values that
+	 * are not finite, or all zeros with cosine similarity) are refused when they are written, see
+	 * ArrayProperty.setProperty.
+	 */
+	public Property<T> vectorIndexed(final int dimensions, final String similarity) {
+
+		vectorIndexed(() -> dimensions, similarity);
+
+		this.vectorChecked = true;
+
+		return this;
 	}
 
 	public Property<T> hint(final String hint) {
@@ -622,6 +664,42 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	public boolean isFulltextIndexed() {
 
 		return fulltextIndexed;
+	}
+
+	@Override
+	public String fulltextIndexName() {
+
+		if (!fulltextIndexed) {
+
+			return null;
+		}
+
+		return fulltextIndexName != null ? fulltextIndexName : dbName();
+	}
+
+	@Override
+	public boolean isVectorIndexed() {
+
+		return vectorDimensions != null;
+	}
+
+	@Override
+	public Integer vectorDimensions() {
+
+		if (vectorDimensions == null) {
+
+			return null;
+		}
+
+		final Integer dimensions = vectorDimensions.get();
+
+		return dimensions != null && dimensions > 0 ? dimensions : null;
+	}
+
+	@Override
+	public String vectorSimilarity() {
+
+		return vectorDimensions != null ? vectorSimilarity : null;
 	}
 
 	@Override

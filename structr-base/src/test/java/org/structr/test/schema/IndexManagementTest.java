@@ -29,16 +29,24 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -796,6 +804,225 @@ public class IndexManagementTest extends StructrTest {
 	}
 
 	// ----- private methods -----
+	@Test
+	public void testIndexUpdateKeepsVectorIndexes() {
+
+		final DatabaseService db = app.getDatabaseService();
+
+		// only run this test if the database has vector indexes (Neo4j 5.13 and later)
+		if (db.supportsFeature(DatabaseFeature.QueryLanguage, "text/cypher") && db.supportsFeature(DatabaseFeature.VectorIndexes)) {
+
+			final String index = "VectorIndexTest_embedding";
+
+			try {
+
+				// created outside of Structr's schema, as a module like the AI module does
+				try (final Tx tx = app.tx()) {
+
+					app.query("CREATE VECTOR INDEX " + index + " IF NOT EXISTS FOR (n:VectorIndexTest) ON n.embedding OPTIONS { indexConfig: { `vector.dimensions`: 2, `vector.similarity_function`: 'cosine' } }", Map.of());
+					tx.success();
+				}
+
+				// an index update drops every index it lists that is not in the schema, here all of them
+				db.updateIndexConfiguration(List.of());
+
+				try (final Tx tx = app.tx()) {
+
+					assertTrue("Structr's index update must not drop VECTOR indexes", app.query("SHOW VECTOR INDEXES YIELD name WHERE name = $name RETURN name", Map.of("name", index)).iterator().hasNext());
+					tx.success();
+				}
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+
+			} finally {
+
+				try (final Tx tx = app.tx()) {
+
+					app.query("DROP INDEX " + index + " IF EXISTS", Map.of());
+					tx.success();
+
+				} catch (FrameworkException fex) {
+
+					logger.warn("Unable to drop test index {}: {}", index, fex.getMessage());
+				}
+			}
+
+		} else {
+
+			System.out.println("Skipping test because vector indexes are not supported.");
+		}
+	}
+
+	@Test
+	public void testSchemaVectorIndexIsManagedAndQueried() {
+
+		final DatabaseService db = app.getDatabaseService();
+
+		// only run this test if the database has vector indexes (Neo4j 5.13 and later)
+		if (!db.supportsFeature(DatabaseFeature.QueryLanguage, "text/cypher") || !db.supportsFeature(DatabaseFeature.VectorIndexes)) {
+
+			System.out.println("Skipping test because vector indexes are not supported.");
+			return;
+		}
+
+		final String index  = "VectorDoc_embedding_vector";
+		final String custom = "VectorDoc_custom";
+
+		Services.enableIndexConfiguration();
+
+		try {
+
+			// a vector index created by hand must survive Structr's index management
+			try (final Tx tx = app.tx()) {
+
+				app.query("CREATE VECTOR INDEX " + custom + " IF NOT EXISTS FOR (n:VectorDoc) ON n.other OPTIONS { indexConfig: { `vector.dimensions`: 2, `vector.similarity_function`: 'cosine' } }", Map.of());
+				tx.success();
+			}
+
+			setVectorSize(3);
+			awaitVectorIndex(db, index, 3);
+
+			// three documents and a count
+			try (final Tx tx = app.tx()) {
+
+				final PropertyKey<Double[]> embedding = Traits.of("VectorDoc").key("embedding");
+				final PropertyKey<String> name        = Traits.of("VectorDoc").key("name");
+
+				app.create("VectorDoc", new NodeAttribute<>(name, "x"), new NodeAttribute<>(embedding, new Double[] { 1.0, 0.0, 0.0 }));
+				app.create("VectorDoc", new NodeAttribute<>(name, "y"), new NodeAttribute<>(embedding, new Double[] { 0.0, 1.0, 0.0 }));
+				app.create("VectorDoc", new NodeAttribute<>(name, "xy"), new NodeAttribute<>(embedding, new Double[] { 0.7, 0.7, 0.0 }));
+				app.create("VectorDoc", new NodeAttribute<>(name, "none"));
+
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				app.query("CALL db.awaitIndexes(60)", Map.of());
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				final List<String> names = new ArrayList<>();
+
+				// the index is shared by all tenants and filtered afterwards, so ask for more than the three of this test
+				for (final NodeInterface node : app.getNodesFromVectorIndex(index, 100, new double[] { 0.9, 0.1, 0.0 }).keySet()) {
+					names.add(node.getName());
+				}
+
+				assertEquals("nearest neighbours, best first", List.of("x", "xy", "y"), names);
+
+				final PropertyKey<Double[]> embedding = Traits.of("VectorDoc").key("embedding");
+
+				assertEquals(4, app.nodeQuery("VectorDoc").count());
+				assertEquals(3, app.nodeQuery("VectorDoc").notBlank(embedding).count());
+				assertEquals(1, app.nodeQuery("VectorDoc").blank(embedding).count());
+
+				tx.success();
+			}
+
+			// a new size creates the index again
+			setVectorSize(4);
+			awaitVectorIndex(db, index, 4);
+
+			// and so does a new similarity function
+			setVectorIndex(4, "euclidean");
+			awaitVectorIndex(db, index, 4, "euclidean");
+
+			try (final Tx tx = app.tx()) {
+
+				assertFalse("a hand-made vector index must not be dropped", db.getIndexInfo(custom).isEmpty());
+				tx.success();
+			}
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+
+		} finally {
+
+			try (final Tx tx = app.tx()) {
+
+				app.query("DROP INDEX " + custom + " IF EXISTS", Map.of());
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("Unable to drop test index {}: {}", custom, fex.getMessage());
+			}
+		}
+	}
+
+	private void setVectorSize(final int dimensions) throws FrameworkException {
+
+		setVectorIndex(dimensions, "cosine");
+	}
+
+	private void setVectorIndex(final int dimensions, final String similarity) throws FrameworkException {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.getType("VectorDoc") != null ? schema.getType("VectorDoc") : schema.addType("VectorDoc");
+			JsonDoubleArrayProperty embedding = null;
+
+			for (final JsonProperty property : type.getProperties()) {
+
+				if ("embedding".equals(property.getName())) {
+					embedding = (JsonDoubleArrayProperty) property;
+				}
+			}
+
+			if (embedding == null) {
+				embedding = type.addDoubleArrayProperty("embedding");
+			}
+
+			embedding.setVectorIndex(dimensions, similarity);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+		}
+	}
+
+	private void awaitVectorIndex(final DatabaseService db, final String index, final int dimensions) {
+
+		awaitVectorIndex(db, index, dimensions, "cosine");
+	}
+
+	private void awaitVectorIndex(final DatabaseService db, final String index, final int dimensions, final String similarity) {
+
+		final long start = System.currentTimeMillis();
+
+		while (true) {
+
+			try (final Tx tx = app.tx()) {
+
+				final Map<String, Object> info = db.getIndexInfo(index);
+
+				tx.success();
+
+				if (info.get("dimensions") instanceof Number number && number.intValue() == dimensions && similarity.equalsIgnoreCase(String.valueOf(info.get("similarity"))) && "ONLINE".equals(info.get("state"))) {
+					return;
+				}
+
+			} catch (FrameworkException fex) {
+				logger.warn("Unable to read index {}: {}", index, fex.getMessage());
+			}
+
+			if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+				fail("Timeout waiting for vector index " + index + " with " + dimensions + " dimensions and " + similarity + " similarity.");
+			}
+
+			try { Thread.sleep(1000); } catch (Throwable t) {}
+		}
+	}
+
 	private boolean indexCreatedSuccessfully(final DatabaseService db, final boolean isNode, final boolean isRelationship, final String indexType, final String entityType, final Set<String> propertyNames, final int expectedEntryCount) {
 
 		logger.info("Waiting for index update..");

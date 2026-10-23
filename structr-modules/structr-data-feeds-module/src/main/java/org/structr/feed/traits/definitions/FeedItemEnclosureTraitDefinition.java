@@ -19,9 +19,6 @@
 package org.structr.feed.traits.definitions;
 
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
@@ -30,8 +27,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.core.traits.operations.graphobject.AfterCreation;
 import org.structr.feed.entity.FeedItemEnclosure;
 import org.structr.feed.traits.wrappers.FeedItemEnclosureTraitWrapper;
 
@@ -51,20 +46,6 @@ public class FeedItemEnclosureTraitDefinition extends AbstractNodeTraitDefinitio
 	public FeedItemEnclosureTraitDefinition() {
 
 		super(StructrTraits.FEED_ITEM_ENCLOSURE);
-	}
-
-	@Override
-	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
-
-		return Map.of(AfterCreation.class, new AfterCreation() {
-
-				@Override
-				public void afterCreation(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
-
-					graphObject.as(FeedItemEnclosure.class).updateIndex(securityContext);
-				}
-			}
-		);
 	}
 
 	@Override

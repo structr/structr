@@ -61,7 +61,7 @@ Each feed entry is stored as a `FeedItem` with these properties:
 | `cacheForSeconds` | Integer | How long fetched content may be cached |
 | `version` | Integer | Version counter of the fetched content (read-only) |
 
-The same module also provides the `RemoteDocument` type, which represents a single document at a `url` without a feed. It carries the same `contentType`, `checksum`, `cacheForSeconds` and `version` properties and fetches the document over HTTP when its content is read, for example for fulltext indexing.
+The same module also provides the `RemoteDocument` type, which represents a single document at a `url` without a feed. It carries the same `contentType`, `checksum`, `cacheForSeconds` and `version` properties.
 
 ## FeedItemContent Properties
 

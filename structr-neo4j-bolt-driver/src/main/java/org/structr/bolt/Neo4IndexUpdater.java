@@ -33,14 +33,12 @@ public class Neo4IndexUpdater extends IndexUpdater {
 	@Override
 	protected String getIndexIdentifier(final NewIndexConfig config) {
 
-		final String identifier = config.getType() + "_" + config.getPropertyKey();
-
 		if (config.isFulltextIndex()) {
 
-			return identifier + "_fulltext";
+			return config.getType() + "_" + config.getIndexName() + "_fulltext";
 		}
 
-		return identifier;
+		return config.getType() + "_" + config.getPropertyKey();
 	}
 
 	@Override
@@ -60,7 +58,7 @@ public class Neo4IndexUpdater extends IndexUpdater {
 
 		final String indexIdentifier = (String) indexInfoRow.get("name");
 
-		return new ExistingIndexInfo(indexIdentifier, (String) indexInfoRow.get("state"), (String) indexInfoRow.get("type"));
+		return new ExistingIndexInfo(indexIdentifier, (String) indexInfoRow.get("state"), (String) indexInfoRow.get("type"), properties(indexInfoRow.get("properties")));
 	}
 
 	@Override
@@ -81,7 +79,7 @@ public class Neo4IndexUpdater extends IndexUpdater {
 
 		if (newIndexConfig.isFulltextIndex()) {
 
-			return "CREATE FULLTEXT INDEX `" + identifier + "` FOR " + indexDescription + " ON EACH [n.`" + propertyKey + "`]";
+			return "CREATE FULLTEXT INDEX `" + identifier + "` FOR " + indexDescription + " ON EACH [" + fulltextProperties(newIndexConfig) + "]";
 
 		} else if (newIndexConfig.isTextIndex()) {
 

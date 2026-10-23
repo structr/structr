@@ -20,6 +20,7 @@ Topic "Introduction" has markdown-file "articles/Introduction/Core Concepts.md"
 # Building Applications
 Topic "Building Applications" has markdown-file "articles/Building Applications/Overview.md"
 Topic "Building Applications" has markdown-file "articles/Building Applications/Data Model.md"
+Topic "Building Applications" has markdown-file "articles/Building Applications/Search & Retrieval.md"
 Topic "Building Applications" has markdown-file "articles/Building Applications/Data Creation & Import.md"
 Topic "Building Applications" has markdown-file "articles/Building Applications/Pages & Templates.md"
 Topic "Building Applications" has markdown-file "articles/Building Applications/Navigation & Routing.md"
@@ -85,6 +86,7 @@ Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Serv
 Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Host Script Execution.md"
 Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/RSS Feeds.md"
 Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Spatial.md"
+Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Content Extraction.md"
 Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Outbound HTTP.md"
 
 

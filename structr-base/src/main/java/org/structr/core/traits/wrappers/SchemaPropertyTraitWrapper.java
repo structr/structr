@@ -134,6 +134,20 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	}
 
 	@Override
+	public Integer getVectorDimensions() {
+
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.VECTOR_DIMENSIONS_PROPERTY));
+	}
+
+	@Override
+	public String getVectorSimilarity() {
+
+		final String similarity = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.VECTOR_SIMILARITY_PROPERTY));
+
+		return similarity != null ? similarity : "cosine";
+	}
+
+	@Override
 	public boolean isFulltext() {
 
 		final Boolean isFulltext = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.FULLTEXT_PROPERTY));
@@ -336,6 +350,8 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY),             _contentHash);
 		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY),               _contentHash);
 		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY),              _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.VECTOR_DIMENSIONS_PROPERTY),    _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.VECTOR_SIMILARITY_PROPERTY),    _contentHash);
 		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.READ_ONLY_PROPERTY),            _contentHash);
 		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.IS_DYNAMIC_PROPERTY),           _contentHash);
 		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.IS_BUILTIN_PROPERTY_PROPERTY),  _contentHash);

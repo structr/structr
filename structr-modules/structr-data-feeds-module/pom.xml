@@ -24,11 +24,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-text-search-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.rometools</groupId>
             <artifactId>rome</artifactId>
         </dependency>

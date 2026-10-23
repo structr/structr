@@ -18,21 +18,11 @@
  */
 package org.structr.feed.traits.wrappers;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.StructrTraits;
-import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.feed.entity.RemoteDocument;
 import org.structr.feed.traits.definitions.RemoteDocumentTraitDefinition;
-import org.structr.rest.common.HttpHelper;
-
-import java.io.InputStream;
-import java.util.Map;
 
 /**
  *
@@ -49,71 +39,6 @@ public class RemoteDocumentTraitWrapper extends AbstractNodeTraitWrapper impleme
 	public String getUrl() {
 
 		return wrappedObject.getProperty(traits.key(RemoteDocumentTraitDefinition.URL_PROPERTY));
-	}
-
-	@Override
-	public InputStream getInputStream() {
-
-		final String remoteUrl = getUrl();
-		if (StringUtils.isNotBlank(remoteUrl)) {
-
-			// getInputStream() declares no checked exception, so the failure is logged rather than propagated;
-			// answering null is what the caller already expects when the document cannot be fetched.
-			try {
-
-				/* Ticket 1595: this fetched whatever URL the node carried, with no address check at all -
-				   and the body does not stay inside the server, it is indexed into extractedContent and
-				   readable from there. Anyone who may create a RemoteDocument could therefore read the
-				   instance's own network through it. DataFeed validates the same way. */
-				HttpHelper.validateUrl(remoteUrl);
-
-				final Map<String, Object> responseData = HttpHelper.getAsStream(remoteUrl);
-				if (responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream stream) {
-
-					return stream;
-				}
-
-			} catch (final FrameworkException fex) {
-
-				LoggerFactory.getLogger(RemoteDocumentTraitWrapper.class).warn("Unable to fetch remote document {}: {}", remoteUrl, fex.getMessage());
-			}
-		}
-
-		return null;
-	}
-
-	@Override
-	public boolean indexingEnabled() {
-
-		return Settings.RemoteDocumentIndexingEnabled.getValue();
-	}
-
-	@Override
-	public Integer maximumIndexedWords() {
-
-		return Settings.RemoteDocumentIndexingLimit.getValue();
-	}
-
-	@Override
-	public Integer indexedWordMinLength() {
-
-		return Settings.RemoteDocumentIndexingMinLength.getValue();
-	}
-
-	@Override
-	public Integer indexedWordMaxLength() {
-
-		return Settings.RemoteDocumentIndexingMaxLength.getValue();
-	}
-
-	@Override
-	public String getExtractedContent() {
-
-		// The fulltext indexer stores the extracted text under the File key for every node it indexes
-		// (see FulltextIndexingAgent), so it has to be read with that same key: this type does not
-		// declare the property itself since it no longer has the removed "Indexable" trait.
-
-		return wrappedObject.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY));
 	}
 
 	@Override

@@ -454,6 +454,12 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	}
 
 	@Override
+	public long count() throws FrameworkException {
+
+		return query.count();
+	}
+
+	@Override
 	public Traits getTraits() {
 
 		return query.getTraits();

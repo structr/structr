@@ -23,12 +23,16 @@ import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.structr.api.UnknownClientException;
 import org.structr.api.graph.Node;
+import org.structr.api.search.QueryContext;
+import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -79,6 +83,11 @@ class CypherNodeIndex extends AbstractCypherIndex<Node<Long>> {
 
 	@Override
 	public String getQuerySuffix(final AdvancedCypherQuery query) {
+
+		if (query.isCountOnly()) {
+
+			return " RETURN count(DISTINCT n) AS count";
+		}
 
 		final StringBuilder buf = new StringBuilder();
 
@@ -146,6 +155,73 @@ class CypherNodeIndex extends AbstractCypherIndex<Node<Long>> {
 			final Double score = (Double) entry.get("score");
 
 			nodes.put(node, score);
+		}
+
+		return nodes;
+	}
+
+	@Override
+	public long count(final QueryContext context, final QueryPredicate predicate) {
+
+		final AdvancedCypherQuery query = (AdvancedCypherQuery) getQuery(context, predicate, Integer.MAX_VALUE, 1);
+
+		if (!query.hasSingleTypeLabel()) {
+
+			// a node with several of the labels would be counted once per label
+			return -1;
+		}
+
+		query.setCountOnly(true);
+
+		for (final Map<String, Object> row : db.getCurrentTransaction().run(new SimpleCypherQuery(query.getStatement(), query.getParameters()))) {
+
+			return ((Number) row.get("count")).longValue();
+		}
+
+		return 0;
+	}
+
+	@Override
+	public Map<Node<Long>, Double> vectorQuery(final String indexName, final int k, final double[] vector) {
+
+		final String tenantIdentifier        = db.getTenantIdentifier();
+		final Map<String, Object> parameters = new LinkedHashMap<>();
+		final SessionTransaction tx          = db.getCurrentTransaction();
+		final List<Double> values            = new ArrayList<>(vector.length);
+
+		// check if index exists first, like fulltextQuery, so a missing index is an error and not an empty result
+		if (Iterables.toList(tx.run(new SimpleCypherQuery("SHOW VECTOR INDEXES WHERE name = $indexName", Map.of("indexName", indexName)))).isEmpty()) {
+
+			throw new UnknownClientException(null, null, "Index \"" + indexName + "\" does not exist.");
+		}
+
+		for (final double value : vector) {
+			values.add(value);
+		}
+
+		parameters.put("indexName", indexName);
+		parameters.put("k", k);
+		parameters.put("vector", values);
+
+		final String statement;
+
+		if (StringUtils.isNotBlank(tenantIdentifier)) {
+
+			// the nearest k of all tenants, so a tenant gets fewer than k
+			statement = "CALL db.index.vector.queryNodes($indexName, $k, $vector) YIELD node, score WHERE ANY (l in labels(node) WHERE l = $tenantIdentifier) RETURN node, score";
+
+			parameters.put("tenantIdentifier", tenantIdentifier);
+
+		} else {
+
+			statement = "CALL db.index.vector.queryNodes($indexName, $k, $vector) YIELD node, score RETURN node, score";
+		}
+
+		final Map<Node<Long>, Double> nodes = new LinkedHashMap<>();
+
+		for (final Map<String, Object> entry : tx.run(new SimpleCypherQuery(statement, parameters))) {
+
+			nodes.put((Node) entry.get("node"), ((Number) entry.get("score")).doubleValue());
 		}
 
 		return nodes;

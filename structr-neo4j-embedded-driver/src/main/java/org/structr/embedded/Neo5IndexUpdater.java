@@ -21,32 +21,53 @@ package org.structr.embedded;
 import org.structr.api.index.ExistingIndexInfo;
 import org.structr.api.index.NewIndexConfig;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Neo5IndexUpdater extends IndexUpdater {
+
+	/** The name of every vector index Structr manages ends with this; other vector indexes are left alone. */
+	public static final String VECTOR_SUFFIX = "_vector";
 
 	public Neo5IndexUpdater(final EmbeddedDatabaseService db, final boolean supportsRelationshipIndexes) {
 
 		super(db, supportsRelationshipIndexes);
 	}
 
+	/**
+	 * Lists only the indexes Structr manages. Every listed index that is not in the schema is dropped,
+	 * so other indexes must stay out of this list: LOOKUP and POINT indexes, and VECTOR indexes whose
+	 * name does not end in "_vector", e.g. ones created by hand with Cypher.
+	 */
 	@Override
 	protected String getIndexInfoQuery() {
 
-		return "SHOW INDEXES YIELD name, type, state, labelsOrTypes, properties WHERE (type = 'RANGE' OR type = 'TEXT' OR type = 'FULLTEXT') RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}";
+		return "SHOW INDEXES YIELD name, type, state, labelsOrTypes, properties, options "
+			+ "WHERE (type = 'RANGE' OR type = 'TEXT' OR type = 'FULLTEXT' OR (type = 'VECTOR' AND name ENDS WITH '" + VECTOR_SUFFIX + "')) "
+			+ "RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state, "
+			+ "dimensions: options.indexConfig['vector.dimensions'], similarity: options.indexConfig['vector.similarity_function']}";
+	}
+
+	@Override
+	protected boolean supportsVectorIndexes() {
+
+		return true;
 	}
 
 	@Override
 	protected String getIndexIdentifier(final NewIndexConfig config) {
 
-		final String identifier = config.getType() + "_" + config.getPropertyKey();
-
 		if (config.isFulltextIndex()) {
 
-			return identifier + "_fulltext";
+			return config.getType() + "_" + config.getIndexName() + "_fulltext";
 		}
 
-		return identifier;
+		if (config.isVectorIndex()) {
+
+			return config.getType() + "_" + config.getPropertyKey() + VECTOR_SUFFIX;
+		}
+
+		return config.getType() + "_" + config.getPropertyKey();
 	}
 
 	@Override
@@ -60,13 +81,24 @@ public class Neo5IndexUpdater extends IndexUpdater {
 
 		final String indexIdentifier = (String) indexInfoRow.get("name");
 
-		return new ExistingIndexInfo(indexIdentifier, (String) indexInfoRow.get("state"), (String) indexInfoRow.get("type"));
+		final Map<String, Object> options = new LinkedHashMap<>();
+
+		if (indexInfoRow.get("dimensions") != null) {
+			options.put("dimensions", indexInfoRow.get("dimensions"));
+		}
+
+		if (indexInfoRow.get("similarity") != null) {
+			options.put("similarity", indexInfoRow.get("similarity"));
+		}
+
+		return new ExistingIndexInfo(indexIdentifier, (String) indexInfoRow.get("state"), (String) indexInfoRow.get("type"), properties(indexInfoRow.get("properties")), options);
 	}
 
 	@Override
 	protected String getExpectedIndexType(final NewIndexConfig config) {
 
 		if (config.isFulltextIndex()) return "FULLTEXT";
+		if (config.isVectorIndex())   return "VECTOR";
 		if (config.isTextIndex())     return "TEXT";
 
 		return "RANGE";
@@ -79,9 +111,14 @@ public class Neo5IndexUpdater extends IndexUpdater {
 		final String identifier       = getIndexIdentifier(newIndexConfig);
 		final String propertyKey      = newIndexConfig.getPropertyKey();
 
-		if (newIndexConfig.isFulltextIndex()) {
+		if (newIndexConfig.isVectorIndex()) {
 
-			return "CREATE FULLTEXT INDEX `" + identifier + "` FOR " + indexDescription + " ON EACH [n.`" + propertyKey + "`]";
+			return "CREATE VECTOR INDEX `" + identifier + "` FOR " + indexDescription + " ON (n.`" + propertyKey + "`) OPTIONS { indexConfig: { "
+				+ "`vector.dimensions`: " + newIndexConfig.getVectorDimensions() + ", `vector.similarity_function`: '" + newIndexConfig.getVectorSimilarity() + "' } }";
+
+		} else if (newIndexConfig.isFulltextIndex()) {
+
+			return "CREATE FULLTEXT INDEX `" + identifier + "` FOR " + indexDescription + " ON EACH [" + fulltextProperties(newIndexConfig) + "]";
 
 		} else if (newIndexConfig.isTextIndex()) {
 

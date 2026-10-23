@@ -18,7 +18,7 @@
  */
 @media (max-width: 1000px) {
 	.article {
-		padding: 0 5% 1rem 5% !important;
+		padding: 0 5% 4rem 5% !important;
 		margin: 0;
 	}
 }
@@ -191,8 +191,69 @@ html.documentation {
 
 .article {
 	background-color: white;
-	padding: 0 10% 2rem 10%;
-	height: 100%;
+	padding: 0 10% 6rem 10%;
+	min-height: 100%;
+}
+
+/* A passage marked in the markdown, e.g. a section or block of a Structr Enterprise feature: a panel in the
+   badge color like the note boxes, and a label in the style of the admin UI after its heading, or at its top. */
+.article .badge-enterprise {
+	--badge-label: 'Enterprise';
+	--badge-color: #4d97e8;
+}
+
+.article .badge-passage {
+	margin: 1rem 0;
+	padding: 1rem;
+	border: 1px solid var(--badge-color);
+	border-radius: .5rem;
+	background-color: color-mix(in srgb, var(--badge-color), white 92%);
+}
+
+.article .badge-passage > :first-child {
+	margin-top: 0;
+	padding-top: 0;
+}
+
+/* a section keeps the space its heading has outside the panel */
+.article .badge-passage:has(> :is(h1, h2, h3, h4, h5, h6):first-child) {
+	margin-top: 2.5rem;
+}
+
+.article .badge-passage > :last-child {
+	margin-bottom: 0;
+}
+
+.article .badge-passage > :is(h1, h2, h3, h4, h5, h6):first-child::after,
+.article .badge-passage:not(:has(> :is(h1, h2, h3, h4, h5, h6):first-child))::before,
+.article .badge-inline::before {
+	content: var(--badge-label);
+	display: inline-block;
+	padding: .1rem .4rem;
+	border: 1px solid var(--badge-color);
+	border-radius: .25rem;
+	color: var(--badge-color);
+	background-color: white;
+	font-size: .7rem;
+	font-weight: 400;
+	line-height: 1.2;
+	letter-spacing: .02em;
+	white-space: nowrap;
+	vertical-align: middle;
+}
+
+.article .badge-passage > :is(h1, h2, h3, h4, h5, h6):first-child::after,
+.article .badge-inline::before {
+	margin-left: .5rem;
+}
+
+.article .badge-passage:not(:has(> :is(h1, h2, h3, h4, h5, h6):first-child))::before {
+	margin-bottom: .5rem;
+}
+
+/* the badge inline, e.g. next to the name of a function in a reference table, on the line of the name */
+.article .badge-line {
+	white-space: nowrap;
 }
 
 #docs-area iframe {
@@ -339,8 +400,9 @@ html.documentation {
 	border: none;
 }
 
+/* compact, so a code block does not look like a panel */
 .article pre {
-	padding: 1rem 1.5rem;
+	padding: .5rem .75rem;
 	line-height: 1.5rem;
 }
 

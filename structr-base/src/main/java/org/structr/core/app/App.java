@@ -23,7 +23,6 @@ import org.structr.api.DatabaseService;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
@@ -62,6 +61,12 @@ public interface App extends Closeable {
 	Map<RelationshipInterface, Double> getRelationshipsFromFulltextIndex(final String indexName, final String searchString, int pageSize, int page) throws FrameworkException;
 	Map<NodeInterface, Double> getNodesFromFulltextIndex(final String indexName, final String searchString, int page, int pageSize) throws FrameworkException;
 
+	/**
+	 * The k nearest neighbours of a vector in a vector index (see PropertyKey.vectorIndexed()), best first, with
+	 * their similarity score between 0 and 1; without the nodes the security context of this app may not read.
+	 */
+	Map<NodeInterface, Double> getNodesFromVectorIndex(final String indexName, final int k, final double[] vector) throws FrameworkException;
+
 	Query<NodeInterface> nodeQuery();
 	QueryGroup<NodeInterface> nodeQuery(final String type);
 
@@ -74,8 +79,6 @@ public interface App extends Closeable {
 
 	void processTasks(final Task... tasks);
 	<T extends Command & MaintenanceCommand> void maintenance(final Class<T> commandClass, final Map<String, Object> propertySet) throws FrameworkException;
-
-	FulltextIndexer getFulltextIndexer(final Object... params);
 
 	Iterable<GraphObject> query(final String nativeQuery, final Map<String, Object> parameters) throws FrameworkException;
 

@@ -44,13 +44,14 @@ import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.definitions.FolderTraitDefinition;
 
+import java.util.Objects;
+
 /**
  * Maps external change events and enumerated entries for one sync target
  * onto graph operations: creates, updates, moves and deletes File and Folder
  * nodes (honouring sync.fileType/sync.folderType), creates
  * intermediate folders, marks nodes isExternal, maintains lastSeenMounted
- * and triggers fulltext indexing and metadata refresh where content actually
- * changed. All methods require an active transaction.
+ * and refreshes metadata and the version where content actually changed. All methods require an active transaction.
  *
  * Node resolution: entries are resolved by node UUID first; entries without
  * a (known) UUID are resolved by their virtual path relative to the sync
@@ -474,8 +475,9 @@ public class ExternalFileSyncHandler {
 	}
 
 	/**
-	 * Ported from the legacy FileSyncWatchEventListener: fulltext indexing
-	 * and full metadata refresh for files, lastSeenMounted for folders.
+	 * Ported from the legacy FileSyncWatchEventListener: full metadata refresh
+	 * for files, and a new version when their content changed; lastSeenMounted
+	 * for folders.
 	 */
 	private void updateNode(final NodeInterface node, final ExternalEntry entry, final long timestamp) throws FrameworkException {
 
@@ -483,23 +485,23 @@ public class ExternalFileSyncHandler {
 
 		if (node.is(StructrTraits.FILE)) {
 
-			final NodeInterface syncRoot = getSyncRoot();
-			if (syncRoot != null && syncRoot.is(StructrTraits.FOLDER)) {
+			final File file     = node.as(File.class);
+			final Long previous = file.getChecksum();
 
-				final PropertyKey<Boolean> doFulltextIndexing = Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_DO_FULLTEXT_INDEXING_PROPERTY);
-				if (Boolean.TRUE.equals(syncRoot.getProperty(doFulltextIndexing))) {
-
-					StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(node);
-				}
-			}
-
-			FileHelper.updateMetadata(node.as(File.class), new PropertyMap(lastSeenMountedKey(), timestamp), true);
+			FileHelper.updateMetadata(file, new PropertyMap(lastSeenMountedKey(), timestamp), true);
 
 			// the storage's modification time, which the next scan compares with: updateMetadata records the
 			// node's own instead, which never matches, so every file would read as changed on every scan
 			if (entry.lastModified() != null) {
 
 				node.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.FILE_MODIFICATION_DATE_PROPERTY), entry.lastModified());
+			}
+
+			// a new version is the signal for "the content changed", as after an upload; listeners such as
+			// automatic content extraction react to it. A changed timestamp alone is no new content.
+			if (!Objects.equals(previous, file.getChecksum())) {
+
+				file.increaseVersion();
 			}
 
 		} else if (node.is(StructrTraits.ABSTRACT_FILE)) {
