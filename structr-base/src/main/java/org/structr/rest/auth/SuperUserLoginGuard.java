@@ -58,34 +58,57 @@ public final class SuperUserLoginGuard {
 		return isTwoFactorEnabled() && getSecret() != null;
 	}
 
-	/** Same algorithm, digits and period as user logins; each code is accepted once, wherever it is used, so one seen being typed is useless. */
+	/** The outcome of a code check: a correct code of a time step that was already used is refused, but is no guess. */
+	public enum CodeCheck { VALID, REUSED, INVALID }
+
 	public static boolean isValidCode(final String secret, final String code) {
+
+		return checkCode(secret, code) == CodeCheck.VALID;
+	}
+
+	/** Same algorithm, digits and period as user logins, the current and the previous time step; each step is accepted once, wherever its code is used, so one seen being typed is useless. */
+	public static CodeCheck checkCode(final String secret, final String code) {
 
 		if (StringUtils.isAnyBlank(secret, code)) {
 
-			return false;
+			return CodeCheck.INVALID;
 		}
 
 		try {
 
-			final int period     = Settings.TwoFactorPeriod.getValue();
-			final long step      = System.currentTimeMillis() / 1000 / period;
-			final String current = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(secret, "Hmac" + Settings.TwoFactorAlgorithm.getValue(), period, Settings.TwoFactorDigits.getValue());
+			final int period       = Settings.TwoFactorPeriod.getValue();
+			final long currentStep = System.currentTimeMillis() / 1000 / period;
+			final byte[] submitted = code.trim().getBytes(StandardCharsets.UTF_8);
 
-			if (!MessageDigest.isEqual(current.getBytes(StandardCharsets.UTF_8), code.trim().getBytes(StandardCharsets.UTF_8))) {
+			for (long step = currentStep; step >= currentStep - 1; step--) {
 
-				return false;
+				final String expected = TimeBasedOneTimePasswordHelper.generateNumberStringForStep(secret, "Hmac" + Settings.TwoFactorAlgorithm.getValue(), step, Settings.TwoFactorDigits.getValue());
+
+				if (MessageDigest.isEqual(expected.getBytes(StandardCharsets.UTF_8), submitted)) {
+
+					while (true) {
+
+						final long last = lastStep.get();
+						if (step <= last) {
+
+							return CodeCheck.REUSED;
+						}
+
+						if (lastStep.compareAndSet(last, step)) {
+
+							return CodeCheck.VALID;
+						}
+					}
+				}
 			}
 
-			final long last = lastStep.get();
-
-			return step > last && lastStep.compareAndSet(last, step);
+			return CodeCheck.INVALID;
 
 		} catch (Exception ex) {
 
 			logger.warn("Unable to check the second factor of the superuser: {}", ex.getMessage());
 
-			return false;
+			return CodeCheck.INVALID;
 		}
 	}
 

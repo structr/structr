@@ -214,7 +214,9 @@ public class AuthHelper {
 			final boolean passwordMatches = java.security.MessageDigest.isEqual(password.getBytes(java.nio.charset.StandardCharsets.UTF_8), superUserPwd.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
 			// a wrong code counts like a wrong password: the comparison is fast, so the code must not be guessable either
-			if (passwordMatches && SuperUserLoginGuard.isValidCode(SuperUserLoginGuard.getSecret(), twoFactorCode)) {
+			final SuperUserLoginGuard.CodeCheck check = passwordMatches ? SuperUserLoginGuard.checkCode(SuperUserLoginGuard.getSecret(), twoFactorCode) : SuperUserLoginGuard.CodeCheck.INVALID;
+
+			if (check == SuperUserLoginGuard.CodeCheck.VALID) {
 
 				principal = new SuperUser();
 
@@ -224,7 +226,15 @@ public class AuthHelper {
 				return principal;
 			}
 
-			SuperUserLoginGuard.registerFailure(source);
+			if (check == SuperUserLoginGuard.CodeCheck.REUSED) {
+
+				// the right password and a correct code, only already used: refused, but not a failed attempt
+				logger.info("Superuser {} refused: the code was already used, each code is accepted once", source);
+
+			} else {
+
+				SuperUserLoginGuard.registerFailure(source);
+			}
 
 			throw new AuthenticationException(STANDARD_ERROR_MSG);
 		}
