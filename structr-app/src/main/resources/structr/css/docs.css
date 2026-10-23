@@ -17,12 +17,6 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 @media (max-width: 1000px) {
-	aside {
-		display: none;
-	}
-	nav {
-		font-size: 8pt;
-	}
 	.article {
 		padding: 0 5% 1rem 5% !important;
 		margin: 0;
@@ -37,24 +31,90 @@ html.documentation {
 #docs-area {
 	background-color: white;
 	min-width: 16rem;
+	/* the admin UI keeps the body at least 70rem wide; the docs fit the window instead, so the right column is never cut off */
+	width: min(100%, 100vw);
 	font-size: 11pt;
 	display: flex;
 	flex-direction: row;
 	position: relative;
 }
 
-/* Navigation column */
+/* Columns: navigation and index are as wide as their content, the article takes the rest */
+
+#docs-area .docs-column {
+	flex: 0 0 auto;
+	position: relative;
+}
+
+#docs-index-column {
+	padding-left: 2.25rem;
+}
+
+/* collapsed, both columns are the same narrow strip: the icon and a small margin on either side */
+#docs-area .docs-column.collapsed {
+	box-sizing: border-box;
+	width: 1.75rem;
+	padding: 0;
+	cursor: pointer;
+}
+
+#docs-nav-column.collapsed {
+	border-right: 1px solid var(--gray-ddd);
+}
+
+#docs-index-column.collapsed {
+	border-left: 1px solid var(--gray-ddd);
+}
+
+#docs-area .docs-column.collapsed .docs-column-toggle {
+	left: 50%;
+	right: auto;
+	transform: translate(-50%, -50%);
+	width: 1rem;
+}
+
+#docs-area .docs-column-toggle {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	padding: 0;
+	border: none;
+	background-color: transparent;
+	color: var(--gray-555);
+	cursor: pointer;
+	opacity: .6;
+}
+
+#docs-area .docs-column-toggle:hover {
+	opacity: 1;
+}
+
+#docs-nav-column .docs-column-toggle {
+	right: .25rem;
+}
+
+#docs-index-column .docs-column-toggle {
+	left: .25rem;
+}
+
+#docs-area .docs-column.collapsed nav, #docs-area .docs-column.collapsed aside {
+	display: none;
+}
 
 #docs-area nav {
 	background-color: transparent;
 	overflow: auto;
+	scrollbar-gutter: stable;
 	height: calc(100vh - 8rem);
-	width: 30%;
-	min-width: 16rem;
+	width: max-content;
 }
 
 #docs-area aside {
-	width: 30%;
 	font-size: 11pt;
 }
 
@@ -64,7 +124,6 @@ html.documentation {
 
 #docs-area nav a.active {
 	color: var(--structr-green);
-	font-weight: 500;
 }
 
 #docs-area nav > ul {
@@ -87,7 +146,7 @@ html.documentation {
 #docs-area nav li li {
 	list-style-type: none;
 	color: var(--gray-555);
-	font-weight: 300;
+	font-weight: 400;
 	padding: 0;
 	margin: 0;
 	white-space: nowrap;
@@ -137,10 +196,11 @@ html.documentation {
 }
 
 #docs-area iframe {
+	flex: 1 1 auto;
+	min-width: 0;
 	border: none;
 	margin: 0;
 	padding: 0;
-	width: 80%;
 }
 
 .article h1 a, .article h2 a, .article h3 a, .article h4 a, .article h5 a, .article h6 a {
@@ -353,9 +413,10 @@ html.documentation {
 }
 
 .index {
-	width: 20%;
-	min-width: 16rem;
+	width: max-content;
+	max-width: 24rem;
 	overflow: auto;
+	scrollbar-gutter: stable;
 	height: calc(100vh - 10rem);
 	padding: 1.75rem 1rem 2rem 1rem;
 	background-color: white;
