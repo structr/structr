@@ -85,7 +85,16 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-					onCreateAndModify(graphObject.as(User.class), securityContext);
+					final User user = graphObject.as(User.class);
+
+					onCreateAndModify(user, securityContext);
+
+					final PropertyKey<Boolean> skipSecurityRelationshipsKey = Traits.of(StructrTraits.USER).key(SKIP_SECURITY_RELATIONSHIPS_PROPERTY);
+
+					if (Boolean.TRUE.equals(modificationQueue.getModifiedProperties(user).get(skipSecurityRelationshipsKey)) && !user.isAdmin()) {
+
+						TransactionCommand.simpleBroadcastWarning("Info", "Non-admin user has the '" + SKIP_SECURITY_RELATIONSHIPS_PROPERTY + "' flag set to true. This requires the application to set up access rights on node creation.", Predicate.only(securityContext.getSessionId()));
+					}
 				}
 			},
 
@@ -187,12 +196,6 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 			}
 
 			user.setSecurityContext(SecurityContext.getSuperUserInstance());
-
-			final PropertyKey<Boolean> skipSecurityRelationships = Traits.of(StructrTraits.USER).key(SKIP_SECURITY_RELATIONSHIPS_PROPERTY);
-			if (user.getProperty(skipSecurityRelationships).equals(Boolean.TRUE) && !user.isAdmin()) {
-
-				TransactionCommand.simpleBroadcastWarning("Info", "This non-admin user has the '" + SKIP_SECURITY_RELATIONSHIPS_PROPERTY + "' flag set to true. This requires the application to set up access rights on node creation.", Predicate.only(securityContext.getSessionId()));
-			}
 
 			if (user.getTwoFactorSecret() == null) {
 
