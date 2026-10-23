@@ -128,7 +128,7 @@ public class SearchVectorFunction extends CoreFunction implements QueryFunction 
 			Only entities the current user can read are returned, so there can be fewer than `limit` results.
 
 			To search the text that content extraction stored for uploaded files, use `documents.vectorSearch()` instead (Structr Enterprise): \
-			it takes the search text itself and embeds it with the model of the files. The article *Searching* (Building Applications) \
+			it takes the search text itself and embeds it with the model of the files. The article *Search & Retrieval* (Building Applications) \
 			explains which search function to use when.
 
 			Vector indexes need Neo4j 5.13 or later.""";

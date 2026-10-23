@@ -135,7 +135,7 @@ Idx. stands for Indexed. When you activate the indexed checkbox on an attribute,
 #### Fulltext
 Fulltext stands for fulltext indexing. When you activate the fulltext checkbox on a string attribute, the system creates a fulltext index with advanced search capabilities and scoring.
 
-You can query fulltext indexed attributes by passing the index name to the `searchFulltext()` function. The index name is automatically generated from the type and attribute name plus the string "fulltext", e.g. `Project_projectId_fulltext`. The article [Searching](/structr/docs/ontology/Building%20Applications/Searching) compares the search functions for your own types and for the text extracted from files.
+You can query fulltext indexed attributes by passing the index name to the `searchFulltext()` function. The index name is automatically generated from the type and attribute name plus the string "fulltext", e.g. `Project_projectId_fulltext`. The article [Search & Retrieval](/structr/docs/ontology/Building%20Applications/Search%20&%20Retrieval) compares the search functions for your own types and for the text extracted from files.
 
 #### Vector Index
 A vector index is for attributes of type `Double[]` that hold vectors, for example embeddings that describe the meaning of a text. Once a `Double[]` attribute is saved, its row has a **Vector Index** button (showing the size when an index is set) that opens a dialog with the settings of the index. In the Code area, the same settings are in the details of the attribute.
@@ -157,7 +157,7 @@ For normalized vectors (of length 1, as most embedding APIs return them), both r
 
 You can find the objects whose vectors are nearest to a given vector by passing the index name to the `searchVector()` function, for example `$.searchVector('Product_embedding_vector', vector, 10)`. The index name is automatically generated from the type and attribute name plus the string "vector", e.g. `Product_embedding_vector`. Vector indexes need Neo4j 5.13 or later.
 
-Where the vectors come from is up to you: an external service, your own code, or in Structr Enterprise the `llmEmbed()` function, which turns a text into a vector with an embedding model. The vector you search with must come from the same source as the stored ones. The article [Searching](/structr/docs/ontology/Building%20Applications/Searching) shows step by step how to search your own types by meaning with `llmEmbed()` and `searchVector()`.
+Where the vectors come from is up to you: an external service, your own code, or in Structr Enterprise the `llmEmbed()` function, which turns a text into a vector with an embedding model. The vector you search with must come from the same source as the stored ones. The article [Search & Retrieval](/structr/docs/ontology/Building%20Applications/Search%20&%20Retrieval) shows step by step how to search your own types by meaning with `llmEmbed()` and `searchVector()`.
 
 Vector indexes that you create yourself with Cypher are left alone by Structr, as long as their name does not end in `_vector`.
 

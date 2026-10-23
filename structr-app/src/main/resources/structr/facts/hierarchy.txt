@@ -20,7 +20,7 @@ Topic "Introduction" has markdown-file "articles/Introduction/Core Concepts.md"
 # Building Applications
 Topic "Building Applications" has markdown-file "articles/Building Applications/Overview.md"
 Topic "Building Applications" has markdown-file "articles/Building Applications/Data Model.md"
-Topic "Building Applications" has markdown-file "articles/Building Applications/Searching.md"
+Topic "Building Applications" has markdown-file "articles/Building Applications/Search & Retrieval.md"
 Topic "Building Applications" has markdown-file "articles/Building Applications/Data Creation & Import.md"
 Topic "Building Applications" has markdown-file "articles/Building Applications/Pages & Templates.md"
 Topic "Building Applications" has markdown-file "articles/Building Applications/Navigation & Routing.md"

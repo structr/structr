@@ -104,7 +104,7 @@ public class DocumentsFulltextSearchFunction extends ContentExtractionFunction {
 			it is read like the input of a search box instead: every word must occur, as a prefix or with small typos, ignoring case.
 
 			Only chunks of files the current user can read are found. To find text by meaning rather than by words, use \
-			`documents.vectorSearch()` (Structr Enterprise). The article *Searching* (Building Applications) explains which search function \
+			`documents.vectorSearch()` (Structr Enterprise). The article *Search & Retrieval* (Building Applications) explains which search function \
 			to use when.""";
 	}
 
