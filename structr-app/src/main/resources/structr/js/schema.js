@@ -2138,7 +2138,7 @@ let _Schema = {
 			similarityOf: (property) => property.vectorSimilarity ?? 'cosine',
 			indexName: (property, typeName) => typeName ? `${typeName}_${property.dbName || property.name}_vector` : null,
 			templates: {
-				button: (property) => `<button class="edit-vector-index flex items-center whitespace-nowrap hover:bg-gray-100 focus:border-gray-666 active:border-green" title="Vector index: ${property.vectorDimensions ? `${property.vectorDimensions} values, ${_Schema.properties.vectorIndex.similarityOf(property)}` : 'none'}">Vector Index${property.vectorDimensions ? ` · ${property.vectorDimensions}` : ''}</button>`,
+				button: (property) => `<button class="edit-vector-index mr-0 flex items-center whitespace-nowrap hover:bg-gray-100 focus:border-gray-666 active:border-green" title="Vector index: ${property.vectorDimensions ? `${property.vectorDimensions} values, ${_Schema.properties.vectorIndex.similarityOf(property)}` : 'none'}">Vector Index${property.vectorDimensions ? ` · ${property.vectorDimensions}` : ''}</button>`,
 				form: (config) => `
 					<div class="vector-index-form grid gap-x-4 gap-y-3 items-start" style="grid-template-columns: max-content minmax(0, 1fr);">
 						<label class="font-bold pt-1">Vector size</label>
@@ -2756,7 +2756,7 @@ let _Schema = {
 										</div>
 									`;
 								case 'Cypher':
-									return `<button class="edit-cypher-query hover:bg-gray-100 focus:border-gray-666 active:border-green">Query</button>`;
+									return `<button class="edit-cypher-query mr-0 hover:bg-gray-100 focus:border-gray-666 active:border-green">Query</button>`;
 								case 'DoubleArray':
 									return `
 										<div class="flex items-center">
