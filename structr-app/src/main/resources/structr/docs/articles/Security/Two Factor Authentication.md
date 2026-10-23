@@ -396,7 +396,7 @@ If the authenticator is lost, clear `superuser.twofactor.secret` in `structr.con
 
 ### Logging In
 
-With a second factor set up, the login form has a code field, and name, password and code are sent together. Each code is accepted once.
+With a second factor set up, the login form has a code field, and name, password and code are sent together. Structr accepts the current code and the one before it, so a code typed just as the app shows the next one still works. Each code is accepted once, wherever it is used: in the login form or in the `X-TwoFactor-Code` header.
 
 Tools that log in by posting the form themselves send the code in the field `superuserTwoFactorCode`, along with `action=login`, `superuserName` and `superuserPassword`. The redirect after the login tells them the outcome:
 
@@ -404,6 +404,7 @@ Tools that log in by posting the form themselves send the code in the field `sup
 |----------|---------|
 | `?twoFactorRequired` | A second factor is set up and no code was sent. The password was not checked; send all three fields again |
 | `?twoFactorSetup` | The second factor is switched on but not set up yet. The page shows the QR code; post `action=twoFactorSetup` with `superuserTwoFactorCode` in the same session to confirm it |
+| `?twoFactorReused` | Name, password and code were right, but the code was already used. Enter the next code; this does not count as a failed attempt |
 | `?loginFailed` | The name, the password or the code was wrong. On purpose, the answer does not say which |
 | `?loginBlocked` | Too many failed attempts, try again later |
 | none of them | Logged in |
@@ -412,11 +413,11 @@ Tools that log in by posting the form themselves send the code in the field `sup
 
 The superuser credentials also work outside the configuration interface, with the `X-User` and `X-Password` headers and with HTTP Basic authentication. That is meant for the exception, a request sent by hand, not for scripts; scripts use an admin user.
 
-While `superuser.twofactor.enabled` is on, a superuser request needs the current code in the `X-TwoFactor-Code` header as well. Each code is accepted once, so it is one request per code. HTTP Basic authentication cannot carry a code and is refused for the superuser, and so is every request while the second factor is switched on but not set up yet. Every superuser request with a code is logged as a warning and in the runtime event log.
+While `superuser.twofactor.enabled` is on, a superuser request needs the current code in the `X-TwoFactor-Code` header as well. Each code is accepted once, so it is one request per code. A code that was already used is refused, but with the right password it does not count as a failed attempt. HTTP Basic authentication cannot carry a code and is refused for the superuser, and so is every request while the second factor is switched on but not set up yet. Every superuser request with a code is logged as a warning and in the runtime event log.
 
 ### Failed Attempts
 
-While the superuser has no active second factor, the password is all there is. Then 3 failed attempts within 15 minutes, counted across all addresses and all of these ways in together, block the superuser login everywhere for 15 minutes, including for the right password. With a second factor set up, wrong codes over HTTP block superuser access over HTTP the same way, and the login form locks out a single address for 30 seconds after 5 failed attempts.
+While the superuser has no active second factor, the password is all there is. Then 3 failed attempts within 15 minutes, counted across all addresses and all of these ways in together, block the superuser login everywhere for 15 minutes, including for the right password. With a second factor set up, wrong codes over HTTP block superuser access over HTTP the same way (a correct code that was already used does not count), and the login form locks out a single address for 30 seconds after 5 failed attempts.
 
 | Setting | Default | Description |
 |---------|---------|-------------|

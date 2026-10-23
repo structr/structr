@@ -72,7 +72,7 @@ let _Config = {
 				_Dialogs.configLoginDialog.show();
 
 				// with a second factor set up, the code is sent together with name and password
-				if (document.body.classList.contains('twofactor') || new URLSearchParams(location.search).has('twoFactorRequired')) {
+				if (document.body.classList.contains('twofactor') || new URLSearchParams(location.search).has('twoFactorRequired') || new URLSearchParams(location.search).has('twoFactorReused')) {
 
 					for (let row of document.querySelectorAll('#login-form .twofactor-row')) {
 						row.classList.remove('hidden');
@@ -1006,6 +1006,10 @@ let _Config = {
 
 						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('twoFactorRequired') ? '' : 'hidden'}">
 							Please enter the code from your authenticator app.
+						</div>
+
+						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('twoFactorReused') ? '' : 'hidden'}">
+							This code was already used. Please enter the next code from your authenticator app.
 						</div>
 
 						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('loginBlocked') ? '' : 'hidden'}">

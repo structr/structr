@@ -117,9 +117,15 @@ public class TimeBasedOneTimePasswordHelper {
 
 	public static String generateCurrentNumberString(String base32Secret, String cryptoAlgorithm, int timeStepSeconds, Integer length) throws GeneralSecurityException {
 
+		return generateNumberStringForStep(base32Secret, cryptoAlgorithm, System.currentTimeMillis() / 1000 / timeStepSeconds, length);
+	}
+
+	/** The code of the given time step, the current time in seconds divided by the period. */
+	public static String generateNumberStringForStep(String base32Secret, String cryptoAlgorithm, long timeStep, Integer length) throws GeneralSecurityException {
+
 		byte[] key = decodeBase32(base32Secret);
 		byte[] data = new byte[8];
-		long value = System.currentTimeMillis() / 1000 / timeStepSeconds;
+		long value = timeStep;
 
 		for (int i = 7; value > 0; i--) {
 
