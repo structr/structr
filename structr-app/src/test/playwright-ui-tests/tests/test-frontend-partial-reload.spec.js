@@ -113,7 +113,7 @@ test.beforeAll(async ({ playwright }) => {
 	originals = { window: globalThis.window, location: globalThis.location, document: globalThis.document, addEventListener: globalThis.addEventListener, fetch: globalThis.fetch };
 
 	globalThis.window   = globalThis;
-	globalThis.location = { href: 'http://localhost/page1', search: '' };
+	globalThis.location = { href: 'http://localhost/page1', pathname: '/page1', search: '' };
 	globalThis.document = {
 		querySelectorAll: () => [],
 		querySelector:    (selector) => (selector === '[data-structr-page]' ? activeElementInDocument : null),
@@ -239,26 +239,26 @@ test('current object is taken from the reload target', () => {
 
 	const container = { currentObjectId: 'target-current', requestPage: '2' };
 
-	expect(frontend.encodeRequestParameters(container, {}, {}, trigger('page1'))).toBe('/target-current?page=2');
+	expect(frontend.encodeRequestParameters(container, {}, {}, trigger('page1'))).toBe('/target-current?page=2&structr-route-path=%2Fpage1');
 });
 
 test('current object is taken from the trigger if the reload target has none (selector target)', () => {
 
 	const element = { dataset: { structrPage: 'page1', currentObjectId: 'trigger-current' } };
 
-	expect(frontend.encodeRequestParameters({}, {}, {}, element)).toBe('/trigger-current');
-	expect(frontend.encodeRequestParameters({ currentObjectId: 'target-current' }, {}, {}, element)).toBe('/target-current');
+	expect(frontend.encodeRequestParameters({}, {}, {}, element)).toBe('/trigger-current?structr-route-path=%2Fpage1');
+	expect(frontend.encodeRequestParameters({ currentObjectId: 'target-current' }, {}, {}, element)).toBe('/target-current?structr-route-path=%2Fpage1');
 });
 
 test('current object from the parameters overrides both', () => {
 
 	const element = { dataset: { currentObjectId: 'trigger-current' } };
 
-	expect(frontend.encodeRequestParameters({ currentObjectId: 'target-current' }, { current: 'override-current', sort: 'name' }, {}, element)).toBe('/override-current?sort=name');
+	expect(frontend.encodeRequestParameters({ currentObjectId: 'target-current' }, { current: 'override-current', sort: 'name' }, {}, element)).toBe('/override-current?structr-route-path=%2Fpage1&sort=name');
 });
 
 test('no current object without target, trigger and parameters', () => {
 
-	expect(frontend.encodeRequestParameters({}, {}, {}, trigger('page1'))).toBe('');
-	expect(frontend.encodeRequestParameters({}, {}, {}, undefined)).toBe('');
+	expect(frontend.encodeRequestParameters({}, {}, {}, trigger('page1'))).toBe('?structr-route-path=%2Fpage1');
+	expect(frontend.encodeRequestParameters({}, {}, {}, undefined)).toBe('?structr-route-path=%2Fpage1');
 });
