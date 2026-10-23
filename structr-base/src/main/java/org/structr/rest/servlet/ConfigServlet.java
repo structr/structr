@@ -387,12 +387,20 @@ public class ConfigServlet extends AbstractServletBase {
 
 		final boolean credentialsMatch = StringUtils.isNoneBlank(superUserName, superUserPwd, submittedName, submittedPwd) && constantTimeEquals(superUserName, submittedName) && constantTimeEquals(superUserPwd, submittedPwd);
 
-		if (credentialsMatch && twoFactor && SuperUserLoginGuard.isValidCode(SuperUserLoginGuard.getSecret(), submittedCode)) {
+		final SuperUserLoginGuard.CodeCheck check = credentialsMatch && twoFactor ? SuperUserLoginGuard.checkCode(SuperUserLoginGuard.getSecret(), submittedCode) : SuperUserLoginGuard.CodeCheck.INVALID;
+
+		if (check == SuperUserLoginGuard.CodeCheck.VALID) {
 
 			authenticateSession(request);
 			loginAttempts.invalidate(remoteIp);
 
 			return activeSection;
+		}
+
+		// the right password and a correct code that was already used: not a failed attempt, the next code works
+		if (check == SuperUserLoginGuard.CodeCheck.REUSED) {
+
+			return "?twoFactorReused" + activeSection;
 		}
 
 		if (credentialsMatch && !twoFactor) {

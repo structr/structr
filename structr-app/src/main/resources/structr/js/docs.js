@@ -26,9 +26,19 @@ let _Documentation = {
 	//urlHashKey: 'structrUrlHashKey_' + location.port,
 	currentDoc: undefined,
 	ontologyRoot: Structr.docsUrl + 'ontology',
+	navCollapsedKey: 'structrDocsNavCollapsed_' + location.port,
+	indexCollapsedKey: 'structrDocsIndexCollapsed_' + location.port,
+
+	mediaListeners: [],
 
 	unload: () => {
 		_Documentation.search.dispose();
+
+		for (let [query, listener] of _Documentation.mediaListeners) {
+			query.removeEventListener('change', listener);
+		}
+		_Documentation.mediaListeners = [];
+
 		_Documentation.currentDoc = undefined;
 	},
 	onload: () => {
@@ -37,6 +47,8 @@ let _Documentation = {
 		Structr.setFunctionBarHTML(_Documentation.templates.searchField());
 
 		Structr.hideMainHelpLink();
+
+		_Documentation.initColumnToggles();
 
 		_Documentation.loadMainMenu().then(() => {
 
@@ -117,6 +129,55 @@ let _Documentation = {
             e.preventDefault();
 			_Documentation.search.showSearch();
         }
+	},
+	initColumnToggles: () => {
+
+		// until its toggle is used, a column collapses below these widths on its own; after that, its stored state applies
+		let columns = [
+			{ id: 'docs-nav-column',   key: _Documentation.navCollapsedKey,   collapseIcon: _Icons.iconChevronLeftFilled,  expandIcon: _Icons.iconChevronRightFilled, narrow: window.matchMedia('(max-width: 800px)') },
+			{ id: 'docs-index-column', key: _Documentation.indexCollapsedKey, collapseIcon: _Icons.iconChevronRightFilled, expandIcon: _Icons.iconChevronLeftFilled,  narrow: window.matchMedia('(max-width: 1000px)') }
+		];
+
+		for (let config of columns) {
+
+			let column = document.getElementById(config.id);
+			let toggle = column.querySelector('.docs-column-toggle');
+
+			let apply = () => {
+
+				let stored    = LSWrapper.getItem(config.key, null);
+				let collapsed = (stored === null) ? config.narrow.matches : (stored === true);
+
+				column.classList.toggle('collapsed', collapsed);
+				toggle.innerHTML = _Icons.getSvgIcon(collapsed ? config.expandIcon : config.collapseIcon, 16, 16);
+				toggle.title     = collapsed ? 'Expand' : 'Collapse';
+			};
+
+			let setCollapsed = (collapsed) => {
+
+				LSWrapper.setItem(config.key, collapsed);
+				apply();
+			};
+
+			toggle.addEventListener('click', e => {
+
+				e.stopPropagation();
+				setCollapsed(!column.classList.contains('collapsed'));
+			});
+
+			// a collapsed column opens on a click anywhere in it
+			column.addEventListener('click', () => {
+
+				if (column.classList.contains('collapsed')) {
+					setCollapsed(false);
+				}
+			});
+
+			config.narrow.addEventListener('change', apply);
+			_Documentation.mediaListeners.push([config.narrow, apply]);
+
+			apply();
+		}
 	},
 	removeAllMarkdownChars: (text) => {
 		return text.replace(/[*`![\]()_~#>\-+=|\\{}<>^]/g, ' ').replace(/ +/g, ' ');
@@ -432,12 +493,18 @@ let _Documentation = {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/docs.css">
 			<div id="docs-area" class="h-full">
-				<nav>
-					<ul id="docs-main-navigation">
-					</ul>
-				</nav>
+				<div id="docs-nav-column" class="docs-column">
+					<button type="button" class="docs-column-toggle"></button>
+					<nav>
+						<ul id="docs-main-navigation">
+						</ul>
+					</nav>
+				</div>
 				<iframe name="main-documentation"></iframe>
-				<aside class="index"></aside>
+				<div id="docs-index-column" class="docs-column">
+					<button type="button" class="docs-column-toggle"></button>
+					<aside class="index"></aside>
+				</div>
 			</div>`,
 		searchField: config => `
 			<div id="search-field">

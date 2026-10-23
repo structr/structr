@@ -236,7 +236,8 @@ public class ConfigServletSecurityTest extends StructrUiTest {
 			// a code is accepted once
 			final Response replay = postSameOrigin(null, "action", "login", "superuserName", name, "superuserPassword", pwd, "superuserTwoFactorCode", code);
 
-			assertTrue("a code must not be accepted twice", replay.getHeader("Location").contains("?loginFailed"));
+			assertTrue("a code must not be accepted twice, and the answer says so", replay.getHeader("Location").contains("?twoFactorReused"));
+			assertLoginPage(get(replay.getSessionId()));
 
 		} finally {
 
@@ -354,11 +355,18 @@ public class ConfigServletSecurityTest extends StructrUiTest {
 			final String code = currentCode(secret);
 
 			restAsSuperuser(name, pwd, code).then().statusCode(200);
+
+			// each code is accepted once, but using it again is a mistake, not a guess: refused, not counted
 			restAsSuperuser(name, pwd, code).then().statusCode(401);
+			restAsSuperuser(name, pwd, code).then().statusCode(401);
+			restAsSuperuser(name, pwd, code).then().statusCode(401);
+
+			assertFalse("a reused code must not count as a failed attempt", SuperUserLoginGuard.isBlocked());
 
 			// wrong codes on the right password count, three of them block even the next right code
 			restAsSuperuser(name, pwd, "000000x").then().statusCode(401);
 			restAsSuperuser(name, pwd, "000000y").then().statusCode(401);
+			restAsSuperuser(name, pwd, "000000z").then().statusCode(401);
 
 			assertTrue("three failures must block the superuser", SuperUserLoginGuard.isBlocked());
 
@@ -366,6 +374,35 @@ public class ConfigServletSecurityTest extends StructrUiTest {
 
 			Settings.SuperUserTwoFactorEnabled.setValue(false);
 			Settings.SuperUserTwoFactorSecret.setValue("");
+			SuperUserLoginGuard.reset();
+		}
+	}
+
+	@Test
+	public void testCodeOfThePreviousTimeStepIsAcceptedOnce() throws Exception {
+
+		final String secret   = TimeBasedOneTimePasswordHelper.generateBase32Secret();
+		final int period      = Settings.TwoFactorPeriod.getValue();
+		final String current  = currentCode(secret);
+		final String previous = TimeBasedOneTimePasswordHelper.generateNumberStringForStep(secret, "Hmac" + Settings.TwoFactorAlgorithm.getValue(), System.currentTimeMillis() / 1000 / period - 1, Settings.TwoFactorDigits.getValue());
+		final String older    = TimeBasedOneTimePasswordHelper.generateNumberStringForStep(secret, "Hmac" + Settings.TwoFactorAlgorithm.getValue(), System.currentTimeMillis() / 1000 / period - 3, Settings.TwoFactorDigits.getValue());
+
+		SuperUserLoginGuard.reset();
+
+		try {
+
+			// a code typed just as the step changed still works, once
+			assertEquals(SuperUserLoginGuard.CodeCheck.VALID,  SuperUserLoginGuard.checkCode(secret, previous));
+			assertEquals(SuperUserLoginGuard.CodeCheck.REUSED, SuperUserLoginGuard.checkCode(secret, previous));
+
+			// older codes are no longer valid
+			assertEquals(SuperUserLoginGuard.CodeCheck.INVALID, SuperUserLoginGuard.checkCode(secret, older));
+
+			// the current code is still accepted after the previous one
+			assertEquals(SuperUserLoginGuard.CodeCheck.VALID, SuperUserLoginGuard.checkCode(secret, current));
+
+		} finally {
+
 			SuperUserLoginGuard.reset();
 		}
 	}
