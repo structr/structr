@@ -210,7 +210,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 				if (sources[1] == null) {
 
-					throw new IllegalArgumentException();
+					throw new FrameworkException(422, getName() + "(): Second parameter cannot be null. Parameters: " + getParametersAsString(sources));
 				}
 
 				if (!isAdvancedSearch(securityContext, traits, null, sources[1], query, exact)) {
@@ -228,7 +228,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 					} else {
 
 						// probably an error case where migration to predicates was forgotten
-						throw new FrameworkException(422, getDisplayName() + ": Invalid parameter '" + uuid + "'. If a single parameter is given, it must be of type Map, UUID or Advanced Find predicate. Maybe a missing migration of Advanced Find to predicates?");
+						throw new FrameworkException(422, getName() + "(): Invalid parameter '" + uuid + "'. If, after the type, a single parameter is given, it must be of type Map, UUID or Advanced Find predicate. Maybe a missing migration of Advanced Find to predicates?");
 					}
 				}
 			}
