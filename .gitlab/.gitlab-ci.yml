@@ -219,6 +219,7 @@ release-build:
         echo "Creating release with glab..."
         glab release create "$STRUCTR_VERSION" \
           --use-package-registry \
+          --ref "$CI_COMMIT_SHA" \
           --name "$STRUCTR_VERSION" \
           --notes "## Release $STRUCTR_VERSION
 
