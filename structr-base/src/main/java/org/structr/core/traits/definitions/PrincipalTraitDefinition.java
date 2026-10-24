@@ -271,7 +271,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 			new EndNodes(traitsInstance, OWNED_NODES_PROPERTY, StructrTraits.PRINCIPAL_OWNS_NODE).readOnly(),
 			new EndNodes(traitsInstance, GRANTED_NODES_PROPERTY, StructrTraits.SECURITY).readOnly(),
 			new BooleanProperty(PrincipalTraitDefinition.IS_ADMIN_PROPERTY).indexed().readOnly(),
-			new BooleanProperty(BLOCKED_PROPERTY),
+			new BooleanProperty(BLOCKED_PROPERTY).readOnly(),
 
 			/* Credentials in their own right, not descriptions of one: a session id is matched against the
 			   session cookie (AuthHelper.getPrincipalForSessionId), a refresh token against the JWT
@@ -287,23 +287,23 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 			new StringProperty(SESSION_DATA_PROPERTY),
 			new StringProperty(EMAIL_PROPERTY).indexed().unique().transformators(LowercaseTransformator.class.getName(), TrimTransformator.class.getName()),
 			new PasswordProperty(PASSWORD_PROPERTY),
-			new DateProperty(PASSWORD_CHANGE_DATE_PROPERTY),
+			new DateProperty(PASSWORD_CHANGE_DATE_PROPERTY).readOnly(),
 			new IntProperty(PASSWORD_ATTEMPTS_PROPERTY),
-			new DateProperty(LAST_FAILED_LOGIN_DATE_PROPERTY),
-			new DateProperty(LAST_LOGIN_DATE_PROPERTY),
-			new StringProperty(TWO_FACTOR_SECRET_PROPERTY),
+			new DateProperty(LAST_FAILED_LOGIN_DATE_PROPERTY).readOnly(),
+			new DateProperty(LAST_LOGIN_DATE_PROPERTY).readOnly(),
+			new StringProperty(TWO_FACTOR_SECRET_PROPERTY).readOnly(),
 			new StringProperty(TWO_FACTOR_TOKEN_PROPERTY).indexed().readOnly(),
-			new BooleanProperty(IS_TWO_FACTOR_USER_PROPERTY),
-			new BooleanProperty(TWO_FACTOR_CONFIRMED_PROPERTY),
-			new StringProperty(SALT_PROPERTY),
+			new BooleanProperty(IS_TWO_FACTOR_USER_PROPERTY).readOnly(),
+			new BooleanProperty(TWO_FACTOR_CONFIRMED_PROPERTY).readOnly(),
+			new StringProperty(SALT_PROPERTY).readOnly(),
 			new StringProperty(LOCALE_PROPERTY),
 			new StringProperty(PUBLIC_KEY_PROPERTY),
 			new ArrayProperty(PUBLIC_KEYS_PROPERTY, String.class),
 			new StringProperty(PROXY_URL_PROPERTY),
 			new StringProperty(PROXY_USERNAME_PROPERTY),
 			new StringProperty(PROXY_PASSWORD_PROPERTY),
-			new StringProperty(DEVICE_TRUST_SECRET_PROPERTY),
-			new BooleanProperty(DEVICE_TRUST_POSSIBLE_PROPERTY).defaultValue(true).description("When true and the system configuration allows it, gives user the option trust the browser they are logging in from to skip authentication with a second factor for a certain duration or until the browser fingerprint changes.")
+			new StringProperty(DEVICE_TRUST_SECRET_PROPERTY).readOnly(),
+			new BooleanProperty(DEVICE_TRUST_POSSIBLE_PROPERTY).defaultValue(true).readOnly().description("When true and the system configuration allows it, gives user the option trust the browser they are logging in from to skip authentication with a second factor for a certain duration or until the browser fingerprint changes.")
 		);
 	}
 
