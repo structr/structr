@@ -31,6 +31,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.mail.MailSettings;
 import org.structr.mail.entity.Mailbox;
 import org.structr.mail.entity.traits.definitions.EMailMessageTraitDefinition;
 import org.structr.mail.entity.traits.definitions.MailboxTraitDefinition;
@@ -100,7 +101,7 @@ public class MailFetchTest extends StructrRestTestBase {
 			greenMail.stop();
 		}
 
-		MailService.maxEmails.setValue(MailService.maxEmails.getDefaultValue());
+		MailSettings.MaxEmails.setValue(MailSettings.MaxEmails.getDefaultValue());
 	}
 
 	@Test
@@ -152,7 +153,7 @@ public class MailFetchTest extends StructrRestTestBase {
 	@Test
 	public void testAFirstFetchTakesOnlyTheNewestBatch() throws Exception {
 
-		MailService.maxEmails.setValue(3);
+		MailSettings.MaxEmails.setValue(3);
 
 		final GreenMailUser user = greenMail.setUser("inbox@example.com", "inbox", "secret");
 
@@ -169,7 +170,7 @@ public class MailFetchTest extends StructrRestTestBase {
 	@Test
 	public void testABurstLargerThanTheBatchIsFetchedOverSeveralRuns() throws Exception {
 
-		MailService.maxEmails.setValue(3);
+		MailSettings.MaxEmails.setValue(3);
 
 		final GreenMailUser user = greenMail.setUser("inbox@example.com", "inbox", "secret");
 		final String mailbox     = createMailbox("inbox", "secret", null);
