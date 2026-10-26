@@ -578,15 +578,17 @@ public class UiAuthenticator implements Authenticator {
 			final Principal user = getUser(request, false);
 			if (user != null) {
 
-				Services.getInstance().broadcastLogout(user.getNode().getId().hash());
+				final long userId = user.getNode().getId().hash();
 
+				// ends the session as well
 				AuthHelper.doLogout(request, user);
-			}
+				AuthHelper.afterLogoutCommitted(() -> Services.getInstance().broadcastLogout(userId));
 
-			final String sessionId = request.getRequestedSessionId();
-			if (sessionId != null) {
+			} else {
 
-				SessionHelper.invalidateSession(sessionId);
+				final String sessionId = SessionHelper.getShortSessionId(request.getRequestedSessionId());
+
+				AuthHelper.afterLogoutCommitted(() -> SessionHelper.invalidateSession(sessionId));
 			}
 
 		} catch (IllegalStateException | FrameworkException ex) {

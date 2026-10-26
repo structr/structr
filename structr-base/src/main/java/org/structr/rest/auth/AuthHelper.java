@@ -24,6 +24,7 @@ import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -37,6 +38,7 @@ import org.structr.core.auth.exception.*;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
@@ -470,21 +472,46 @@ public class AuthHelper {
 		}
 	}
 
+	/**
+	 * Logs the given user out. The refresh tokens and the session id are removed in the transaction of the caller,
+	 * the HTTP session, the event and the notification follow after the commit.
+	 */
 	public static void doLogout(final HttpServletRequest request, final Principal user) throws FrameworkException {
 
 		final String sessionId = SessionHelper.getShortSessionId(request.getRequestedSessionId());
+		final String id        = user.getUuid();
+		final String name      = user.getName();
 
-		if (sessionId == null) return;
-
-		SessionHelper.clearSession(sessionId);
-		SessionHelper.invalidateSession(sessionId);
-
-		// clear all refreshTokens on logout
+		// also without a session, e.g. for a client with an access token
 		user.clearTokens();
 
-		RuntimeEventLog.logout("Logout", Map.of("id", user.getUuid(), "name", user.getName()));
+		SessionHelper.clearSession(sessionId);
 
-		AuthHelper.sendLogoutNotification(user, request);
+		afterLogoutCommitted(() -> {
+
+			SessionHelper.invalidateSession(sessionId);
+
+			RuntimeEventLog.logout("Logout", Map.of("id", id, "name", name));
+
+			sendLogoutNotificationAfterCommit(id, request);
+		});
+	}
+
+	/**
+	 * Runs the given part of a logout after the commit, or right away outside of a transaction. Run before the commit,
+	 * it would stay done when the database terminates the transaction, and the repetition would find no user in the
+	 * ended session and leave the refresh tokens valid.
+	 */
+	public static void afterLogoutCommitted(final Runnable procedure) {
+
+		if (TransactionCommand.inTransaction()) {
+
+			TransactionCommand.queuePostCommitProcedure(procedure);
+
+		} else {
+
+			procedure.run();
+		}
 	}
 
 	public static void updateLastLoginDate(final Principal user) throws FrameworkException {
@@ -513,6 +540,36 @@ public class AuthHelper {
 		params.put("user", user);
 
 		Actions.callAsSuperUser(Actions.NOTIFICATION_ON_LOGOUT, params, request);
+	}
+
+	/**
+	 * Sends the logout notification in a transaction of its own and only logs a failure, since the logout has been
+	 * committed.
+	 */
+	private static void sendLogoutNotificationAfterCommit(final String id, final HttpServletRequest request) {
+
+		try {
+
+			RetryException.repeat(() -> {
+
+				final App app = StructrApp.getInstance();
+
+				try (final Tx tx = app.tx()) {
+
+					final NodeInterface node = app.getNodeById(StructrTraits.PRINCIPAL, id);
+					if (node != null) {
+
+						sendLogoutNotification(node.as(Principal.class), request);
+					}
+
+					tx.success();
+				}
+			});
+
+		} catch (FrameworkException | RuntimeException ex) {
+
+			logger.warn("Unable to send logout notification for user {}", id, ex);
+		}
 	}
 
 	/**
