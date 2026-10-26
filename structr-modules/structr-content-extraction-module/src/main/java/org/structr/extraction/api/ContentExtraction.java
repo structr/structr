@@ -515,13 +515,12 @@ public final class ContentExtraction {
 			throw new ContentExtractionException("File " + file.getName() + " is larger than the extraction limit of " + maxSizeMB + " MB (contentextraction.extraction.maxfilesize).");
 		}
 
-		try {
+		// the stored content: getInputStream would run the scripts of a template file and return its output
+		final InputStream input = file.getRawInputStream();
+		if (input == null) {
 
-			final InputStream input = file.getInputStream();
-			if (input == null) {
-
-				throw new ContentExtractionException("File " + file.getName() + " has no content.");
-			}
+			throw new ContentExtractionException("File " + file.getName() + " has no content.");
+		}
 
 		return input;
 	}

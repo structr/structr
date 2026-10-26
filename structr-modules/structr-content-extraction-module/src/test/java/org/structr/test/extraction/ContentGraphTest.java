@@ -64,6 +64,7 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.User;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.websocket.command.SearchNodesCommand;
 import org.testng.SkipException;
 import org.testng.annotations.Test;
@@ -976,6 +977,37 @@ public class ContentGraphTest extends StructrUiTest {
 		assertEquals("Exact search ignores case if asked to", "release notes", globalSearchMatch(fileId, "Release NOTES", true, false));
 		assertNull("Exact search respects case otherwise", globalSearchMatch(fileId, "Release NOTES", false, false));
 		assertEquals("Exact search finds a part of a word, like the search in node properties", "elease no", globalSearchMatch(fileId, "elease no", false, false));
+	}
+
+	@Test
+	public void testTemplateFilesAreExtractedWithTheirSource() throws Exception {
+
+		createFulltextIndex();
+		createFolder("/templates");
+		configure("/templates", Map.of());
+
+		final String fileId;
+
+		// created, filled and marked as a template in one transaction, like a template file a developer adds
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface file = FileHelper.createFile(securityContext, new ByteArrayInputStream("<p>Greetings from ${me.name}, see the changelog.</p>".getBytes(StandardCharsets.UTF_8)), "text/html", StructrTraits.FILE, "greeting.html", folder("/templates"));
+
+			file.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.IS_TEMPLATE_PROPERTY), true);
+
+			fileId = file.getUuid();
+
+			tx.success();
+		}
+
+		assertEquals("A template file is extracted automatically, error " + error(fileId), "done", awaitStatus(fileId));
+
+		final String text = extractedText(fileId);
+
+		assertTrue("The source of the template is extracted, not its output: " + text, text.contains("${me.name}"));
+
+		assertEquals("A template file is found by the global search", "changelog", globalSearchMatch(fileId, "changelog", true, true));
+		assertEquals("Its scripts are found by the exact global search", "${me.name}", globalSearchMatch(fileId, "${me.name}", true, false));
 	}
 
 	// ----- private methods -----

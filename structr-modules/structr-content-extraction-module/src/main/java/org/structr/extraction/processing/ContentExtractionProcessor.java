@@ -253,7 +253,8 @@ public final class ContentExtractionProcessor {
 
 			final Path copy = Files.createTempFile("structr-content-extraction-", ".tmp");
 
-			try (final InputStream input = file.getInputStream()) {
+			// the stored content: getInputStream would run the scripts of a template file and return its output
+			try (final InputStream input = file.getRawInputStream()) {
 
 				if (input == null) {
 
