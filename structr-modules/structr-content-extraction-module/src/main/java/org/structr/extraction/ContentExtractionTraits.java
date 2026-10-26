@@ -39,6 +39,15 @@ public final class ContentExtractionTraits {
 	/** ExtractedContentNode -[:NEXT_EXTRACTED_CONTENT]-> ExtractedContentNode, in reading order */
 	public static final String EXTRACTED_CONTENT_NEXT = "ExtractedContentNodeNEXT_EXTRACTED_CONTENTExtractedContentNode";
 
+	/** A figure of a document, stored as an image of its own: an Image with the figure's label, caption, page etc. */
+	public static final String DOCUMENT_FIGURE = "DocumentFigure";
+
+	/** File -[:HAS_FIGURE]-> DocumentFigure, the document a stored figure is from */
+	public static final String FILE_HAS_FIGURE = "FileHAS_FIGUREDocumentFigure";
+
+	/** DocumentFigure -[:FIGURE_CONTENT]-> ExtractedContentNode, the chunk of the document with the figure's text */
+	public static final String FIGURE_CONTENT = "DocumentFigureFIGURE_CONTENTExtractedContentNode";
+
 	/** Name part of the fulltext index that ExtractedContentNode.text and .embeddedPath share. */
 	public static final String CONTENT_FULLTEXT_INDEX_NAME = "content";
 

@@ -99,6 +99,7 @@ public class DocumentsFulltextSearchFunction extends ContentExtractionFunction {
 
 			Searches the chunks through their fulltext index and returns the best hits as objects with `node`, `score`, \
 			`text`, `file`, `position`, `pageStart`, `pageEnd`, `headingPath`, `embeddedPath` (the archive entry or attachment the chunk is in), \
+			`figure` (the `DocumentFigure` whose text the chunk holds, or null; show its image by its id), \
 			and with `contextChunks` also `context`, the hit together with its neighbouring chunks in the same embedded document. The index \
 			covers `embeddedPath` as well, so a chunk is also found by the name of the archive entry or attachment it is in. By default the query uses Lucene syntax: words, "quoted phrases", AND/OR, wildcards. With `mode: 'simple'` \
 			it is read like the input of a search box instead: every word must occur, as a prefix or with small typos, ignoring case.

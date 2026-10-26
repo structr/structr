@@ -33,12 +33,14 @@ import org.structr.extraction.function.enterprise.EnterpriseOnlyFunction;
 import org.structr.extraction.function.extract.DetectLanguageFunction;
 import org.structr.extraction.function.extract.ExtractContentFunction;
 import org.structr.extraction.function.extract.ExtractEmbeddedFunction;
+import org.structr.extraction.function.extract.ExtractFiguresFunction;
 import org.structr.extraction.function.extract.ExtractLinksFunction;
 import org.structr.extraction.function.extract.ExtractMetadataFunction;
 import org.structr.extraction.function.extract.ExtractTablesFunction;
 import org.structr.extraction.function.graph.DeleteExtractedContentFunction;
 import org.structr.extraction.function.graph.ExtractContentInfoFunction;
 import org.structr.extraction.function.graph.GetContentContextFunction;
+import org.structr.extraction.function.graph.GetFigureContextFunction;
 import org.structr.extraction.function.graph.GetExtractedTextFunction;
 import org.structr.extraction.function.graph.ProcessContentFunction;
 import org.structr.extraction.function.graph.DocumentsFulltextSearchFunction;
@@ -49,11 +51,14 @@ import org.structr.extraction.function.text.StopWordsFunction;
 import org.structr.extraction.function.text.TruncateTokensFunction;
 import org.structr.extraction.query.ContentGlobalSearch;
 import org.structr.extraction.traits.definitions.ContentExtractionConfigurationTraitDefinition;
+import org.structr.extraction.traits.definitions.DocumentFigureTraitDefinition;
 import org.structr.extraction.traits.definitions.ExtractedContentNodeTraitDefinition;
 import org.structr.extraction.traits.properties.ContentFileStateProperties;
 import org.structr.extraction.traits.relationships.ContentExtractionConfigurationConfiguresDefinition;
 import org.structr.extraction.traits.relationships.ExtractedContentNodeNextDefinition;
+import org.structr.extraction.traits.relationships.FigureHasContentDefinition;
 import org.structr.extraction.traits.relationships.FileHasExtractedContentDefinition;
+import org.structr.extraction.traits.relationships.FileHasFigureDefinition;
 import org.structr.module.StructrModule;
 
 import java.nio.file.Path;
@@ -85,10 +90,14 @@ public class ContentExtractionModule implements StructrModule {
 		StructrTraits.registerTrait(new FileHasExtractedContentDefinition());
 		StructrTraits.registerTrait(new ExtractedContentNodeNextDefinition());
 		StructrTraits.registerTrait(new ContentExtractionConfigurationConfiguresDefinition());
+		StructrTraits.registerTrait(new FileHasFigureDefinition());
+		StructrTraits.registerTrait(new FigureHasContentDefinition());
 
 		StructrTraits.registerRelationshipType(ContentExtractionTraits.FILE_HAS_EXTRACTED_CONTENT, ContentExtractionTraits.FILE_HAS_EXTRACTED_CONTENT);
 		StructrTraits.registerRelationshipType(ContentExtractionTraits.EXTRACTED_CONTENT_NEXT,     ContentExtractionTraits.EXTRACTED_CONTENT_NEXT);
 		StructrTraits.registerRelationshipType(ContentExtractionTraits.CONFIGURATION_CONFIGURES,   ContentExtractionTraits.CONFIGURATION_CONFIGURES);
+		StructrTraits.registerRelationshipType(ContentExtractionTraits.FILE_HAS_FIGURE,            ContentExtractionTraits.FILE_HAS_FIGURE);
+		StructrTraits.registerRelationshipType(ContentExtractionTraits.FIGURE_CONTENT,             ContentExtractionTraits.FIGURE_CONTENT);
 
 		StructrTraits.registerTrait(new ExtractedContentNodeTraitDefinition());
 		StructrTraits.registerNodeType(ContentExtractionTraits.EXTRACTED_CONTENT_NODE, ContentExtractionTraits.EXTRACTED_CONTENT_NODE);
@@ -96,6 +105,10 @@ public class ContentExtractionModule implements StructrModule {
 		// configuration of automatic extraction, attached to folders and files
 		StructrTraits.registerTrait(new ContentExtractionConfigurationTraitDefinition());
 		StructrTraits.registerNodeType(ContentExtractionTraits.CONTENT_EXTRACTION_CONFIGURATION, ContentExtractionTraits.CONTENT_EXTRACTION_CONFIGURATION);
+
+		// stored figures: images with what extractFigures() found out about them, a base type for the data model
+		StructrTraits.registerTrait(new DocumentFigureTraitDefinition());
+		StructrTraits.registerNodeType(ContentExtractionTraits.DOCUMENT_FIGURE, StructrTraits.ABSTRACT_FILE, StructrTraits.LINKABLE, StructrTraits.FILE, StructrTraits.IMAGE, ContentExtractionTraits.DOCUMENT_FIGURE);
 
 		// extraction state on File
 		ContentFileStateProperties.register();
@@ -126,6 +139,7 @@ public class ContentExtractionModule implements StructrModule {
 		Functions.put(licenseManager, new ExtractTablesFunction());
 		Functions.put(licenseManager, new ExtractLinksFunction());
 		Functions.put(licenseManager, new ExtractEmbeddedFunction());
+		Functions.put(licenseManager, new ExtractFiguresFunction());
 		Functions.put(licenseManager, new SplitContentFunction());
 		Functions.put(licenseManager, new CountTokensFunction());
 		Functions.put(licenseManager, new TruncateTokensFunction());
@@ -137,6 +151,7 @@ public class ContentExtractionModule implements StructrModule {
 		Functions.put(licenseManager, new GetContentContextFunction());
 		Functions.put(licenseManager, new GetExtractedTextFunction());
 		Functions.put(licenseManager, new DeleteExtractedContentFunction());
+		Functions.put(licenseManager, new GetFigureContextFunction());
 		Functions.put(licenseManager, new DocumentsFulltextSearchFunction());
 
 		// the functions of Structr Enterprise in this namespace, which say so when called in the Community Edition;

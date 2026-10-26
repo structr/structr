@@ -19,6 +19,7 @@
 package org.structr.extraction.api.options;
 
 import org.structr.extraction.ContentExtractionSettings;
+import org.structr.extraction.ContentExtractionTraits;
 
 /**
  * Options for a single extraction. Start from {@link #fromSettings()} and override what the call needs.
@@ -36,6 +37,8 @@ public final class ExtractionOptions {
 	private int maxCharacters        = 10_000_000;
 	private boolean includeEmbedded  = false;
 	private boolean includeImages    = false;
+	private boolean extractFigures   = false;
+	private String figureType        = ContentExtractionTraits.DOCUMENT_FIGURE;
 	private int maxEmbeddedDepth     = 10;
 
 	/**
@@ -53,6 +56,7 @@ public final class ExtractionOptions {
 		options.maxCharacters     = ContentExtractionSettings.MaxCharacters.getValue();
 		options.includeEmbedded   = ContentExtractionSettings.IncludeEmbedded.getValue();
 		options.includeImages     = ContentExtractionSettings.IncludeImages.getValue();
+		options.extractFigures    = ContentExtractionSettings.ExtractFigures.getValue();
 
 		return options;
 	}
@@ -153,6 +157,37 @@ public final class ExtractionOptions {
 	public ExtractionOptions setIncludeImages(final boolean includeImages) {
 
 		this.includeImages = includeImages;
+
+		return this;
+	}
+
+	/**
+	 * Whether processing a file also stores its figures as DocumentFigures. Not used by the extraction of
+	 * the text itself.
+	 */
+	public boolean isExtractFigures() {
+
+		return extractFigures;
+	}
+
+	public ExtractionOptions setExtractFigures(final boolean extractFigures) {
+
+		this.extractFigures = extractFigures;
+
+		return this;
+	}
+
+	/**
+	 * The type stored figures are created as: DocumentFigure, or a type of the data model that inherits it.
+	 */
+	public String getFigureType() {
+
+		return figureType;
+	}
+
+	public ExtractionOptions setFigureType(final String figureType) {
+
+		this.figureType = figureType;
 
 		return this;
 	}

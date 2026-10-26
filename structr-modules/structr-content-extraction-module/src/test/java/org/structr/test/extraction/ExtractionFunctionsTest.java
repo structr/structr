@@ -216,8 +216,8 @@ public class ExtractionFunctionsTest extends StructrUiTest {
 			}}
 			""");
 
-		// 17 functions and the 6 of Structr Enterprise, which say so when called (EnterpriseOnlyFunction)
-		assertEquals("23|true|function|true|false", result);
+		// 19 functions and the 6 of Structr Enterprise, which say so when called (EnterpriseOnlyFunction)
+		assertEquals("25|true|function|true|false", result);
 		assertEquals("2", String.valueOf(evaluate("${documents.countTokens('Hello world')}")));
 
 		assertNull("Functions must not be registered outside the namespace", Functions.get("extractContent"));
