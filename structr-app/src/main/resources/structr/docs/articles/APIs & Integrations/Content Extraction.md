@@ -53,6 +53,8 @@ Disabling automatic extraction does not delete text that was already extracted, 
 
 The search box of the Files area and the global search find files by their content once the files are extracted. The search ignores case, matches word beginnings and parts of words, and tolerates small typos. A file is found when its text contains all search words, and the results show snippets around the matches.
 
+The global search has a **Fuzzy** option for file contents, on by default. Without it, a file is found only when its text contains the search text itself, like the global search matches everything else: no typos, no word beginnings, and case is ignored only when **Ignore Case** is checked. Line breaks in the text match spaces in the search text.
+
 In scripts, `$.documents.fulltextSearch()` searches the chunks and returns the matching chunks with their file, page and section. The functions in the `documents` namespace only search the text extracted from files; to search the attributes of your own types, use `searchFulltext()` and `searchVector()`. The article [Search & Retrieval](/structr/docs/ontology/Building%20Applications/Search%20&%20Retrieval) compares all search functions and explains which to use when. An example:
 
 ```javascript

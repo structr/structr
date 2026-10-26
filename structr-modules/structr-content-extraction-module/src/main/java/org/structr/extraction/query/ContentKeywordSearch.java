@@ -35,8 +35,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Keyword search over the stored chunks of all files, through the fulltext index on their text.
@@ -48,6 +51,11 @@ public final class ContentKeywordSearch {
 
 	/** Upper bound for the number of chunks fetched from the index for one search. */
 	private static final int MAX_FETCH = 1000;
+
+	/** Shorter words of an exact search are not asked from the index when there are longer ones. */
+	private static final int MIN_EXACT_WORD_LENGTH = 3;
+
+	private static final Pattern WORD = Pattern.compile("[\\p{L}\\p{N}]+");
 
 	private ContentKeywordSearch() {
 	}
@@ -140,6 +148,63 @@ public final class ContentKeywordSearch {
 	}
 
 	/**
+	 * Search for files that contain the input itself, like the global search matches the properties of
+	 * nodes: no typos, no prefixes, case only ignored if asked for. Whitespace in the input matches any
+	 * whitespace, since extracted text often breaks lines where the input has a space. The index is asked
+	 * for chunks that contain all words of the input (inside longer words, too), and a chunk is kept if its
+	 * text contains the input; a match across two chunks is not found.
+	 *
+	 * @param options      limit (number of files), minScore, fileUuids and folder are used; mode and contextChunks are ignored
+	 * @param maxSnippets  at most this many snippets per file
+	 * @param contextChars at most this many characters of context on each side of a match
+	 */
+	public static List<FileSearchHit> searchFilesExact(final SecurityContext securityContext, final String input, final boolean ignoreCase, final ContentSearchOptions options, final int maxSnippets, final int contextChars) throws FrameworkException {
+
+		final Pattern pattern    = SearchSnippets.exactPattern(input, ignoreCase);
+		final String luceneQuery = exactLuceneQuery(input);
+
+		if (pattern == null || luceneQuery == null) {
+
+			return List.of();
+		}
+
+		final Map<String, FileHits> files = new LinkedHashMap<>();
+
+		for (final ChunkHit hit : chunkHits(securityContext, luceneQuery, options, MAX_FETCH)) {
+
+			final ExtractedContentNode chunk   = hit.chunk();
+			final List<SearchSnippet> snippets = new ArrayList<>();
+			final FileHits known               = files.get(hit.file().getUuid());
+			final int missing                  = maxSnippets - (known != null ? known.snippets().size() : 0);
+
+			snippets.addAll(SearchSnippets.find(chunk.getText(), pattern, chunk.getPageStart(), contextChars, Math.max(missing, 1)));
+
+			// the index covers the name of the embedded document (archive entry, attachment) as well
+			if (snippets.isEmpty() && chunk.getEmbeddedPath() != null) {
+
+				snippets.addAll(SearchSnippets.find(chunk.getEmbeddedPath(), pattern, chunk.getPageStart(), contextChars, 1));
+			}
+
+			if (snippets.isEmpty()) {
+
+				continue;
+			}
+
+			final FileHits fileHits = files.computeIfAbsent(hit.file().getUuid(), uuid -> new FileHits(hit.file(), hit.score(), new HashSet<>(), new ArrayList<>()));
+
+			if (missing > 0) {
+
+				fileHits.snippets().addAll(snippets.subList(0, Math.min(missing, snippets.size())));
+			}
+		}
+
+		return files.values().stream()
+			.limit(options.limit())
+			.map(f -> new FileSearchHit(f.file(), f.score(), List.copyOf(f.snippets())))
+			.toList();
+	}
+
+	/**
 	 * The search hit for a chunk found by other means, e.g. by a vector index, or null if the security
 	 * context may not read it or the options filter it out. Uses minScore, fileUuids, folder and
 	 * contextChunks of the options, so hits from other searches are filtered exactly like keyword hits.
@@ -166,6 +231,34 @@ public final class ContentKeywordSearch {
 		}
 
 		return query == null || query.isBlank() ? null : query;
+	}
+
+	/**
+	 * The chunks that may contain the input: every word of it, also inside a longer indexed term, since the
+	 * analyzer keeps e.g. "invoices.sendreminder" together. Words shorter than 3 characters are left out
+	 * when there are longer ones, as a leading wildcard on them matches most of the term dictionary; the
+	 * text check finds them anyway. Null if the input holds no word.
+	 */
+	private static String exactLuceneQuery(final String input) {
+
+		final List<String> longWords  = new ArrayList<>();
+		final List<String> shortWords = new ArrayList<>();
+
+		if (input != null) {
+
+			final Matcher matcher = WORD.matcher(input);
+
+			while (matcher.find()) {
+
+				final String word = "*" + matcher.group().toLowerCase(Locale.ROOT) + "*";
+
+				(matcher.group().length() >= MIN_EXACT_WORD_LENGTH ? longWords : shortWords).add(word);
+			}
+		}
+
+		final List<String> clauses = longWords.isEmpty() ? shortWords : longWords;
+
+		return clauses.isEmpty() ? null : String.join(" AND ", clauses);
 	}
 
 	/**

@@ -83,6 +83,9 @@ let _ContentExtraction = {
 
 		_Files.search.contentSearch = _ContentExtraction.searchFiles;
 
+		// file content found by the global search can match inexactly; the user chooses
+		Structr.globalSearch.supportsFuzzyContentSearch = true;
+
 		// the function bar is rendered again whenever the Files area opens, so the click is delegated
 		document.addEventListener('click', (e) => {
 			if (e.target.closest('#content-extraction-dialog-button') && _Files.currentWorkingDir?.id) {

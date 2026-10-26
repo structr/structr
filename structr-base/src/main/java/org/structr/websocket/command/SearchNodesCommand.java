@@ -40,6 +40,7 @@ public class SearchNodesCommand extends AbstractCommand {
 	private static final String SEARCH_STRING_KEY      = "searchString";
 	private static final String SEARCH_CONTEXTS_KEY    = "searchContexts";
 	private static final String SEARCH_IGNORE_CASE_KEY = "searchIgnoreCase";
+	private static final String SEARCH_FUZZY_KEY       = "searchFuzzy";
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
@@ -50,9 +51,12 @@ public class SearchNodesCommand extends AbstractCommand {
 		final List<String> searchContexts = webSocketData.getNodeDataStringList(SEARCH_CONTEXTS_KEY);
 		final boolean searchIgnoreCase    = webSocketData.getNodeDataBooleanValue(SEARCH_IGNORE_CASE_KEY);
 
+		// fuzzy unless the client asks for exact matches, as before the option existed
+		final boolean searchFuzzy         = !webSocketData.getNodeData().containsKey(SEARCH_FUZZY_KEY) || webSocketData.getNodeDataBooleanValue(SEARCH_FUZZY_KEY);
+
 		try {
 
-			final List<GraphObject> result = executeSearch(getWebSocket().getSecurityContext(), searchString, searchContexts, searchIgnoreCase);
+			final List<GraphObject> result = executeSearch(getWebSocket().getSecurityContext(), searchString, searchContexts, searchIgnoreCase, searchFuzzy);
 			int resultCountBeforePaging = result.size();
 
 			webSocketData.setRawResultCount(resultCountBeforePaging);
@@ -86,6 +90,15 @@ public class SearchNodesCommand extends AbstractCommand {
 
 	public static List<GraphObject> executeSearch(final SecurityContext securityContext, final String searchString, final List<String> searchContexts, final boolean searchIgnoreCase) {
 
+		return executeSearch(securityContext, searchString, searchContexts, searchIgnoreCase, true);
+	}
+
+	/**
+	 * @param searchFuzzy whether modules may also return inexact matches (e.g. file content with typos); the
+	 *                    properties of nodes are always matched exactly
+	 */
+	public static List<GraphObject> executeSearch(final SecurityContext securityContext, final String searchString, final List<String> searchContexts, final boolean searchIgnoreCase, final boolean searchFuzzy) {
+
 		final DatabaseService db                   = Services.getInstance().getDatabaseService();
 		final Set<String> contexts                 = new HashSet<>(searchContexts);
 		final List<Map<String, Object>> rawResults = new ArrayList<>(db.globalSearch(contexts, searchString, searchIgnoreCase));
@@ -96,7 +109,7 @@ public class SearchNodesCommand extends AbstractCommand {
 
 			try {
 
-				rawResults.addAll(contributor.search(securityContext, contexts, searchString, searchIgnoreCase));
+				rawResults.addAll(contributor.search(securityContext, contexts, searchString, searchIgnoreCase, searchFuzzy));
 
 			} catch (final RuntimeException ex) {
 

@@ -50,16 +50,73 @@ public final class SearchSnippets {
 	 */
 	public static List<SearchSnippet> find(final String text, final ContentSearchQuery query, final Integer page, final int contextChars, final int maxSnippets) {
 
+		if (text == null || text.isEmpty() || query.isEmpty() || maxSnippets <= 0) {
+
+			return new ArrayList<>();
+		}
+
+		return snippets(text, matches(text, query), page, contextChars, maxSnippets);
+	}
+
+	/**
+	 * Snippets for the matches of a pattern in a text, in text order, cut like those of a query.
+	 *
+	 * @see #exactPattern(String, boolean)
+	 */
+	public static List<SearchSnippet> find(final String text, final Pattern pattern, final Integer page, final int contextChars, final int maxSnippets) {
+
+		final List<int[]> spans = new ArrayList<>();
+
+		if (text != null) {
+
+			final Matcher found = pattern.matcher(text);
+
+			while (found.find()) {
+
+				if (found.end() > found.start()) {
+
+					spans.add(new int[] { found.start(), found.end() });
+				}
+			}
+		}
+
+		return snippets(text, spans, page, contextChars, maxSnippets);
+	}
+
+	/**
+	 * A pattern that finds the input itself in a text, where any run of whitespace in the input matches any
+	 * run of whitespace in the text. Null if the input is blank.
+	 */
+	public static Pattern exactPattern(final String input, final boolean ignoreCase) {
+
+		if (input == null || input.isBlank()) {
+
+			return null;
+		}
+
+		final List<String> parts = new ArrayList<>();
+
+		for (final String part : SPACES.split(input.strip())) {
+
+			parts.add(Pattern.quote(part));
+		}
+
+		return Pattern.compile(String.join("\\s+", parts), ignoreCase ? Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE : 0);
+	}
+
+	// ----- private methods -----
+	private static List<SearchSnippet> snippets(final String text, final List<int[]> spans, final Integer page, final int contextChars, final int maxSnippets) {
+
 		final List<SearchSnippet> snippets = new ArrayList<>();
 
-		if (text == null || text.isEmpty() || query.isEmpty() || maxSnippets <= 0) {
+		if (text == null || text.isEmpty() || maxSnippets <= 0) {
 
 			return snippets;
 		}
 
 		int coveredUntil = 0;
 
-		for (final int[] span : matches(text, query)) {
+		for (final int[] span : spans) {
 
 			if (span[0] < coveredUntil) {
 
@@ -84,7 +141,6 @@ public final class SearchSnippets {
 		return snippets;
 	}
 
-	// ----- private methods -----
 	/**
 	 * The spans [start, end) of all matches, in text order: phrases where they occur (ignoring case),
 	 * single words where the query matches them, or only the matching part of a word where a term occurs

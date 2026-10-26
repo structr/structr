@@ -59,7 +59,7 @@ public final class ContentGlobalSearch implements GlobalSearchContributor {
 	}
 
 	@Override
-	public List<Map<String, Object>> search(final SecurityContext securityContext, final Set<String> searchContexts, final String searchString, final boolean searchIgnoreCase) {
+	public List<Map<String, Object>> search(final SecurityContext securityContext, final Set<String> searchContexts, final String searchString, final boolean searchIgnoreCase, final boolean searchFuzzy) {
 
 		final List<Map<String, Object>> results = new ArrayList<>();
 
@@ -72,7 +72,11 @@ public final class ContentGlobalSearch implements GlobalSearchContributor {
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			for (final FileSearchHit hit : ContentKeywordSearch.searchFiles(securityContext, searchString, options, 1, CONTEXT_CHARS)) {
+			final List<FileSearchHit> hits = searchFuzzy
+				? ContentKeywordSearch.searchFiles(securityContext, searchString, options, 1, CONTEXT_CHARS)
+				: ContentKeywordSearch.searchFilesExact(securityContext, searchString, searchIgnoreCase, options, 1, CONTEXT_CHARS);
+
+			for (final FileSearchHit hit : hits) {
 
 				if (!hit.snippets().isEmpty()) {
 

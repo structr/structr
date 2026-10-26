@@ -2066,6 +2066,8 @@ let Structr = {
 	globalSearch: {
 		// counts every clear(), so that doSearch can tell its results have been superseded while it waited
 		searchNumber: 0,
+		// set by a module that searches file content (content-extraction-ui.js), which can match inexactly
+		supportsFuzzyContentSearch: false,
 		init: () => {
 
 			let supportsGlobalSearch    = (Structr.rawEnvInfo?.globalSearchSupport === true);
@@ -2078,6 +2080,7 @@ let Structr = {
 			let outerUi = document.querySelector('#global-search-ui');
 			outerUi.classList.remove('hidden');
 			outerUi.querySelector('[name="searchIgnoreCase"]').closest('label').classList.toggle('hidden', !supportsCaseInsensitive);
+			outerUi.querySelector('[name="searchFuzzy"]').closest('label').classList.toggle('hidden', !Structr.globalSearch.supportsFuzzyContentSearch);
 
 			let form        = outerUi.querySelector('#global-search-node-form');
 			let searchField = form.querySelector('[name="searchString"]');
@@ -2281,6 +2284,7 @@ let Structr = {
 									<div class="flex gap-4">
 										<input class="global-search-input" type="search" name="searchString" required placeholder="Search across selected areas..." autocomplete="off" autofocus>
 										<label class="flex items-center whitespace-nowrap"><input type="checkbox" checked name="searchIgnoreCase">Ignore Case</label>
+										<label class="flex items-center whitespace-nowrap hidden" title="Also finds file contents with typos, word beginnings and parts of words. Without it, file contents must contain the search text itself. Everything else is always matched exactly."><input type="checkbox" checked name="searchFuzzy">Fuzzy</label>
 									</div>
 									<div class="flex flex-wrap gap-x-8 gap-y-2">
 										<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="dom">Page Elements</label>

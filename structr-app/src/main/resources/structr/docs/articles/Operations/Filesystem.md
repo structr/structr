@@ -218,7 +218,7 @@ The content-extraction module uses Apache Tika to extract text and structure (he
 
 Extraction is opt-in: an admin switches it on for a folder and its subfolders with the Content Extraction dialog of the Files area. New uploads, changed content and files moved into the folder are then extracted in the background, and the option "Process Existing Files" extracts the files already there. Single subfolders or files can be excluded in the same dialog. Scripts can extract any file with `$.documents.extractContent()` or `$.documents.processContent()`.
 
-The extracted text is stored with the file and indexed for full-text search. The search box of the Files area and the global search find files by their content, ignoring case and tolerating small typos; scripts search with `$.documents.fulltextSearch()`. The functions of the module are listed under `documents` in the function reference. See [Content Extraction](/structr/docs/ontology/APIs%20&%20Integrations/Content%20Extraction) for configuration, OCR and all settings.
+The extracted text is stored with the file and indexed for full-text search. The search box of the Files area and the global search find files by their content, ignoring case and tolerating small typos (the global search finds only exact matches when its **Fuzzy** option is off); scripts search with `$.documents.fulltextSearch()`. The functions of the module are listed under `documents` in the function reference. See [Content Extraction](/structr/docs/ontology/APIs%20&%20Integrations/Content%20Extraction) for configuration, OCR and all settings.
 
 ## Configuration
 

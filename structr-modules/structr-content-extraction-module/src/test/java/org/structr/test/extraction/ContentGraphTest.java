@@ -958,6 +958,26 @@ public class ContentGraphTest extends StructrUiTest {
 		assertTrue("Content is only searched in the files context", dom.stream().noneMatch(r -> fileId.equals(((GraphObjectMap) r).toMap().get("id"))));
 	}
 
+	@Test
+	public void testGlobalSearchMatchesContentExactlyOrFuzzy() throws Exception {
+
+		createFulltextIndex();
+
+		// the fixture says "Read the release notes first."
+		final String fileId = createFile("/docs", "guide.html", Fixtures.html());
+
+		evaluate("${{ $.documents.processContent($.find('File', '" + fileId + "'), " + PROCESS_NOW + "); }}");
+
+		assertNotNull("Fuzzy search finds a typo", globalSearchMatch(fileId, "relase notes", true, true));
+		assertNull("Exact search does not find a typo", globalSearchMatch(fileId, "relase notes", true, false));
+		assertNull("Exact search does not find the words in another order", globalSearchMatch(fileId, "notes release", true, false));
+
+		assertEquals("Exact search finds the text itself", "release notes", globalSearchMatch(fileId, "release notes", true, false));
+		assertEquals("Exact search ignores case if asked to", "release notes", globalSearchMatch(fileId, "Release NOTES", true, false));
+		assertNull("Exact search respects case otherwise", globalSearchMatch(fileId, "Release NOTES", false, false));
+		assertEquals("Exact search finds a part of a word, like the search in node properties", "elease no", globalSearchMatch(fileId, "elease no", false, false));
+	}
+
 	// ----- private methods -----
 	private String createFile(final String folderPath, final String name, final byte[] data) throws Exception {
 
@@ -1207,6 +1227,30 @@ public class ContentGraphTest extends StructrUiTest {
 		fail("No file at " + path + " within 30 seconds");
 
 		return null;
+	}
+
+	/**
+	 * The match the global search shows for the content of the file, or null if it does not find the file.
+	 */
+	private String globalSearchMatch(final String fileId, final String searchString, final boolean ignoreCase, final boolean fuzzy) throws Exception {
+
+		try (final Tx tx = app.tx()) {
+
+			final List<GraphObject> results = SearchNodesCommand.executeSearch(securityContext, searchString, List.of(DatabaseService.GLOBAL_SEARCH_CONTEXT_FILES), ignoreCase, fuzzy);
+
+			tx.success();
+
+			for (final GraphObject result : results) {
+
+				final Map<String, Object> row = ((GraphObjectMap) result).toMap();
+				if (fileId.equals(row.get("id")) && List.of("extractedContent").equals(row.get("keys"))) {
+
+					return ((Map<?, ?>) ((List<?>) row.get("values")).get(0)).get("match").toString();
+				}
+			}
+
+			return null;
+		}
 	}
 
 	private String extractedText(final String fileId) throws Exception {
