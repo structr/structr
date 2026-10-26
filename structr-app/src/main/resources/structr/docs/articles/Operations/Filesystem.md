@@ -44,8 +44,48 @@ Custom file types behave like any other schema type – you can query them, set 
 Files can be uploaded through:
 
 - The Files area in the Admin UI
+- A form in a page, either wired with an event action or posting straight to the upload endpoint
 - The REST API upload endpoint
 - Programmatically using the `$.create('File', ...)` function with file content
+
+All uploads from outside the Admin UI go to the upload servlet at `/structr/upload` (setting `uploadservlet.path`). It needs a signed-in user: anonymous uploads are answered with 401 unless `uploadservlet.allowanonymousuploads` is set to `true` in `structr.conf`. The uploading user owns the new file, and nobody else can see it unless the upload says so with `visibleToPublicUsers` or `visibleToAuthenticatedUsers`.
+
+#### Uploading From a Form With an Event Action
+
+A file input in a form that is wired with an event action (create or update, on the form's **submit** event) is uploaded automatically before the action runs. The action receives the UUID of the new file under the input's name, so naming the input after a relationship property links the file to the record, for example `img` for the profile image of a User:
+
+```html
+<form>
+    <input type="file" name="img" accept="image/*" data-structr-upload-visible-to-authenticated="true">
+    <button type="submit">Save</button>
+</form>
+```
+
+Attributes on the file input control the upload:
+
+| Attribute | Effect |
+|-----------|--------|
+| `data-structr-upload-visible-to-authenticated` | `true` makes the file visible to signed-in users, e.g. for an avatar others see |
+| `data-structr-upload-visible-to-public` | `true` makes the file visible to everyone |
+| `data-structr-upload-parent` | UUID of the target folder |
+| `data-structr-upload-type` | The type to create, e.g. `Image` or a type that extends File |
+
+A file input with `multiple` sends a list of UUIDs, for a to-many relationship. Only a form wired with the submit event uploads its file inputs; a button wired with click does not.
+
+#### Uploading From a Plain Form
+
+When the record *is* a file, such as an `Invoice` type that extends File, a plain form can post straight to the upload servlet. Hidden fields set the type, the properties of the type, the visibility and where to go afterwards:
+
+```html
+<form action="/structr/upload" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="type" value="Invoice">
+    <input type="hidden" name="project" value="${current.id}">
+    <input type="hidden" name="visibleToAuthenticatedUsers" value="true">
+    <input type="hidden" name="redirectOnSuccess" value="/invoices">
+    <input type="file" name="file">
+    <button type="submit">Upload</button>
+</form>
+```
 
 #### REST API Upload
 
@@ -59,20 +99,25 @@ curl -X POST http://localhost:8082/structr/upload \
   -F "parent=9aae3f6db3f34a389b84b91e2f4f9761"
 ```
 
-The `file` parameter contains the file data. You can include additional parameters for any property defined on the File type:
+Every part with a file becomes a file of its own. The other fields of the request:
 
 | Parameter | Description |
 |-----------|-------------|
-| `file` | The file content (required) |
-| `parent` | UUID of the target folder |
-| `uploadFolderPath` | Path of the target folder, created if it does not exist. Requires an authenticated user and is limited to paths below the default upload folder or the user's home directory. |
+| `type` | The type to create, e.g. `Image` or a type that extends File. It can also be given in the URL: `/structr/upload/Invoice`. Without it, the type follows the content: `Image` for images, `VideoFile` for videos, otherwise `File` |
+| `parent` or `parentId` | UUID of the target folder. Outside the default upload folder and the user's home directory, the user needs write permission on it |
+| `uploadFolderPath` | Path of the target folder, created if it does not exist. Requires an authenticated user and is limited to paths below the default upload folder or the user's home directory |
 | `name` | Override the filename |
-| `visibleToPublicUsers` | Set public visibility |
-| `visibleToAuthenticatedUsers` | Set authenticated visibility |
+| `visibleToPublicUsers` | `true` makes the file visible to everyone |
+| `visibleToAuthenticatedUsers` | `true` makes the file visible to signed-in users |
+| `redirectOnSuccess` | Answer with a redirect to this URL instead of the UUID |
+| `appendUuidOnRedirect` | `true` appends `/<uuid>` of the new file to the redirect URL |
+| any property of a custom type | Properties defined in the schema, including relationship properties: the UUID of a related object links the file to it |
 
-You can also pass UUIDs of related objects to link the file directly to existing data during upload.
+Built-in properties of File other than the ones above are refused with 422. Without `redirectOnSuccess`, the response is the UUID of the uploaded file as plain text.
 
 Without `parent` or `uploadFolderPath`, files land in the folder named by `application.uploads.folder`, which defaults to `/._structr_uploads`. When `application.filesystem.enabled` is set, an authenticated non-admin user's uploads go to that user's home directory instead.
+
+After an upload, the `onUpload` method of the file's type runs, e.g. to set its permissions or link it to other data.
 
 #### Uploading to an External Service
 

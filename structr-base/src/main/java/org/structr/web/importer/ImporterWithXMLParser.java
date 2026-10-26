@@ -98,6 +98,9 @@ public class ImporterWithXMLParser {
 	private final static String DATA_STRUCTR_PREFIX = "data-structr-";
 	private final static String DATA_META_PREFIX    = "data-structr-meta-";
 
+	/** The upload settings of a file input, read by the frontend: authored by hand, so stored like any data-* attribute. */
+	private final static String DATA_STRUCTR_UPLOAD_PREFIX = "data-structr-upload-";
+
 	static {
 
 		contentTypeForExtension.put("css", "text/css");
@@ -965,7 +968,7 @@ public class ImporterWithXMLParser {
 									}
 								}
 
-							} else if (key.startsWith(DATA_STRUCTR_PREFIX)) { // don't convert data-structr-* attributes as they are internal
+							} else if (key.startsWith(DATA_STRUCTR_PREFIX) && !key.startsWith(DATA_STRUCTR_UPLOAD_PREFIX)) { // don't convert data-structr-* attributes as they are internal
 
 								if (newNodeType.hasKey(key)) {
 
