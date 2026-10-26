@@ -85,21 +85,24 @@ public class LogoutServlet extends AbstractDataServlet implements HttpServiceSer
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("text/html; charset=utf-8");
 
-			// isolate request authentication in a transaction, not repeated when the database terminates it like in the
-			// other servlets: the logout ends the HTTP session before the transaction commits, so a repetition would find
-			// no user anymore, skip the logout and leave the tokens of the user valid
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			// isolate request authentication in a transaction, repeated when the database terminates it
+			repeatUnlessCommitted(request, response, () -> {
 
-				final Authenticator authenticator     = config.getAuthenticator();
-				final SecurityContext securityContext = authenticator.initializeAndExamineRequest(request, response);
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				if (securityContext != null) {
+					final Authenticator authenticator     = config.getAuthenticator();
+					final SecurityContext securityContext = authenticator.initializeAndExamineRequest(request, response);
 
-					securityContext.getAuthenticator().doLogout(securityContext.getRequest());
+					if (securityContext != null) {
+
+						securityContext.getAuthenticator().doLogout(securityContext.getRequest());
+					}
+
+					tx.success();
 				}
 
-				tx.success();
-			}
+				return null;
+			});
 
 			// redirect to requested target page or /
 			final String redirectLocation = HtmlServlet.filterMaliciousRedirects(request.getParameter(HtmlServlet.TARGET_PATH_KEY));

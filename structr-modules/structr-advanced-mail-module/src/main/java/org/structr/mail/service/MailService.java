@@ -28,10 +28,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.IntegerSetting;
-import org.structr.api.config.Setting;
-import org.structr.api.config.Settings;
-import org.structr.api.config.StringSetting;
 import org.structr.api.service.*;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
@@ -49,6 +45,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.mail.MailSettings;
 import org.structr.mail.entity.Mailbox;
 import org.structr.mail.entity.traits.definitions.EMailMessageTraitDefinition;
 import org.structr.schema.SchemaService;
@@ -107,12 +104,6 @@ public class MailService implements RunnableService, MailServiceInterface {
 
 	// Hint: when this class moves from the mail module to structr-base, the documentation can be moved here
 
-	public static final Setting<Integer> maxEmails          = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.maxemails",          25,                  "The number of mails which are checked");
-	public static final Setting<String> attachmentBasePath  = new StringSetting (Settings.smtpGroup, "MailService", "mail.attachmentbasepath", "/mail/attachments", "The ");
-	public static final Setting<Integer> connectTimeout     = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.connecttimeout",     30000,               "How long to wait for a mail server to accept a connection, in milliseconds. Without a limit, a server that stops answering holds the fetch of its mailbox forever.");
-	public static final Setting<Integer> readTimeout        = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.readtimeout",        60000,               "How long to wait for a mail server to answer once connected, in milliseconds, for the TLS handshake as well as for every command.");
-	public static final Setting<Integer> maxConcurrentFetches = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.maxconcurrentfetches", 4,                 "How many mailboxes are fetched at the same time. Mailboxes on one server all connect from this host, and a mail server that sees too many connections at once may stop answering. Requires a restart of the service.");
-
 	public MailService() {
 
 		supportedCommands = new LinkedHashSet<>();
@@ -120,7 +111,7 @@ public class MailService implements RunnableService, MailServiceInterface {
 		supportedCommands.add(FetchFoldersCommand.class);
 
 		final AtomicInteger threadNumber = new AtomicInteger();
-		final int poolSize               = Math.max(1, maxConcurrentFetches.getValue(4));
+		final int poolSize               = Math.max(1, MailSettings.MaxConcurrentFetches.getValue(4));
 
 		// bounded, because every mailbox of a server connects from this host, and the server answers too many at once with silence
 		threadExecutor = new ThreadPoolExecutor(poolSize, poolSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), runnable -> {
@@ -405,7 +396,7 @@ public class MailService implements RunnableService, MailServiceInterface {
 			cal.setTime(receivedDate);
 		}
 
-		return (attachmentBasePath.getValue() + "/" + Integer.toString(cal.get(Calendar.YEAR)) + "/" + Integer.toString(cal.get(Calendar.MONTH) + 1) + "/" + Integer.toString(cal.get(Calendar.DAY_OF_MONTH)) + "/" + lastPathPart);
+		return (MailSettings.AttachmentBasePath.getValue() + "/" + Integer.toString(cal.get(Calendar.YEAR)) + "/" + Integer.toString(cal.get(Calendar.MONTH) + 1) + "/" + Integer.toString(cal.get(Calendar.DAY_OF_MONTH)) + "/" + lastPathPart);
 	}
 
 	// Returns attachment UUID to append to the mail to be created
@@ -585,9 +576,9 @@ public class MailService implements RunnableService, MailServiceInterface {
 				properties.put("mail." + mailProtocol + ".port", port);
 			}
 
-			final String readTimeoutMillis = String.valueOf(readTimeout.getValue(60000));
+			final String readTimeoutMillis = String.valueOf(MailSettings.ReadTimeout.getValue(60000));
 
-			properties.put("mail." + mailProtocol + ".connectiontimeout", String.valueOf(connectTimeout.getValue(30000)));
+			properties.put("mail." + mailProtocol + ".connectiontimeout", String.valueOf(MailSettings.ConnectTimeout.getValue(30000)));
 			properties.put("mail." + mailProtocol + ".timeout",           readTimeoutMillis);
 			properties.put("mail." + mailProtocol + ".writetimeout",      readTimeoutMillis);
 
@@ -943,7 +934,7 @@ public class MailService implements RunnableService, MailServiceInterface {
 
 				folder.open(Folder.READ_ONLY);
 
-				final int batchSize   = Math.max(1, maxEmails.getValue(25));
+				final int batchSize   = Math.max(1, MailSettings.MaxEmails.getValue(25));
 				final Gson gson       = new Gson();
 				final String name     = folder.getFullName();
 				final UIDFolder uids  = folder instanceof UIDFolder u ? u : null;

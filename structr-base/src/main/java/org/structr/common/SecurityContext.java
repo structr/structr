@@ -986,7 +986,7 @@ public class SecurityContext {
 
 	public void enableInnerCallbacks() {
 
-		doInnerCallbacks = false;
+		doInnerCallbacks = true;
 	}
 
 	public boolean doInnerCallbacks() {

@@ -37,6 +37,13 @@ import java.util.Set;
 
 public class AdvancedMailModule implements StructrModule {
 
+	public AdvancedMailModule() {
+
+		// ServiceLoader instantiates the module at startup but only loads the MailService class, so the
+		// settings are registered here to make them available even when the MailService is not started
+		MailSettings.register();
+	}
+
 	@Override
 	public void onLoad() {
 

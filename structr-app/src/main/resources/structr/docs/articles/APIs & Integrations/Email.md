@@ -303,9 +303,9 @@ Configure the MailService in the Configuration Interface:
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `mail.maxemails` | 25 | Maximum number of emails to fetch per mailbox per fetch. With IMAP, a larger backlog is fetched over several runs. |
-| `mail.attachmentbasepath` | /mail/attachments | Base path for storing email attachments |
-| `mail.connecttimeout` | 30000 | How long to wait for a mail server to accept a connection, in milliseconds |
-| `mail.readtimeout` | 60000 | How long to wait for a mail server to answer once connected, in milliseconds |
+| `mail.attachmentbasepath` | /mail/attachments | Path in Structr's virtual filesystem where the attachments of fetched e-mails are stored, in subfolders by received date and mailbox. |
+| `mail.connecttimeout` | 30000 | How long to wait for a mail server to accept a connection, in milliseconds. Without a limit, a server that stops answering holds the fetch of its mailbox forever. |
+| `mail.readtimeout` | 60000 | How long to wait for a mail server to answer once connected, in milliseconds, for the TLS handshake as well as for every command. |
 | `mail.maxconcurrentfetches` | 4 | How many mailboxes are fetched at the same time. Mailboxes on one server all connect from your Structr host, and a server that sees too many connections at once may stop answering. Changes need a restart of the MailService. |
 
 ### Creating a Mailbox

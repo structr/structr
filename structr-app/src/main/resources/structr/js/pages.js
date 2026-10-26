@@ -5669,7 +5669,7 @@ let _Pages = {
 	
 							<div class="hidden em-action-element em-action-create em-action-update em-action-method em-action-control-process em-process-subject-wrapper">
 								<div class="relative">
-									<label class="block mb-2" for="data-type-select" data-comment="For 'create'/'update': the type of data object. For 'method': the type the method belongs to (sets the App Graph binding so the method is refactor-safe across renames). For 'Control process / Complete a task and create the subject': the SchemaNode type instantiated as the new ProcessInstance subject. Leave empty for top-level user-defined functions.">Enter or select type of data object</label>
+									<label class="block mb-2" for="data-type-select" data-comment="For 'create'/'update': the type of data object. For 'method': the type the method belongs to, so that the mapping follows renames of the method. Leave empty for user-defined functions, or when the method is called on objects of different types: it is then looked up by name on the target object. For 'Control process / Complete a task and create the subject': the SchemaNode type instantiated as the new ProcessInstance subject. Accepts a script expression like &quot;&#36;{current.type}&quot;.">Enter or select type of data object</label>
 									<input type="text" class="combined-input-select-field" id="data-type-input" placeholder="Custom type or script expression">
 									<select class="required" id="data-type-select">
 										<option value="">Select type from schema</option>

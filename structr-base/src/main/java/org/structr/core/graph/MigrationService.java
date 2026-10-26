@@ -945,9 +945,9 @@ public class MigrationService {
 	 * surface and as a fallback for unresolvable targets).
 	 *
 	 * <p>This re-runs harmlessly: nodes with relationships already set are skipped
-	 * by the "if not already populated" check. Failed lookups (target node missing)
-	 * are logged at debug level and leave the relationship null, matching runtime
-	 * fallback behaviour.</p>
+	 * by the "if not already populated" check. A target that matches nothing is logged
+	 * as a warning. A method that cannot be linked but is found by name at runtime is
+	 * only logged at debug level, since the mapping works without the relationship.</p>
 	 */
 	private static void migrateActionMappingTargetsToRelationships() throws FrameworkException {
 
@@ -975,9 +975,9 @@ public class MigrationService {
 				final String flowName     = eam.getProperty(flowKey);
 				final String dataTypeName = eam.getProperty(dataTypeKey);
 
-				// dataType -> SchemaNode
+				// dataType -> SchemaNode, not for a script expression that names the type at runtime
 				NodeInterface resolvedSchemaNode = eam.getProperty(dataTypeNodeKey);
-				if (resolvedSchemaNode == null && StringUtils.isNotBlank(dataTypeName)) {
+				if (resolvedSchemaNode == null && StringUtils.isNotBlank(dataTypeName) && !dataTypeName.contains("${")) {
 
 					resolvedSchemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(dataTypeName).getFirst();
 
@@ -988,7 +988,7 @@ public class MigrationService {
 
 					} else {
 
-						logger.warn("MigrationService: ActionMapping {} references dataType '{}' but no SchemaNode with that name exists. Relationship not set; verify the type name and resave or use the UI selector once available.", eam.getUuid(), dataTypeName);
+						logger.warn("MigrationService: ActionMapping {} references dataType '{}' but no SchemaNode with that name exists. Relationship not set; verify the type name and resave.", eam.getUuid(), dataTypeName);
 						unresolved++;
 					}
 				}
@@ -1004,7 +1004,7 @@ public class MigrationService {
 
 					} else {
 
-						logger.warn("MigrationService: ActionMapping {} references flow '{}' but no FlowContainer with that name exists. Relationship not set; verify the flow name and resave or use the UI selector once available.", eam.getUuid(), flowName);
+						logger.warn("MigrationService: ActionMapping {} references flow '{}' but no FlowContainer with that name exists. Relationship not set; verify the flow name and resave.", eam.getUuid(), flowName);
 						unresolved++;
 					}
 				}
@@ -1059,11 +1059,7 @@ public class MigrationService {
 							candidateTypes.add(parent != null ? parent.getName() : "(top-level)");
 						}
 
-						// Distinguish Java-method references (built-in engine methods like claim,
-						// complete, signalEvent, terminate, ...) from genuinely missing methods.
-						// Java methods are valid runtime targets but have no SchemaMethod node, so
-						// the relationship stays null by design: they are platform code, not data.
-						// The runtime dispatcher (Methods.resolveMethod) finds them via idExpression.
+						// built-in Java methods (claim, complete, ...) have no SchemaMethod node
 						final List<String> javaMethodTypes = findTypesWithJavaMethod(methodName);
 
 						if (resolvedSchemaNode != null) {
@@ -1076,20 +1072,11 @@ public class MigrationService {
 							logger.warn("MigrationService: ActionMapping {} references method '{}' but no SchemaMethod with that name exists anywhere in the schema. Relationship not set; verify the method name and resave.", eam.getUuid(), methodName);
 							unresolved++;
 
-						} else if (candidateTypes.isEmpty() && !javaMethodTypes.isEmpty()) {
-
-							// Built-in Java method (claim / complete / signalEvent / ...). The binding
-							// is valid: runtime resolution via idExpression finds the Java method.
-							// Log INFO so the user knows we deliberately skipped the relationship.
-							logger.info("MigrationService: ActionMapping {} references built-in Java method '{}' on types {}. No SchemaMethod node; relationship intentionally left null. Runtime dispatch via idExpression resolves the call.", eam.getUuid(), methodName, javaMethodTypes);
-
 						} else {
 
-							// dataType not declared, no top-level match, but SchemaMethod nodes exist on
-							// specific types. Don't guess by name uniqueness: the user must pick the target
-							// explicitly via dataType (or, eventually, the UI selector).
-							logger.warn("MigrationService: ActionMapping {} references method '{}' without a dataType and no top-level SchemaMethod with that name exists. Candidate types where the method is defined: {}. Relationship not set; declare a dataType or use the UI selector once available to bind the target explicitly.", eam.getUuid(), methodName, candidateTypes);
-							unresolved++;
+							// a built-in Java method, or a method on the types the target object can have: the method is
+							// looked up by name on the target object at runtime, so the mapping works without the relationship
+							logger.debug("ActionMapping {} calls method '{}' without a data type; relationship left null.", eam.getUuid(), methodName);
 						}
 					}
 				}
