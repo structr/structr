@@ -149,8 +149,10 @@ document.addEventListener("DOMContentLoaded", () => {
 		// Ctrl-Alt-e
 		if ((code === 'KeyE' || keyCode === 69) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
-			let { dialogText } = _Dialogs.custom.openDialog('Bulk Editing Helper (Ctrl-Alt-E)');
-			new RefactoringHelper(dialogText).show();
+			if (!_Dialogs.custom.isDialogOpen()) {
+				let { dialogText } = _Dialogs.custom.openDialog('Bulk Editing Helper');
+				new RefactoringHelper(dialogText).show();
+			}
 		}
 
 		// ctrl-alt-a
@@ -2415,7 +2417,7 @@ let Structr = {
 					</div>
 
 					<div>
-						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Toggle Console')}
+						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), `Toggle Console (Ctrl+Alt+C)`)}
 					</div>
 
 					<div id="${Structr.notificationIconId}" class="relative">
