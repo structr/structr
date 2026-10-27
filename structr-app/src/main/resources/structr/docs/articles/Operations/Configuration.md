@@ -83,6 +83,7 @@ services:
     ports:
       - "8082:8082"
     environment:
+      - AGREE_TO_STRUCTR_PRIVACY_POLICY=yes
       - STRUCTR_superuser_password=mysecretpassword
       - STRUCTR_application_instance_name=Production
       - STRUCTR_application_instance_stage=production
@@ -91,7 +92,37 @@ services:
       - structr-data:/var/lib/structr/files
 ```
 
-Environment variables take precedence over settings in `structr.conf`.
+Environment variables take precedence over settings in `structr.conf`. The container only starts with `AGREE_TO_STRUCTR_PRIVACY_POLICY=yes`, which accepts the privacy policy at https://structr.com/privacy.
+
+### Headless Start With an Embedded Database
+
+A container can come up ready to use from environment variables alone, without a mounted `structr.conf` and without the setup wizard, with a Neo4j database embedded in the Structr process. The container skips the wizard on its own; these variables provide the rest:
+
+| Environment Variable | Value | Purpose |
+|----------------------|-------|---------|
+| `AGREE_TO_STRUCTR_PRIVACY_POLICY` | `yes` | Accepts the privacy policy; without it the container exits |
+| `STRUCTR_superuser_password` | a password | The superuser, for the Configuration Interface and administrative requests |
+| `STRUCTR_application_instance_name` | e.g. `Customer Portal` | Shown in the Admin UI |
+| `STRUCTR_application_instance_stage` | e.g. `production` | Shown in the Admin UI; `production` also changes how untrusted files are delivered |
+| `STRUCTR_database_driver` | `org.structr.embedded.EmbeddedDatabaseService` | The embedded Neo4j driver |
+| `STRUCTR_database_path` | `/var/lib/structr/db` | Where the embedded database stores its data |
+
+Without a database driver, Structr runs with its in-memory database and loses all data when the container stops; the container log then shows a warning. Mount two volumes, one for the database and one for the files:
+
+```bash
+docker run -d --name structr -p 8082:8082 \
+  -e AGREE_TO_STRUCTR_PRIVACY_POLICY=yes \
+  -e STRUCTR_superuser_password=mysecretpassword \
+  -e STRUCTR_application_instance_name="Customer Portal" \
+  -e STRUCTR_application_instance_stage=production \
+  -e STRUCTR_database_driver=org.structr.embedded.EmbeddedDatabaseService \
+  -e STRUCTR_database_path=/var/lib/structr/db \
+  -v structr-db:/var/lib/structr/db \
+  -v structr-files:/var/lib/structr/files \
+  structr/structr:7
+```
+
+The same command works with Podman. If the instance is reached over plain HTTP on an address other than `localhost`, browsers do not keep the session cookie; set `STRUCTR_httpservice_cookies_secure=false` for such a setup, or use HTTPS.
 
 ## Docker Image Tags
 
