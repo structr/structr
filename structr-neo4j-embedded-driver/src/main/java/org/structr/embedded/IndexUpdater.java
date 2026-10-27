@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Transaction;
 import org.structr.api.index.ExistingIndexInfo;
 import org.structr.api.index.NewIndexConfig;
+import org.structr.api.util.Iterables;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -33,6 +34,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class IndexUpdater {
 
 	private static final Logger logger = LoggerFactory.getLogger(IndexUpdater.class);
+
+	private static final int AWAIT_INDEXES_TIMEOUT_SECONDS = 10;
 
 	private final boolean supportsRelationshipIndexes;
 	private final AtomicBoolean           isFinished;
@@ -110,6 +113,11 @@ public abstract class IndexUpdater {
 				logger.info("Found {} existing indexes", existingIndexCount);
 				logger.info("Created {} new indexes", newIndexCount);
 				logger.info("Dropped {} indexes", droppedIndexCount);
+			}
+
+			if (newIndexCount > 0) {
+
+				awaitIndexes();
 			}
 
 		} finally {
@@ -221,6 +229,26 @@ public abstract class IndexUpdater {
 		}
 
 		return newIndexCount;
+	}
+
+	// many empty indexes coming online at once make Cypher give up compiling the startup migrations, see the bolt driver's IndexUpdater
+	private void awaitIndexes() {
+
+		final long t0 = System.currentTimeMillis();
+
+		try (final Transaction tx = db.beginTx()) {
+
+			Iterables.count(db.execute("CALL db.awaitIndexes(" + AWAIT_INDEXES_TIMEOUT_SECONDS + ")"));
+
+			tx.success();
+
+			logger.info("Indexes populated after {} ms", System.currentTimeMillis() - t0);
+
+		} catch (RuntimeException rex) {
+
+			// expected for a large database, the population goes on in the background
+			logger.info("Indexes not populated after {} ms, continuing: {}", System.currentTimeMillis() - t0, rex.getMessage());
+		}
 	}
 
 	private int dropIndexes(final Map<String, ExistingIndexInfo> existingIndexes) {

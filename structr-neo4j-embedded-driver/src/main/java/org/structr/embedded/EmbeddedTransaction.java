@@ -24,6 +24,7 @@ import org.neo4j.graphdb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
+import org.structr.api.SchemaChangedException;
 import org.structr.api.Transaction;
 import org.structr.api.graph.Identity;
 import org.structr.api.util.CloseableIterator;
@@ -108,7 +109,14 @@ public class EmbeddedTransaction implements Transaction<String> {
 		if (terminated != null) {
 
 			// the code that ran in this transaction caught the RetryException, so it is thrown again here
-			throw new RetryException("The database terminated the transaction before it was closed", terminated.getCause());
+			final String message = "The database terminated the transaction before it was closed";
+
+			if (terminated instanceof SchemaChangedException) {
+
+				throw new SchemaChangedException(message, terminated.getCause());
+			}
+
+			throw new RetryException(message, terminated.getCause());
 		}
 	}
 
@@ -118,7 +126,10 @@ public class EmbeddedTransaction implements Transaction<String> {
 	 */
 	public RetryException terminated(final TransientFailureException tex) {
 
-		final RetryException rex = new RetryException(tex);
+		return terminated(new RetryException(tex));
+	}
+
+	private RetryException terminated(final RetryException rex) {
 
 		if (terminated == null) {
 
@@ -338,7 +349,31 @@ public class EmbeddedTransaction implements Transaction<String> {
 		} catch (TransientFailureException tex) {
 
 			throw terminated(tex);
+
+		} catch (RuntimeException rex) {
+
+			if (isFrequentSchemaChange(rex)) {
+
+				throw terminated(new SchemaChangedException(rex));
+			}
+
+			throw rex;
 		}
+	}
+
+	// Cypher gives up compiling a query while freshly created indexes come online, and only a repetition can succeed
+	static boolean isFrequentSchemaChange(final Throwable t) {
+
+		for (Throwable cause = t; cause != null; cause = cause.getCause()) {
+
+			final String message = cause.getMessage();
+			if (message != null && message.contains("insanely frequent schema changes")) {
+
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private void rollbackTerminated() {
