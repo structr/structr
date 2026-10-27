@@ -194,4 +194,13 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 		return FunctionCategory.Http;
 	}
+
+	/**
+	 * The password option, sensitive headers and a password in the URL are credentials, so they are masked when a wrong call is logged.
+	 */
+	@Override
+	protected String parametersForLog(final Object[] parameters) {
+
+		return HttpOptions.parametersForLog(parameters);
+	}
 }

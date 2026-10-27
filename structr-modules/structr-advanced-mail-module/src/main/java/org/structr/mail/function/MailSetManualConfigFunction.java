@@ -154,4 +154,13 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 				Parameter.optional("smtpTLSRequired", "Require STARTTLS; fail rather than send unencrypted (default: `true`)")
 		);
 	}
+
+	/**
+	 * The SMTP password is a credential, and a parameter error would otherwise write it into the server log.
+	 */
+	@Override
+	protected boolean redactParameters() {
+
+		return true;
+	}
 }

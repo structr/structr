@@ -97,6 +97,11 @@ public class Settings {
 		Map.entry("websocketservlet.class",     "Removed. The websocket servlet is no longer chosen by class name in the configuration.")
 	);
 
+	// keys that are still read, but only for a migration; they are logged so the configuration can be cleaned up
+	private static final Map<String, String> DEPRECATED_SETTINGS = Map.ofEntries(
+		Map.entry("database.driver.mode", "It is only read to migrate an old configuration: 'remote' moves the old connection settings onto a Neo4j bolt connection, 'embedded' selects nothing. The driver is chosen by database.driver (or <connection>.database.driver), so remove this key.")
+	);
+
 	public static final String CRON_EXPRESSION_INFO_HTML      = "A cron expression is defined as <pre>&lt;s&gt; &lt;m&gt; &lt;h&gt; &lt;dom&gt; &lt;m&gt; &lt;dow&gt;</pre> It is similar to a normal cron expression with an additional \"seconds\" field at the beginning. Search for \"cron\" or \"periodic task scheduler\" in the documentation to find more info and examples.";
 
 	private static final Set<PosixFilePermission> expectedConfigFilePermissions = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
@@ -1280,6 +1285,12 @@ public class Settings {
 				}
 
 				if (setting != null) {
+
+					final String deprecationNote = DEPRECATED_SETTINGS.get(lcKey);
+					if (deprecationNote != null) {
+
+						logger.warn("Setting {} is deprecated. {}", key, deprecationNote);
+					}
 
 					setting.fromString(value);
 
