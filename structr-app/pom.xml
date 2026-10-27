@@ -845,7 +845,7 @@
 							</execution>
 						</executions>
 					</plugin>
-					<!-- the local image for Podman: same Dockerfile and tags, built by podman for the host architecture and never pushed -->
+					<!-- the local image for Podman: same Dockerfile (context limited by .containerignore), built by podman for the host architecture and never pushed -->
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
@@ -867,8 +867,6 @@
 										<argument>STRUCTR_VERSION=${project.build.finalName}</argument>
 										<argument>--tag</argument>
 										<argument>structr/structr:${project.version}</argument>
-										<argument>--tag</argument>
-										<argument>registry.structr.com/structr/structr:${project.version}</argument>
 										<argument>--file</argument>
 										<argument>Dockerfile</argument>
 										<argument>.</argument>
