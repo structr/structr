@@ -181,4 +181,13 @@ public class HMACFunction extends CoreFunction {
 
 		return FunctionCategory.Security;
 	}
+
+	/**
+	 * The secret is a credential, and a parameter error would otherwise write it into the server log.
+	 */
+	@Override
+	protected boolean redactParameters() {
+
+		return true;
+	}
 }

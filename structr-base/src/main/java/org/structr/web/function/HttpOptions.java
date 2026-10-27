@@ -145,6 +145,69 @@ public class HttpOptions {
 		return from(functionName, sources, index);
 	}
 
+	private static final java.util.regex.Pattern SENSITIVE_HEADER = java.util.regex.Pattern.compile("(?i).*(auth|token|secret|key|cookie|session|password).*");
+	private static final java.util.regex.Pattern URL_PASSWORD     = java.util.regex.Pattern.compile("(://[^/:@\\s]+:)[^/@\\s]+@");
+
+	/** The arguments of an HTTP function for a log message: the password option, sensitive headers and a password in the URL are masked. */
+	public static String parametersForLog(final Object[] sources) {
+
+		if (sources == null) {
+
+			return "[]";
+		}
+
+		final java.util.List<String> rendered = new java.util.ArrayList<>();
+
+		for (final Object source : sources) {
+
+			rendered.add(String.valueOf(maskForLog(source)));
+		}
+
+		return rendered.toString();
+	}
+
+	private static Object maskForLog(final Object value) {
+
+		if (value instanceof Map<?, ?> map) {
+
+			final Map<Object, Object> masked = new LinkedHashMap<>();
+
+			for (final Map.Entry<?, ?> entry : map.entrySet()) {
+
+				final String key = String.valueOf(entry.getKey());
+
+				if (PASSWORD.equals(key)) {
+
+					masked.put(key, "***");
+
+				} else if (HEADERS.equals(key) && entry.getValue() instanceof Map<?, ?> headers) {
+
+					final Map<Object, Object> maskedHeaders = new LinkedHashMap<>();
+
+					for (final Map.Entry<?, ?> header : headers.entrySet()) {
+
+						maskedHeaders.put(header.getKey(), SENSITIVE_HEADER.matcher(String.valueOf(header.getKey())).matches() ? "***" : header.getValue());
+					}
+
+					masked.put(key, maskedHeaders);
+
+				} else {
+
+					masked.put(key, entry.getValue());
+				}
+			}
+
+			return masked;
+		}
+
+		if (value instanceof String string) {
+
+			return URL_PASSWORD.matcher(string).replaceAll("$1***@");
+		}
+
+		return value;
+	}
+
 	/** Whether the argument at the given position is an options object rather than a value. */
 	public static boolean isOptionsAt(final Object[] sources, final int index) {
 

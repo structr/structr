@@ -301,4 +301,13 @@ public class CreateZipFunction extends UiAdvancedFunction {
 			addFoldersToArchive(path + folder.getName() + "/", folder.getFolders(), zipFile, params);
 		}
 	}
+
+	/**
+	 * The password is a credential, and a parameter error would otherwise write it into the server log.
+	 */
+	@Override
+	protected boolean redactParameters() {
+
+		return true;
+	}
 }

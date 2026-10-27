@@ -134,4 +134,13 @@ public class LoginFunction extends AdvancedScriptingFunction {
 
 		return FunctionCategory.Security;
 	}
+
+	/**
+	 * The password is a credential, and a parameter error, e.g. the null of an unknown user, would otherwise write it into the server log.
+	 */
+	@Override
+	protected boolean redactParameters() {
+
+		return true;
+	}
 }
