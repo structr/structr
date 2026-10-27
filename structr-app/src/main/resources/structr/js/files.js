@@ -796,9 +796,7 @@ let _Files = {
 				${listModeActive ? _Files.templates.folderContentsTableSkeleton({}) : _Files.templates.folderContentsTileContainerSkeleton()}
 			`);
 
-			_Favorites.getFavoritesList().then(data => {
-				handleFileChildren(data.result);
-			});
+			_Favorites.getExistingFavorites().then(handleFileChildren);
 
 		} else {
 
@@ -1568,7 +1566,7 @@ let _Files = {
 			_Files.editFiles(filteredFileModels.map(m => m.id), file.id);
 		}
 	},
-	editFiles:(ids, activeFileId, onTabSelect, onDialogClose) => {
+	editFiles: (ids, activeFileId, onTabSelect, onDialogClose) => {
 
 		let { dialogText } = _Dialogs.custom.openDialog('Edit files', null, ['popup-dialog-with-editor', 'file-edit-dialog']);
 		_Dialogs.custom.showMeta();
