@@ -219,4 +219,13 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 			return DriverManager.getConnection(url, username, password);
 		}
 	}
+
+	/**
+	 * The password and the connection URL are credentials, and a parameter error would otherwise write them into the server log.
+	 */
+	@Override
+	protected boolean redactParameters() {
+
+		return true;
+	}
 }

@@ -247,4 +247,13 @@ public class ProcessInstanceUrlFunction extends ProcessModuleFunction {
 			)
 		);
 	}
+
+	/**
+	 * The access token is a credential, and a parameter error would otherwise write it into the server log.
+	 */
+	@Override
+	protected boolean redactParameters() {
+
+		return true;
+	}
 }

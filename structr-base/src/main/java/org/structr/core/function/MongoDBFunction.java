@@ -182,4 +182,13 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 
 		return FunctionCategory.Database;
 	}
+
+	/**
+	 * The connection URL can contain a password, and a parameter error would otherwise write it into the server log.
+	 */
+	@Override
+	protected boolean redactParameters() {
+
+		return true;
+	}
 }

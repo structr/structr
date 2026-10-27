@@ -39,6 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -284,6 +285,44 @@ public class ExecFunction extends AdvancedScriptingFunction {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Masked parameters stay masked in every log message, also when the call fails, e.g. when a restart interrupts the process.
+	 */
+	@Override
+	protected String parametersForLog(final Object[] parameters) {
+
+		if (parameters == null) {
+
+			return "[]";
+		}
+
+		final List<String> rendered = new ArrayList<>();
+
+		for (final Object parameter : parameters) {
+
+			if (parameter instanceof Collection<?> collection) {
+
+				rendered.add(collection.stream().map(ExecFunction::parameterForLog).toList().toString());
+
+			} else {
+
+				rendered.add(parameterForLog(parameter));
+			}
+		}
+
+		return rendered.toString();
+	}
+
+	private static String parameterForLog(final Object parameter) {
+
+		if (parameter instanceof Map<?, ?> map) {
+
+			return Boolean.TRUE.equals(map.get("mask")) ? "***" : String.valueOf(map.get("value"));
+		}
+
+		return String.valueOf(parameter);
 	}
 
 	protected static class ScriptingProcess extends AbstractProcess<String> {
