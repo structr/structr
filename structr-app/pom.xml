@@ -22,6 +22,7 @@
 		<skipZip>false</skipZip>
 		<skipDeb>false</skipDeb>
 		<skipDocker>false</skipDocker>
+		<skipPodman>true</skipPodman>
 		<skipDockerTestDB>true</skipDockerTestDB>
 		<skipSpiPreflight>false</skipSpiPreflight>
 	</properties>
@@ -780,7 +781,8 @@
 
 		<!-- docker-build: Build production Docker image
 			 Requires: multiarch buildx builder
-			 Skip: -DskipDocker=true -->
+			 Skip: -DskipDocker=true
+			 Local Podman build instead, host architecture only, no push: -DskipDocker=true -DskipPodman=false -->
 		<profile>
 			<id>docker-build</id>
 			<activation>
@@ -840,6 +842,38 @@
 									<goal>build</goal>
 									<goal>push</goal>
 								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- the local image for Podman: same Dockerfile and tags, built by podman for the host architecture and never pushed -->
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>3.6.2</version>
+						<executions>
+							<execution>
+								<id>podman-build-local</id>
+								<phase>install</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+									<skip>${skipPodman}</skip>
+									<executable>podman</executable>
+									<workingDirectory>${project.basedir}</workingDirectory>
+									<arguments>
+										<argument>build</argument>
+										<argument>--build-arg</argument>
+										<argument>STRUCTR_VERSION=${project.build.finalName}</argument>
+										<argument>--tag</argument>
+										<argument>structr/structr:${project.version}</argument>
+										<argument>--tag</argument>
+										<argument>registry.structr.com/structr/structr:${project.version}</argument>
+										<argument>--file</argument>
+										<argument>Dockerfile</argument>
+										<argument>.</argument>
+									</arguments>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>
