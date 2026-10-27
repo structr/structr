@@ -1486,33 +1486,51 @@ let _Console = new (function() {
  */
 let _Favorites = new (function () {
 
-	// private variables
 	let _favsVisible = false;
-	let favoritesDataKey     = 'structr_favorites_' + location.port;
-	let favoritesLastUsedKey = 'structrFavoritesLastUsed_' + location.port;
+	const favoritesDataKey     = 'structr_favorites_' + location.port;
+	const favoritesLastUsedKey = 'structrFavoritesLastUsed_' + location.port;
 
-	this.showFavorites = function() {
+	this.showFavorites = async () => {
 
 		if (_favsVisible !== true && StructrWS.user !== null) {
 
 			_favsVisible = true;
 
-			let favoritesIds = this.getFavoritesIds();
-			let activeFileId = LSWrapper.getItem(favoritesLastUsedKey, favoritesIds[0]);
+			let data = await this.getExistingFavorites();
 
-			_Files.editFiles(this.getFavoritesIds(), activeFileId, (id) => {
-				LSWrapper.setItem(favoritesLastUsedKey, id);
-			}, () => {
+			let favoritesIds = data.map(f => f.id);
+
+			if (favoritesIds.length === 0) {
+
 				_favsVisible = false;
-			});
+
+				new InfoMessage().title("No Favorites Files").text("There are no favorite files to edit.").uniqueClass("no-favorites-popup").show();
+
+			} else {
+
+				let activeFileId = LSWrapper.getItem(favoritesLastUsedKey, favoritesIds[0]);
+				if (!favoritesIds.includes(activeFileId)) {
+					activeFileId = favoritesIds[0];
+				}
+
+				_Files.editFiles(favoritesIds, activeFileId, (id) => {
+					LSWrapper.setItem(favoritesLastUsedKey, id);
+				}, () => {
+					_favsVisible = false;
+				});
+			}
 		}
 	};
 
-	this.getFavoritesIds = function() {
+	this.getFavoritesIds = () => {
 		return LSWrapper.getItem(favoritesDataKey, []);
-	}
+	};
 
-	this.getFavoritesList = async function() {
+	this.saveFavoritesIds = (idSetOrArray) => {
+		LSWrapper.setItem(favoritesDataKey, [...idSetOrArray]);
+	};
+
+	this.getExistingFavorites = async () => {
 
 		let ids = this.getFavoritesIds();
 
@@ -1520,51 +1538,39 @@ let _Favorites = new (function () {
 			headers: _Helpers.getHeadersForCustomView(_Files.defaultFileAttributes.split(','))
 		});
 
-		if (res.ok) {
+		let data = (res.ok) ? (await res.json()).result : [];
 
-			let data = await res.json();
-			return data;
-		}
+		// update favorite ids in case files were deleted
+		this.saveFavoritesIds(data.map(f => f.id));
 
-		return [];
+		return data;
+	};
+
+	this.addToFavorites = (idsToAdd) => {
+
+		let idSet = new Set(this.getFavoritesIds()).union(new Set(idsToAdd));
+
+		this.saveFavoritesIds(idSet);
+
+		this.blinkFavoritesTreeItem();
+	};
+
+	this.removeFromFavorites = (idsToRemove) => {
+
+		let idSet = new Set(this.getFavoritesIds()).difference(new Set(idsToRemove));
+
+		this.saveFavoritesIds(idSet);
+
+		this.blinkFavoritesTreeItem();
 	};
 
 	this.blinkFavoritesTreeItem = () => {
 		_Helpers.blinkGreen(document.querySelector('li#favorites.jstree-node'))
 	};
 
-	this.addToFavorites = function(idsToAdd) {
+	this.isFavoriteFile = (id) => {
 
-		let idSet = new Set(this.getFavoritesIds());
-
-		for (let id of idsToAdd) {
-
-			idSet.add(id);
-		}
-
-		LSWrapper.setItem(favoritesDataKey, [...idSet]);
-
-		this.blinkFavoritesTreeItem();
-	};
-
-	this.removeFromFavorites = function(idsToRemove) {
-
-		let ids = LSWrapper.getItem(favoritesDataKey, []);
-		let idSet = new Set(ids);
-
-		for (let id of idsToRemove) {
-
-			idSet.delete(id);
-		}
-
-		LSWrapper.setItem(favoritesDataKey, [...idSet]);
-
-		this.blinkFavoritesTreeItem();
-	};
-
-	this.isFavoriteFile = function(id) {
-
-		let ids = LSWrapper.getItem(favoritesDataKey, []);
+		let ids = this.getFavoritesIds();
 		return ids.includes(id);
 	};
 });
