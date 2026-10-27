@@ -884,9 +884,9 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 					throw translateClientException(causeCex);
 				}
 
-				throw new UnknownClientException(cex, cex.code(), cex.getMessage());
+				throw translateUnknownClientException(cex);
 			default:
-				throw new UnknownClientException(cex, cex.code(), cex.getMessage());
+				throw translateUnknownClientException(cex);
 		}
 	}
 
@@ -913,6 +913,18 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 		// wrap exception if no other cause could be found
 		throw new UnknownDatabaseException(dex, dex.code(), dex.getMessage());
+	}
+
+	// GQL status class 22 is a data exception, e.g. a value too large for its index (Neo4j up to 2026.09: General.UnknownError)
+	private static RuntimeException translateUnknownClientException(final ClientException cex) {
+
+		final String gqlStatus = cex.gqlStatus();
+		if (gqlStatus != null && gqlStatus.startsWith("22")) {
+
+			return new DataFormatException(cex, cex.code(), cex.getMessage());
+		}
+
+		return new UnknownClientException(cex, cex.code(), cex.getMessage());
 	}
 
 	/**
