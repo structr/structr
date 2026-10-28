@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Base interface for all things that are documentable. Implement this
@@ -169,9 +170,10 @@ public interface Documentable {
 				lines.add("");
 				lines.add("```");
 
-				for (final Signature signature : signatures) {
+				final Set<String> signatureSet = signatures.stream().map(Signature::getSignature).collect(Collectors.toSet());
+				for (final String signature : signatureSet) {
 
-					lines.add(name + "(" + signature.getSignature() + ")");
+					lines.add(name + "(" + signature + ")");
 				}
 
 				lines.add("```");
