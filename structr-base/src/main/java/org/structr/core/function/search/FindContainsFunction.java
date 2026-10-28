@@ -127,6 +127,8 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 	public List<Signature> getSignatures() {
 
 		return List.of(
+				Signature.javaScript("key, value"),
+				Signature.javaScript("value"),
 				Signature.structrScript("key, value"),
 				Signature.structrScript("value")
 		);
