@@ -176,6 +176,8 @@ let _Icons = {
 	iconChevronRight:        'chevron-right',
 	iconChevronLeftFilled:   'chevron-left-filled',
 	iconChevronRightFilled:  'chevron-right-filled',
+	iconChevronDownFilled:   'chevron-down-filled',
+	iconChevronUpFilled:     'chevron-up-filled',
 	iconDatabase:            'database-icon-color',
 	iconErrorRedFilled:      'error-sign-icon-filled',
 	iconWarningYellowFilled: 'warning-sign-icon-filled',
