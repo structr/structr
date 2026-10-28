@@ -7500,7 +7500,9 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
-			final List<NodeInterface> result1 = (List) ScriptTestHelper.testExternalScript(actionContext, ScriptingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithRanges.js"));
+			final String result = ScriptTestHelper.testExternalScript(actionContext, ScriptingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithRanges.js")).toString();
+
+			assertEquals("Success", result);
 
 			tx.success();
 
