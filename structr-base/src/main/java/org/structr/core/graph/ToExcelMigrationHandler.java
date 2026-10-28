@@ -454,16 +454,24 @@ public class ToExcelMigrationHandler {
 			return false;
 		}
 
-		int depth  = 0;
-		char quote = 0;
+		int depth        = 0;
+		char quote       = 0;
+		final int length = trimmed.length();
 
-		for (int i = 0; i < trimmed.length(); i++) {
+		for (int i = 0; i < length; i++) {
 
 			final char c = trimmed.charAt(i);
 
 			if (quote != 0) {
 
-				if (c == '\\') { i++; } else if (c == quote) { quote = 0; }
+				if (c == '\\') {
+
+					i++;
+
+				} else if (c == quote) {
+
+					quote = 0;
+				}
 
 				continue;
 			}
@@ -472,7 +480,15 @@ public class ToExcelMigrationHandler {
 
 				case '\'', '"', '`' -> quote = c;
 				case '(', '{', '['  -> depth++;
-				case ')', '}', ']'  -> { depth--; if (depth == 0) { return i == trimmed.length() - 1; } }
+				case ')', '}', ']'  -> {
+
+					depth--;
+
+					if (depth == 0) {
+
+						return i == length - 1;
+					}
+				}
 				default             -> { }
 			}
 		}

@@ -456,7 +456,9 @@ public class OutboundHttpCallMigrationHandler {
 				return null;
 			}
 
-			for (int i = 0; i < tail.size(); i++) {
+			final int size = tail.size();
+
+			for (int i = 0; i < size; i++) {
 
 				final String value = tail.get(i).trim();
 
@@ -636,16 +638,24 @@ public class OutboundHttpCallMigrationHandler {
 	/** The index of the brace closing the one at openIndex, ignoring braces inside strings. */
 	public static int matchingBrace(final String source, final int openIndex) {
 
-		int depth       = 0;
-		char quote      = 0;
+		int depth        = 0;
+		char quote       = 0;
+		final int length = source.length();
 
-		for (int i = openIndex; i < source.length(); i++) {
+		for (int i = openIndex; i < length; i++) {
 
 			final char c = source.charAt(i);
 
 			if (quote != 0) {
 
-				if (c == '\\') { i++; } else if (c == quote) { quote = 0; }
+				if (c == '\\') {
+
+					i++;
+
+				} else if (c == quote) {
+
+					quote = 0;
+				}
 
 				continue;
 			}
@@ -654,7 +664,15 @@ public class OutboundHttpCallMigrationHandler {
 
 				case '\'', '"', '`' -> quote = c;
 				case '('           -> depth++;
-				case ')'           -> { depth--; if (depth == 0) { return i; } }
+				case ')'           -> {
+
+					depth--;
+
+					if (depth == 0) {
+
+						return i;
+					}
+				}
 				default            -> { }
 			}
 		}
@@ -669,8 +687,9 @@ public class OutboundHttpCallMigrationHandler {
 		final StringBuilder buf   = new StringBuilder();
 		int depth                 = 0;
 		char quote                = 0;
+		final int length          = arguments.length();
 
-		for (int i = 0; i < arguments.length(); i++) {
+		for (int i = 0; i < length; i++) {
 
 			final char c = arguments.charAt(i);
 
@@ -678,16 +697,35 @@ public class OutboundHttpCallMigrationHandler {
 
 				buf.append(c);
 
-				if (c == '\\' && i + 1 < arguments.length()) { buf.append(arguments.charAt(++i)); } else if (c == quote) { quote = 0; }
+				if (c == '\\' && i + 1 < length) {
+
+					buf.append(arguments.charAt(++i));
+
+				} else if (c == quote) {
+
+					quote = 0;
+				}
 
 				continue;
 			}
 
 			switch (c) {
 
-				case '\'', '"', '`'      -> { quote = c; buf.append(c); }
-				case '(', '{', '['       -> { depth++; buf.append(c); }
-				case ')', '}', ']'       -> { depth--; buf.append(c); }
+				case '\'', '"', '`'      -> {
+
+					quote = c;
+					buf.append(c);
+				}
+				case '(', '{', '['       -> {
+
+					depth++;
+					buf.append(c);
+				}
+				case ')', '}', ']'       -> {
+
+					depth--;
+					buf.append(c);
+				}
 				case ','                 -> {
 
 					if (depth == 0) {
@@ -726,7 +764,9 @@ public class OutboundHttpCallMigrationHandler {
 
 			// the closing quote has to be the LAST character, otherwise this is an expression such as
 			// 'a' + b, where only the beginning looks like a literal
-			for (int i = 1; i < trimmed.length(); i++) {
+			final int length = trimmed.length();
+
+			for (int i = 1; i < length; i++) {
 
 				final char c = trimmed.charAt(i);
 				if (c == '\\') {
@@ -735,7 +775,7 @@ public class OutboundHttpCallMigrationHandler {
 
 				} else if (c == quote) {
 
-					return i == trimmed.length() - 1;
+					return i == length - 1;
 				}
 			}
 
