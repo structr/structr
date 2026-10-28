@@ -3830,6 +3830,38 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44))); }}", "testFindNewSyntax")).size());
 			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.and($.predicate.equals('name3', 'other'), $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44)))); }}", "testFindNewSyntax")).size());
 
+			// test equivalent call-styles for lt,lte,gt,gte  (e.g. $.predicate.lt(key, value) === $.predicate.equals(key, $.predicate.lt(value))
+			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.lt(22))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.lt('age', 22)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.lte(22))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.lte('age', 22)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.lt(33))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.lt('age', 33)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.lte(33))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.lte('age', 33)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.lt(44))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.lt('age', 44)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.lte(44))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.lte('age', 44)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.gt(22))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.gt('age', 22)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.gte(22))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.gte('age', 22)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.gt(33))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.gt('age', 33)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.gte(33))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.gte('age', 33)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.gt(44))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.gt('age', 44)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.gte(44))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.gte('age', 44)); }}", "testFindNewSyntax")).size());
+
+
 			final List<NodeInterface> page1 = (List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.sort('name'), $.predicate.page(1, 10)); }}", "testFindNewSyntax");
 			final List<NodeInterface> page2 = (List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.sort('name'), $.predicate.page(1, 5)); }}", "testFindNewSyntax");
 			final List<NodeInterface> page3 = (List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.sort('name'), $.predicate.page(3, 5)); }}", "testFindNewSyntax");

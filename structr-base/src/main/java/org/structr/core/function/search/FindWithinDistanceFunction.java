@@ -85,7 +85,7 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getShortDescription() {
 
-		return "Returns a query predicate that can be used with find() or search().";
+		return "Returns a query predicate that can be used with find() and search().";
 	}
 
 	@Override

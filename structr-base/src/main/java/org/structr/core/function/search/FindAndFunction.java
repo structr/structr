@@ -80,7 +80,7 @@ public class FindAndFunction extends CoreFunction {
 	@Override
 	public String getShortDescription() {
 
-		return "Combines the given predicates using logical AND, returning a predicate usable with find() or search().";
+		return "Combines the given predicates using logical AND, returning a predicate usable with find() and search().";
 	}
 
 	@Override

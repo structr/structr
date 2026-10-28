@@ -63,8 +63,8 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 
 			switch (sources.length) {
 
-				case 4: includeEnd   = Boolean.valueOf(sources[3].toString());
-				case 3: includeStart = Boolean.valueOf(sources[2].toString());
+				case 4: includeEnd   = Boolean.parseBoolean(sources[3].toString());
+				case 3: includeStart = Boolean.parseBoolean(sources[2].toString());
 				case 2: rangeEnd     = sources[1];
 				case 1: rangeStart   = sources[0];
 				default: break;
@@ -82,15 +82,15 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.range(start, end) }}. Example: ${{ $.find('Event', { date: $.predicate.range('2018-12-31', '2019-01-01') }); }}"),
-			Usage.structrScript("Usage: ${range(start, end)}. Example: ${find('Event', 'date', range('2018-12-31', '2019-01-01'))}")
+			Usage.javaScript("Usage: ${{ $.predicate.range(start, end) }}"),
+			Usage.structrScript("Usage: ${range(start, end)}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
 
-		return "Returns a range predicate that can be used in find() function calls.";
+		return "Returns a range predicate that can be used with find() and search().";
 	}
 
 	@Override
@@ -98,17 +98,17 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 
 		return """
 			Returns a search predicate to specify value ranges, greater and less-than searches in find() and search() functions.
-			The first two parameters represent the first and the last element of the desired query range. Both start and end of the range can be 
-			set to `null` to allow the use of `range()` for `<`, `<=`. `>` and `>=` queries.
-			There are two optional boolean parameters, `includeStart` and `includeEnd` that control whether the search range 
-			should **include** or **exclude** the endpoints of the interval.
+			The first two parameters represent the first and the last element of the desired query range. Both start and end of the range can be
+			set to `null` to allow the use of `range()` for `<`, `<=`. `>` and `>=` queries, although there are dedicated predicate functions for that (lt, lte, gt, gte).
+			
+			The two optional boolean parameters, `includeStart` and `includeEnd` control whether the search range should **include** or **exclude** the endpoints of the interval.
 			""";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("key, value");
+		return Signature.forAllScriptingLanguages("start, end [, includeStart, includeEnd ]");
 	}
 
 	@Override
@@ -147,9 +147,9 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 		return List.of(
 				Parameter.mandatory("start", "start of range interval"),
 				Parameter.mandatory("end", "end of range interval"),
-				Parameter.optional("includeStart", "true to include startpoint of given interval - default: false"),
-				Parameter.optional("includeEnd", "true to include endpoint of given interval - default: false")
-				);
+				Parameter.optional("includeStart", "true to include startpoint of given interval - default: true"),
+				Parameter.optional("includeEnd", "true to include endpoint of given interval - default: true")
+		);
 	}
 
 	@Override

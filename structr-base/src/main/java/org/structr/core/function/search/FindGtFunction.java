@@ -53,9 +53,22 @@ public class FindGtFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-			return new RangePredicate(sources[0], null, false, false);
+			if (sources.length == 2) {
+
+				final String key      = sources[0].toString();
+				final Object value    = new RangePredicate(sources[1], null, false, false);
+
+				return new SearchParameter(key, value, true);
+			}
+
+			if (sources.length == 1) {
+
+				return new RangePredicate(sources[0], null, false, false);
+			}
+
+			throw new FrameworkException(422, getName() + "(): Unsupported number of arguments.");
 
 		} catch (final IllegalArgumentException e) {
 
@@ -69,15 +82,15 @@ public class FindGtFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.gt(value) }}. Example: ${{ $.find('User', { age: $.predicate.gt(42) }); }}"),
-			Usage.structrScript("Usage: ${gt(value)}. Example: ${find('User', 'age', gt(42))}")
+			Usage.javaScript("Usage: ${{ $.predicate.gt(value) }}"),
+			Usage.structrScript("Usage: ${gt(value)}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
 
-		return "Returns a gt predicate that can be used in find() function calls.";
+		return "Returns a query predicate that can be used with find() and search().";
 	}
 
 	@Override
@@ -92,15 +105,23 @@ public class FindGtFunction extends AdvancedScriptingFunction {
 		return List.of(
 				Example.javaScript("""
 				{
-					let projects = $.find('Project', $.predicate.equals('dueDate', $.predicate.gt(new Date())));
-				}""", "Find projects whose dueDate is in the future.")
+					let projects1 = $.find('Project', $.predicate.gt('dueDate', new Date()));
+
+					let projects2 = $.find('Project', $.predicate.equals('dueDate', $.predicate.gt(new Date())));
+
+					let projects3 = $.find('Project', { dueDate: $.predicate.gt(new Date()) });
+
+				}""", "Three equivalent ways to find projects whose dueDate is in the future")
 		);
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("value");
+		return List.of(
+				Signature.structrScript("key, value"),
+				Signature.structrScript("value")
+		);
 	}
 
 	@Override

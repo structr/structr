@@ -82,15 +82,15 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.contains(key, value) }}. Example: ${{ $.find('Group', $.predicate.contains('name', 'Test')); }}"),
-			Usage.structrScript("Usage: ${contains(key, value). Example: ${find('Group', contains('name', 'Test'))}")
+			Usage.javaScript("Usage: ${{ $.predicate.contains(key, value) }}"),
+			Usage.structrScript("Usage: ${contains(key, value)")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
 
-		return "Returns a query predicate that can be used with find() or search().";
+		return "Returns a query predicate that can be used with find() and search().";
 	}
 
 	@Override
@@ -113,6 +113,10 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 				}""", "Find projects that have 'consulting' in their name"),
 				Example.javaScript("""
 				{
+					let projects = $.find('Project', { name: $.predicate.contains('Consulting') });
+				}""", "Equivalent way to find projects that have 'consulting' in their name"),
+				Example.javaScript("""
+				{
 					// we are searching in a collection => we need to pass an array as parameter
 					let projects = $.find('Project', $.predicate.contains('teamMembers', [$.me]));
 				}""", "Find projects that have a list of tasks associated")
@@ -122,7 +126,10 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("key, value");
+		return List.of(
+				Signature.structrScript("key, value"),
+				Signature.structrScript("value")
+		);
 	}
 
 	@Override
