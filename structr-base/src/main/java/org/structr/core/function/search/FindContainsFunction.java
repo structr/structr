@@ -21,6 +21,7 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -82,8 +83,8 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.contains(key, value) }}"),
-			Usage.structrScript("Usage: ${contains(key, value)")
+			Usage.javaScript("Usage: ${{ $.predicate.contains([ key, ] value) }}"),
+			Usage.structrScript("Usage: ${contains([ key, ] value)}")
 		);
 	}
 
@@ -97,6 +98,10 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 	public String getLongDescription() {
 
 		return """
+			Returns a search predicate to find nodes whose value contains the given value in find() and search() functions.
+			The optional first parameter is the property key to search for. It can be omitted when the predicate is used as the value of a property in a map,
+			e.g. `{ name: $.predicate.contains('Consulting') }`.
+
 			The contains predicate, when used on String properties, performs a case-insensitive search.
 			When used on a remote collection, a list of search values is required.
 			When used on an array property, it selects the objects whose array contains the given value, or all elements of the given list.
@@ -126,11 +131,15 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
+		return Signature.forAllScriptingLanguages("[ key, ] value");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
 		return List.of(
-				Signature.javaScript("key, value"),
-				Signature.javaScript("value"),
-				Signature.structrScript("key, value"),
-				Signature.structrScript("value")
+				Parameter.optional("key", "property key to search for - can be omitted when used as the value of a property in a map"),
+				Parameter.mandatory("value", "text to search for, or a list of values for collection and array properties")
 		);
 	}
 

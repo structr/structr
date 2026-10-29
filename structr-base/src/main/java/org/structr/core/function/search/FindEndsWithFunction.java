@@ -21,6 +21,7 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -82,8 +83,8 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.endsWith(key, value) }}. Example: ${{ $.find('Group', $.predicate.and($.predicate.endsWith('name', 'Test'))) }}"),
-			Usage.structrScript("Usage: ${endsWith(key, value). Example: ${find('Group', and(endsWith('name', 'Test')))}")
+			Usage.javaScript("Usage: ${{ $.predicate.endsWith([ key, ] value) }}"),
+			Usage.structrScript("Usage: ${endsWith([ key, ] value)}")
 		);
 	}
 
@@ -96,7 +97,11 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 
-		return "";
+		return """
+			Returns a search predicate to find nodes whose value ends with the given suffix in find() and search() functions.
+			The optional first parameter is the property key to search for. It can be omitted when the predicate is used as the value of a property in a map,
+			e.g. `{ eMail: $.predicate.endsWith('@structr.com') }`.
+			""";
 	}
 
 	@Override
@@ -106,14 +111,27 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 				Example.javaScript("""
 				{
 					let structrEmployees = $.find('User', $.predicate.endsWith('eMail', '@structr.com'));
-				}""", "Find all users with eMail address ending in @structr.com")
+				}""", "Find all users with eMail address ending in @structr.com"),
+				Example.javaScript("""
+				{
+					let structrEmployees = $.find('User', { eMail: $.predicate.endsWith('@structr.com') });
+				}""", "Equivalent way using the predicate as the value of a property")
 		);
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("key, value");
+		return Signature.forAllScriptingLanguages("[ key, ] value");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.optional("key", "property key to search for - can be omitted when used as the value of a property in a map"),
+				Parameter.mandatory("value", "suffix to search for")
+		);
 	}
 
 	@Override

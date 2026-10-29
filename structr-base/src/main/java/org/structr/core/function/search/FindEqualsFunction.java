@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -90,8 +91,8 @@ public class FindEqualsFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.equals(key, value)"),
-			Usage.structrScript("Usage: ${equals(key, value)")
+			Usage.javaScript("Usage: ${{ $.predicate.equals([ key, ] value) }}"),
+			Usage.structrScript("Usage: ${equals([ key, ] value)}")
 		);
 	}
 
@@ -105,7 +106,10 @@ public class FindEqualsFunction extends AdvancedScriptingFunction {
 	public String getLongDescription() {
 
 		return """
-			The second parameter can be a value or one of a list of search predicates (any, range, gt, gte, lt, lte).
+			Returns a search predicate to find nodes whose value is equal to the given value in find() and search() functions.
+			The optional first parameter is the property key to search for. It can be omitted when the predicate is used as the value of a property in a map or the key-value syntax, e.g. `{ name: $.predicate.equals('Project X') }`.
+
+			The value can be a plain value or one of a list of search predicates (any, range, gt, gte, lt, lte, startsWith, endsWith).
 			When used on an array property, it selects the objects whose array is equal to the given list. A single value counts as a list with one element.
 			""";
 	}
@@ -127,11 +131,15 @@ public class FindEqualsFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
+		return Signature.forAllScriptingLanguages("[ key, ] value");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
 		return List.of(
-				Signature.javaScript("key, value"),
-				Signature.javaScript("value"),
-				Signature.structrScript("key, value"),
-				Signature.structrScript("value")
+				Parameter.optional("key", "property key to search for - can be omitted when used as the value of a property in a map"),
+				Parameter.mandatory("value", "value to compare with (can be null), or a search predicate")
 		);
 	}
 

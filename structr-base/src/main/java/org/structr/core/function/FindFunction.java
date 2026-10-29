@@ -77,21 +77,21 @@ public class FindFunction extends AbstractQueryFunction {
 		| `and(...)`            | Logical AND |
 		| `or(...)`             | Logical OR  |
 		| `not(...)`            | Logical NOT |
-		| `equals(key, value)`  | Returns only those nodes that match the given (key, value) pair |
-		| `contains(key, text)` | Returns only those nodes whose value contains the given text |
+		| `equals([key, ] value)`  | Returns only those nodes that match the given (key, value) pair |
+		| `contains([key, ] text)` | Returns only those nodes whose value contains the given text |
 		| `empty(key)`          | Returns only those nodes that don't have a value set for the given key |
-		| `lt(upperBound)`      | Returns nodes where a key is less than `upperBound` [Only available in Structr version >= 6.0] |
-		| `lte(upperBound)`     | Returns nodes where a key is less than or equal to `upperBound` [Only available in Structr version >= 6.0] |
-		| `gte(lowerBound)`     | Returns nodes where a key is greater than or equal to `lowerBound` [Only available in Structr version >= 6.0]|
-		| `gt(lowerBound)`      | Returns nodes where a key is greater than `lowerBound` [Only available in Structr version >= 6.0]|
-		| `range(start, end [, withStart = true [, withEnd = true ]] )` | Returns only those nodes where the given propertyKey is in the range between start and end |
-		| `range(null, end)`    | Unbounded `range()` to emulate "lower than or equal" |
-		| `range(start, null)`  | Unbounded `range()` to emulate "greater than or equal" |
+		| `lt([key, ] upperBound)`  | Returns nodes where a key is less than `upperBound` |
+		| `lte([key, ] upperBound)` | Returns nodes where a key is less than or equal to `upperBound` |
+		| `gte([key, ] lowerBound)` | Returns nodes where a key is greater than or equal to `lowerBound` |
+		| `gt([key, ] lowerBound)`  | Returns nodes where a key is greater than `lowerBound` |
+		| `range([key, ] start, end [, withStart = true [, withEnd = true ]] )` | Returns only those nodes where the given propertyKey is in the range between start and end |
+		| `range([key, ] null, end)`    | Unbounded `range()` to emulate "lower than or equal" |
+		| `range([key, ] start, null)`  | Unbounded `range()` to emulate "greater than or equal" |
 		| `overlaps(startKey, endKey, start, end [, includeStart = false [, includeEnd = false ]])` | Returns only those nodes whose interval between the values of `startKey` and `endKey` overlaps the interval between start and end |
-		| `startsWith(key, prefix)` | Returns only those nodes whose value for the given key starts with the given prefix |
-		| `endsWith(key, suffix)`   | Returns only those nodes whose value for the given key ends with the given suffix |
+		| `startsWith([key, ] prefix)` | Returns only those nodes whose value for the given key starts with the given prefix |
+		| `endsWith([key, ] suffix)`   | Returns only those nodes whose value for the given key ends with the given suffix |
 		| `withinDistance(latitude, longitude, distance)`  | Returns only those nodes that are within `distance` meters around the given coordinates. The type that is being searched for needs to extend the built-in type `Location` |
-		| `any(...)`            | Returns only those nodes that match any of the given criteria. [Only available in Structr version >= 6.3] |
+		| `any(...)`            | Returns only those nodes that match any of the given criteria. |
 		
 		**Options**
 		
@@ -107,15 +107,20 @@ public class FindFunction extends AbstractQueryFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return List.of(Signature.javaScript( "type, map"), Signature.structrScript( "type, key, value"), Signature.javaScript( "type, uuid"), Signature.structrScript( "type, uuid"));
+		return List.of(
+				Signature.javaScript("type, map"),
+				Signature.structrScript("type, key, value"),
+				Signature.javaScript("type, uuid"),
+				Signature.structrScript("type, uuid")
+		);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.find(type, key, value); }}. Example: ${{ $.find(\"User\", { eMail: 'tester@test.com' }); }}"),
-			Usage.structrScript("Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\")}")
+			Usage.javaScript("Usage: ${{ $.find(type, key, value); }}"),
+			Usage.structrScript("Usage: ${find(type, key, value)}")
 		);
 	}
 
@@ -237,7 +242,8 @@ public class FindFunction extends AbstractQueryFunction {
 			"In a StructrScript environment parameters are passed as pairs of 'key1', 'value1'.",
 			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter.",
 			"The `find()` method will almost always use **exact** search (the `contains` predicate being the exception), if you are interested in inexact / case-insensitive search, use `search()`.",
-			"Calling `find()` with only a single parameter will return all the nodes of the given type (which might be problematic if there are so many of them in the database so that they do not fit in the available memory)."
+			"Calling `find()` with only a single parameter will return all the nodes of the given type (which might be problematic if there are so many of them in the database so that they do not fit in the available memory).",
+			"If inherited types are not desired, an additional key `type` can be used (e.g. `find('DesiredType', 'type', 'DesiredType', ...filters...)`)"
 		);
 	}
 }

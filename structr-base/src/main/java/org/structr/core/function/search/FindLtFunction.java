@@ -21,6 +21,7 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -82,8 +83,8 @@ public class FindLtFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.lt(value)}}"),
-			Usage.structrScript("Usage: ${lt(value)}")
+			Usage.javaScript("Usage: ${{ $.predicate.lt([ key, ] value) }}"),
+			Usage.structrScript("Usage: ${lt([ key, ] value)}")
 		);
 	}
 
@@ -96,7 +97,10 @@ public class FindLtFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 
-		return "";
+		return """
+			Returns a search predicate to find nodes whose value is less than the given value in find() and search() functions.
+			The optional first parameter is the property key to search for, so `lt(key, value)` is equivalent to `equals(key, lt(value))`.
+			""";
 	}
 
 	@Override
@@ -118,11 +122,15 @@ public class FindLtFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
+		return Signature.forAllScriptingLanguages("[ key, ] value");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
 		return List.of(
-				Signature.javaScript("key, value"),
-				Signature.javaScript("value"),
-				Signature.structrScript("key, value"),
-				Signature.structrScript("value")
+				Parameter.optional("key", "property key to search for - can be omitted when used as the value of equals() or of a property in a map"),
+				Parameter.mandatory("value", "upper bound (exclusive)")
 		);
 	}
 
