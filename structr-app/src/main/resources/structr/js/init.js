@@ -927,7 +927,7 @@ let Structr = {
 		lastMenuEntry: undefined,
 		lastMenuEntryKey: 'structrLastMenuEntry_' + location.port,
 		isBlocked: false,
-		defaultMainMenuItems: ['Dashboard', 'Apps', 'Pages', 'Files', 'Security', 'Schema', 'Code', 'Data'],
+		defaultMainMenuItems: ['Dashboard', 'Apps', 'Pages', 'Files', 'Security', 'Schema', 'Code', 'Map', 'Data'],
 		getSavedMenuConfig: () => {
 
 			return LSWrapper.getItem(Structr.keyMenuConfig, {
@@ -2069,6 +2069,9 @@ let Structr = {
 	globalSearch: {
 		// counts every clear(), so that doSearch can tell its results have been superseded while it waited
 		searchNumber: 0,
+		// the last search and its results, null while the search field is empty; a module that shows the results in its
+		// own content reads it when it opens (see notifyModule)
+		current: null,
 		// set by a module that searches file content (content-extraction-ui.js), which can match inexactly
 		supportsFuzzyContentSearch: false,
 		init: () => {
@@ -2102,6 +2105,7 @@ let Structr = {
 			searchField.addEventListener('search', () => {
 				if (searchField.value === '') {
 					Structr.globalSearch.clear();
+					Structr.globalSearch.notifyModule(null);
 				}
 			});
 
@@ -2132,7 +2136,11 @@ let Structr = {
 
 			let searchNumber = Structr.globalSearch.searchNumber;
 
-			if (data.searchString.length > 0) {
+			if (data.searchString.length === 0) {
+
+				Structr.globalSearch.notifyModule(null);
+
+			} else {
 
 				wrapper.classList.replace('hidden', 'show-spinner');
 
@@ -2146,6 +2154,8 @@ let Structr = {
 				}
 
 				wrapper.classList.remove('show-spinner');
+
+				Structr.globalSearch.notifyModule({ data, results });
 
 				let resultsElement = document.querySelector('#global-search-results tbody');
 
@@ -2177,7 +2187,23 @@ let Structr = {
 				}
 			}
 		},
+		/**
+		 * Tells the active module about a search, so it can show the results in its own content: a module may define
+		 * onGlobalSearch(search), called with { data, results } or with null when the search field is emptied, and
+		 * goToGlobalSearchResult(result, key, data), which returns true when it showed the result itself.
+		 */
+		notifyModule: search => {
+
+			Structr.globalSearch.current = search;
+
+			Structr.getActiveModule()?.onGlobalSearch?.(search);
+		},
 		goTo: (result, key, searchData) => {
+
+			// the active module may show the result itself
+			if (Structr.getActiveModule()?.goToGlobalSearchResult?.(result, key, searchData)) {
+				return;
+			}
 
 			if (result.isDOMElement || result.isSiteElement || result.isActionMapping || result.isParameterMapping) {
 
@@ -2290,7 +2316,7 @@ let Structr = {
 				<div popover id="global-search-popover" class="direction-rtl overflow-hidden rounded">
 					<!-- dir=rtl shows the resize element in the bottom left corner, afterwards we set dir=ltr again -->
 					<div id="global-search-popover-inner" class="overflow-auto h-full direction-ltr">
-				
+
 						<div class="overflow-y-auto max-h-full h-full">
 							<div class="mx-4 my-4">
 								<form id="global-search-node-form" class="flex flex-col gap-2">
@@ -2411,6 +2437,7 @@ let Structr = {
 								<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>
 								<li data-name="Schema"><a id="schema_" href="#schema" data-activate-module="schema">Schema</a></li>
 								<li data-name="Code"><a id="code_" href="#code" data-activate-module="code">Code</a></li>
+								<li data-name="Map"><a id="appmap_" href="#appmap" data-activate-module="appmap">Map</a></li>
 								<li data-name="Flows"><a id="flows_" href="#flows" data-activate-module="flows">Flows</a></li>
 								<li data-name="Processes"><a id="processes_" href="#processes" data-activate-module="processes">Processes</a></li>
 								<li data-name="Data"><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
@@ -2434,7 +2461,7 @@ let Structr = {
 				<div class="flex gap-4 items-center mr-6">
 
 					<div id="global-search-ui" class="hidden" style="target-name: --global-search;">
-					
+
 						<button class="m-0 p-0 border-0 bg-transparent" popovertarget="global-search-popover" style="anchor-name: --global-search;">
 							${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Global Search')}
 						</button>

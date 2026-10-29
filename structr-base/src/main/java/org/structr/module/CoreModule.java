@@ -19,6 +19,10 @@
 package org.structr.module;
 
 import org.structr.api.service.LicenseManager;
+import org.structr.appmap.ApplicationMap;
+import org.structr.appmap.EndpointMapContributor;
+import org.structr.appmap.GroupMapContributor;
+import org.structr.appmap.SchemaMapContributor;
 import org.structr.core.function.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitDefinition;
@@ -143,6 +147,10 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.SCRIPT_DATA_SOURCE,       StructrTraits.DATA_SOURCE, StructrTraits.SCRIPT_DATA_SOURCE);
 		StructrTraits.registerNodeType(StructrTraits.QUERY_DATA_SOURCE,        StructrTraits.DATA_SOURCE, StructrTraits.QUERY_DATA_SOURCE);
 
+		// application map
+		ApplicationMap.register(new SchemaMapContributor());
+		ApplicationMap.register(new EndpointMapContributor());
+		ApplicationMap.register(new GroupMapContributor());
 	}
 
 	@Override

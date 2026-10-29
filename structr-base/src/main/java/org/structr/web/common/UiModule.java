@@ -20,6 +20,7 @@ package org.structr.web.common;
 
 import com.google.gson.Gson;
 import org.structr.api.service.LicenseManager;
+import org.structr.appmap.ApplicationMap;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.function.Functions;
@@ -30,6 +31,7 @@ import org.structr.module.StructrModule;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.*;
 import org.structr.websocket.command.dom.*;
+import org.structr.web.appmap.PagesMapContributor;
 import org.structr.web.datasource.CypherGraphDataSource;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.datasource.IdRequestParameterGraphDataSource;
@@ -56,6 +58,9 @@ public class UiModule implements StructrModule {
 		DataSources.put("ui", "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
 		DataSources.put("ui", "cypherDataSource",             new CypherGraphDataSource());
 		DataSources.put("ui", "functionDataSource",           new FunctionDataSource(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY));
+
+		// application map
+		ApplicationMap.register(new PagesMapContributor());
 
 		// schema property generators (web-specific): register the Thumbnail property type
 		SchemaHelper.generatorMap.put(SchemaHelper.Type.Thumbnail, (e, t, p) -> new ThumbnailPropertySourceGenerator(e, t, p));

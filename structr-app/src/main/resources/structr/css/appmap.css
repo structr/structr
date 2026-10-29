@@ -1,0 +1,214 @@
+/**
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#appmap {
+	position: relative;
+	height: 100%;
+	margin: 0;
+}
+
+#appmap-canvas {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	user-select: none;
+}
+
+.appmap-canvas {
+	display: block;
+	cursor: default;
+}
+
+/* ----- the tooltip of the hovered element, HTML element, strand or access badge ----- */
+.appmap-tip {
+	position: absolute;
+	z-index: 3;
+	max-width: 28rem;
+	pointer-events: none;
+	font-size: .875rem;
+	color: var(--body-text);
+	background-color: var(--solid-white);
+	border: 1px solid var(--input-field-border);
+	border-radius: .25rem;
+	padding: .125rem .5rem;
+}
+
+.appmap-tip span {
+	margin-left: .5rem;
+	font-family: var(--font-monospace);
+	font-size: .75rem;
+	color: var(--gray-888);
+}
+
+/* ----- the controls in the function bar: groups of buttons that read as one ----- */
+.appmap-segment {
+	display: inline-flex;
+}
+
+.appmap-segment button {
+	margin: 0;
+	padding: .25rem .75rem;
+	border-radius: 0;
+}
+
+.appmap-segment button + button {
+	margin-left: -1px;
+}
+
+.appmap-segment button:first-child {
+	border-radius: .25rem 0 0 .25rem;
+}
+
+.appmap-segment button:last-child {
+	border-radius: 0 .25rem .25rem 0;
+}
+
+.appmap-segment button:hover {
+	background-color: var(--gray-eee);
+}
+
+.appmap-segment button[aria-pressed="true"] {
+	color: var(--solid-white);
+	background-color: var(--gray-444);
+	border-color: var(--gray-444);
+}
+
+.appmap-counts {
+	font-family: var(--font-monospace);
+	font-size: .75rem;
+	color: var(--gray-888);
+}
+
+/* ----- the panel on the map and the line at the bottom ----- */
+.appmap-panel {
+	position: absolute;
+	z-index: 2;
+	top: 1rem;
+	right: 1rem;
+	width: 16rem;
+	display: grid;
+	gap: .5rem;
+	padding: .75rem;
+	font-size: .875rem;
+	background-color: var(--solid-white);
+	border: 1px solid var(--input-field-border);
+	border-radius: .25rem;
+}
+
+/* appmap.css comes after main.css, so its display would win over .hidden */
+.appmap-panel.hidden {
+	display: none;
+}
+
+#appmap-hud {
+	position: absolute;
+	z-index: 2;
+	left: 1rem;
+	bottom: .75rem;
+	display: flex;
+	gap: 1rem;
+	pointer-events: none;
+	font-size: .75rem;
+	color: var(--gray-888);
+}
+
+/* ----- the way exploring took, above the map ----- */
+.appmap-trail {
+	position: absolute;
+	z-index: 2;
+	top: 1rem;
+	left: 1rem;
+	display: flex;
+	flex-wrap: wrap;
+	gap: .25rem;
+	max-width: calc(100% - 2rem);
+}
+
+.appmap-trail[hidden] {
+	display: none;
+}
+
+.appmap-trail button {
+	margin: 0;
+	padding: .125rem .625rem;
+	font-size: .8125rem;
+	background-color: var(--solid-white);
+	border: 1.5px solid var(--kind, var(--gray-888));
+	border-radius: 999px;
+}
+
+.appmap-trail button + button:not(.appmap-trail-close)::before {
+	content: '›';
+	margin-right: .375rem;
+	color: var(--gray-888);
+}
+
+.appmap-trail button[aria-current="true"] {
+	font-weight: 600;
+}
+
+.appmap-trail .appmap-trail-close {
+	border-color: var(--input-field-border);
+	color: var(--gray-888);
+}
+
+/* ----- the introduction on a first visit, above the line at the bottom ----- */
+.appmap-intro {
+	top: auto;
+	right: auto;
+	left: 1rem;
+	bottom: 2.5rem;
+	width: 24rem;
+	gap: .75rem;
+}
+
+.appmap-intro dl {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: .375rem .75rem;
+	margin: 0;
+}
+
+.appmap-intro dt {
+	font-weight: 600;
+}
+
+.appmap-intro dd {
+	margin: 0;
+	color: var(--gray-666);
+}
+
+.appmap-intro button {
+	justify-self: start;
+	margin: 0;
+}
+
+.appmap-trail button:disabled {
+	color: inherit;
+	cursor: default;
+}
+
+/* a tooltip of several lines: what an HTML element does */
+.appmap-tip span.appmap-tip-lines {
+	display: block;
+	margin: .125rem 0 0;
+	white-space: pre-line;
+	font-family: inherit;
+	font-size: .8125rem;
+	color: var(--gray-666);
+}

@@ -118,6 +118,7 @@ module structr.base {
 
 	exports org.structr;
 	exports org.structr.agent;
+	exports org.structr.appmap;
 	exports org.structr.autocomplete;
 	exports org.structr.autocomplete.keywords;
 	exports org.structr.common;
@@ -225,6 +226,7 @@ module structr.base {
 	exports org.structr.util;
 	exports org.structr.web;
 	exports org.structr.web.agent;
+	exports org.structr.web.appmap;
 	exports org.structr.web.auth;
 	exports org.structr.web.auth.provider;
 	exports org.structr.web.common;
