@@ -36,13 +36,15 @@ let _AppMap = {
 
 	// the introduction for a first visit: what the map shows and how it is used
 	intro: [
-		['The map', 'Every sector is an area of Structr, every point a type, page, method, endpoint or group of the application; bold names are the hotspots many others rely on.'],
+		['The map', 'Every sector is an area of Structr, every point a type, page, method, endpoint or group of the application; bold names are the hotspots many others rely on and the most important pages. Pages that belong together form a section, by their category or by the type they work with most.'],
 		['Move', 'The wheel zooms, dragging pans the map.'],
 		['Look', 'Hover an element to see what it connects to.'],
 		['Explore', 'Click an element to hold it, then click the names at the ends of its relations to go there; the row above the map leads back, Esc ends exploring.'],
 		['Open', 'Double-click a page to see its HTML tree, a method to read its code; double-click the empty map for the whole map again.'],
 		['Search', 'The global search at the top right marks what it finds on the map; a click on one of its results goes there.'],
-		['Access', 'The badge at a page shows who may see it: red for public users, blue for signed-in users, grey for admins and grants only.']
+		['Access', 'The badge at a page shows who may see it: red for public users, blue for signed-in users, grey for admins and grants only. "Access of" above the map shows what a role sees and may do: around every type a ring of read, write and delete, and in red the pages it sees that do what it may not.'],
+		['Data model', 'Hover a type to see its relationships with their multiplicities: red ones delete along, orange ones pass rights on; dashed red rings mark everything deleting one of its objects takes with it.'],
+		['Pages', 'A tag below a page marks the start page, the errors it is shown for and content other than HTML; its tooltip names its URLs and the type of object they open.']
 	],
 
 	onload: async () => {
@@ -169,6 +171,26 @@ let _AppMap = {
 			});
 		}
 
+		// the access lens: nobody, public users, authenticated users or one of the groups
+		let lens  = bar.querySelector('#appmap-lens');
+		let roles = [
+			{ key: '',       name: 'nobody' },
+			{ key: 'public', name: 'Public users', kind: 'public' },
+			{ key: 'auth',   name: 'Authenticated users', kind: 'auth' },
+			...view.model.groups.slice().sort((a, b) => a.n.localeCompare(b.n)).map(g => ({ key: 'group:' + g.id, name: g.n, kind: 'group', id: g.id }))
+		];
+
+		for (let role of roles) {
+			lens.add(new Option(role.name, role.key));
+		}
+
+		lens.addEventListener('change', () => {
+
+			let role = roles.find(r => r.key === lens.value);
+
+			view.setLens(role?.kind ? role : null);
+		});
+
 		// the introduction: open on a first visit, the question mark brings it back
 		let intro     = document.querySelector('#appmap-intro');
 		let introOpen = bar.querySelector('#appmap-intro-toggle');
@@ -213,6 +235,9 @@ let _AppMap = {
 					<button data-look="light">Light</button>
 					<button data-look="dark">Dark</button>
 				</span>
+				<label class="appmap-lens">Access of
+					<select id="appmap-lens" title="Shows what a role sees and may do, and where a page it sees does what it may not"></select>
+				</label>
 				<span class="appmap-segment" role="group" aria-label="Help">
 					<button id="appmap-intro-toggle" aria-pressed="false" title="How to read and use the map">?</button>
 				</span>

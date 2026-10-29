@@ -88,6 +88,20 @@
 	border-color: var(--gray-444);
 }
 
+/* the role the access lens shows */
+.appmap-lens {
+	display: inline-flex;
+	align-items: center;
+	gap: .5rem;
+	font-size: .875rem;
+	color: var(--gray-666);
+}
+
+.appmap-lens select {
+	margin: 0;
+	padding: .2rem .5rem;
+}
+
 .appmap-counts {
 	font-family: var(--font-monospace);
 	font-size: .75rem;

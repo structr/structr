@@ -36,6 +36,11 @@ class AppMapRenderer {
 	// what an edge does to data shows in its colour: create, change, delete; reading stays neutral; [light, dark]
 	static OP_COLOR   = { creates: ['#2b8a3e', '#69db7c'], updates: ['#c77700', '#ffc94d'], deletes: ['#c92a5a', '#ff8fab'] };
 
+	// the rights of the access lens around a type, the schema relationships that delete along or pass rights on, and a gap
+	// (light and dark look, see AppMapAccess)
+	static RIGHT_COLOR  = { r: ['#1c7ed6', '#74c0fc'], w: ['#c77700', '#ffc94d'], d: ['#c92a5a', '#ff8fab'] };
+	static SCHEMA_COLOR = { cascade: ['#d1253b', '#ff6b6b'], passes: ['#e67700', '#ffa94d'], gap: ['#d1253b', '#ff6b6b'] };
+
 
 	// the access icons of the pages and shared components, as in the Pages area (visibility-lock-* in icon/sprites.svg), on a
 	// grid of 24: open when visible to public and authenticated users, locked when visible to neither, a key in between
@@ -105,6 +110,9 @@ class AppMapRenderer {
 	// from afar only the most connected elements are named: this many where the whole map fits the screen, more as the map
 	// comes closer, growing with the zoom to the power of LABEL_GROWTH, so the overview stays an overview
 	static LABEL_OVERVIEW = 30;
+
+	// the size of the name of a grouping, in pixels
+	static GROUPING_NAME_SIZE = 10.5;
 	static LABEL_GROWTH   = 1.5;
 
 	// the kinds whose names matter most come first when labels compete for room
@@ -207,16 +215,20 @@ class AppMapRenderer {
 
 	draw() {
 
-		const view   = this.view;
-		const ctx    = this.ctx;
-		const look   = view.look;
-		const k      = view.transform.k;
-		const focus  = view.focus;
-		const lifted = focus ? view.liftedTargets(focus) : [];
-		const shown  = focus ? this.focusLinks(focus) : [];
-		const near   = focus ? new Set([focus, ...view.neighbours.get(focus), ...lifted.map(([anchor]) => anchor), ...shown.flatMap(l => [l.source, l.target])]) : null;
-		const around = focus ? view.contextAround(focus) : null;
-		const rect   = this.visibleRect();
+		const view    = this.view;
+		const ctx     = this.ctx;
+		const look    = view.look;
+		const k       = view.transform.k;
+		const focus   = view.focus;
+		const lifted  = focus ? view.liftedTargets(focus) : [];
+		const shown   = focus ? this.focusLinks(focus) : [];
+		const cascade = focus?.k === 'type' ? AppMapAccess.cascadeOf(view.links, focus) : null;
+		const near    = focus ? new Set([focus, ...view.neighbours.get(focus), ...lifted.map(([anchor]) => anchor), ...shown.flatMap(l => [l.source, l.target]), ...(cascade?.keys() ?? [])]) : null;
+		const around  = focus ? view.contextAround(focus) : null;
+		const rect    = this.visibleRect();
+
+		// the labels name what deleting the type in focus takes along, too
+		this.cascade = cascade;
 
 		ctx.save();
 		ctx.fillStyle = look.bg;
@@ -251,6 +263,14 @@ class AppMapRenderer {
 		this.drawFound(k, rect);
 		this.drawElements(k, focus, near, around, rect);
 
+		if (view.access && !focus) {
+			this.drawLens(k, rect);
+		}
+
+		if (cascade?.size) {
+			this.drawCascade(k, cascade);
+		}
+
 		if (focus) {
 			this.drawNear(k, focus, near, lifted);
 		}
@@ -261,6 +281,7 @@ class AppMapRenderer {
 		// an open page lies above every hover decoration: rings, arcs and labels must not cover its structure
 		view.panels.draw(this, k);
 		this.drawAccess(k, rect, focus, near, around);
+		this.drawRouting(k, rect, focus, near);
 
 		if (!focus && view.layout.areaPlaces.size) {
 			this.drawAreaNames(k);
@@ -666,7 +687,7 @@ class AppMapRenderer {
 			const inferred = p.links.every(x => x.inferred);
 			const course   = this.linkCourse(l);
 			const width    = (inferred ? 0.7 : 0.8) * 1.6 * AppMapStrands.pairWidth(p) / k;
-			const colour   = this.opColor(l) ?? look.kinds[to.k] ?? look.trace;
+			const colour   = this.gapColor(l) ?? this.schemaColor(l) ?? this.opColor(l) ?? look.kinds[to.k] ?? look.trace;
 			const radius   = Math.max(view.shownRadius(l.target), 2 / k);
 
 			// a casing in the colour of the background lifts the relation off everything behind it
@@ -683,13 +704,145 @@ class AppMapRenderer {
 			ctx.stroke(course.path);
 
 			// the direction: an arrowhead where the relation arrives, just outside the element it points to; the data model
-			// between types has none
+			// between types has none, it says its multiplicity instead
 			if (l.kind !== 'relates') {
 
 				ctx.setLineDash([]);
 				ctx.fillStyle = colour;
 				this.arrowFrom(course.toward(l.target, radius * 2), l.target, radius, width, k);
+
+			} else if (l.x?.m) {
+
+				this.drawMultiplicity(l, k, colour);
 			}
+		}
+
+		ctx.restore();
+	}
+
+	// with the access lens on, a relation of a page to a type that the role may not use as the page does is red
+	gapColor(l) {
+
+		const gap = this.view.access?.gaps.some(g => g.page === l.source && g.type === l.target && AppMapAccess.NEEDS[l.kind] === g.need);
+
+		return gap ? AppMapRenderer.SCHEMA_COLOR.gap[this.view.look.dark ? 1 : 0] : null;
+	}
+
+	// a schema relationship that deletes along is red, one that passes rights on orange, as in the schema editor
+	schemaColor(l) {
+
+		const key = l.kind !== 'relates' || !l.x ? null : l.x.cd ? 'cascade' : l.x.pp ? 'passes' : null;
+
+		return key ? AppMapRenderer.SCHEMA_COLOR[key][this.view.look.dark ? 1 : 0] : null;
+	}
+
+	// the multiplicity of a schema relationship at both its ends, e.g. 1 at the source and * at the target
+	drawMultiplicity(l, k, colour) {
+
+		const ctx    = this.ctx;
+		const ends   = l.x.m.split(':');
+		const points = this.linkPoints(l);
+		const last   = points.length - 1;
+
+		ctx.save();
+		ctx.font         = this.font(600, 10 / k);
+		ctx.textAlign    = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.lineWidth    = 3 / k;
+		ctx.globalAlpha  = 1;
+
+		for (const [end, text, [x, y], [nx, ny]] of [[l.source, ends[0], points[0], points[Math.min(1, last)]], [l.target, ends[1], points[last], points[Math.max(0, last - 1)]]]) {
+
+			// beside the end, a little way along the relation
+			const gap = Math.max(this.view.shownRadius(end), 2 / k) + 9 / k;
+			const d   = Math.hypot(nx - x, ny - y) || 1;
+			const tx  = x + (nx - x) / d * gap;
+			const ty  = y + (ny - y) / d * gap;
+
+			ctx.strokeStyle = this.view.look.halo;
+			ctx.strokeText(text, tx, ty);
+			ctx.fillStyle   = colour;
+			ctx.fillText(text, tx, ty);
+		}
+
+		ctx.restore();
+	}
+
+	// what deleting an object of the type in focus deletes with it: a red dashed ring around each of those types, wherever
+	// they are, and their relationships in red
+	drawCascade(k, reached) {
+
+		const ctx    = this.ctx;
+		const colour = AppMapRenderer.SCHEMA_COLOR.cascade[this.view.look.dark ? 1 : 0];
+
+		ctx.save();
+		ctx.strokeStyle = colour;
+
+		for (const [type, step] of reached) {
+
+			ctx.globalAlpha = 0.9;
+			ctx.lineWidth   = 1.6 / k;
+			ctx.setLineDash(step.maybe ? [2 / k, 3 / k] : [5 / k, 3 / k]);
+			ctx.beginPath();
+			ctx.arc(type.x, type.y, Math.max(this.view.shownRadius(type), 2 / k) + 6 / k, 0, Math.PI * 2);
+			ctx.stroke();
+
+			ctx.globalAlpha = 0.7;
+			ctx.lineWidth   = 1.4 / k;
+			ctx.setLineDash([]);
+			ctx.stroke(this.linkCourse(step.l).path);
+		}
+
+		ctx.restore();
+	}
+
+	// the access lens: around every type the schema governs the rights the role has on all its objects, a third of a ring
+	// each (read, write, delete), and a red ring at every page with a gap; its relations to the types turn red in focus
+	drawLens(k, rect) {
+
+		const view   = this.view;
+		const ctx    = this.ctx;
+		const access = view.access;
+		const dark   = view.look.dark ? 1 : 0;
+		const third  = Math.PI * 2 / 3;
+
+		ctx.save();
+		ctx.lineCap = 'butt';
+
+		for (const type of access.governed) {
+
+			const own = access.rights.get(type) ?? new Map();
+			const r   = Math.max(view.shownRadius(type), 2 / k) + 3.5 / k;
+
+			if (type.x + r < rect[0] || type.x - r > rect[2] || type.y + r < rect[1] || type.y - r > rect[3]) {
+				continue;
+			}
+
+			AppMapAccess.RIGHTS.forEach((right, i) => {
+
+				const start = -Math.PI / 2 + i * third + 0.12;
+
+				ctx.globalAlpha = own.has(right) ? 1 : 0.18;
+				ctx.strokeStyle = AppMapRenderer.RIGHT_COLOR[right][dark];
+				ctx.lineWidth   = 2.4 / k;
+				ctx.beginPath();
+				ctx.arc(type.x, type.y, r, start, start + third - 0.24);
+				ctx.stroke();
+			});
+		}
+
+		const gap = AppMapRenderer.SCHEMA_COLOR.gap[dark];
+
+		ctx.strokeStyle = gap;
+		ctx.lineCap     = 'round';
+
+		for (const page of new Set(access.gaps.map(gap => gap.page))) {
+
+			ctx.globalAlpha = 0.85;
+			ctx.lineWidth   = 2 / k;
+			ctx.beginPath();
+			ctx.arc(page.x, page.y, Math.max(view.shownRadius(page), 2 / k) * Math.SQRT2 + 4 / k, 0, Math.PI * 2);
+			ctx.stroke();
 		}
 
 		ctx.restore();
@@ -775,7 +928,7 @@ class AppMapRenderer {
 
 			// in focus the elements one step beyond the neighbours stay half visible, the rest steps back; so does what the
 			// global search did not find
-			ctx.globalAlpha = focus ? (around.nodes.has(n) ? 0.55 : 0.08) : (this.view.found && !this.view.found.elements.has(n) ? 0.3 : 1);
+			ctx.globalAlpha = focus ? (around.nodes.has(n) ? 0.55 : 0.08) : (this.view.found && !this.view.found.elements.has(n) ? 0.3 : (this.view.access && !AppMapAccess.reaches(this.view.access, n) ? 0.15 : 1));
 			ctx.fillStyle   = this.colorOf(n);
 			this.shape(n, r);
 			ctx.fill();
@@ -870,6 +1023,54 @@ class AppMapRenderer {
 		const size = Math.min(AppMapRenderer.ACCESS_SIZE, Math.max(AppMapRenderer.ACCESS_SMALL, 2 * r * w * k * AppMapRenderer.ACCESS_SHARE)) / k;
 
 		return { x: n.x + r * w - size * 0.35, y: n.y - r * h - size * 0.65, size };
+	}
+
+	// what a page is for beyond its content, as a small tag below it: the start page, the errors it is shown for, a content
+	// type other than HTML; the start page always, the others once the page is large enough on screen
+	drawRouting(k, rect, focus, near) {
+
+		const view  = this.view;
+		const ctx   = this.ctx;
+		const start = view.startPage();
+
+		ctx.save();
+		ctx.font         = this.font(600, 9 / k);
+		ctx.textAlign    = 'center';
+		ctx.textBaseline = 'middle';
+
+		for (const n of view.nodes) {
+
+			if (n.k !== 'page' || (focus && !near.has(n)) || n.x < rect[0] || n.x > rect[2] || n.y < rect[1] || n.y > rect[3]) {
+				continue;
+			}
+
+			const r    = Math.max(view.shownRadius(n), 2 / k);
+			const tags = [n === start ? 'start' : null, ...(r * k >= 4 ? [n.err ? String(n.err) : null, n.ct ? AppMapRenderer.shortType(n.ct) : null] : [])].filter(Boolean);
+
+			if (!tags.length) {
+				continue;
+			}
+
+			const text  = tags.join(' · ');
+			const width = this.textWidth(text, 600) * 9 / AppMapRenderer.LABEL_SIZE / k + 6 / k;
+			const y     = n.y + r * (AppMapRenderer.boxOf(n)?.[1] ?? 1) + 7 / k;
+
+			ctx.globalAlpha = 0.95;
+			ctx.fillStyle   = this.colorOf(n);
+			ctx.beginPath();
+			ctx.roundRect(n.x - width / 2, y - 5.5 / k, width, 11 / k, 5.5 / k);
+			ctx.fill();
+			ctx.fillStyle   = view.look.bg;
+			ctx.fillText(text, n.x, y);
+		}
+
+		ctx.restore();
+	}
+
+	// a content type in short, as "json" for application/json
+	static shortType(contentType) {
+
+		return contentType.split(';')[0].split('/').pop().replace(/^x-/, '');
 	}
 
 	// the page or shared component whose access icon lies under a point of the map
@@ -991,7 +1192,7 @@ class AppMapRenderer {
 
 		if (focus) {
 
-			return [...new Set([focus, ...lifted.map(([anchor]) => anchor), ...view.neighbours.get(focus), ...around.nodes])];
+			return [...new Set([focus, ...lifted.map(([anchor]) => anchor), ...view.neighbours.get(focus), ...(this.cascade?.keys() ?? []), ...around.nodes])];
 		}
 
 		if (view.hoveredStrand) {
@@ -1093,6 +1294,9 @@ class AppMapRenderer {
 			for (const { box } of this.areaNamePlaces(k)) {
 				occupy([t.applyX(box[0]), t.applyY(box[1]), t.applyX(box[2]), t.applyY(box[3])]);
 			}
+
+			// and so do the names of the groupings, a section of pages among them
+			this.groupingNamePlaces(k).forEach(({ box }) => occupy(box));
 		}
 
 		ctx.font         = this.font(weight, size / k);
@@ -1383,7 +1587,9 @@ class AppMapRenderer {
 
 				const { x, y, r } = AppMapRenderer.circleOf(members, n => this.view.shownRadius(n));
 
-				cache.circles.list.push({ key, x, y, r, box: [x - r, y - r, x + r, y + r], anchor: this.view.byId.get(key) });
+				const anchor = this.view.byId.get(key);
+
+				cache.circles.list.push({ key, x, y, r, box: [x - r, y - r, x + r, y + r], anchor, name: anchor?.n ?? this.view.model.sections.get(key)?.n });
 			}
 		}
 
@@ -1409,15 +1615,41 @@ class AppMapRenderer {
 		ctx.globalAlpha = focus ? 0.05 : 0.1;
 		ctx.beginPath();
 
+		const sections = [];
+
 		for (const c of this.groupingCircles()) {
 
-			if (AppMapRenderer.intersects(c.box, rect)) {
+			if (!AppMapRenderer.intersects(c.box, rect)) {
+				continue;
+			}
+
+			if (this.view.model.sections.has(c.key)) {
+
+				sections.push(c);
+
+			} else {
 
 				ctx.moveTo(c.x + c.r, c.y);
 				ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
 			}
 		}
 
+		ctx.stroke();
+
+		// a section of pages is an area of the user interface: tinted in the colour of the pages
+		ctx.beginPath();
+
+		for (const c of sections) {
+
+			ctx.moveTo(c.x + c.r, c.y);
+			ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+		}
+
+		ctx.fillStyle   = this.view.look.kinds.page;
+		ctx.globalAlpha = focus ? 0.02 : 0.06;
+		ctx.fill();
+		ctx.strokeStyle = this.view.look.kinds.page;
+		ctx.globalAlpha = focus ? 0.08 : 0.25;
 		ctx.stroke();
 		ctx.restore();
 	}
@@ -1431,23 +1663,49 @@ class AppMapRenderer {
 		ctx.textAlign    = 'center';
 		ctx.textBaseline = 'bottom';
 		ctx.globalAlpha  = 0.85;
-		ctx.font         = this.font(500, 10.5 / k);
+		ctx.font         = this.font(500, AppMapRenderer.GROUPING_NAME_SIZE / k);
 		ctx.lineWidth    = 3 / k;
 
-		for (const c of this.groupingCircles()) {
+		for (const { name, x, y, section } of this.groupingNamePlaces(k)) {
 
-			if (c.r * k < 18 || !c.anchor || !this.onScreen(c, c.r * k + 20)) {
-				continue;
-			}
-
-			const name = c.anchor.n.length > 32 ? c.anchor.n.slice(0, 31) + '…' : c.anchor.n;
-
+			// a section of pages is named in the colour of the pages, as it is the structure of that area
+			ctx.font        = this.font(section ? 600 : 500, AppMapRenderer.GROUPING_NAME_SIZE / k);
 			ctx.strokeStyle = this.view.look.halo;
-			ctx.strokeText(name, c.x, c.y - c.r - 3 / k);
-			ctx.fillStyle   = this.view.look.labelNear;
-			ctx.fillText(name, c.x, c.y - c.r - 3 / k);
+			ctx.strokeText(name, x, y);
+			ctx.fillStyle   = section ? this.view.look.kinds.page : this.view.look.labelNear;
+			ctx.fillText(name, x, y);
 		}
 
 		ctx.restore();
+	}
+
+	// where the names of the groupings stand: above their outline, once it is large enough on screen to carry one, the
+	// sections of pages and then the larger groupings first, none over another; with the box each takes on screen, so the
+	// names of the elements give way to them and the pointer finds them
+	groupingNamePlaces(k) {
+
+		const t       = this.view.transform;
+		const size    = AppMapRenderer.GROUPING_NAME_SIZE;
+		const places  = [];
+		const section = c => this.view.model.sections.has(c.key);
+		const circles = this.groupingCircles()
+			.filter(c => c.name && c.r * k >= (section(c) ? 10 : 18) && this.onScreen(c, c.r * k + 20))
+			.sort((a, b) => section(b) - section(a) || b.r - a.r);
+
+		for (const c of circles) {
+
+			const name  = c.name.length > 32 ? c.name.slice(0, 31) + '…' : c.name;
+			const width = this.textWidth(name, section(c) ? 600 : 500) * size / AppMapRenderer.LABEL_SIZE;
+			const y     = c.y - c.r - 3 / k;
+			const box   = [t.applyX(c.x) - width / 2, t.applyY(y) - size, t.applyX(c.x) + width / 2, t.applyY(y)];
+
+			if (places.some(p => p.box[0] < box[2] && p.box[2] > box[0] && p.box[1] < box[3] && p.box[3] > box[1])) {
+				continue;
+			}
+
+			places.push({ name, x: c.x, y, box, key: c.key, section: section(c) });
+		}
+
+		return places;
 	}
 }

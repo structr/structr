@@ -28,9 +28,12 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.Site;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
+import org.structr.web.entity.path.PagePath;
+import org.structr.web.entity.path.PagePathParameter;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 
 import java.util.*;
@@ -88,7 +91,7 @@ public class PagesMapContributor implements ApplicationMapContributor {
 				}
 
 				// a page visible to public users is open to anyone who knows its address
-				outlines.put(map.addNode(page.getUuid(), ApplicationMap.PAGE, page.getName()).setPublic(node.isVisibleToPublicUsers()).setAccess(node), roots);
+				outlines.put(map.addNode(page.getUuid(), ApplicationMap.PAGE, page.getName()).setPublic(node.isVisibleToPublicUsers()).setAccess(node).setCategory(page.getCategory()).setRouting(routesOf(map, page), page.getPosition(), page.getShowOnErrorCodes(), page.getContentType()), roots);
 				pagesByName.put(page.getName(), page.getUuid());
 
 				if (page.getPath() != null) {
@@ -133,7 +136,73 @@ public class PagesMapContributor implements ApplicationMapContributor {
 
 		new DataBindings(map, all, url -> pageOf(url, pagesByPath, pagesByName)).contribute();
 
+		for (final NodeInterface node : app.nodeQuery(StructrTraits.SITE).getAsList()) {
+
+			final Site site          = node.as(Site.class);
+			final String name        = StringUtils.defaultIfBlank(site.getHostname(), "(no host name)") + (site.getPort() != null ? ":" + site.getPort() : "");
+			final List<String> pages = new LinkedList<>();
+
+			site.getPages().forEach(page -> pages.add(page.getUuid()));
+
+			map.addSite(site.getUuid(), name, pages);
+		}
+
 		outlines.forEach((node, roots) -> node.setOutline(outlineOf(roots)).setSize(sizeOf(roots)));
+	}
+
+	/**
+	 * The URL routes of a page: per route its path, the type of its current object and the number of its warnings. The
+	 * current object comes from the parameter marked as such, else from the only parameter of type Node; its type is the
+	 * one the parameter is restricted to, and the page is connected to it.
+	 */
+	private List<Object> routesOf(final ApplicationMap map, final Page page) {
+
+		final List<Object> routes = new LinkedList<>();
+
+		for (final PagePath path : page.getPaths()) {
+
+			final Map<String, Object> route     = new LinkedHashMap<>();
+			final List<PagePathParameter> nodes = new LinkedList<>();
+			PagePathParameter current           = null;
+
+			for (final PagePathParameter parameter : path.getParameters()) {
+
+				if ("Node".equals(parameter.getValueType())) {
+					nodes.add(parameter);
+				}
+
+				if (parameter.getIsCurrentObject()) {
+					current = parameter;
+				}
+			}
+
+			if (current == null && nodes.size() == 1) {
+				current = nodes.get(0);
+			}
+
+			final String type   = current != null && "Node".equals(current.getValueType()) ? StringUtils.trimToNull(current.getFormat()) : null;
+			final String typeId = type != null ? map.getSchema().getTypeIds().get(type) : null;
+
+			route.put("p", path.getName());
+
+			if (type != null) {
+				route.put("cur", type);
+			}
+
+			if (path.getWarnings() != null && path.getWarnings().length > 0) {
+				route.put("w", path.getWarnings().length);
+			}
+
+			if (typeId != null) {
+
+				map.addEdge(page.getUuid(), typeId, "current", 0.8, "route " + path.getName());
+				map.connect(page.getUuid(), typeId);
+			}
+
+			routes.add(route);
+		}
+
+		return routes;
 	}
 
 	/**

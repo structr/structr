@@ -213,7 +213,7 @@ class AppMapStrands {
 		for (const [key, members] of d3.group(this.view.nodes, n => n.c?.[1] ?? '-')) {
 
 			const lead   = d3.rollups(members, v => v.length, m => m.k).sort((x, y) => y[1] - x[1])[0][0];
-			const grouping = { anchor: this.view.byId.get(key) ?? null, members, lead, name: key };
+			const grouping = { anchor: this.view.byId.get(key) ?? null, members, lead, name: this.view.model.sections.get(key)?.n ?? key };
 
 			this.groupings.list.push(grouping);
 			members.forEach(m => this.groupings.groupingOf.set(m, grouping));
@@ -222,7 +222,7 @@ class AppMapStrands {
 		this.groupingsDirty = false;
 	}
 
-	// a grouping is named after its anchor
+	// a grouping is named after its anchor, a section of the user interface by its own name
 	static groupingLabel(grouping) {
 
 		return grouping.anchor ? `${AppMapModel.KIND_LABEL[grouping.anchor.k]} ${grouping.anchor.n}` : grouping.name;

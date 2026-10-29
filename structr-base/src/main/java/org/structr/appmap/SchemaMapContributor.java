@@ -18,6 +18,7 @@
  */
 package org.structr.appmap;
 
+import org.structr.api.graph.PropagationDirection;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
@@ -30,6 +31,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -54,7 +56,7 @@ public class SchemaMapContributor implements ApplicationMapContributor {
 			final SchemaNode schemaNode = node.as(SchemaNode.class);
 
 			// a service class holds logic, not data
-			map.addNode(schemaNode.getUuid(), ApplicationMap.TYPE, schemaNode.getName()).setService(schemaNode.isServiceClass()).setSize(schema.getPropertyCount(schemaNode.getName()));
+			map.addNode(schemaNode.getUuid(), ApplicationMap.TYPE, schemaNode.getName()).setService(schemaNode.isServiceClass()).setSize(schema.getPropertyCount(schemaNode.getName())).setDefaultVisibility(schemaNode.defaultVisibleToPublic(), schemaNode.defaultVisibleToAuth());
 		}
 
 		for (final SchemaIndex.Method method : schema.getMethods()) {
@@ -80,7 +82,7 @@ public class SchemaMapContributor implements ApplicationMapContributor {
 
 				final String multiplicity = rel.getSourceMultiplicity() + ":" + rel.getTargetMultiplicity();
 
-				map.addEdge(source.getUuid(), target.getUuid(), "relates", MULTIPLICITY.getOrDefault(multiplicity, 0.3), source.getName() + " " + multiplicity + " " + target.getName() + " (" + rel.getRelationshipType() + ")");
+				map.addEdge(source.getUuid(), target.getUuid(), "relates", MULTIPLICITY.getOrDefault(multiplicity, 0.3), source.getName() + " " + multiplicity + " " + target.getName() + " (" + rel.getRelationshipType() + ")", detailsOf(rel, multiplicity));
 				map.connect(source.getUuid(), target.getUuid());
 			}
 		}
@@ -110,6 +112,35 @@ public class SchemaMapContributor implements ApplicationMapContributor {
 				ScriptScanner.scan(map, (read != null ? read : "") + "\n" + (write != null ? write : ""), owner.getUuid());
 			}
 		}
+	}
+
+	/**
+	 * What a schema relationship does beyond connecting: its multiplicity, whether deleting one end deletes the other (cd,
+	 * see Relation.CASCADING_DESCRIPTIONS) and in which direction it passes on rights (pp, see PropagationDirection), with
+	 * what it does to each right on the way (r, w, d, a: Add, Keep or Remove).
+	 */
+	private Map<String, Object> detailsOf(final SchemaRelationshipNode rel, final String multiplicity) {
+
+		final Map<String, Object> details      = new LinkedHashMap<>();
+		final Long cascade                     = rel.getCascadingDeleteFlag();
+		final PropagationDirection propagation = rel.getPermissionPropagation();
+
+		details.put("m", multiplicity);
+
+		if (cascade != null && cascade > 0) {
+			details.put("cd", cascade);
+		}
+
+		if (propagation != null && !PropagationDirection.None.equals(propagation)) {
+
+			details.put("pp", propagation.name());
+			details.put("r",  String.valueOf(rel.getReadPropagation()));
+			details.put("w",  String.valueOf(rel.getWritePropagation()));
+			details.put("d",  String.valueOf(rel.getDeletePropagation()));
+			details.put("a",  String.valueOf(rel.getAccessControlPropagation()));
+		}
+
+		return details;
 	}
 
 	// a property or a method lies in its type

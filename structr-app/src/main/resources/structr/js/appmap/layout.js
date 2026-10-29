@@ -35,7 +35,7 @@ class AppMapLayout {
 	// the forces of the layout, as a remembered layout keeps them; spread scales the distances that the discs of the groupings
 	// are measured in
 	static FORCE_DEFAULTS = { charge: 4, length: 5, width: 3, step: 1.6, gap: 1, cohesion: 0.3 };
-	static VERSION        = 13;
+	static VERSION        = 14;
 
 	// how strongly a held element is pulled back to its remembered place while its new neighbours settle
 	static HOLD = 0.35;

@@ -18,6 +18,7 @@
  */
 package org.structr.appmap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.AccessControllable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
@@ -30,6 +31,8 @@ import org.structr.core.property.GenericProperty;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The application as one flat graph: its artifacts (types, methods, pages, shared components,
@@ -48,7 +51,8 @@ import java.util.regex.Pattern;
  * Every artifact also belongs to a grouping and to an area, so that any client can lay the
  * application out the way Structr structures it. A grouping is an artifact as the developer
  * declared it: a type with its methods, a page or shared component with its repeaters and event
- * action mappings, a group, a REST endpoint; a user-defined function, like a method of a schema
+ * action mappings, a group, a REST endpoint; pages and shared components that belong together
+ * form a section of the user interface instead (see sections); a user-defined function, like a method of a schema
  * relationship, belongs to the type it writes most, else it stands alone, and so does one that
  * CronService runs. The area says which of Structr's mechanisms the grouping is: "ui" (pages
  * and shared components), "integration" (REST endpoints and external services),
@@ -56,7 +60,7 @@ import java.util.regex.Pattern;
  * system types the application extends), "logic" (user-defined functions and service classes),
  * "scheduled" (what CronService runs) and "data" (the application's own types).
  *
- * The result has four parts: "nodes" (id, k for the kind, n for the name, p for public, g for
+ * The result has six parts: "nodes" (id, k for the kind, n for the name, p for public, g for
  * the grouping, area, and depending on the kind d for the HTML outline (nested [tag, flags,
  * children, ids of the repeaters and action mappings on the element]), crud, svc, t for the
  * type, m for the method, how for the way the type was found, a and ev for the action and
@@ -65,10 +69,18 @@ import java.util.regex.Pattern;
  * pubw and authw whether those may write, acc for who may see a page or shared component:
  * pub and auth for its visibility, own for its owner, g for the grants as [principal,
  * permissions], s for its size: the properties of a type, the lines of code of a method, the
- * HTML elements of a page or shared component), "edges"
- * ([source, target, weight, kind, inferred, evidence]), "groups" (id, n, m for the number of
- * members, t for the types they have grants on, g and area) and "helpers" (the methods that
- * many call and that write nothing).
+ * HTML elements of a page or shared component, dv for whom every object of a type is visible:
+ * pub and auth, r for the URL routes of a page: p the path, cur the type of its current
+ * object, w the number of warnings, pos for its position, err for the error codes it is shown
+ * for, ct for a content type other than HTML), "edges"
+ * ([source, target, weight, kind, inferred, evidence, details?]; the details of a schema
+ * relationship: m for its multiplicity, cd for cascading delete, pp for the direction in which
+ * it passes on rights, r, w, d and a for what it does with read, write, delete and access
+ * control rights), "groups" (id, n, m for the number of members, t for the types they have
+ * grants on, p for the rights per type as letters r, w and d, in for the groups they are
+ * members of, g and area), "sites" (id, n for the host name and port, pages), "helpers" (the methods that
+ * many call and that write nothing) and "sections" (the groupings of the user interface that
+ * are no artifact: id, n for the name, how for what it rests on, members).
  */
 public class ApplicationMap {
 
@@ -102,11 +114,18 @@ public class ApplicationMap {
 	// a function belongs to the type it writes most; reading only decides between types it does not write (see CrudAnalysis.WEIGHT)
 	private static final Map<String, Double> WRITE_WEIGHT = Map.of("C", 3.0, "U", 2.5, "D", 2.5, "R", 0.01);
 
+	// what a page does with a type, for the section it belongs to: changing counts twice, showing once
+	private static final Map<String, Double> PAGE_WEIGHT = Map.of("C", 2.0, "U", 2.0, "D", 2.0, "R", 1.0);
+
+	// navigation from an element that leads to more pages than this is the application's menu, it says nothing about where a page belongs
+	private static final int MENU_LINKS = 8;
+
 	private final Map<String, MapNode> nodes          = new LinkedHashMap<>();
 	private final Map<String, MapEdge> edges          = new LinkedHashMap<>();
 	private final Map<String, Integer> references     = new LinkedHashMap<>();
 	private final Set<List<String>> connections       = new LinkedHashSet<>();
 	private final Map<String, MapGroup> groups        = new LinkedHashMap<>();
+	private final List<Map<String, Object>> sites     = new LinkedList<>();
 	private final SchemaIndex schema;
 
 	private ApplicationMap(final SchemaIndex schema) {
@@ -190,11 +209,28 @@ public class ApplicationMap {
 	 */
 	public void addEdge(final String source, final String target, final String kind, final double weight, final String evidence) {
 
+		addEdge(source, target, kind, weight, evidence, null);
+	}
+
+	/**
+	 * Adds an edge with details of its own, e.g. what a schema relationship does on delete and
+	 * which rights it passes on; they become the seventh part of the edge.
+	 */
+	public void addEdge(final String source, final String target, final String kind, final double weight, final String evidence, final Map<String, Object> details) {
+
 		if (source == null || target == null || source.equals(target)) {
 			return;
 		}
 
-		edges.putIfAbsent(edgeKey(source, target, kind), new MapEdge(source, target, kind, weight, evidence));
+		edges.putIfAbsent(edgeKey(source, target, kind), new MapEdge(source, target, kind, weight, evidence, details));
+	}
+
+	/**
+	 * Adds a site: the host name (and port) it answers to and the pages it serves.
+	 */
+	public void addSite(final String id, final String name, final List<String> pages) {
+
+		sites.add(Map.of("id", id, "n", name, "pages", pages));
 	}
 
 	/**
@@ -248,11 +284,13 @@ public class ApplicationMap {
 
 		analysis.run();
 
-		final Map<String, String> groupings = groupings(kept, analysis);
-		final Map<String, String> areas     = new HashMap<>();
+		final Map<String, Map<String, Object>> sections = sections(kept, analysis);
+		final Map<String, String> groupings             = groupings(kept, analysis, sections);
+		final Map<String, String> areas                 = new HashMap<>();
+		final List<Object> sectionList                  = new LinkedList<>(sections.values());
 
 		for (final String grouping : new HashSet<>(groupings.values())) {
-			areas.put(grouping, areaOf(nodes.get(grouping), analysis));
+			areas.put(grouping, sections.containsKey(grouping) ? AREA_UI : areaOf(nodes.get(grouping), analysis));
 		}
 
 		for (final MapNode node : nodes.values()) {
@@ -285,6 +323,8 @@ public class ApplicationMap {
 		result.put(new GenericProperty<>("edges"),   edgeList);
 		result.put(new GenericProperty<>("groups"),  groupList);
 		result.put(new GenericProperty<>("helpers"), new LinkedList<>(analysis.getHelpers()));
+		result.put(new GenericProperty<>("sections"), sectionList);
+		result.put(new GenericProperty<>("sites"),    sites.stream().map(site -> Map.of("id", site.get("id"), "n", site.get("n"), "pages", ((List<?>) site.get("pages")).stream().filter(kept::contains).toList())).toList());
 
 		return result;
 	}
@@ -299,7 +339,16 @@ public class ApplicationMap {
 	/**
 	 * The grouping of every artifact, see the class comment.
 	 */
-	private Map<String, String> groupings(final Set<String> kept, final CrudAnalysis analysis) {
+	private Map<String, String> groupings(final Set<String> kept, final CrudAnalysis analysis, final Map<String, Map<String, Object>> sections) {
+
+		final Map<String, String> sectionOf = new HashMap<>();
+
+		for (final Map<String, Object> section : sections.values()) {
+
+			for (final Object member : (List<?>) section.get("members")) {
+				sectionOf.put((String) member, (String) section.get("id"));
+			}
+		}
 
 		final Map<String, String> ownerOf = new HashMap<>();
 		final Map<String, String> result  = new HashMap<>();
@@ -331,12 +380,142 @@ public class ApplicationMap {
 			} else if ((VIEW.equals(node.kind) || ACTION.equals(node.kind)) && node.home != null && kept.contains(node.home)) {
 
 				grouping = node.home;
+
+			} else if (sectionOf.containsKey(id)) {
+
+				grouping = sectionOf.get(id);
 			}
 
 			result.put(id, grouping);
 		}
 
 		return result;
+	}
+
+	/**
+	 * The sections of the user interface: pages and shared components that belong together, each a grouping that is no
+	 * artifact of its own, as { id, n for the name, how, members }. A page belongs to the category the developer gave
+	 * it; else to the type it works with most (see PAGE_WEIGHT), through its repeaters and action mappings; a shared
+	 * component without either to the section of the pages that hold it, and a page without either to the section of the
+	 * pages that lead to it, by links and by the success and failure URLs of action mappings, apart from the menu (see
+	 * MENU_LINKS), each only when more than half of them lie in that section. A section of one page or component is none:
+	 * it stays a grouping of its own.
+	 */
+	private Map<String, Map<String, Object>> sections(final Set<String> kept, final CrudAnalysis analysis) {
+
+		final Map<String, String> sectionOf          = new LinkedHashMap<>();
+		final Map<String, String> names              = new LinkedHashMap<>();
+		final Map<String, String> hows               = new LinkedHashMap<>();
+		final Map<String, Map<String, Double>> score = new LinkedHashMap<>();
+		final Map<String, List<String>> holders      = new LinkedHashMap<>();
+		final Map<String, List<String>> leaders      = new LinkedHashMap<>();
+		final Map<String, Set<String>> leadsTo       = new LinkedHashMap<>();
+		final List<String> sheets                    = new LinkedList<>();
+
+		for (final String id : kept) {
+
+			final MapNode node = nodes.get(id);
+
+			if (PAGE.equals(node.kind) || COMPONENT.equals(node.kind)) {
+
+				sheets.add(id);
+
+			} else if ((VIEW.equals(node.kind) || ACTION.equals(node.kind)) && node.home != null) {
+
+				for (final String entry : analysis.crudOf(id) != null ? analysis.crudOf(id) : Set.<String>of()) {
+
+					final String[] parts = entry.split(":", 2);
+					final String typeId  = schema.getTypeIds().get(parts[1]);
+
+					if (typeId != null && kept.contains(typeId)) {
+						score.computeIfAbsent(node.home, k -> new LinkedHashMap<>()).merge(typeId, PAGE_WEIGHT.getOrDefault(parts[0], 0.0), Double::sum);
+					}
+				}
+			}
+		}
+
+		for (final MapEdge edge : edges.values()) {
+
+			if (!kept.contains(edge.source) || !kept.contains(edge.target) || edge.source.equals(edge.target)) {
+				continue;
+			}
+
+			if ("include".equals(edge.kind) || "uses".equals(edge.kind)) {
+
+				holders.computeIfAbsent(edge.target, k -> new LinkedList<>()).add(edge.source);
+
+			} else if ("navigates".equals(edge.kind)) {
+
+				leaders.computeIfAbsent(edge.target, k -> new LinkedList<>()).add(edge.source);
+				leadsTo.computeIfAbsent(edge.source, k -> new LinkedHashSet<>()).add(edge.target);
+			}
+		}
+
+		// what the developer said, then what the page works with
+		for (final String id : sheets) {
+
+			final MapNode node     = nodes.get(id);
+			final String typeId    = mostOf(score.get(id));
+			final boolean declared = StringUtils.isNotBlank(node.category);
+
+			if (declared || typeId != null) {
+
+				final String section = declared ? "section:category:" + node.category.trim() : "section:type:" + typeId;
+
+				sectionOf.put(id, section);
+				names.putIfAbsent(section, declared ? node.category.trim() : nodes.get(typeId).name + " pages");
+				hows.putIfAbsent(section, declared ? "category" : "type");
+			}
+		}
+
+		// then where it is held or reached from; twice, so a page reached from a page placed in the first round finds its place
+		for (int round = 0; round < 2; round++) {
+
+			for (final String id : sheets) {
+
+				if (sectionOf.containsKey(id)) {
+					continue;
+				}
+
+				final List<String> from         = COMPONENT.equals(nodes.get(id).kind) && holders.containsKey(id) ? holders.get(id) : leaders.getOrDefault(id, List.of());
+				final List<String> counted      = from.stream().filter(source -> leadsTo.getOrDefault(source, Set.of()).size() <= MENU_LINKS).toList();
+				final Map<String, Double> votes = new LinkedHashMap<>();
+
+				for (final String source : counted) {
+
+					if (sectionOf.containsKey(source)) {
+						votes.merge(sectionOf.get(source), 1.0, Double::sum);
+					}
+				}
+
+				final String section = mostOf(votes);
+
+				// only where most of them agree: what pages of every section hold, like the frame of the application, belongs to none
+				if (section != null && votes.get(section) * 2 > counted.size()) {
+					sectionOf.put(id, section);
+				}
+			}
+		}
+
+		final Map<String, List<String>> members         = new LinkedHashMap<>();
+		final Map<String, Map<String, Object>> sections = new LinkedHashMap<>();
+
+		sectionOf.forEach((id, section) -> members.computeIfAbsent(section, k -> new LinkedList<>()).add(id));
+
+		members.forEach((id, list) -> {
+
+			if (list.size() > 1) {
+				sections.put(id, new LinkedHashMap<>(Map.of("id", id, "n", names.get(id), "how", hows.get(id), "members", list)));
+			}
+		});
+
+		return sections;
+	}
+
+	// the key of the highest score, the first of equal ones, or null
+	private static String mostOf(final Map<String, Double> score) {
+
+		return score == null ? null : score.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(null);
 	}
 
 	/**
@@ -359,7 +538,7 @@ public class ApplicationMap {
 			}
 		}
 
-		return score.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(null);
+		return mostOf(score);
 	}
 
 	/**
@@ -478,6 +657,12 @@ public class ApplicationMap {
 		private boolean restAuthenticatedWrite;
 		private Map<String, Object> access;
 		private int size;
+		private String category;
+		private Map<String, Object> defaultVisibility;
+		private List<Object> routes;
+		private Integer position;
+		private String errorCodes;
+		private String contentType;
 
 		private MapNode(final String id, final String kind, final String name) {
 
@@ -615,6 +800,37 @@ public class ApplicationMap {
 		 * How large the node is in its own terms: the properties of a type, the lines of code of
 		 * a method, the HTML elements of a page or shared component.
 		 */
+		// which users see every object of a type: pub and auth, see the class comment
+		public MapNode setDefaultVisibility(final boolean pub, final boolean auth) {
+
+			this.defaultVisibility = pub || auth ? Map.of("pub", pub ? 1 : 0, "auth", auth ? 1 : 0) : null;
+
+			return this;
+		}
+
+		/**
+		 * How a page is reached: its URL routes as { p: the path, cur: the type of its current object, w: the number of
+		 * warnings }, its position (the start page has the lowest), the error codes it is shown for and a content type other
+		 * than HTML.
+		 */
+		public MapNode setRouting(final List<Object> routes, final Integer position, final String errorCodes, final String contentType) {
+
+			this.routes      = routes != null && !routes.isEmpty() ? routes : null;
+			this.position    = position;
+			this.errorCodes  = StringUtils.isNotBlank(errorCodes) ? errorCodes : null;
+			this.contentType = StringUtils.isNotBlank(contentType) && !"text/html".equals(contentType) ? contentType : null;
+
+			return this;
+		}
+
+		// the category a developer gave a page, see sections
+		public MapNode setCategory(final String category) {
+
+			this.category = category;
+
+			return this;
+		}
+
 		public MapNode setSize(final int size) {
 
 			this.size = size;
@@ -713,6 +929,26 @@ public class ApplicationMap {
 				map.put("s", size);
 			}
 
+			if (defaultVisibility != null) {
+				map.put("dv", defaultVisibility);
+			}
+
+			if (routes != null) {
+				map.put("r", routes);
+			}
+
+			if (position != null) {
+				map.put("pos", position);
+			}
+
+			if (errorCodes != null) {
+				map.put("err", errorCodes);
+			}
+
+			if (contentType != null) {
+				map.put("ct", contentType);
+			}
+
 			if (restRules > 0) {
 				map.put("rest", Map.of("n", restRules, "pub", restPublic ? 1 : 0, "auth", restAuthenticated ? 1 : 0, "pubw", restPublicWrite ? 1 : 0, "authw", restAuthenticatedWrite ? 1 : 0));
 			}
@@ -728,19 +964,26 @@ public class ApplicationMap {
 		private final String kind;
 		private final double weight;
 		private final String evidence;
+		private final Map<String, Object> details;
 
 		MapEdge(final String source, final String target, final String kind, final double weight, final String evidence) {
+
+			this(source, target, kind, weight, evidence, null);
+		}
+
+		MapEdge(final String source, final String target, final String kind, final double weight, final String evidence, final Map<String, Object> details) {
 
 			this.source   = source;
 			this.target   = target;
 			this.kind     = kind;
 			this.weight   = weight;
 			this.evidence = evidence;
+			this.details  = details;
 		}
 
 		private List<Object> toList() {
 
-			final List<Object> list = new ArrayList<>(6);
+			final List<Object> list = new ArrayList<>(7);
 
 			list.add(source);
 			list.add(target);
@@ -751,13 +994,18 @@ public class ApplicationMap {
 			list.add(0);
 			list.add(evidence);
 
+			if (details != null && !details.isEmpty()) {
+				list.add(details);
+			}
+
 			return list;
 		}
 	}
 
 	public static class MapGroup {
 
-		private final Set<String> grants = new LinkedHashSet<>();
+		private final Map<String, String> grants = new LinkedHashMap<>();
+		private final Set<String> parents        = new LinkedHashSet<>();
 		private final String id;
 		private final String name;
 		private final int members;
@@ -769,9 +1017,16 @@ public class ApplicationMap {
 			this.members = members;
 		}
 
-		public void addGrant(final String typeId) {
+		// what the group may do with every object of a type, as the letters r (read), w (write) and d (delete)
+		public void addGrant(final String typeId, final String rights) {
 
-			grants.add(typeId);
+			grants.merge(typeId, rights, (a, b) -> Stream.of("r", "w", "d").filter(right -> a.contains(right) || b.contains(right)).collect(Collectors.joining()));
+		}
+
+		// a group the group is a member of: its members have the rights of that group too
+		public void addParent(final String groupId) {
+
+			parents.add(groupId);
 		}
 
 		private Map<String, Object> toMap(final Set<String> kept) {
@@ -781,7 +1036,9 @@ public class ApplicationMap {
 			map.put("id",   id);
 			map.put("n",    name);
 			map.put("m",    members);
-			map.put("t",    grants.stream().filter(kept::contains).toList());
+			map.put("t",    grants.keySet().stream().filter(kept::contains).toList());
+			map.put("p",    grants.entrySet().stream().filter(e -> kept.contains(e.getKey())).collect(LinkedHashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), Map::putAll));
+			map.put("in",   new LinkedList<>(parents));
 			map.put("g",    id);
 			map.put("area", AREA_SECURITY);
 

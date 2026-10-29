@@ -29,8 +29,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 
 /**
- * Who may do what: every group with the number of its members and the types it has a schema
- * grant on (read, write or delete). Groups answer "who", not "what", so they are no nodes of
+ * Who may do what: every group with the number of its members, the groups it is a member of and
+ * the types it has a schema grant on, with the rights it grants (read, write, delete). Groups answer "who", not "what", so they are no nodes of
  * the map; the client attaches them to the types.
  */
 public class GroupMapContributor implements ApplicationMapContributor {
@@ -42,7 +42,11 @@ public class GroupMapContributor implements ApplicationMapContributor {
 
 			final Group group = node.as(Group.class);
 
-			map.addGroup(group.getUuid(), group.getName(), Iterables.count(group.getMembers()));
+			final ApplicationMap.MapGroup mapGroup = map.addGroup(group.getUuid(), group.getName(), Iterables.count(group.getMembers()));
+
+			for (final Group parent : group.getParents()) {
+				mapGroup.addParent(parent.getUuid());
+			}
 		}
 
 		for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_GRANT).getAsList()) {
@@ -53,7 +57,7 @@ public class GroupMapContributor implements ApplicationMapContributor {
 			final boolean allowsAnything = grant.allowRead() || grant.allowWrite() || grant.allowDelete();
 
 			if (principal != null && schemaNode != null && allowsAnything && principal.is(StructrTraits.GROUP)) {
-				map.addGroup(principal.getUuid(), principal.getName(), 0).addGrant(schemaNode.getUuid());
+				map.addGroup(principal.getUuid(), principal.getName(), 0).addGrant(schemaNode.getUuid(), (grant.allowRead() ? "r" : "") + (grant.allowWrite() ? "w" : "") + (grant.allowDelete() ? "d" : ""));
 			}
 		}
 	}

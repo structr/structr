@@ -20,9 +20,9 @@
 /**
  * The graph of the application map, built from what the _appmap endpoint delivers:
  *
- *     { result: { nodes: [...], edges: [...], groups: [...] } }
+ *     { result: { nodes: [...], edges: [...], groups: [...], sections: [...], sites: [...] } }
  *
- * - node:  { id, k, n, p, g, area, d?, crud?, svc?, cron?, rest?, acc? }
+ * - node:  { id, k, n, p, g, area, d?, crud?, svc?, cron?, rest?, acc?, dv?, r?, pos?, err?, ct? }
  *          k is the kind (type, method, page, component, action, view, api, external), n the name, p 1 for a public
  *          element; g is the grouping it belongs to (the type, page, component, group or endpoint), area the Structr area
  *          of that grouping (ui, integration, security, builtin, logic, scheduled, data), both worked out on the server;
@@ -32,11 +32,21 @@
  *          type ('C:Task', 'R:User'); svc marks a service class; cron is the schedule of a method that CronService runs;
  *          rest summarises the resource access grants on a type or endpoint as { n: rules, pub, auth, pubw, authw }, each
  *          0 or 1, for anonymous and authenticated users and whether they may write (the map reads n, pub and auth);
- *          acc says who sees a page or shared component as { pub, auth, own?: owner, g?: [[principal, permissions]] }
- * - edge:  [source id, target id, weight, kind, inferred (0 or 1), evidence], kind one of include, reads, contains,
- *          member, creates, updates, deletes, uses, helper, calls, relates, invokes, navigates, endpoint, inherits,
- *          requests (to an external host), mails
- * - group: { id, n, m: number of members, t: ids of the types the group has grants on, g, area }
+ *          acc says who sees a page or shared component as { pub, auth, own?: owner, g?: [[principal, permissions]] };
+ *          dv whom every object of a type is visible to as { pub, auth }; r the URL routes of a page as [{ p: path,
+ *          cur?: type of the current object, w?: warnings }], pos its position (the start page has the lowest), err the
+ *          error codes it is shown for, ct a content type other than HTML
+ * - edge:  [source id, target id, weight, kind, inferred (0 or 1), evidence, details?], kind one of include, reads,
+ *          contains, member, creates, updates, deletes, uses, helper, calls, relates, invokes, navigates, endpoint,
+ *          inherits, requests (to an external host), mails, current (a page to the type of the current object of its
+ *          route); details of a schema relationship as { m: multiplicity, cd?: cascading delete, pp?: direction in which
+ *          it passes on rights, r, w, d, a: Add, Keep or Remove per right }, see AppMapAccess
+ * - group: { id, n, m: number of members, t: ids of the types the group has grants on, p: the rights per type as the
+ *          letters r, w and d, in: ids of the groups it is a member of, g, area }
+ * - site:  { id, n: host name and port, pages: ids }
+ * - section: { id, n, how, members }, a grouping of pages and shared components that belong together and that is no
+ *          element itself: by the category of its pages, the type they work with most, or the pages that hold or lead to
+ *          them (how is category or type); its members carry its id as g
  *
  * The model has no geometry. It adds the Structr groups as nodes and derives the business relations from the technical
  * ones; the map shows both at once (links). Grouping and area come with the data, as n.c = [area, grouping].
@@ -67,7 +77,7 @@ class AppMapModel {
 	};
 
 	static KIND_LABEL  = { page: 'Page', component: 'Shared Component', type: 'Type', method: 'Method', api: 'REST Endpoint', external: 'External Service', group: 'Group', view: 'Repeater', action: 'Event Action Mapping' };
-	static EDGE_LABEL  = { creates: 'creates', updates: 'updates', deletes: 'deletes', inherits: 'inherits from', helper: 'uses helper', contains: 'contains', reads: 'reads', invokes: 'invokes', calls: 'calls', member: 'belongs to', relates: 'relationship', navigates: 'navigates to', endpoint: 'endpoint', include: 'includes', uses: 'uses', grant: 'grants', requests: 'sends requests to', mails: 'sends mail with' };
+	static EDGE_LABEL  = { creates: 'creates', updates: 'updates', deletes: 'deletes', inherits: 'inherits from', helper: 'uses helper', contains: 'contains', reads: 'reads', current: 'opens with the current', invokes: 'invokes', calls: 'calls', member: 'belongs to', relates: 'relationship', navigates: 'navigates to', endpoint: 'endpoint', include: 'includes', uses: 'uses', grant: 'grants', requests: 'sends requests to', mails: 'sends mail with' };
 
 	// business relations: what a page or method does to which type (C/R/U/D), the data model between types, navigation
 	// between pages; the wiring in between (page contains action, action invokes method, method calls method) is folded into them
@@ -75,10 +85,10 @@ class AppMapModel {
 
 	// the functional relations: what the application does, with its data, its methods and the world outside; the others
 	// (the data model between types, inheritance, navigation between pages) describe how it is built
-	static FUNCTIONAL = new Set(['creates', 'updates', 'deletes', 'reads', 'invokes', 'calls', 'endpoint', 'requests', 'mails']);
+	static FUNCTIONAL = new Set(['creates', 'updates', 'deletes', 'reads', 'current', 'invokes', 'calls', 'endpoint', 'requests', 'mails']);
 
 	// how much a relation says about what matters, for the rank of a grouping: changing data weighs most, reading least
-	static RANK_WEIGHT = { creates: 3, updates: 2.5, deletes: 2.5, reads: 1, invokes: 1.5, calls: 1.5, endpoint: 1, requests: 1.5, mails: 1.5 };
+	static RANK_WEIGHT = { creates: 3, updates: 2.5, deletes: 2.5, reads: 1, current: 1, invokes: 1.5, calls: 1.5, endpoint: 1, requests: 1.5, mails: 1.5 };
 
 	// the hotspots: the highest ranked groupings that at least this many others use
 	static HOTSPOTS      = 8;
@@ -94,12 +104,16 @@ class AppMapModel {
 
 	constructor(data) {
 
-		this.nodes = data.nodes.map(n => ({ ...n }));
-		this.byId  = new Map(this.nodes.map(n => [n.id, n]));
+		this.nodes    = data.nodes.map(n => ({ ...n }));
+		this.byId     = new Map(this.nodes.map(n => [n.id, n]));
+		this.sections = new Map((data.sections ?? []).map(s => [s.id, s]));
+		this.groups   = data.groups ?? [];
+		this.sites    = data.sites ?? [];
 
+		// x holds what a schema relationship does beyond connecting, see AppMapAccess
 		const links = data.edges
 			.filter(([a, b]) => this.byId.has(a) && this.byId.has(b))
-			.map(([a, b, w, kind, inferred, evidence]) => ({ source: this.byId.get(a), target: this.byId.get(b), w, kind, inferred, evidence }));
+			.map(([a, b, w, kind, inferred, evidence, x]) => ({ source: this.byId.get(a), target: this.byId.get(b), w, kind, inferred, evidence, ...(x ? { x } : {}) }));
 
 		// a Structr group is an element of its own, connected to the types it has grants on
 		for (const g of data.groups ?? []) {
@@ -388,7 +402,7 @@ class AppMapModel {
 
 				add(changes, l.source, l.target);
 
-			} else if (l.target.k === 'type' && l.kind === 'reads') {
+			} else if (l.target.k === 'type' && (l.kind === 'reads' || l.kind === 'current')) {
 
 				add(shows, l.source, l.target);
 
@@ -549,7 +563,7 @@ class AppMapModel {
 
 		for (const n of this.nodes) {
 
-			const grouping = this.byId.has(n.g) ? n.g : n.id;
+			const grouping = this.byId.has(n.g) || this.sections.has(n.g) ? n.g : n.id;
 
 			n.c = [n.area ?? 'data', grouping];
 		}

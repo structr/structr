@@ -141,6 +141,9 @@ class AppMapView {
 		this.locate     = options.locate ?? null;
 		this.searchRun  = 0;
 
+		// the access lens: what one role reaches, see AppMapAccess
+		this.access = null;
+
 		this.transform  = d3.zoomIdentity;
 		this.baseK      = 1;
 		this.growth     = 1;
@@ -641,7 +644,7 @@ class AppMapView {
 		}
 
 		const targetOf = id => known(id) ?? (this.located.get(id) ?? []).map(known).find(Boolean);
-		const hits     = [...this.byId.values()].filter(n => n.n != null && fold(n.n).includes(wanted));
+		const hits     = [...this.byId.values()].filter(n => (n.n != null && fold(n.n).includes(wanted)) || (n.r ?? []).some(route => fold(route.p).includes(wanted)));
 		const found    = { text: searchString, elements: new Set(), inner: new Set() };
 
 		this.foundFor = new Map(ids.map(id => [id, targetOf(id)]).filter(([, n]) => n));
@@ -691,6 +694,36 @@ class AppMapView {
 		this.glideInto(home ?? n);
 
 		return true;
+	}
+
+	// ----- the access lens: what one role reaches -----
+	// shows what a role reaches (see AppMapAccess), or nothing for null; role is { kind, id?, name }
+	setLens(role) {
+
+		this.access = role ? AppMapAccess.of(this.model, this.links, role) : null;
+		this.updateHint();
+		this.requestDraw();
+	}
+
+	// the lens in one line, for the line below the map
+	describeLens() {
+
+		const access  = this.access;
+		const pages   = this.nodes.filter(n => n.k === 'page');
+		const seen    = pages.filter(n => access.pages.get(n)).length;
+		const types   = [...access.rights.values()];
+		const count   = right => types.filter(own => own.has(right)).length;
+		const gaps    = access.gaps.length;
+
+		return `${access.role.name} see ${seen} of ${pages.length} pages · of ${access.governed.size} types governed by the schema may read ${count('r')}, write ${count('w')}, delete ${count('d')}` + (gaps ? ` · ${gaps} ${gaps === 1 ? 'gap' : 'gaps'} in red: a page they see does what they may not` : '');
+	}
+
+	// the start page: the page of the lowest position, among those the role of the lens sees
+	startPage() {
+
+		const pages = this.nodes.filter(n => n.k === 'page' && n.pos != null && (!this.access || this.access.pages.get(n)));
+
+		return pages.length ? pages.reduce((a, b) => b.pos < a.pos ? b : a) : null;
 	}
 
 	// glides to an element at the current zoom and holds its focus
@@ -757,6 +790,7 @@ class AppMapView {
 
 		const open = this.panels.reading.size || [...this.panels.trees.values()].some(t => t.open);
 		const hint = !this.nodes.length ? ''
+			: this.access && !this.pinned ? this.describeLens()
 			: this.found ? `${this.found.elements.size ? this.found.elements.size : 'No'} ${this.found.elements.size === 1 ? 'element matches' : 'elements match'} “${this.found.text}” · click a result of the search to go there`
 			: this.pinned ? 'Click a name at the end of a relation to go there · Esc or a click on the empty map ends exploring'
 			: open ? 'Double-click the empty map to see the whole map again'
@@ -1175,6 +1209,31 @@ class AppMapView {
 			parts.push(`${n.s} ${{ type: 'properties', method: 'lines of code', page: 'HTML elements', component: 'HTML elements' }[n.k] ?? 'parts'}`);
 		}
 
+		// how a page is reached and what it is for
+		parts.push(...this.describeRouting(n));
+
+		// what deleting it takes along, and what it passes on
+		if (n.k === 'type') {
+			parts.push(...this.describeSchema(n));
+		}
+
+		// what the role of the lens may do with it
+		if (this.access) {
+
+			const text = AppMapAccess.describe(this.access, n);
+
+			if (text) {
+				parts.push(text);
+			}
+		}
+
+		// the section of pages it belongs to
+		const section = this.model.sections.get(this.groupKeyOf(n));
+
+		if (section) {
+			parts.push(`in the section ${section.n}`);
+		}
+
 		// why a page or component has its size, see AppMapModel.importance
 		const importance = this.importance.get(n);
 
@@ -1209,6 +1268,86 @@ class AppMapView {
 		}
 
 		return parts.join(' · ');
+	}
+
+	// the URL routes of a page, whether it is the start page or an error page, what it delivers and the sites it is on
+	describeRouting(n) {
+
+		const parts = [];
+
+		for (const route of n.r ?? []) {
+			parts.push(`URL ${route.p}${route.cur ? ` opens a ${route.cur}` : ''}${route.w ? ` (${route.w} ${route.w === 1 ? 'warning' : 'warnings'})` : ''}`);
+		}
+
+		if (n === this.startPage()) {
+			parts.push('the start page');
+		}
+
+		if (n.err) {
+			parts.push(`shown for the errors ${n.err}`);
+		}
+
+		if (n.ct) {
+			parts.push(`delivers ${n.ct}`);
+		}
+
+		const sites = this.model.sites.filter(site => site.pages.includes(n.id)).map(site => site.n);
+
+		if (sites.length) {
+			parts.push(`on ${sites.length === 1 ? 'the site' : 'the sites'} ${sites.join(', ')}`);
+		}
+
+		return parts;
+	}
+
+	// what deleting an object of a type deletes with it, and to whom the type passes on rights
+	describeSchema(n) {
+
+		const parts   = [];
+		const cascade = [...AppMapAccess.cascadeOf(this.links, n)];
+		const certain = cascade.filter(([, step]) => !step.maybe).map(([type]) => type.n);
+		const maybe   = cascade.filter(([, step]) => step.maybe).map(([type]) => type.n);
+
+		if (certain.length) {
+			parts.push(`deleting one deletes its ${certain.join(', ')}`);
+		}
+
+		if (maybe.length) {
+			parts.push(`deleting one deletes the ${maybe.join(', ')} that would become invalid`);
+		}
+
+		// the types it passes rights on to, by the rights they get
+		const passes = d3.groups(AppMapAccess.propagation(this.links).filter(hop => hop.from === n), ({ l }) => AppMapAccess.RIGHTS.filter(right => l.x[right] === 'Add').map(right => AppMapAccess.RIGHT_LABEL[right]).join(', '));
+
+		for (const [rights, hops] of passes.filter(([rights]) => rights)) {
+			parts.push(`passes ${rights} on to ${hops.map(({ to }) => to.n).join(', ')}`);
+		}
+
+		return parts;
+	}
+
+	// what holds a grouping together, for the tooltip on its name: a section of pages by its category or the type its pages
+	// work with, any other grouping by its anchor and what belongs to it
+	describeGrouping(key) {
+
+		const members = this.nodes.filter(m => this.groupKeyOf(m) === key);
+		const section = this.model.sections.get(key);
+		const count   = (n, one) => `${n} ${one}${n === 1 ? '' : 's'}`;
+
+		if (section) {
+
+			const pages = `${members.length} pages and shared components`;
+			const why   = section.how === 'category'
+				? `that the developer gave the category ${section.n}`
+				: `that work with ${this.byId.get(key.slice('section:type:'.length))?.n ?? 'one type'} more than with any other type`;
+
+			return `A section of the user interface: ${pages} ${why}, and what only they hold or lead to.`;
+		}
+
+		const anchor = this.byId.get(key);
+		const kinds  = d3.rollups(members.filter(m => m !== anchor), v => v.length, m => AppMapModel.KIND_LABEL[m.k].toLowerCase());
+
+		return `${AppMapModel.KIND_LABEL[anchor?.k] ?? 'Grouping'} ${anchor?.n ?? key} with ${kinds.map(([kind, n]) => count(n, kind)).join(', ') || 'nothing else'} that belong to it.`;
 	}
 
 	// what makes a page or shared component important: "opened from 13 pages, changes 5 types, shows 4"
@@ -1365,6 +1504,24 @@ class AppMapView {
 
 			if (marker.anchors.length === 1) {
 				this.showTip(e, `Go to ${first.n}`, AppMapModel.KIND_LABEL[first.k], 300);
+			}
+
+			return;
+		}
+
+		// the name of a grouping says what holds it together
+		const named = !this.pinned ? this.renderer.groupingNamePlaces(this.transform.k).find(({ box }) => px >= box[0] && px <= box[2] && py >= box[1] && py <= box[3]) : null;
+
+		if (named) {
+
+			this.showTip(e, named.name, this.describeGrouping(named.key), 360);
+
+			if (this.hovered || this.hoveredDom || this.hoveredStrand) {
+
+				this.hovered       = null;
+				this.hoveredDom    = null;
+				this.hoveredStrand = null;
+				this.requestDraw();
 			}
 
 			return;

@@ -21,6 +21,8 @@ package org.structr.test.web.appmap;
 import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
@@ -44,7 +46,11 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
+import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
+import org.structr.web.traits.definitions.PagePathTraitDefinition;
+import org.structr.web.traits.definitions.SiteTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
@@ -78,7 +84,7 @@ public class ApplicationMapTest extends StructrUiTest {
 		assertNotNull("The map must have helpers", map.getList("result.helpers"));
 
 		for (final List<Object> edge : map.<List<Object>>getList("result.edges")) {
-			assertEquals("Every edge must be source, target, weight, kind, inferred and evidence", 6, edge.size());
+			assertTrue("Every edge must be source, target, weight, kind, inferred and evidence, and may have details", edge.size() == 6 || (edge.size() == 7 && edge.get(6) instanceof Map));
 		}
 
 		assertEquals("A schema type must be a node of kind type", "type", node(map, ids.get("Item"), "k"));
@@ -318,8 +324,13 @@ public class ApplicationMapTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface member = app.create(StructrTraits.USER, "member");
+			final NodeInterface staff  = app.create(StructrTraits.GROUP, "Staff");
+			final Group editors        = app.getNodeById(StructrTraits.GROUP, ids.get("group")).as(Group.class);
 
-			app.getNodeById(StructrTraits.GROUP, ids.get("group")).as(Group.class).addMember(securityContext, member.as(Principal.class));
+			editors.addMember(securityContext, member.as(Principal.class));
+			staff.as(Group.class).addMember(securityContext, editors);
+
+			ids.put("staff", staff.getUuid());
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -333,6 +344,96 @@ public class ApplicationMapTest extends StructrUiTest {
 		assertTrue("A group must list the types it has grants on", map.getList("result.groups.find { it.id == '" + ids.get("group") + "' }.t").contains(ids.get("Item")));
 		assertEquals("A group must count its members", 1, map.getInt("result.groups.find { it.id == '" + ids.get("group") + "' }.m"));
 		assertNull("A group must not be a node", map.get("result.nodes.find { it.id == '" + ids.get("group") + "' }"));
+		assertEquals("A group must name the rights of its grants", "r", map.getString("result.groups.find { it.id == '" + ids.get("group") + "' }.p['" + ids.get("Item") + "']"));
+		assertTrue("A group must list the groups it is a member of", map.getList("result.groups.find { it.id == '" + ids.get("group") + "' }.in").contains(ids.get("staff")));
+	}
+
+	@Test
+	public void testSchemaRelationshipsSayWhatTheyDo() {
+
+		createApplication();
+
+		try (final Tx tx = app.tx()) {
+
+			final Traits relTraits       = Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE);
+			final Traits nodeTraits      = Traits.of(StructrTraits.SCHEMA_NODE);
+			final NodeInterface relation = app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(relTraits.key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "HAS").getFirst();
+
+			relation.setProperty(relTraits.key(SchemaRelationshipNodeTraitDefinition.CASCADING_DELETE_FLAG_PROPERTY), 1L);
+			relation.setProperty(relTraits.key(SchemaRelationshipNodeTraitDefinition.PERMISSION_PROPAGATION_PROPERTY), PropagationDirection.Out);
+			relation.setProperty(relTraits.key(SchemaRelationshipNodeTraitDefinition.READ_PROPAGATION_PROPERTY), PropagationMode.Add);
+
+			app.getNodeById(StructrTraits.SCHEMA_NODE, ids.get("Item")).setProperty(nodeTraits.key(SchemaNodeTraitDefinition.DEFAULT_VISIBLE_TO_AUTH_PROPERTY), true);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final JsonPath map    = fetchMap();
+		final String relation = "result.edges.find { it[0] == '" + ids.get("Category") + "' && it[1] == '" + ids.get("Item") + "' && it[3] == 'relates' }[6]";
+
+		assertEquals("A schema relationship must name its multiplicity",                     "1:*", map.getString(relation + ".m"));
+		assertEquals("A schema relationship must say whether it deletes along",              1,     map.getInt(relation + ".cd"));
+		assertEquals("A schema relationship must say in which direction it passes on rights", "Out", map.getString(relation + ".pp"));
+		assertEquals("A schema relationship must say what it does with the read right",      "Add", map.getString(relation + ".r"));
+		assertEquals("A type must say whom all its objects are visible to",                  1,     map.getInt("result.nodes.find { it.id == '" + ids.get("Item") + "' }.dv.auth"));
+	}
+
+	@Test
+	public void testPagesSayHowTheyAreReached() {
+
+		createApplication();
+
+		try (final Tx tx = app.tx()) {
+
+			final Traits pageTraits      = Traits.of(StructrTraits.PAGE);
+			final Traits pathTraits      = Traits.of(StructrTraits.PAGE_PATH);
+			final Traits parameterTraits = Traits.of(StructrTraits.PAGE_PATH_PARAMETER);
+			final Traits siteTraits      = Traits.of(StructrTraits.SITE);
+			final Page page              = app.getNodeById(StructrTraits.PAGE, ids.get("page")).as(Page.class);
+			final NodeInterface path     = app.create(StructrTraits.PAGE_PATH,
+				new NodeAttribute<>(pathTraits.key(PagePathTraitDefinition.PAGE_PROPERTY),          page),
+				new NodeAttribute<>(pathTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/item/{item}")
+			);
+
+			app.create(StructrTraits.PAGE_PATH_PARAMETER,
+				new NodeAttribute<>(parameterTraits.key(PagePathParameterTraitDefinition.PATH_PROPERTY),       path),
+				new NodeAttribute<>(parameterTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),           "item"),
+				new NodeAttribute<>(parameterTraits.key(PagePathParameterTraitDefinition.POSITION_PROPERTY),   0),
+				new NodeAttribute<>(parameterTraits.key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY), "Node"),
+				new NodeAttribute<>(parameterTraits.key(PagePathParameterTraitDefinition.FORMAT_PROPERTY),     "Item")
+			);
+
+			page.setProperty(pageTraits.key(PageTraitDefinition.POSITION_PROPERTY),            10);
+			page.setProperty(pageTraits.key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY), "404");
+
+			app.create(StructrTraits.SITE,
+				new NodeAttribute<>(siteTraits.key(SiteTraitDefinition.HOSTNAME_PROPERTY), "items.example.com"),
+				new NodeAttribute<>(siteTraits.key(SiteTraitDefinition.PAGES_PROPERTY),    List.of(page))
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final JsonPath map = fetchMap();
+		final String page  = "result.nodes.find { it.id == '" + ids.get("page") + "' }";
+
+		assertEquals("A page must name its route",                              "/item/{item}",      map.getString(page + ".r[0].p"));
+		assertEquals("A route must name the type of its current object",        "Item",              map.getString(page + ".r[0].cur"));
+		assertTrue("A page must lead to the type of the current object of its route", hasEdge(map, ids.get("page"), ids.get("Item"), "current"));
+		assertEquals("A page must say its position",                            10,                  map.getInt(page + ".pos"));
+		assertEquals("A page must say the errors it is shown for",              "404",               map.getString(page + ".err"));
+		assertEquals("A site must name its host",                               "items.example.com", map.getString("result.sites[0].n"));
+		assertTrue("A site must list its pages", map.getList("result.sites[0].pages").contains(ids.get("page")));
 	}
 
 	@Test
@@ -398,6 +499,54 @@ public class ApplicationMapTest extends StructrUiTest {
 		}
 
 		assertNotNull("An action mapping whose action was never chosen must still be on the map", node(fetchMap(), ids.get("emptyAction"), "k"));
+	}
+
+	@Test
+	public void testPagesFormSections() {
+
+		createApplication();
+
+		try (final Tx tx = app.tx()) {
+
+			final Traits pageTraits = Traits.of(StructrTraits.PAGE);
+			final Page categories   = Page.createSimplePage(securityContext, "categories");
+			final Page category     = Page.createSimplePage(securityContext, "category");
+			final Page about        = Page.createSimplePage(securityContext, "about");
+			final Page imprint      = Page.createSimplePage(securityContext, "imprint");
+
+			categories.getElementsByTagName("div").get(0).appendChild(repeater(categories, "category", "find('Category')"));
+			category.getElementsByTagName("div").get(0).appendChild(repeater(category, "category", "find('Category')"));
+
+			// two pages that only lead to each other, in a category of their own
+			about.setProperty(pageTraits.key(PageTraitDefinition.CATEGORY_PROPERTY),   "Info");
+			imprint.setProperty(pageTraits.key(PageTraitDefinition.CATEGORY_PROPERTY), "Info");
+
+			about.getElementsByTagName("div").get(0).appendChild(link(about, "/imprint"));
+			imprint.getElementsByTagName("div").get(0).appendChild(link(imprint, "/about"));
+
+			ids.put("categories", categories.getUuid());
+			ids.put("category",   category.getUuid());
+			ids.put("about",      about.getUuid());
+			ids.put("imprint",    imprint.getUuid());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final JsonPath map    = fetchMap();
+		final String section  = node(map, ids.get("categories"), "g");
+
+		assertEquals("Pages that work with the same type must share a section",   section,                 node(map, ids.get("category"), "g"));
+		assertEquals("A section of a type must be named after it",                 "Category pages",        map.getString("result.sections.find { it.id == '" + section + "' }.n"));
+		assertEquals("A section of a type must say so",                            "type",                  map.getString("result.sections.find { it.id == '" + section + "' }.how"));
+		assertEquals("Pages of the same category must share its section",          "section:category:Info", node(map, ids.get("about"), "g"));
+		assertEquals("Pages of the same category must share its section",          "section:category:Info", node(map, ids.get("imprint"), "g"));
+		assertEquals("A section must be part of the user interface",               "ui",                    node(map, ids.get("about"), "area"));
+		assertEquals("A repeater must stay in the grouping of its page",           ids.get("page"),         node(map, ids.get("itemRepeater"), "g"));
 	}
 
 	@Test
@@ -582,6 +731,15 @@ public class ApplicationMapTest extends StructrUiTest {
 		element.setProperty(traits.key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), functionQuery);
 
 		return element;
+	}
+
+	private DOMElement link(final Page page, final String href) throws FrameworkException {
+
+		final DOMElement link = page.createElement("a");
+
+		link.setProperty(link.getTraits().key("_html_href"), href);
+
+		return link;
 	}
 
 	private NodeInterface createActionMapping(final DOMElement trigger, final String action, final String method, final String dataType, final String idExpression) throws FrameworkException {
