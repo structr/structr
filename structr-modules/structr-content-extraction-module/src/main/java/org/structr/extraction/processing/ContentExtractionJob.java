@@ -267,7 +267,7 @@ public class ContentExtractionJob extends ScheduledJob {
 
 	private static void addIfMarked(final File file, final List<String> files) {
 
-		if (!file.isTemplate() && ContentOptionsResolver.shouldExtract(file).extract() && !files.contains(file.getUuid())) {
+		if (ContentOptionsResolver.shouldExtract(file).extract() && !files.contains(file.getUuid())) {
 
 			files.add(file.getUuid());
 		}

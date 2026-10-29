@@ -5257,6 +5257,10 @@ ul.combined-input-select-field li:not(.nohover):hover {
     border-bottom-left-radius: .25rem;
     border-bottom-right-radius: .25rem;
 }
+.rounded-b-xl {
+	border-bottom-left-radius: .75rem;
+	border-bottom-right-radius: .75rem;
+}
 .rounded-t {
 	border-top-left-radius: .25rem;
 	border-top-right-radius: .25rem;
@@ -5286,6 +5290,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 }
 .bg-transparent {
 	background-color: transparent;
+}
+.bg-canvas {
+	background-color: canvas;
 }
 .bg-black {
 	background-color: var(--solid-black);
@@ -5325,6 +5332,12 @@ ul.combined-input-select-field li:not(.nohover):hover {
 }
 .group:hover .group-hover\:font-bold {
 	font-weight: 700;
+}
+.group:hover .group-hover\:hidden {
+	display: none;
+}
+.group:hover .group-hover\:block {
+	display: block;
 }
 .select-none {
 	user-select: none;

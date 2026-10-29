@@ -61,4 +61,11 @@ public interface ExtractedContentNode extends NodeInterface {
 	void setEmbedding(final double[] embedding, final String model) throws FrameworkException;
 
 	String getEmbeddingModel();
+
+
+	/**
+	 * The DocumentFigure whose text this chunk holds, or null. A figure's chunk is not part of the text in
+	 * reading order; it is written from the figure's text whenever that changes.
+	 */
+	NodeInterface getFigure();
 }

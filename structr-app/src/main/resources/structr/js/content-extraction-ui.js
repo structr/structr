@@ -58,7 +58,9 @@ let _ContentExtraction = {
 		{ name: 'ocrLanguages',       label: 'OCR Languages',        kind: 'text',    comment: 'Tesseract languages joined with +, e.g. eng+deu.' },
 		{ name: 'maxCharacters',      label: 'Max. Characters',      kind: 'number',  comment: 'Maximum number of characters extracted per document.' },
 		{ name: 'includeEmbedded',    label: 'Include Embedded',     kind: 'boolean', comment: 'Whether attachments, archive entries and embedded documents are extracted as well.' },
-		{ name: 'includeImages',      label: 'Include Images',       kind: 'boolean', comment: 'Whether images inside documents (inline images of PDFs, pictures in office documents and e-mails) are read with OCR.' }
+		{ name: 'includeImages',      label: 'Include Images',       kind: 'boolean', comment: 'Whether images inside documents (inline images of PDFs, pictures in office documents and e-mails) are read with OCR.' },
+		{ name: 'extractFigures',     label: 'Extract Figures',      kind: 'boolean', comment: 'Whether the figures of files (charts, diagrams, tables with a caption, pictures) are stored as images in a folder next to the file, with their text in the searchable content.' },
+		{ name: 'figureType',         label: 'Figure Type',          kind: 'text',    comment: 'The type figures are stored as: DocumentFigure, or a type of your data model that inherits it.' }
 	],
 
 	init: () => {
@@ -80,6 +82,9 @@ let _ContentExtraction = {
 		_Files.getContextMenuElements = (div, entity) => _ContentExtraction.addContextMenuElement(originalContextMenuElements(div, entity), entity);
 
 		_Files.search.contentSearch = _ContentExtraction.searchFiles;
+
+		// file content found by the global search can match inexactly; the user chooses
+		Structr.globalSearch.supportsFuzzyContentSearch = true;
 
 		// the function bar is rendered again whenever the Files area opens, so the click is delegated
 		document.addEventListener('click', (e) => {

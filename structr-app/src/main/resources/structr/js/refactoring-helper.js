@@ -78,6 +78,10 @@ class RefactoringHelper {
 		let resultContainer = $('#result-container');
 		let errorContainer  = $('#error-container');
 
+		if (typeSelector.length === 0 || keysSelector.length === 0) {
+			return;
+		}
+
 		let typeQuery     = typeSelector.val().trim();
 		let properties    = keysSelector.val().trim();
 		let showEmptyRows = emptyCheckbox.is(':checked');
@@ -155,23 +159,30 @@ class RefactoringHelper {
 							src = v.name;
 						}
 
-						row.append('<td>' + src + '</td>');
+						row.append(`<td>${src}</td>`);
 
 						for (let k of keys) {
-							let id    = 'edit-' + v.id + '-' + k.name;
-							let value = '';
+
+							let htmlId = 'edit-' + v.id + '-' + k.name;
+							let value  = '';
 
 							if (v[k.name] || v[k.name] === 0) {
 								value = v[k.name];
 								hasValue = true;
 							}
 
-							row.append(`<td><input type="text" id="${id}" value="${value}"/></td>`);
-							let input = $('#' + id);
-							input.on('blur', e => {
-								let val = $('#' + id).val();
+							if (value.includes('\n')) {
+								row.append(`<td><textarea id="${htmlId}"></textarea></td>`);
+							} else {
+								row.append(`<td><input type="text" id="${htmlId}" /></td>`);
+							}
+
+							let element = $('#' + htmlId, row);
+							element.val(value);
+							$(element).on('blur', e => {
+								let val = element.val();
 								Command.setProperty(v.id, k.name, val, false, () => {
-									_Helpers.blinkGreen(input);
+									_Helpers.blinkGreen(element);
 								});
 							});
 						}

@@ -69,6 +69,20 @@ public class ImporterTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testUploadSettingsOfAFileInputAreKept() {
+
+		/* the upload settings of a file input are read by the frontend when the form is submitted, so they are
+		   authored by hand and must survive the import (and with it a deployment import); every other
+		   data-structr-* attribute is internal and dropped */
+		final String html = testImportWidget("<form><input type=\"file\" name=\"img\" data-structr-upload-visible-to-authenticated=\"true\" data-structr-upload-parent=\"0123456789abcdef0123456789abcdef\" data-structr-foo=\"bar\"></form>", RenderContext.EditMode.NONE);
+
+		assertNotNull(html);
+		assertTrue(html, html.contains("data-structr-upload-visible-to-authenticated=\"true\""));
+		assertTrue(html, html.contains("data-structr-upload-parent=\"0123456789abcdef0123456789abcdef\""));
+		assertFalse(html, html.contains("data-structr-foo"));
+	}
+
+	@Test
 	public void testBootstrapJumbotronEditModeNone() {
 
 		Settings.JsonIndentation.setValue(true);

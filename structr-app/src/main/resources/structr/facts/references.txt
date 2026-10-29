@@ -63,6 +63,7 @@ System-type "Page" has markdown-file "snippets/System Types/Page.md" as descript
 System-type "Template" has markdown-file "snippets/System Types/Template.md" as description
 System-type "VideoFile" has markdown-file "snippets/System Types/VideoFile.md" as description
 System-type "ExtractedContentNode" has markdown-file "snippets/System Types/ExtractedContentNode.md" as description
+System-type "DocumentFigure" has markdown-file "snippets/System Types/DocumentFigure.md" as description
 System-type "ContentExtractionConfiguration" has markdown-file "snippets/System Types/ContentExtractionConfiguration.md" as description
 
 

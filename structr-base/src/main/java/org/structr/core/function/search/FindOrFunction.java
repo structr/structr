@@ -21,6 +21,7 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.CoreFunction;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -72,21 +73,21 @@ public class FindOrFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.or(predicate, ...)}} Example: ${{ $.find('Group', $.predicate.or($.predicate.equals('name', 'Test1'), $.predicate.equals('name', 'Test2')))}}"),
-			Usage.structrScript("Usage: ${or(predicate, ...). Example: ${find('Group', or(equals('name', 'Test1'), equals('name', 'Test2')))}")
+			Usage.javaScript("Usage: ${{ $.predicate.or(predicate, ...)}}"),
+			Usage.structrScript("Usage: ${or(predicate, ...)}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
 
-		return "Combines the given predicates using logical OR, returning a predicate usable with find() or search().";
+		return "Combines the given predicates using logical OR, returning a predicate usable with find() and search().";
 	}
 
 	@Override
 	public String getLongDescription() {
 
-		return "The predicates can be passed as a single list or as a list of parameters.";
+		return "The predicates can be passed as separate parameters, as lists, or as any mix of both, e.g. `or([a, b], c)`.";
 	}
 
 	@Override
@@ -109,6 +110,20 @@ public class FindOrFunction extends CoreFunction {
 		return Signature.forAllScriptingLanguages("predicates");
 	}
 
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("predicates", "one or more predicates or lists of predicates, in any combination - a node matches if it matches at least one of them")
+		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+
+		return FunctionCategory.Predicate;
+	}
+
 	// ----- private methods -----
 	private void handleParameter(final OrPredicate orPredicate, final Object param) {
 
@@ -127,11 +142,5 @@ public class FindOrFunction extends CoreFunction {
 				handleParameter(orPredicate, o);
 			}
 		}
-	}
-
-	@Override
-	public FunctionCategory getCategory() {
-
-		return FunctionCategory.Predicate;
 	}
 }

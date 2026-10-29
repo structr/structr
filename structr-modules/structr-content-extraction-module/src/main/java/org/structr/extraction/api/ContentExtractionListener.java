@@ -58,6 +58,16 @@ public interface ContentExtractionListener {
 	}
 
 	/**
+	 * Called after chunks of a file were created or changed outside of an extraction, outside of any
+	 * transaction, e.g. to embed them: the chunk with the text of a DocumentFigure, when the text changed.
+	 *
+	 * @param fileUuid  the file's id
+	 * @param nodeUuids the ids of the ExtractedContentNodes that are new or changed
+	 */
+	default void onContentAdded(final String fileUuid, final List<String> nodeUuids) {
+	}
+
+	/**
 	 * Called after a deployment import replaced all content extraction configurations, outside of any
 	 * transaction. The import deletes and creates the configurations (with their ids), so anything a
 	 * module attached to them, e.g. a relationship, is gone and can be attached again here.

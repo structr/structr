@@ -86,7 +86,9 @@ public class ContentExtractionConfigurationTraitDefinition extends AbstractNodeT
 		ContentOptionsResolver.OCR_LANGUAGES,
 		ContentOptionsResolver.MAX_CHARACTERS,
 		ContentOptionsResolver.INCLUDE_EMBEDDED,
-		ContentOptionsResolver.INCLUDE_IMAGES
+		ContentOptionsResolver.INCLUDE_IMAGES,
+		ContentOptionsResolver.EXTRACT_FIGURES,
+		ContentOptionsResolver.FIGURE_TYPE
 	);
 
 	public static final Set<String> SPLITTERS       = Set.of("recursive", "structure", "sentence", "token", "page");
@@ -163,7 +165,10 @@ public class ContentExtractionConfigurationTraitDefinition extends AbstractNodeT
 		final Property<Boolean> includeEmbedded      = new NullableBooleanProperty(ContentOptionsResolver.INCLUDE_EMBEDDED).description("Whether embedded documents are extracted; empty uses contentextraction.extraction.includeembedded.");
 		final Property<Boolean> includeImages        = new NullableBooleanProperty(ContentOptionsResolver.INCLUDE_IMAGES).description("Whether images inside documents are read with OCR; empty uses contentextraction.extraction.includeimages.");
 
-		return newSet(target, enabled, splitter, chunkSize, chunkOverlap, sizeUnit, separators, includeHeadingPath, tokenEncoding, ocr, ocrLanguages, maxCharacters, includeEmbedded, includeImages);
+		final Property<Boolean> extractFigures       = new NullableBooleanProperty(ContentOptionsResolver.EXTRACT_FIGURES).description("Whether the figures of files are stored as DocumentFigures in a folder next to the file; empty uses contentextraction.figures.enabled.");
+		final Property<String> figureType            = new StringProperty(ContentOptionsResolver.FIGURE_TYPE).description("The type figures are stored as: DocumentFigure or a type that inherits it; empty means DocumentFigure.");
+
+		return newSet(target, enabled, splitter, chunkSize, chunkOverlap, sizeUnit, separators, includeHeadingPath, tokenEncoding, ocr, ocrLanguages, maxCharacters, includeEmbedded, includeImages, extractFigures, figureType);
 	}
 
 	@Override
@@ -273,6 +278,20 @@ public class ContentExtractionConfigurationTraitDefinition extends AbstractNodeT
 
 			errorBuffer.add(new SemanticErrorToken(obj.getType(), ContentOptionsResolver.CHUNK_OVERLAP, "must_be_smaller_than_chunk_size").withValue(overlap).withDetail(size));
 			valid = false;
+		}
+
+		final String figureType = obj.getProperty(traits.key(ContentOptionsResolver.FIGURE_TYPE));
+		if (figureType != null) {
+
+			try {
+
+				ContentOptionsResolver.figureType(figureType);
+
+			} catch (final IllegalArgumentException ex) {
+
+				errorBuffer.add(new SemanticErrorToken(obj.getType(), ContentOptionsResolver.FIGURE_TYPE, "must_inherit_document_figure").withValue(figureType));
+				valid = false;
+			}
 		}
 
 		final String[] separatorValues = obj.getProperty(separators);

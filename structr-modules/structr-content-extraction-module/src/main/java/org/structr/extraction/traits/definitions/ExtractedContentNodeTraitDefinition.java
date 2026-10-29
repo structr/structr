@@ -70,6 +70,7 @@ public class ExtractedContentNodeTraitDefinition extends AbstractNodeTraitDefini
 	public static final String CONTENT_HASH_PROPERTY    = "contentHash";
 	public static final String EMBEDDING_PROPERTY       = "embedding";
 	public static final String EMBEDDING_MODEL_PROPERTY = "embeddingModel";
+	public static final String FIGURE_PROPERTY          = "figure";
 
 	public ExtractedContentNodeTraitDefinition() {
 
@@ -129,16 +130,19 @@ public class ExtractedContentNodeTraitDefinition extends AbstractNodeTraitDefini
 		final Property<Double[]> embedding     = new ArrayProperty<>(EMBEDDING_PROPERTY, Double.class).disableSerialization(true).vectorIndexed(ContentExtraction::embeddingDimensions, "cosine");
 		final Property<String> embeddingModel  = new StringProperty(EMBEDDING_MODEL_PROPERTY);
 
-		return newSet(file, next, previous, text, position, startOffset, endOffset, charCount, tokenCount, pageStart, pageEnd, headingPath, embeddedPath, language, contentHash, embedding, embeddingModel);
+		// set for the chunk with the text of a DocumentFigure, which is not part of the text in reading order
+		final Property<NodeInterface> figure   = new StartNode(traitsInstance, FIGURE_PROPERTY, ContentExtractionTraits.FIGURE_CONTENT);
+
+		return newSet(file, next, previous, text, position, startOffset, endOffset, charCount, tokenCount, pageStart, pageEnd, headingPath, embeddedPath, language, contentHash, embedding, embeddingModel, figure);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
-			PropertyView.Public, newSet(TEXT_PROPERTY, POSITION_PROPERTY, PAGE_START_PROPERTY, PAGE_END_PROPERTY, HEADING_PATH_PROPERTY, EMBEDDED_PATH_PROPERTY, FILE_PROPERTY),
+			PropertyView.Public, newSet(TEXT_PROPERTY, POSITION_PROPERTY, PAGE_START_PROPERTY, PAGE_END_PROPERTY, HEADING_PATH_PROPERTY, EMBEDDED_PATH_PROPERTY, FILE_PROPERTY, FIGURE_PROPERTY),
 			PropertyView.Ui, newSet(FILE_PROPERTY, NEXT_PROPERTY, PREVIOUS_PROPERTY, TEXT_PROPERTY, POSITION_PROPERTY, START_OFFSET_PROPERTY, END_OFFSET_PROPERTY, CHAR_COUNT_PROPERTY,
-				TOKEN_COUNT_PROPERTY, PAGE_START_PROPERTY, PAGE_END_PROPERTY, HEADING_PATH_PROPERTY, EMBEDDED_PATH_PROPERTY, LANGUAGE_PROPERTY, CONTENT_HASH_PROPERTY, EMBEDDING_MODEL_PROPERTY)
+				TOKEN_COUNT_PROPERTY, PAGE_START_PROPERTY, PAGE_END_PROPERTY, HEADING_PATH_PROPERTY, EMBEDDED_PATH_PROPERTY, LANGUAGE_PROPERTY, CONTENT_HASH_PROPERTY, EMBEDDING_MODEL_PROPERTY, FIGURE_PROPERTY)
 		);
 	}
 

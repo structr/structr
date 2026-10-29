@@ -21,6 +21,7 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -53,9 +54,22 @@ public class FindLtFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-			return new RangePredicate(null, sources[0], false, false);
+			if (sources.length == 2) {
+
+				final String key      = sources[0].toString();
+				final Object value    = new RangePredicate(null, sources[1], false, false);
+
+				return new SearchParameter(key, value, true);
+			}
+
+			if (sources.length == 1) {
+
+				return new RangePredicate(null, sources[0], false, false);
+			}
+
+			throw new FrameworkException(422, getName() + "(): Unsupported number of arguments.");
 
 		} catch (final IllegalArgumentException e) {
 
@@ -69,21 +83,24 @@ public class FindLtFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.lt(value)}}. Example: ${{ $.find('User', { age: $.predicate.lt(42) }); }}"),
-			Usage.structrScript("Usage: ${lt(value)}. Example: ${find('User', 'age', lt(42))}")
+			Usage.javaScript("Usage: ${{ $.predicate.lt([ key, ] value) }}"),
+			Usage.structrScript("Usage: ${lt([ key, ] value)}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
 
-		return "Returns an lt predicate that can be used in find() function calls.";
+		return "Returns a query predicate that can be used with find() and search().";
 	}
 
 	@Override
 	public String getLongDescription() {
 
-		return "";
+		return """
+			Returns a search predicate to find nodes whose value is less than the given value in find() and search() functions.
+			The optional first parameter is the property key to search for, so `lt(key, value)` is equivalent to `equals(key, lt(value))`.
+			""";
 	}
 
 	@Override
@@ -92,15 +109,28 @@ public class FindLtFunction extends AdvancedScriptingFunction {
 		return List.of(
 				Example.javaScript("""
 				{
-					let projects = $.find('Project', $.predicate.equals('budget', $.predicate.lt(1000000)));
-				}""", "Find projects whose budget is less than a million")
+					let projects1 = $.find('Project', $.predicate.lt('budget', 1000000));
+
+					let projects2 = $.find('Project', $.predicate.equals('budget', $.predicate.lt(1000000)));
+
+					let projects3 = $.find('Project', { budget: $.predicate.lt(1000000) });
+				}""", "Three equivalent ways to find projects whose budget is less than a million")
 		);
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("value");
+		return Signature.forAllScriptingLanguages("[ key, ] value");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.optional("key", "property key to search for - can be omitted when used as the value of equals() or of a property in a map"),
+				Parameter.mandatory("value", "upper bound (exclusive)")
+		);
 	}
 
 	@Override

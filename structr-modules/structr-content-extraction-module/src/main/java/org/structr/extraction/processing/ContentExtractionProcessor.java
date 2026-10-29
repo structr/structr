@@ -37,7 +37,12 @@ import org.structr.extraction.api.ContentExtractionException;
 import org.structr.extraction.api.ContentExtractionListener;
 import org.structr.extraction.api.chunk.Chunk;
 import org.structr.extraction.api.document.ExtractedDocument;
+import org.structr.extraction.api.document.ExtractedFigureData;
+import org.structr.extraction.api.document.FigureSource;
 import org.structr.extraction.api.options.EffectiveContentOptions;
+import org.structr.extraction.api.options.ExtractionOptions;
+import org.structr.extraction.api.options.FigureOptions;
+import org.structr.extraction.api.options.OcrMode;
 import org.structr.extraction.api.processing.ExtractionStatus;
 import org.structr.extraction.api.processing.ProcessingResult;
 import org.structr.extraction.entity.ExtractedContentNode;
@@ -46,6 +51,7 @@ import org.structr.extraction.traits.definitions.ExtractedContentNodeTraitDefini
 import org.structr.extraction.traits.properties.ContentFileStateProperties;
 import org.structr.web.entity.File;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -107,9 +113,16 @@ public final class ContentExtractionProcessor {
 
 			// Tika reads the copy in place, instead of spooling a stream of it into another temporary file
 			final ExtractedDocument document = ContentExtraction.extract(prepared.copy(), prepared.fileName(), prepared.options().extraction());
-			final List<Chunk> chunks = ContentExtraction.split(document, prepared.options().split());
+			final List<Chunk> chunks         = ContentExtraction.split(document, prepared.options().split());
+			final Figures figures            = figures(prepared);
+			final ProcessingResult result    = store(app, fileUuid, prepared, document, chunks);
 
-			return store(app, fileUuid, prepared, document, chunks);
+			if (result.status() == ExtractionStatus.DONE && figures != null) {
+
+				storeFigures(app, fileUuid, figures, prepared.options().extraction().getFigureType());
+			}
+
+			return result;
 
 		} catch (final ContentExtractionException | IllegalArgumentException | FrameworkException ex) {
 
@@ -125,7 +138,8 @@ public final class ContentExtractionProcessor {
 	}
 
 	/**
-	 * Deletes the chunks of a file and resets its extraction state.
+	 * Deletes the chunks of a file, those with the text of its figures included, and resets its extraction
+	 * state.
 	 */
 	public static void deleteContent(final File file) throws FrameworkException {
 
@@ -138,7 +152,7 @@ public final class ContentExtractionProcessor {
 
 				final File current = node.as(File.class);
 
-				replaceChunks(app, current, List.of(), null);
+				replaceChunks(app, current, List.of(), null, false);
 
 				final PropertyMap properties = new PropertyMap();
 				final Traits traits          = Traits.of(StructrTraits.FILE);
@@ -193,6 +207,14 @@ public final class ContentExtractionProcessor {
 				return new Prepared(ProcessingResult.skipped(fileUuid, "The file no longer exists."), null, null, null, null);
 			}
 
+			// the figures of a document are content extraction's own output, also when a job reaches them through their folder
+			if (node.is(ContentExtractionTraits.DOCUMENT_FIGURE)) {
+
+				tx.success();
+
+				return new Prepared(ProcessingResult.skipped(fileUuid, "A figure of a document is not extracted itself; its text is part of the content of its document."), null, null, null, null);
+			}
+
 			final File file                        = node.as(File.class);
 			final Traits traits                    = Traits.of(StructrTraits.FILE);
 			final EffectiveContentOptions options  = ContentOptionsResolver.resolve(file, overrides);
@@ -206,7 +228,7 @@ public final class ContentExtractionProcessor {
 			// an empty file has nothing to extract (Tika rejects it); chunks of earlier content are stale
 			if (size == null || size == 0L) {
 
-				replaceChunks(app, file, List.of(), null);
+				replaceChunks(app, file, List.of(), null, true);
 				setStatus(file, ExtractionStatus.SKIPPED, "The file is empty.");
 				tx.success();
 
@@ -231,7 +253,8 @@ public final class ContentExtractionProcessor {
 
 			final Path copy = Files.createTempFile("structr-content-extraction-", ".tmp");
 
-			try (final InputStream input = file.getInputStream()) {
+			// the stored content: getInputStream would run the scripts of a template file and return its output
+			try (final InputStream input = file.getRawInputStream()) {
 
 				if (input == null) {
 
@@ -250,6 +273,117 @@ public final class ContentExtractionProcessor {
 			tx.success();
 
 			return new Prepared(null, copy, file.getName(), checksum, options);
+		}
+	}
+
+	/**
+	 * The figures of the file, if they are stored; null if they are not. Detection works on the copy,
+	 * outside of any transaction; a failure costs the figures, not the extraction.
+	 */
+	private static Figures figures(final Prepared prepared) {
+
+		final ExtractionOptions options = prepared.options().extraction();
+		if (!options.isExtractFigures()) {
+
+			return null;
+		}
+
+		try {
+
+			final List<ExtractedFigureData> figures = new ArrayList<>();
+
+			for (final ExtractedFigureData figure : ContentExtraction.extractFigures(prepared.copy(), prepared.fileName(), FigureOptions.fromSettings())) {
+
+				// an image file is its own figure: there is nothing to store next to it
+				if (figure.source() != FigureSource.FILE) {
+
+					figures.add(ocr(figure, options));
+				}
+			}
+
+			return new Figures(figures, null);
+
+		} catch (final ContentExtractionException ex) {
+
+			logger.warn("Figure extraction of file {} failed: {}", prepared.fileName(), ex.getMessage());
+
+			return new Figures(List.of(), "The figures could not be extracted: " + ex.getMessage());
+		}
+	}
+
+	/**
+	 * A picture has no text a PDF could tell, so what OCR reads in it is added; a chart drawn as vector
+	 * graphics has its labels as text already.
+	 */
+	private static ExtractedFigureData ocr(final ExtractedFigureData figure, final ExtractionOptions options) {
+
+		final String captionOnly = figure.caption() != null ? figure.caption() : "";
+		if (options.getOcrMode() == OcrMode.OFF || !figure.text().strip().equals(captionOnly.strip())) {
+
+			return figure;
+		}
+
+		try {
+
+			return figure.withMoreText(ContentExtraction.extract(new ByteArrayInputStream(figure.image()), "figure.png", options).getText());
+
+		} catch (final ContentExtractionException ex) {
+
+			logger.debug("OCR of a figure failed: {}", ex.getMessage());
+
+			return figure;
+		}
+	}
+
+	/**
+	 * Stores the figures in a transaction of its own, after the chunks: a figure that cannot be stored
+	 * costs the figures and leaves a warning, never the extracted text.
+	 */
+	private static void storeFigures(final App app, final String fileUuid, final Figures figures, final String figureType) {
+
+		String warning = figures.warning();
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.getNodeById(StructrTraits.FILE, fileUuid);
+			if (node != null) {
+
+				FigureStore.replace(node.as(File.class), figures.figures(), figureType);
+			}
+
+			tx.success();
+
+		} catch (final FrameworkException ex) {
+
+			logger.warn("Unable to store the figures of file {}: {}", fileUuid, ex.getMessage());
+
+			warning = "The figures could not be stored: " + ex.getMessage();
+		}
+
+		if (warning != null) {
+
+			addWarning(app, fileUuid, warning);
+		}
+	}
+
+	private static void addWarning(final App app, final String fileUuid, final String warning) {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.getNodeById(StructrTraits.FILE, fileUuid);
+			if (node != null) {
+
+				final PropertyKey<String> errorKey = Traits.of(StructrTraits.FILE).key(ContentFileStateProperties.ERROR);
+				final String existing              = node.getProperty(errorKey);
+
+				node.setProperty(errorKey, existing != null ? existing + " " + warning : warning);
+			}
+
+			tx.success();
+
+		} catch (final FrameworkException ex) {
+
+			logger.warn("Unable to record a warning for file {}: {}", fileUuid, ex.getMessage());
 		}
 	}
 
@@ -272,7 +406,7 @@ public final class ContentExtractionProcessor {
 			final Traits traits          = Traits.of(StructrTraits.FILE);
 			final List<String> warnings  = new ArrayList<>(prepared.options().warnings());
 
-			nodeUuids = replaceChunks(app, file, chunks, document.getMetadata().language());
+			nodeUuids = replaceChunks(app, file, chunks, document.getMetadata().language(), true);
 
 			if (document.getMetadata().truncated()) {
 
@@ -297,9 +431,10 @@ public final class ContentExtractionProcessor {
 	/**
 	 * Deletes the chunks of a file and creates the new ones, chained in reading order.
 	 *
+	 * @param keepFigureText whether the chunks with the text of the file's figures are kept
 	 * @return the ids of the new chunks
 	 */
-	private static List<String> replaceChunks(final App app, final File file, final List<Chunk> chunks, final String language) throws FrameworkException {
+	private static List<String> replaceChunks(final App app, final File file, final List<Chunk> chunks, final String language, final boolean keepFigureText) throws FrameworkException {
 
 		final Traits fileTraits                       = Traits.of(StructrTraits.FILE);
 		final Traits chunkTraits                      = Traits.of(ContentExtractionTraits.EXTRACTED_CONTENT_NODE);
@@ -308,7 +443,13 @@ public final class ContentExtractionProcessor {
 
 		for (final NodeInterface node : existing) {
 
-			oldNodes.add(node.as(ExtractedContentNode.class));
+			final ExtractedContentNode old = node.as(ExtractedContentNode.class);
+
+			// the text of figures is not part of the extracted text, so a new extraction does not replace it
+			if (!keepFigureText || old.getFigure() == null) {
+
+				oldNodes.add(old);
+			}
 		}
 
 		for (final ContentExtractionListener listener : ContentExtraction.getListeners()) {
@@ -446,5 +587,11 @@ public final class ContentExtractionProcessor {
 	}
 
 	private record Embedding(Double[] vector, String model) {
+	}
+
+	/**
+	 * The figures to store, and why there are none if detection failed.
+	 */
+	private record Figures(List<ExtractedFigureData> figures, String warning) {
 	}
 }

@@ -157,6 +157,12 @@ public class ExtractedContentNodeTraitWrapper extends AbstractNodeTraitWrapper i
 		return wrappedObject.getProperty(traits.key(EMBEDDING_MODEL_PROPERTY));
 	}
 
+	@Override
+	public NodeInterface getFigure() {
+
+		return wrappedObject.getProperty(traits.key(FIGURE_PROPERTY));
+	}
+
 	// ----- private methods -----
 	private ExtractedContentNode neighbour(final String key) {
 

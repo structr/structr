@@ -121,6 +121,18 @@ if [ -z "$CONF_MAX_HEAP" ] && [ -z "$CONF_MIN_HEAP" ]; then
 		unset HEAP_MAX
 	fi
 fi
+
+# Warn if no database driver is configured: Structr then falls back to the in-memory database
+if ! grep -qE "^\s*([^=]*\.)?database\.driver\s*=" "${_STRUCTR_HOME}/structr.conf"; then
+	echo
+	echo "        WARNING: No database driver is configured, so Structr runs with the IN-MEMORY database."
+	echo "        All data is LOST when the container stops. For a persistent embedded Neo4j database, set"
+	echo "            STRUCTR_database_driver=org.structr.embedded.EmbeddedDatabaseService"
+	echo "            STRUCTR_database_path=/var/lib/structr/db"
+	echo "        and mount a volume at /var/lib/structr/db."
+	echo
+fi
+
 # Run startup config script
 . bin/config
 
@@ -134,4 +146,4 @@ fi
 
 echo "        Starting structr server $DISPLAY_NAME"
 
-java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS
+exec java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS

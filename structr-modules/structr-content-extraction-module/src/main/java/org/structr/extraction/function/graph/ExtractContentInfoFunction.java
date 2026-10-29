@@ -18,6 +18,7 @@
  */
 package org.structr.extraction.function.graph;
 
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -70,6 +71,7 @@ public class ExtractContentInfoFunction extends ContentExtractionFunction {
 		info.put("error",         file.getProperty(traits.key(ContentFileStateProperties.ERROR)));
 		info.put("date",          file.getProperty(traits.key(ContentFileStateProperties.DATE)));
 		info.put("chunkCount",    ContentExtraction.getExtractedContent(file).size());
+		info.put("figureCount",   Iterables.count(file.getProperty(traits.key(ContentFileStateProperties.FIGURES))));
 		info.put("ocrUsed",       file.getProperty(traits.key(ContentFileStateProperties.OCR)));
 
 		try {
@@ -121,7 +123,8 @@ public class ExtractContentInfoFunction extends ContentExtractionFunction {
 			- `extract`, `source`, `configuration` and `target`: whether the file is extracted automatically, and why: the nearest \
 			`ContentExtractionConfiguration` decides, attached to the file itself (`file`) or to one of its folders (`folder`); `configuration` \
 			is its UUID and `target` the path it is attached to. Without one, the file is not extracted (`default`).
-			- `status`, `error`, `date`, `chunkCount` and `ocrUsed`: the state of the last extraction.
+			- `status`, `error`, `date`, `chunkCount` and `ocrUsed`: the state of the last extraction; `figureCount`: the number of stored \
+			figures of the document (`DocumentFigure`s).
 			- `ocrAvailable` and `ocrLanguages`: whether Tesseract is installed, with which languages.
 			- `options`: every option the file would be processed with, as `{ value, source }`, where source is `setting`, `config:<path>` or \
 			`call`; and `warnings`, e.g. about an overlap that had to be reduced.""";

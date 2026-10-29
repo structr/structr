@@ -44,8 +44,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * The extraction state the module adds to File: status, error, date, checksum, options hash, OCR flag
- * and the chunks. The configuration of automatic extraction is not stored on File or Folder but in
+ * The extraction state the module adds to File: status, error, date, checksum, options hash, OCR flag,
+ * the chunks and the stored figures. The configuration of automatic extraction is not stored on File or Folder but in
  * ContentExtractionConfiguration nodes.
  *
  * Modules cannot add lifecycle methods to existing types, so the write rule is enforced by the
@@ -60,6 +60,7 @@ public final class ContentFileStateProperties {
 	public static final String OPTIONS_HASH                  = "contentExtractionOptionsHash";
 	public static final String OCR                           = "contentExtractionOcr";
 	public static final String EXTRACTED_CONTENT_NODES       = "extractedContentNodes";
+	public static final String FIGURES                       = "figures";
 
 	private ContentFileStateProperties() {
 	}
@@ -80,7 +81,8 @@ public final class ContentFileStateProperties {
 			internalLong(CHECKSUM).description("File checksum at the last extraction; unchanged files are skipped."),
 			internalString(OPTIONS_HASH).description("Hash of the split and OCR options of the last extraction; changed options cause re-extraction."),
 			internalBoolean(OCR).description("Whether OCR contributed text in the last extraction."),
-			new EndNodes(root, EXTRACTED_CONTENT_NODES, ContentExtractionTraits.FILE_HAS_EXTRACTED_CONTENT).description("The chunks of this file's content.")
+			new EndNodes(root, EXTRACTED_CONTENT_NODES, ContentExtractionTraits.FILE_HAS_EXTRACTED_CONTENT).description("The chunks of this file's content."),
+			new EndNodes(root, FIGURES, ContentExtractionTraits.FILE_HAS_FIGURE).description("The figures of this document that were stored as DocumentFigures.")
 		);
 	}
 

@@ -43,8 +43,26 @@ public final class ContentChunkReader {
 
 	/**
 	 * The chunks of a file in reading order, as far as they are visible to the file's security context.
+	 * The chunks with the text of figures are not part of the text and are left out.
 	 */
 	public static List<ExtractedContentNode> chunks(final File file) {
+
+		return allChunks(file).stream().filter(chunk -> chunk.getFigure() == null).toList();
+	}
+
+	/**
+	 * The chunks with the text of the document's figures.
+	 */
+	public static List<ExtractedContentNode> figureChunks(final File file) {
+
+		return allChunks(file).stream().filter(chunk -> chunk.getFigure() != null).toList();
+	}
+
+	/**
+	 * All chunks of a file: the text in reading order, then the chunks with the text of its figures, in the
+	 * order they were created.
+	 */
+	public static List<ExtractedContentNode> allChunks(final File file) {
 
 		final Iterable<NodeInterface> nodes  = file.getProperty(Traits.of(StructrTraits.FILE).key(ContentFileStateProperties.EXTRACTED_CONTENT_NODES));
 		final List<ExtractedContentNode> list = new ArrayList<>();
@@ -54,7 +72,9 @@ public final class ContentChunkReader {
 			list.add(node.as(ExtractedContentNode.class));
 		}
 
-		list.sort(Comparator.comparingInt(ExtractedContentNode::getPosition));
+		list.sort(Comparator.comparing(ContentChunkReader::isFigureText)
+			.thenComparing((ExtractedContentNode chunk) -> isFigureText(chunk) ? chunk.getCreatedDate() : null, Comparator.nullsFirst(Comparator.naturalOrder()))
+			.thenComparingInt(ExtractedContentNode::getPosition));
 
 		return list;
 	}
@@ -123,6 +143,14 @@ public final class ContentChunkReader {
 	}
 
 	// ----- private methods -----
+	/**
+	 * Whether a chunk holds the text of a figure instead of a part of the text of its file.
+	 */
+	private static boolean isFigureText(final ExtractedContentNode chunk) {
+
+		return chunk.getFigure() != null;
+	}
+
 	/**
 	 * The part of a chunk's text that its offsets cover; without the section path prefix, if any.
 	 */

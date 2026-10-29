@@ -40,6 +40,8 @@ public interface GlobalSearchContributor {
 	 * @param searchContexts   the selected contexts (DatabaseService.GLOBAL_SEARCH_CONTEXT_*)
 	 * @param searchString     what the user typed
 	 * @param searchIgnoreCase whether the user asked for case-insensitive matching
+	 * @param searchFuzzy      whether inexact matches (typos, prefixes, parts of words) are welcome; if not,
+	 *                         only places that contain the search string itself are results
 	 */
-	List<Map<String, Object>> search(SecurityContext securityContext, Set<String> searchContexts, String searchString, boolean searchIgnoreCase);
+	List<Map<String, Object>> search(SecurityContext securityContext, Set<String> searchContexts, String searchString, boolean searchIgnoreCase, boolean searchFuzzy);
 }

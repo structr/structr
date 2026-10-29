@@ -56,6 +56,22 @@ public final class ContentExtractionSettings {
 	public static final Setting<Boolean> IncludeImages = new BooleanSetting(Settings.applicationGroup, CATEGORY, "contentextraction.extraction.includeimages", false,
 		"Whether images inside documents (inline images of PDFs, pictures in office documents and e-mails) are read with OCR. Only applies if OCR is available. Images on PDF pages that OCR reads as a whole, and tiny images, are left out. Images that are attachments or archive entries are embedded documents, see contentextraction.extraction.includeembedded.");
 
+	// ----- figures -----
+	public static final Setting<Boolean> ExtractFigures = new BooleanSetting(Settings.applicationGroup, CATEGORY, "contentextraction.figures.enabled", false,
+		"Whether processing a file also stores its figures (charts, diagrams, tables with a caption, pictures) as DocumentFigure images in a folder next to the file, with their text in the searchable content. Can be overridden by a content extraction configuration.");
+
+	public static final Setting<Integer> FigureDpi = new IntegerSetting(Settings.applicationGroup, CATEGORY, "contentextraction.figures.dpi", 150,
+		"Resolution the figures of PDF pages are rendered at.");
+
+	public static final Setting<Integer> FigureMaxPages = new IntegerSetting(Settings.applicationGroup, CATEGORY, "contentextraction.figures.maxpages", 300,
+		"Maximum number of PDF pages searched for figures per document. Further pages are left out.");
+
+	public static final Setting<Integer> FigureMaxFigures = new IntegerSetting(Settings.applicationGroup, CATEGORY, "contentextraction.figures.maxfigures", 100,
+		"Maximum number of figures found per document.");
+
+	public static final Setting<Integer> FigureMinSize = new IntegerSetting(Settings.applicationGroup, CATEGORY, "contentextraction.figures.minsize", 72,
+		"Minimum width and height of a figure without a caption, in points on a PDF page (72 points are one inch) and in pixels in an image. Figures with a caption are kept at any size.");
+
 	// ----- splitting -----
 	public static final Setting<String> Splitter = new ChoiceSetting(Settings.applicationGroup, CATEGORY, "contentextraction.split.splitter", "structure",
 		Settings.getStringsAsSet("recursive", "structure", "sentence", "token", "page"),

@@ -31,8 +31,12 @@ module structr.content.extraction.module {
     requires org.apache.tika.parser.microsoft;
     requires org.apache.tika.langdetect.optimaize;
 
-    // page count of a PDF before parsing, to keep long documents from OCR (Tika has no per-document limit)
+    // page count of a PDF before parsing, to keep long documents from OCR (Tika has no per-document limit),
+    // and finding and rendering the figures of a PDF
     requires org.apache.pdfbox;
+
+    // figure images (BufferedImage, ImageIO)
+    requires java.desktop;
 
     // filename-based automatic module name of jtokkit-<version>.jar (the jar has no Automatic-Module-Name)
     requires jtokkit;

@@ -36,6 +36,7 @@ import org.structr.core.scheduler.JobQueueManager;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.extraction.ContentExtractionSettings;
+import org.structr.extraction.ContentExtractionTraits;
 import org.structr.extraction.options.ContentOptionsResolver;
 import org.structr.extraction.processing.ContentExtractionJob;
 import org.structr.web.entity.File;
@@ -184,7 +185,8 @@ public class ContentFileChangeListener implements StructrTransactionListener {
 
 			if (event.isNode()) {
 
-				if (object instanceof NodeInterface node && node.is(StructrTraits.FILE) && (hasNewVersion(event, node, versionKey) || isCreatedWithContent(event, node))) {
+				// the figures of a document are content extraction's own output, never its input
+				if (object instanceof NodeInterface node && node.is(StructrTraits.FILE) && !node.is(ContentExtractionTraits.DOCUMENT_FIGURE) && (hasNewVersion(event, node, versionKey) || isCreatedWithContent(event, node))) {
 
 					candidates.add(event.getUuid());
 				}

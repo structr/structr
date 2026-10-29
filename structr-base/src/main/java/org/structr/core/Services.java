@@ -309,6 +309,9 @@ public class Services implements StructrServices, BroadcastReceiver {
 						Settings.ConnectionPassword.setValue(Settings.ConnectionPassword.getDefaultValue());
 						Settings.DatabaseDriverMode.setValue(Settings.DatabaseDriverMode.getDefaultValue());
 
+						// deprecated, so the next store drops it from structr.conf
+						Settings.DatabaseDriverMode.setIsModified(false);
+
 					} catch (FrameworkException fex) {
 
 						logger.warn("Unable to migrate configuration: {}", fex.getMessage());

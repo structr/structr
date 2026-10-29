@@ -21,6 +21,7 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.CoreFunction;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -72,21 +73,21 @@ public class FindAndFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.and(predicates...) }}. Example: ${{ $.find('Group', $.predicate.and($.predicate.equals('name', 'Test'))) }}"),
-			Usage.structrScript("Usage: ${and(predicate, ...). Example: ${find('Group', and(equals('name', 'Test')))}")
+			Usage.javaScript("Usage: ${{ $.predicate.and(predicates...) }}"),
+			Usage.structrScript("Usage: ${and(predicate, ...)}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
 
-		return "Combines the given predicates using logical AND, returning a predicate usable with find() or search().";
+		return "Combines the given predicates using logical AND, returning a predicate usable with find() and search().";
 	}
 
 	@Override
 	public String getLongDescription() {
 
-		return "The predicates can be passed as a single list or as a list of parameters.";
+		return "The predicates can be passed as separate parameters, as lists, or as any mix of both, e.g. `and([a, b], c)`.";
 	}
 
 	@Override
@@ -107,6 +108,14 @@ public class FindAndFunction extends CoreFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("predicates");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("predicates", "one or more predicates or lists of predicates, in any combination - a node matches if it matches all of them")
+		);
 	}
 
 	@Override

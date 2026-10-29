@@ -35,11 +35,14 @@ import org.structr.extraction.api.document.DetectedLanguage;
 import org.structr.extraction.api.document.DocumentMetadata;
 import org.structr.extraction.api.document.EmbeddedDocument;
 import org.structr.extraction.api.document.ExtractedDocument;
+import org.structr.extraction.api.document.ExtractedFigureData;
 import org.structr.extraction.api.document.ExtractedLink;
 import org.structr.extraction.api.document.ExtractedTable;
+import org.structr.extraction.api.document.FigureContext;
 import org.structr.extraction.api.document.OcrInfo;
 import org.structr.extraction.api.options.EffectiveContentOptions;
 import org.structr.extraction.api.options.ExtractionOptions;
+import org.structr.extraction.api.options.FigureOptions;
 import org.structr.extraction.api.options.NormalizeOptions;
 import org.structr.extraction.api.options.OcrMode;
 import org.structr.extraction.api.options.SplitOptions;
@@ -52,11 +55,13 @@ import org.structr.extraction.chunking.ContentChunker;
 import org.structr.extraction.chunking.token.TokenCounter;
 import org.structr.extraction.entity.ExtractedContentNode;
 import org.structr.extraction.options.ContentOptionsResolver;
+import org.structr.extraction.parser.figures.FigureExtractor;
 import org.structr.extraction.parser.tika.TikaDocumentExtractor;
 import org.structr.extraction.processing.ContentExtractionJob;
 import org.structr.extraction.processing.ContentExtractionProcessor;
 import org.structr.extraction.query.ContentChunkReader;
 import org.structr.extraction.query.ContentKeywordSearch;
+import org.structr.extraction.query.FigureContextReader;
 import org.structr.extraction.text.StopWords;
 import org.structr.extraction.text.TextLanguageDetector;
 import org.structr.extraction.text.TextNormalizer;
@@ -64,7 +69,9 @@ import org.structr.web.entity.File;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -171,6 +178,44 @@ public final class ContentExtraction {
 
 			throw new ContentExtractionException("Unable to read file " + file.getName() + ": " + ex.getMessage(), ex);
 		}
+	}
+
+	/**
+	 * The figures of a file (charts, diagrams, tables with a caption, pictures) with their rendered images,
+	 * in reading order. Nothing is stored.
+	 */
+	public static List<ExtractedFigureData> extractFigures(final File file, final FigureOptions options) throws ContentExtractionException {
+
+		Path copy = null;
+
+		try (final InputStream input = open(file)) {
+
+			// PDFBox and Tika need random access, so the content is read from a local copy
+			copy = Files.createTempFile("structr-content-figures-", ".tmp");
+
+			Files.copy(input, copy, StandardCopyOption.REPLACE_EXISTING);
+
+			return FigureExtractor.extract(copy, file.getName(), options);
+
+		} catch (final IOException ex) {
+
+			throw new ContentExtractionException("Unable to read file " + file.getName() + ": " + ex.getMessage(), ex);
+
+		} finally {
+
+			deleteQuietly(copy);
+		}
+	}
+
+	/**
+	 * The figures of a document in a local file, in reading order. Nothing is stored.
+	 *
+	 * @param path     the document
+	 * @param fileName the file name, used as a hint for type detection; may be null
+	 */
+	public static List<ExtractedFigureData> extractFigures(final Path path, final String fileName, final FigureOptions options) throws ContentExtractionException {
+
+		return FigureExtractor.extract(path, fileName, options);
 	}
 
 	/**
@@ -316,6 +361,15 @@ public final class ContentExtraction {
 	}
 
 	/**
+	 * All stored chunks of a file: the chunks of the text in reading order, then the chunks with the text
+	 * of its figures. For a module that processes every chunk, e.g. to embed it.
+	 */
+	public static List<ExtractedContentNode> getAllContent(final File file) {
+
+		return ContentChunkReader.allChunks(file);
+	}
+
+	/**
 	 * The stored text of a file, reassembled from its chunks with overlapping parts included once.
 	 */
 	public static String getExtractedText(final File file) {
@@ -332,7 +386,27 @@ public final class ContentExtraction {
 	}
 
 	/**
-	 * Deletes the stored chunks of a file and resets its extraction state.
+	 * What a document says about one of its figures, for a prompt that interprets the figure in its
+	 * context: the caption and the sentences that refer to the figure, the text of its page, and other
+	 * passages with the words of its caption, assembled into one text within a token budget. Uses the
+	 * stored content of the document, so it must have been extracted. Must run in a transaction.
+	 *
+	 * @param label     the figure's label, e.g. "Figure 3"; may be null
+	 * @param caption   the figure's caption; may be null
+	 * @param page      the page the figure is on; may be null
+	 * @param mentions  the sentences of the document that refer to the figure
+	 * @param maxTokens the token budget of the assembled text
+	 * @param passages  how many other passages to find; 0 for none
+	 */
+	public static FigureContext getFigureContext(final SecurityContext securityContext, final File document, final String label, final String caption, final Integer page, final List<String> mentions,
+		final int maxTokens, final int passages) throws FrameworkException {
+
+		return FigureContextReader.read(securityContext, document, label, caption, page, mentions, maxTokens, passages);
+	}
+
+	/**
+	 * Deletes the stored chunks of a file, those with the text of its figures included, and resets its
+	 * extraction state. The figures themselves are kept.
 	 */
 	public static void deleteExtractedContent(final File file) throws FrameworkException {
 
@@ -441,19 +515,28 @@ public final class ContentExtraction {
 			throw new ContentExtractionException("File " + file.getName() + " is larger than the extraction limit of " + maxSizeMB + " MB (contentextraction.extraction.maxfilesize).");
 		}
 
-		try {
+		// the stored content: getInputStream would run the scripts of a template file and return its output
+		final InputStream input = file.getRawInputStream();
+		if (input == null) {
 
-			final InputStream input = file.getInputStream();
-			if (input == null) {
+			throw new ContentExtractionException("File " + file.getName() + " has no content.");
+		}
 
-				throw new ContentExtractionException("File " + file.getName() + " has no content.");
+		return input;
+	}
+
+	private static void deleteQuietly(final Path path) {
+
+		if (path != null) {
+
+			try {
+
+				Files.deleteIfExists(path);
+
+			} catch (final IOException ex) {
+
+				// a temporary file the system cleans up eventually
 			}
-
-			return input;
-
-		} catch (final IOException ex) {
-
-			throw new ContentExtractionException("Unable to read file " + file.getName() + ": " + ex.getMessage(), ex);
 		}
 	}
 

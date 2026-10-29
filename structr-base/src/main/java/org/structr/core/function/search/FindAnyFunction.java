@@ -77,8 +77,8 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.any(collection). Example: ${{ $.find('Group', $.predicate.equals('name', $.predicate.any(['Group 1', 'Group 2']))) }}"),
-			Usage.structrScript("Usage: ${any(collection). Example: ${find('Group', equals('name', any(merge('Group 1', 'Group 2'))))}")
+			Usage.javaScript("Usage: ${{ $.predicate.any(collection)"),
+			Usage.structrScript("Usage: ${any(collection)")
 		);
 	}
 

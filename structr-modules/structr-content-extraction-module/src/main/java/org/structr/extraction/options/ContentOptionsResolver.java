@@ -19,6 +19,8 @@
 package org.structr.extraction.options;
 
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.extraction.ContentExtractionTraits;
 import org.structr.extraction.api.options.EffectiveContentOptions;
 import org.structr.extraction.api.options.ExtractionOptions;
 import org.structr.extraction.api.options.OcrMode;
@@ -63,9 +65,11 @@ public final class ContentOptionsResolver {
 	public static final String MAX_CHARACTERS       = "maxCharacters";
 	public static final String INCLUDE_EMBEDDED     = "includeEmbedded";
 	public static final String INCLUDE_IMAGES       = "includeImages";
+	public static final String EXTRACT_FIGURES      = "extractFigures";
+	public static final String FIGURE_TYPE          = "figureType";
 
 	/** The options that can be overridden per call. */
-	public static final Set<String> OPTIONS = Set.of(SPLITTER, CHUNK_SIZE, CHUNK_OVERLAP, SIZE_UNIT, SEPARATORS, INCLUDE_HEADING_PATH, TOKEN_ENCODING, OCR, OCR_LANGUAGES, MAX_CHARACTERS, INCLUDE_EMBEDDED, INCLUDE_IMAGES);
+	public static final Set<String> OPTIONS = Set.of(SPLITTER, CHUNK_SIZE, CHUNK_OVERLAP, SIZE_UNIT, SEPARATORS, INCLUDE_HEADING_PATH, TOKEN_ENCODING, OCR, OCR_LANGUAGES, MAX_CHARACTERS, INCLUDE_EMBEDDED, INCLUDE_IMAGES, EXTRACT_FIGURES, FIGURE_TYPE);
 
 	private static final String CALL    = "call";
 	private static final String SETTING = "setting";
@@ -155,6 +159,8 @@ public final class ContentOptionsResolver {
 		defaults.put(MAX_CHARACTERS,       extraction.getMaxCharacters());
 		defaults.put(INCLUDE_EMBEDDED,     extraction.isIncludeEmbedded());
 		defaults.put(INCLUDE_IMAGES,       extraction.isIncludeImages());
+		defaults.put(EXTRACT_FIGURES,      extraction.isExtractFigures());
+		defaults.put(FIGURE_TYPE,          extraction.getFigureType());
 
 		return defaults;
 	}
@@ -190,6 +196,8 @@ public final class ContentOptionsResolver {
 		extraction.setMaxCharacters(integer(values, MAX_CHARACTERS, 1));
 		extraction.setIncludeEmbedded(bool(values, INCLUDE_EMBEDDED));
 		extraction.setIncludeImages(bool(values, INCLUDE_IMAGES));
+		extraction.setExtractFigures(bool(values, EXTRACT_FIGURES));
+		extraction.setFigureType(figureType(string(values, FIGURE_TYPE)));
 	}
 
 	/**
@@ -231,6 +239,19 @@ public final class ContentOptionsResolver {
 			// every Java runtime is required to provide SHA-256
 			throw new IllegalStateException(ex);
 		}
+	}
+
+	/**
+	 * The type figures are stored as must be DocumentFigure or inherit it.
+	 */
+	public static String figureType(final String name) {
+
+		if (!Traits.exists(name) || !Traits.of(name).contains(ContentExtractionTraits.DOCUMENT_FIGURE)) {
+
+			throw new IllegalArgumentException("Option '" + FIGURE_TYPE + "' must be " + ContentExtractionTraits.DOCUMENT_FIGURE + " or a type that inherits it, got '" + name + "'.");
+		}
+
+		return name;
 	}
 
 	private static String string(final Map<String, EffectiveContentOptions.Value> values, final String name) {
