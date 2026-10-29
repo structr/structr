@@ -27,6 +27,7 @@ import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class FindRangeFunction extends AdvancedScriptingFunction {
@@ -52,25 +53,27 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		Object rangeStart    = null;
-		Object rangeEnd      = null;
-		boolean includeStart = true;
-		boolean includeEnd   = true;
-
 		try {
 
-			assertArrayHasMinLengthAndMaxLength(sources, 2, 4);
+			assertArrayHasMinLengthAndMaxLength(sources, 2, 5);
 
-			switch (sources.length) {
+			// The flags always follow the end value, so position 2 holds a flag in range(start, end, includeStart [, includeEnd ])
+			// and the end value in range(key, start, end [, includeStart [, includeEnd ]]). We can not decide by the type of the
+			// first parameter alone because start and end can be strings as well.
+			final boolean hasKey = sources.length == 5 || (sources.length >= 3 && sources[0] instanceof String && !(sources[2] instanceof Boolean));
+			if (hasKey) {
 
-				case 4: includeEnd   = Boolean.parseBoolean(String.valueOf(sources[3]));
-				case 3: includeStart = Boolean.parseBoolean(String.valueOf(sources[2]));
-				case 2: rangeEnd     = sources[1];
-				case 1: rangeStart   = sources[0];
-				default: break;
+				if (sources[0] == null) {
+					throw new FrameworkException(422, getName() + "(): key must not be null");
+				}
+
+				final String key   = sources[0].toString();
+				final Object value = createRangePredicate(Arrays.copyOfRange(sources, 1, sources.length));
+
+				return new SearchParameter(key, value, true);
 			}
 
-			return new RangePredicate(rangeStart, rangeEnd, includeStart, includeEnd);
+			return createRangePredicate(sources);
 
 		} catch (final IllegalArgumentException e) {
 
@@ -78,12 +81,31 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 		}
 	}
 
+	private RangePredicate createRangePredicate(final Object[] sources) {
+
+		Object rangeStart    = null;
+		Object rangeEnd      = null;
+		boolean includeStart = true;
+		boolean includeEnd   = true;
+
+		switch (sources.length) {
+
+			case 4: includeEnd   = Boolean.parseBoolean(String.valueOf(sources[3]));
+			case 3: includeStart = Boolean.parseBoolean(String.valueOf(sources[2]));
+			case 2: rangeEnd     = sources[1];
+			case 1: rangeStart   = sources[0];
+			default: break;
+		}
+
+		return new RangePredicate(rangeStart, rangeEnd, includeStart, includeEnd);
+	}
+
 	@Override
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.range(start, end) }}"),
-			Usage.structrScript("Usage: ${range(start, end)}")
+			Usage.javaScript("Usage: ${{ $.predicate.range([ key, ] start, end [, includeStart, includeEnd ]) }}"),
+			Usage.structrScript("Usage: ${range([ key, ] start, end [, includeStart, includeEnd ])}")
 		);
 	}
 
@@ -98,9 +120,10 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 
 		return """
 			Returns a search predicate to specify value ranges, greater and less-than searches in find() and search() functions.
-			The first two parameters represent the first and the last element of the desired query range. Both start and end of the range can be
+			The optional first parameter is the property key to search for, so `range(key, start, end)` is equivalent to `equals(key, range(start, end))`.
+			The parameters `start` and `end` represent the first and the last element of the desired query range. Both start and end of the range can be
 			set to `null` to allow the use of `range()` for `<`, `<=`. `>` and `>=` queries, although there are dedicated predicate functions for that (lt, lte, gt, gte).
-			
+
 			The two optional boolean parameters, `includeStart` and `includeEnd` control whether the search range should **include** or **exclude** the endpoints of the interval.
 			""";
 	}
@@ -108,7 +131,7 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("start, end [, includeStart, includeEnd ]");
+		return Signature.forAllScriptingLanguages("[ key, ] start, end [, includeStart, includeEnd ]");
 	}
 
 	@Override
@@ -118,6 +141,16 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 				Example.structrScript("${find('Project', 'taskCount', range(0, 10))}"),
 				Example.structrScript("${find('Project', 'taskCount', range(0, 10, true, false))}"),
 				Example.structrScript("${find('Project', 'taskCount', range(0, 10, false, false))}"),
+				Example.structrScript("${find('Project', range('taskCount', 0, 10))}"),
+				Example.javaScript("""
+				{
+					let projects1 = $.find('Project', $.predicate.range('taskCount', 0, 10));
+
+					let projects2 = $.find('Project', $.predicate.equals('taskCount', $.predicate.range(0, 10)));
+
+					let projects3 = $.find('Project', { taskCount: $.predicate.range(0, 10) });
+
+				}""", "Three equivalent ways to find projects with 0 to 10 tasks"),
 				Example.javaScript("""
 						${{ $.find('Project').forEach(p => $.print(p.index + ", ")) }}
 						> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
@@ -145,6 +178,7 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
+				Parameter.optional("key", "property key to search for - can be omitted when used as the value of equals() or of a property in a map"),
 				Parameter.mandatory("start", "start of search interval"),
 				Parameter.mandatory("end", "end of search interval"),
 				Parameter.optional("includeStart", "true to include startpoint of given interval - default: true"),
