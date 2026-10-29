@@ -3830,6 +3830,71 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44))); }}", "testFindNewSyntax")).size());
 			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.and($.predicate.equals('name3', 'other'), $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44)))); }}", "testFindNewSyntax")).size());
 
+			// test equivalent call-styles for lt,lte,gt,gte  (e.g. $.predicate.lt(key, value) === $.predicate.equals(key, $.predicate.lt(value))
+			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.lt(22))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.lt('age', 22)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.lte(22))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.lte('age', 22)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.lt(33))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.lt('age', 33)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.lte(33))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.lte('age', 33)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.lt(44))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.lt('age', 44)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.lte(44))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.lte('age', 44)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.gt(22))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.gt('age', 22)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.gte(22))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.gte('age', 22)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.gt(33))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.gt('age', 33)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.gte(33))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.gte('age', 33)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.gt(44))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.gt('age', 44)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.gte(44))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.gte('age', 44)); }}", "testFindNewSyntax")).size());
+
+			// test equivalent call-styles for range (e.g. $.predicate.range(key, start, end) === $.predicate.equals(key, $.predicate.range(start, end))
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.range(22, 44))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.range('age', 22, 44)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.range(22, 44, false))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.range('age', 22, 44, false)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.range(22, 44, false, false))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.range('age', 22, 44, false, false)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.range(22, 44, true, false))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.range('age', 22, 44, true, false)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', { age: $.predicate.range(22, 33) }); }}", "testFindNewSyntax")).size());
+
+			// open-ended ranges with key: null at position 2 is the end value, not a flag
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.range('age', 33, null)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.range('age', null, 33)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.range('age', 33, null, false)); }}", "testFindNewSyntax")).size());
+
+			// null flag without key: first parameter is not a string, so this is still range(start, end, includeStart)
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.range(22, 44, null))); }}", "testFindNewSyntax")).size());
+
+			// string ranges: key form must be detected by the flag position, not by the type of the values
+			assertEquals("Advanced find() returns wrong result", 10, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.equals('name', $.predicate.range('test010', 'test019'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 10, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.range('name', 'test010', 'test019')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result",  9, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.equals('name', $.predicate.range('test010', 'test019', false))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result",  9, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.range('name', 'test010', 'test019', false)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result",  8, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.equals('name', $.predicate.range('test010', 'test019', false, false))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result",  8, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.range('name', 'test010', 'test019', false, false)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 10, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.range('name', 'test090', null)); }}", "testFindNewSyntax")).size());
+
+			// StructrScript
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${find('Project', range('age', 22, 33))}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${find('Project', 'age', range(22, 33, false))}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 8, ((List)Scripting.evaluate(ctx, null, "${find('Test', range('name', 'test010', 'test019', false, false))}", "testFindNewSyntax")).size());
+
+
 			final List<NodeInterface> page1 = (List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.sort('name'), $.predicate.page(1, 10)); }}", "testFindNewSyntax");
 			final List<NodeInterface> page2 = (List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.sort('name'), $.predicate.page(1, 5)); }}", "testFindNewSyntax");
 			final List<NodeInterface> page3 = (List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.sort('name'), $.predicate.page(3, 5)); }}", "testFindNewSyntax");
@@ -7473,7 +7538,7 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
-	public void testFindPredicateOperationsWithRange() {
+	public void testFindPredicateOperationsWithRangeForDates() {
 
 		// create schema
 		try (final Tx tx = app.tx()) {
@@ -7500,7 +7565,45 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
-			final String result = ScriptTestHelper.testExternalScript(actionContext, ScriptingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithRanges.js")).toString();
+			final String result = ScriptTestHelper.testExternalScript(actionContext, ScriptingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithRangesForDates.js")).toString();
+
+			assertEquals("Success", result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testFindPredicateOperationsWithRangeForIntegers() {
+
+		// create schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType grant = schema.addType("ResearchGrant");
+
+			grant.addIntegerProperty("minAmount");
+			grant.addIntegerProperty("maxAmount");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+			final String result = ScriptTestHelper.testExternalScript(actionContext, ScriptingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithRangesForIntegers.js")).toString();
 
 			assertEquals("Success", result);
 

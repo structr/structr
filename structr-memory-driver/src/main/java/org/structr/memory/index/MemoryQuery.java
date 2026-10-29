@@ -125,7 +125,17 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 		final GroupPredicate<T> group = new GroupPredicate<>(currentPredicate, conj);
 
-		currentPredicate.add(group);
+		// not() applies to the whole group, otherwise NOT(AND(a, b)) would become AND(NOT a, b)
+		if (negateNextPredicate) {
+
+			currentPredicate.add(new NotPredicate<>(group));
+
+			negateNextPredicate = false;
+
+		} else {
+
+			currentPredicate.add(group);
+		}
 
 		// enter group
 		currentPredicate = group;

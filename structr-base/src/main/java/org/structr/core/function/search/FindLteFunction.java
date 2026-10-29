@@ -21,6 +21,7 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -53,9 +54,22 @@ public class FindLteFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-			return new RangePredicate(null, sources[0], false, true);
+			if (sources.length == 2) {
+
+				final String key      = sources[0].toString();
+				final Object value    = new RangePredicate(null, sources[1], false, true);
+
+				return new SearchParameter(key, value, true);
+			}
+
+			if (sources.length == 1) {
+
+				return new RangePredicate(null, sources[0], false, true);
+			}
+
+			throw new FrameworkException(422, getName() + "(): Unsupported number of arguments.");
 
 		} catch (final IllegalArgumentException e) {
 
@@ -67,21 +81,24 @@ public class FindLteFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.lte(value)}}. Example: ${{ $.find('User', { age:  $.predicate.lte(42) }); }}"),
-			Usage.structrScript("Usage: ${lte(value)}. Example: ${find('User', 'age', lte(42))}")
+			Usage.javaScript("Usage: ${{ $.predicate.lte([ key, ] value) }}"),
+			Usage.structrScript("Usage: ${lte([ key, ] value)}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
 
-		return "Returns an lte predicate that can be used in find() function calls.";
+		return "Returns a query predicate that can be used with find() and search().";
 	}
 
 	@Override
 	public String getLongDescription() {
 
-		return "";
+		return """
+			Returns a search predicate to find nodes whose value is less than or equal to the given value in find() and search() functions.
+			The optional first parameter is the property key to search for, so `lte(key, value)` is equivalent to `equals(key, lte(value))`.
+			""";
 	}
 
 	@Override
@@ -90,15 +107,28 @@ public class FindLteFunction extends AdvancedScriptingFunction {
 		return List.of(
 				Example.javaScript("""
 				{
-					let projects = $.find('Project', $.predicate.equals('dueDate', $.predicate.lte(new Date())));
-				}""", "Find projects whose dueDate has passed.")
+					let projects1 = $.find('Project', $.predicate.lte('dueDate', new Date()));
+
+					let projects2 = $.find('Project', $.predicate.equals('dueDate', $.predicate.lte(new Date())));
+
+					let projects3 = $.find('Project', { dueDate: $.predicate.lte(new Date()) });
+				}""", "Three equivalent ways to find projects whose dueDate has passed")
 		);
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("value");
+		return Signature.forAllScriptingLanguages("[ key, ] value");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.optional("key", "property key to search for - can be omitted when used as the value of equals() or of a property in a map"),
+				Parameter.mandatory("value", "upper bound (inclusive)")
+		);
 	}
 
 	@Override

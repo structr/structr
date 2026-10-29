@@ -77,21 +77,21 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.withinDistance(latitude, longitude, meters) }}. Example: ${{ $.find('Location', $.predicate.and($.predicate.withinDistance(51, 7, 10))) }}"),
-			Usage.structrScript("Usage: ${withinDistance(latitude, longitude, meters). Example: ${find('Location', and(withinDistance(51, 7, 10)))}")
+			Usage.javaScript("Usage: ${{ $.predicate.withinDistance(latitude, longitude, meters) }}"),
+			Usage.structrScript("Usage: ${withinDistance(latitude, longitude, meters)}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
 
-		return "Returns a query predicate that can be used with find() or search().";
+		return "Returns a query predicate that can be used with find() and search().";
 	}
 
 	@Override
 	public String getLongDescription() {
 
-		return "This predicate type only works on types that extend the built-in Location trait.";
+		return "This predicate type only works on types that extend the built-in `Location` trait.";
 	}
 
 	@Override

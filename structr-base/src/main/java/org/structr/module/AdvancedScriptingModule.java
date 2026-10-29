@@ -104,6 +104,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new LoginFunction());
 
 		Functions.put(licenseManager, new FindRangeFunction());
+		Functions.put(licenseManager, new FindOverlapsFunction());
 		Functions.put(licenseManager, new FindWithinDistanceFunction());
 		Functions.put(licenseManager, new FindEmptyFunction());
 		Functions.put(licenseManager, new FindEqualsFunction());

@@ -21,6 +21,7 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -82,21 +83,25 @@ public class FindStartsWithFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.startsWith(key, value) }}. Example: ${{ $.find('Group', $.predicate.and($.predicate.startsWith('name', 'Test'))) }}"),
-			Usage.structrScript("Usage: ${startsWith(key, value). Example: ${find('Group', and(startsWith('name', 'Test')))}")
+			Usage.javaScript("Usage: ${{ $.predicate.startsWith([ key, ] value) }}"),
+			Usage.structrScript("Usage: ${startsWith([ key, ] value)}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
 
-		return "Returns a query predicate that can be used with find() or search().";
+		return "Returns a query predicate that can be used with find() and search().";
 	}
 
 	@Override
 	public String getLongDescription() {
 
-		return "";
+		return """
+			Returns a search predicate to find nodes whose value starts with the given prefix in find() and search() functions.
+			The optional first parameter is the property key to search for. It can be omitted when the predicate is used as the value of a property in a map,
+			e.g. `{ name: $.predicate.startsWith('Spike') }`.
+			""";
 	}
 
 	@Override
@@ -106,14 +111,27 @@ public class FindStartsWithFunction extends AdvancedScriptingFunction {
 				Example.javaScript("""
 				{
 					let tasks = $.find('Task', $.predicate.startsWith('name', 'Spike'));
-				}""", "Find all tasks whose name starts with 'Spike'")
+				}""", "Find all tasks whose name starts with 'Spike'"),
+				Example.javaScript("""
+				{
+					let tasks = $.find('Task', { name: $.predicate.startsWith('Spike') });
+				}""", "Equivalent way using the predicate as the value of a property")
 		);
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("key, value");
+		return Signature.forAllScriptingLanguages("[ key, ] value");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.optional("key", "property key to search for - can be omitted when used as the value of a property in a map"),
+				Parameter.mandatory("value", "prefix to search for")
+		);
 	}
 
 	@Override

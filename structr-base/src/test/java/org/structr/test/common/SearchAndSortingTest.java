@@ -2010,18 +2010,16 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			List<NodeInterface> list = app.nodeQuery(groupType)
-					.or()
-						.name("aaa")
-						.not().name("bbb")
-					.or()
-						.name("ttt")
-					.or()
-						.name("xxx")
-					.or()
-						.name("bbb")
-					.sort(nameKey, false)
-					.getAsList();
+			// aaa OR NOT(bbb) OR (ttt) OR (xxx) OR (bbb), each nested group must be a sibling (and not a child of the previous one)
+			final QueryGroup<NodeInterface> group = app.nodeQuery(groupType).or();
+
+			group.name("aaa");
+			group.not().name("bbb");
+			group.or().name("ttt");
+			group.or().name("xxx");
+			group.or().name("bbb");
+
+			List<NodeInterface> list = group.sort(nameKey, false).getAsList();
 
 			assertEquals("Invalid sort() result", "aaa", list.get(0).getProperty(nameKey));
 			assertEquals("Invalid sort() result", "bbb", list.get(1).getProperty(nameKey));
@@ -2036,6 +2034,74 @@ public class SearchAndSortingTest extends StructrTest {
 			System.out.println(fex.getMessage());
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testNotGroupWithMultipleChildren() {
+
+		final String groupType = StructrTraits.GROUP;
+
+		try (final Tx tx = app.tx()) {
+
+			createTestNode(groupType, "aaa");
+			createTestNode(groupType, "bbb");
+			createTestNode(groupType, "ccc");
+			createTestNode(groupType, "ddd");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx            = new ActionContext(securityContext);
+			final Map<String, Object> expected = new LinkedHashMap<>();
+			final Map<String, Object> actual   = new LinkedHashMap<>();
+
+			// a NOT group with several children must match only the nodes that match none of the children
+			expected.put("not(a, b)", List.of("ccc", "ddd"));
+			actual.put("not(a, b)", Scripting.evaluate(ctx, null, "${{ $.find('Group', $.predicate.not($.predicate.equals('name', 'aaa'), $.predicate.equals('name', 'bbb'))).map(g => g.name).sort(); }}", "test"));
+
+			expected.put("not(a, or(b, c))", List.of("ddd"));
+			actual.put("not(a, or(b, c))", Scripting.evaluate(ctx, null, "${{ $.find('Group', $.predicate.not($.predicate.equals('name', 'aaa'), $.predicate.or($.predicate.equals('name', 'bbb'), $.predicate.equals('name', 'ccc')))).map(g => g.name).sort(); }}", "test"));
+
+			expected.put("not(or(a, b), c)", List.of("ddd"));
+			actual.put("not(or(a, b), c)", Scripting.evaluate(ctx, null, "${{ $.find('Group', $.predicate.not($.predicate.or($.predicate.equals('name', 'aaa'), $.predicate.equals('name', 'bbb')), $.predicate.equals('name', 'ccc'))).map(g => g.name).sort(); }}", "test"));
+
+			// the remaining children must not leak into the enclosing group
+			expected.put("and(not(a, b), or(a, c))", List.of("ccc"));
+			actual.put("and(not(a, b), or(a, c))", Scripting.evaluate(ctx, null, "${{ $.find('Group', $.predicate.and($.predicate.not($.predicate.equals('name', 'aaa'), $.predicate.equals('name', 'bbb')), $.predicate.or($.predicate.equals('name', 'aaa'), $.predicate.equals('name', 'ccc')))).map(g => g.name).sort(); }}", "test"));
+
+			// predicates can be passed as a single list, like in and() and or()
+			expected.put("not([a, b])", List.of("ccc", "ddd"));
+			actual.put("not([a, b])", Scripting.evaluate(ctx, null, "${{ $.find('Group', $.predicate.not([$.predicate.equals('name', 'aaa'), $.predicate.equals('name', 'bbb')])).map(g => g.name).sort(); }}", "test"));
+
+			expected.put("not([a, b], c)", List.of("ddd"));
+			actual.put("not([a, b], c)", Scripting.evaluate(ctx, null, "${{ $.find('Group', $.predicate.not([$.predicate.equals('name', 'aaa'), $.predicate.equals('name', 'bbb')], $.predicate.equals('name', 'ccc'))).map(g => g.name).sort(); }}", "test"));
+
+			expected.put("query.not().name(a).name(b)", List.of("ccc", "ddd"));
+			actual.put("query.not().name(a).name(b)", getSortedNames(app.nodeQuery(groupType).not().name("aaa").name("bbb").getAsList()));
+
+			expected.put("query.not().name(a).name(b).name(c)", List.of("ddd"));
+			actual.put("query.not().name(a).name(b).name(c)", getSortedNames(app.nodeQuery(groupType).not().name("aaa").name("bbb").name("ccc").getAsList()));
+
+			assertEquals("NOT group with multiple children evaluated differently than expected", expected.toString(), actual.toString());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	private List<String> getSortedNames(final List<NodeInterface> nodes) {
+
+		return nodes.stream().map(NodeInterface::getName).sorted().toList();
 	}
 
 	@Test
