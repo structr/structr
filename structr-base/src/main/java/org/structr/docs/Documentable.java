@@ -170,6 +170,7 @@ public interface Documentable {
 				lines.add("");
 				lines.add("```");
 
+				// until the language for signatures is not used, we remove duplicate output
 				final Set<String> signatureSet = signatures.stream().map(Signature::getSignature).collect(Collectors.toSet());
 				for (final String signature : signatureSet) {
 
