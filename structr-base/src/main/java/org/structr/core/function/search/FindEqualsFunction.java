@@ -123,7 +123,6 @@ public class FindEqualsFunction extends AdvancedScriptingFunction {
 					let project1 = $.find('Project', $.predicate.equals('name', 'Project X'));
 
 					let project2 = $.find('Project', { name: $.predicate.equals('Project X') });
-
 				}""", "Equivalent ways to find projects with a specific name")
 		);
 	}

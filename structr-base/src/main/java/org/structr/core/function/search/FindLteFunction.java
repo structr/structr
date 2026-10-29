@@ -112,7 +112,6 @@ public class FindLteFunction extends AdvancedScriptingFunction {
 					let projects2 = $.find('Project', $.predicate.equals('dueDate', $.predicate.lte(new Date())));
 
 					let projects3 = $.find('Project', { dueDate: $.predicate.lte(new Date()) });
-
 				}""", "Three equivalent ways to find projects whose dueDate has passed")
 		);
 	}

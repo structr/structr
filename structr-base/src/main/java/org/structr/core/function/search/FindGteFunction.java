@@ -112,7 +112,6 @@ public class FindGteFunction extends AdvancedScriptingFunction {
 					let projects2 = $.find('Project', $.predicate.equals('budget', $.predicate.gte(1000000)));
 
 					let projects3 = $.find('Project', { budget: $.predicate.gte(1000000) });
-
 				}""", "Three equivalent ways to find projects whose budget is a million or more.")
 		);
 	}

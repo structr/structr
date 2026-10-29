@@ -149,7 +149,6 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 					let projects2 = $.find('Project', $.predicate.equals('taskCount', $.predicate.range(0, 10)));
 
 					let projects3 = $.find('Project', { taskCount: $.predicate.range(0, 10) });
-
 				}""", "Three equivalent ways to find projects with 0 to 10 tasks"),
 				Example.javaScript("""
 						${{ $.find('Project').forEach(p => $.print(p.index + ", ")) }}

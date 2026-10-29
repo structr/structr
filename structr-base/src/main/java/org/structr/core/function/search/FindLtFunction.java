@@ -114,7 +114,6 @@ public class FindLtFunction extends AdvancedScriptingFunction {
 					let projects2 = $.find('Project', $.predicate.equals('budget', $.predicate.lt(1000000)));
 
 					let projects3 = $.find('Project', { budget: $.predicate.lt(1000000) });
-
 				}""", "Three equivalent ways to find projects whose budget is less than a million")
 		);
 	}
