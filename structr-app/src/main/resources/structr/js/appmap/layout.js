@@ -35,10 +35,7 @@ class AppMapLayout {
 	// the forces of the layout, as a remembered layout keeps them; spread scales the distances that the discs of the groupings
 	// are measured in
 	static FORCE_DEFAULTS = { charge: 4, length: 5, width: 3, step: 1.6, gap: 1, cohesion: 0.3 };
-	static VERSION        = 16;
-
-	// TEST: the sectors as a tree, see sectorsFor
-	static TREE           = true;
+	static VERSION        = 15;
 
 	// how strongly a held element is pulled back to its remembered place while its new neighbours settle
 	static HOLD = 0.35;
@@ -350,34 +347,6 @@ class AppMapLayout {
 		const width = key => min + free * (total ? (needed.get(key) ?? 0) / total : 1 / keys.length);
 		const list  = new Map();
 		let start   = Math.PI - width(keys[0]) / 2;
-
-		// TEST: the map as a tree, the pages on top as its crown, the data model at the bottom as its roots, the other areas
-		// on the two sides between them, each side filled in the proportion of what its areas need
-		if (AppMapLayout.TREE) {
-
-			const side = Math.PI - (width('ui') + width('data')) / 2;
-			const fill = (sideKeys, from, direction) => {
-
-				const sum = d3.sum(sideKeys, width);
-				let at    = from;
-
-				for (const key of sideKeys) {
-
-					const w = width(key) * side / sum;
-
-					list.set(key, { angle: at + direction * w / 2, half: w / 2 });
-					at += direction * w;
-				}
-			};
-
-			list.set('ui',   { angle: -Math.PI / 2, half: width('ui') / 2 });
-			list.set('data', { angle:  Math.PI / 2, half: width('data') / 2 });
-
-			fill(['integration', 'logic', 'scheduled'], -Math.PI / 2 + width('ui') / 2, 1);
-			fill(['components', 'builtin', 'security'], -Math.PI / 2 - width('ui') / 2, -1);
-
-			return list;
-		}
 
 		for (const key of keys) {
 
