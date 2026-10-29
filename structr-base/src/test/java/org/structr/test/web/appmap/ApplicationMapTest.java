@@ -45,12 +45,14 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
 import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
 import org.structr.web.traits.definitions.PagePathTraitDefinition;
 import org.structr.web.traits.definitions.SiteTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
+import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
@@ -547,6 +549,44 @@ public class ApplicationMapTest extends StructrUiTest {
 		assertEquals("Pages of the same category must share its section",          "section:category:Info", node(map, ids.get("imprint"), "g"));
 		assertEquals("A section must be part of the user interface",               "ui",                    node(map, ids.get("about"), "area"));
 		assertEquals("A repeater must stay in the grouping of its page",           ids.get("page"),         node(map, ids.get("itemRepeater"), "g"));
+	}
+
+	@Test
+	public void testSharedComponentsFormAnAreaOfTheirOwn() {
+
+		createApplication();
+
+		try (final Tx tx = app.tx()) {
+
+			final ShadowDocument components = CreateComponentCommand.getOrCreateHiddenDocument();
+			final DOMElement card           = components.createElement("div");
+			final Page sheet                = Page.createNewPage(securityContext, "sheet");
+
+			card.setProperty(card.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "card");
+			card.appendChild(components.createTextNode("Name: ${current.name} ${render(children)}"));
+
+			sheet.appendChild(sheet.createTemplate("${{ $.print('sheet'); }}"));
+
+			ids.put("card",          card.getUuid());
+			ids.put("sheet",         sheet.getUuid());
+			ids.put("sheetTemplate", sheet.getFirstChild().getUuid());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final JsonPath map = fetchMap();
+		final List<?> card = (List<?>) map.getList("result.nodes.find { it.id == '" + ids.get("card") + "' }.d").get(0);
+
+		assertEquals("A shared component must be an area of its own",                      "components",             node(map, ids.get("card"), "area"));
+		assertEquals("A shared component must belong to no section",                       ids.get("card"),          node(map, ids.get("card"), "g"));
+		assertEquals("An element must show the expressions of its text, without render()", "${current.name}",        card.get(4));
+		assertEquals("A page of a single template must name it",                           ids.get("sheetTemplate"), node(map, ids.get("sheet"), "tpl"));
+		assertNull("A page with elements must name no template",                                                     node(map, ids.get("page"), "tpl"));
 	}
 
 	@Test

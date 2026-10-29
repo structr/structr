@@ -25,10 +25,10 @@
  * - node:  { id, k, n, p, g, area, d?, crud?, svc?, cron?, rest?, acc?, dv?, r?, pos?, err?, ct? }
  *          k is the kind (type, method, page, component, action, view, api, external), n the name, p 1 for a public
  *          element; g is the grouping it belongs to (the type, page, component, group or endpoint), area the Structr area
- *          of that grouping (ui, integration, security, builtin, logic, scheduled, data), both worked out on the server;
- *          d is the DOM tree of a page or shared component as nested [tag, flags, children?, ids?] with the flags
- *          1 active, 2 has an event action mapping, 4 repeater, and the ids of the repeaters and event action mappings
- *          that live on the element; crud lists what a method, action, repeater or endpoint does to which
+ *          of that grouping (ui, components, integration, security, builtin, logic, scheduled, data), both worked out on the server;
+ *          d is the DOM tree of a page or shared component as nested [tag, flags, children?, ids?, expressions?]
+ *          with the flags 1 active, 2 has an event action mapping, 4 repeater, the ids of the repeaters and event
+ *          action mappings that live on the element and the template expressions its text shows; crud lists what a method, action, repeater or endpoint does to which
  *          type ('C:Task', 'R:User'); svc marks a service class; cron is the schedule of a method that CronService runs;
  *          rest summarises the resource access grants on a type or endpoint as { n: rules, pub, auth, pubw, authw }, each
  *          0 or 1, for anonymous and authenticated users and whether they may write (the map reads n, pub and auth);
@@ -64,8 +64,9 @@ class AppMapModel {
 	// they follow the mechanisms Structr offers (see the class comment of ApplicationMap on the server); the pages always lie
 	// on the left, clockwise follow the others; the order lets the relations between the areas take the shortest way: of all
 	// circular orders it is the one where a relation crosses the fewest sectors on average, grants of groups on types included,
-	// worked out on two real applications and kept fixed, so that every application is read the same way. How wide a sector
-	// is follows from what it holds, see AppMapLayout.sectorsFor
+	// worked out on two real applications and kept fixed, so that every application is read the same way; the shared
+	// components close the circle between the data model and the pages they are part of. How wide a sector is follows
+	// from what it holds, see AppMapLayout.sectorsFor
 	static AREAS = {
 		ui:          { label: 'Pages' },
 		builtin:     { label: 'System Types' },
@@ -73,7 +74,8 @@ class AppMapModel {
 		integration: { label: 'Integrations' },
 		logic:       { label: 'Services & Functions' },
 		security:    { label: 'Security' },
-		data:        { label: 'Data Model' }
+		data:        { label: 'Data Model' },
+		components:  { label: 'Shared Components' }
 	};
 
 	static KIND_LABEL  = { page: 'Page', component: 'Shared Component', type: 'Type', method: 'Method', api: 'REST Endpoint', external: 'External Service', group: 'Group', view: 'Repeater', action: 'Event Action Mapping' };

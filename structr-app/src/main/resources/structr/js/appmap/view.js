@@ -159,7 +159,8 @@ class AppMapView {
 		this.drag       = [];
 		this.coastFrame = null;
 
-		// reads the source of a method for its rectangle close up, as a promise of the text
+		// reads the source of a method, or the text of the template a page consists of, for its box close up, as a promise of
+		// the text
 		this.loadSource = options.loadSource ?? null;
 
 		this.fonts = {
@@ -355,7 +356,7 @@ class AppMapView {
 		return AppMapView.SIZE_BY === 'size' ? `${area}|${n.k}` : area;
 	}
 
-	// the number of HTML elements in an outline of nested [tag, flags, children, ids]
+	// the number of HTML elements in an outline of nested [tag, flags, children, ids, expressions]
 	static outlineSize(items) {
 
 		return d3.sum(items, item => 1 + AppMapView.outlineSize(item[2] ?? []));
@@ -951,10 +952,10 @@ class AppMapView {
 	// a grouping
 	glideInto(n) {
 
-		// a method: its rectangle fills the screen and shows its code
-		if (n.k === 'method') {
+		// a method, or a page of a single template: its box fills the screen and shows its code
+		if (AppMapPanels.hasCode(n)) {
 
-			const [w, h] = AppMapRenderer.METHOD_BOX;
+			const [w, h] = AppMapRenderer.boxOf(n);
 			const across = this.zoomWhere(k => 2 * w * this.drawnRadiusAt(n, k) * k, AppMapView.GLIDE_FILL * this.width);
 			const down   = this.zoomWhere(k => 2 * h * this.drawnRadiusAt(n, k) * k, AppMapView.GLIDE_FILL * this.height);
 
@@ -1404,13 +1405,14 @@ class AppMapView {
 	// on which event it does what to which type, where that type comes from, and where it leads afterwards
 	describeDom(d) {
 
+		// [when, what]: what happens on which event, or what the element repeats
 		const lines = [];
 
 		for (const n of d.data.inner ?? []) {
 
 			if (n.k === 'view') {
 
-				lines.push(`Repeats ${n.t ?? 'objects of a type not found'}${AppMapView.typeSource(n.how)}`);
+				lines.push(['Repeats', `${n.t ?? 'objects of a type not found'}${AppMapView.typeSource(n.how)}`]);
 				continue;
 			}
 
@@ -1423,14 +1425,20 @@ class AppMapView {
 				: (AppMapView.ACTIONS[n.a] ?? (n.a ? `does ${n.a}` : named));
 			const leads  = this.links.filter(l => l.via === n && l.kind === 'navigates').map(l => l.target.n);
 
-			lines.push(`On ${n.ev ?? 'an event'}: ${what}${leads.length ? `, then opens ${leads.join(', ')}` : ''}`);
+			lines.push([`On ${n.ev ?? 'an event'}`, `${what}${leads.length ? `, then opens ${leads.join(', ')}` : ''}`]);
 		}
+
+		const shows = d.data.shows ? [`Shows ${d.data.shows}`] : [];
 
 		if (!lines.length) {
-			lines.push(`HTML element at level ${d.depth}${d.data.action ? ', with an event action mapping whose target was not found' : ''}`);
+			return shows.length ? shows : [`HTML element at level ${d.depth}${d.data.action ? ', with an event action mapping whose target was not found' : ''}`];
 		}
 
-		return lines;
+		// the elements below the box that the outline no longer shows one by one name their actions at the box: the same
+		// line once, with the number of elements it stands for
+		return shows.concat(d3.rollups(lines, v => v.length, ([when]) => when, ([, what]) => what).flatMap(([when, whats]) => whats.map(([what, count]) =>
+			when === 'Repeats' ? `Repeats ${what}${count > 1 ? `, ${count} times` : ''}` : `${when}${count > 1 ? ` at ${count} elements` : ''}: ${what}`
+		)));
 	}
 
 	// what the built-in actions of an event action mapping do, in words
@@ -1452,7 +1460,7 @@ class AppMapView {
 		const from         = {
 			dataType:       'its data type',
 			idExpression:   'its id expression',
-			scope:          value === 'current' ? 'the object the page shows (current)' : (value === 'me' ? 'the signed-in user (me)' : `the repeater ${value}`),
+			scope:          value === 'current' ? 'current, the object the page shows' : (value === 'me' ? 'me, the signed-in user' : `the repeater ${value}`),
 			'key name':     `the data key ${value}`,
 			'method owner': 'the type of its method',
 			parameter:      `its parameter ${value}`,

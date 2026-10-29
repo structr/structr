@@ -21,11 +21,14 @@
  * or the members of a group. A page is seen by a role when it is visible to public or authenticated users or grants read
  * to the group (or a group it is a member of). A type gives a role read, write or delete on all its objects through its
  * default visibility and the schema grants of the group, and through the schema relationships that pass rights on: a
- * right Added on the way reaches the other end, Kept it passes on what an earlier step added, Removed it stops (as
- * AccessControllableTraitDefinition resolves permissions). A type is governed by the schema when any of this applies to
- * it for any role; access to the objects of any other type rests on their owners and the grants on single objects, which
- * are no part of the map. A gap is a page the role sees that does with a governed type what the role may not: shows it
- * without read, changes it without write, deletes from it without delete.
+ * right reaches a type when the relationship that ends there Adds it and every relationship before it on the way Adds or
+ * Keeps it: AccessControllableTraitDefinition resolves a permission from the object outward and starts with none, so
+ * Keep only passes on what a relationship nearer to the object added, and Remove stops it. A type is governed by the
+ * schema when any of this applies to it for any role; access to the objects of any other type rests on their owners and
+ * the grants on single objects, which are no part of the map. A gap is a page the role sees that does with a type the
+ * schema gives the role some right on what the role may not: shows it without read, changes it without write, deletes
+ * from it without delete. A type the schema gives the role no right on is no gap: the page then shows only the objects
+ * the role owns or was granted, which is how most applications separate their users.
  *
  * Also what deleting an object of a type takes with it (cascading delete), and what a type passes on to others.
  */
@@ -70,7 +73,6 @@ class AppMapAccess {
 		const pages  = new Map();
 		const rights = new Map();
 		const rest   = new Map();
-		const via    = new Map();
 		const give   = (type, right, why) => {
 
 			const own = rights.get(type) ?? new Map();
@@ -130,6 +132,9 @@ class AppMapAccess {
 			...hops.map(hop => hop.to)
 		]);
 
+		// where each right comes from on the way: a type the role has it on, or one a relationship Added or Kept it to
+		const origins = new Map([...rights].map(([type, own]) => [type, new Map([...own.keys()].map(right => [right, type]))]));
+
 		for (let changed = true; changed;) {
 
 			changed = false;
@@ -139,12 +144,16 @@ class AppMapAccess {
 				for (const right of AppMapAccess.RIGHTS) {
 
 					const mode   = l.x[right];
-					const passes = (mode === 'Add' && rights.get(from)?.has(right)) || (mode === 'Keep' && via.get(from)?.has(right));
+					const origin = origins.get(from)?.get(right);
 
-					if (passes && give(to, right, `passed on from ${from.n}`)) {
+					if (origin && (mode === 'Add' || mode === 'Keep') && !origins.get(to)?.has(right)) {
 
-						via.set(to, (via.get(to) ?? new Set()).add(right));
+						origins.set(to, (origins.get(to) ?? new Map()).set(right, origin));
 						changed = true;
+					}
+
+					if (origin && mode === 'Add') {
+						give(to, right, origin === from ? `passed on from ${from.n}` : `passed on from ${origin.n} through ${from.n}`);
 					}
 				}
 			}
@@ -158,7 +167,7 @@ class AppMapAccess {
 			const need = AppMapAccess.NEEDS[l.kind];
 			const key  = `${l.source.id}|${l.target.id}|${need}`;
 
-			if (need && pages.get(l.source) && governed.has(l.target) && !rights.get(l.target)?.has(need) && !seen.has(key)) {
+			if (need && pages.get(l.source) && rights.has(l.target) && !rights.get(l.target).has(need) && !seen.has(key)) {
 
 				seen.add(key);
 				gaps.push({ page: l.source, type: l.target, need, link: l });

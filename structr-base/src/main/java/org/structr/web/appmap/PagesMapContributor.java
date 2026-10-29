@@ -53,7 +53,9 @@ public class PagesMapContributor implements ApplicationMapContributor {
 
 	private static final Set<String> SKIPPED_TAGS = Set.of("head", "script", "style", "meta", "link", "title");
 	private static final Pattern INCLUDE          = Pattern.compile("\\binclude(?:_child)?\\s*\\(\\s*['\"]([^'\"]+)['\"]");
+	private static final Pattern PLACING          = Pattern.compile("^\\$\\{\\s*(?:render|include|include_child)\\s*\\(");
 	private static final int OUTLINE_DEPTH        = 9;
+	private static final int EXPRESSIONS_LENGTH   = 120;
 
 	@Override
 	public void contribute(final ApplicationMap map, final App app) throws FrameworkException {
@@ -147,7 +149,7 @@ public class PagesMapContributor implements ApplicationMapContributor {
 			map.addSite(site.getUuid(), name, pages);
 		}
 
-		outlines.forEach((node, roots) -> node.setOutline(outlineOf(roots)).setSize(sizeOf(roots)));
+		outlines.forEach((node, roots) -> node.setOutline(outlineOf(roots)).setTemplate(onlyTemplateOf(roots)).setSize(sizeOf(roots)));
 	}
 
 	/**
@@ -280,6 +282,28 @@ public class PagesMapContributor implements ApplicationMapContributor {
 		return html;
 	}
 
+	/**
+	 * The id of the template that a page or shared component consists of alone, with no element
+	 * or other template below it, or null.
+	 */
+	private String onlyTemplateOf(final List<HtmlNode> roots) {
+
+		if (roots.size() != 1 || !roots.get(0).node.is(StructrTraits.TEMPLATE)) {
+			return null;
+		}
+
+		final HtmlNode template = roots.get(0);
+
+		for (final HtmlNode child : template.children) {
+
+			if (child.isElement || child.node.is(StructrTraits.TEMPLATE)) {
+				return null;
+			}
+		}
+
+		return template.id;
+	}
+
 	// the number of HTML elements below the given ones, themselves included: the size of a page or shared component
 	private int sizeOf(final List<HtmlNode> nodes) {
 
@@ -309,10 +333,12 @@ public class PagesMapContributor implements ApplicationMapContributor {
 	}
 
 	/**
-	 * A compact outline: [tag, flags, children, ids], children only when there are any or ids
-	 * follow, ids only when there are any; the flags are 1 (the element does something), 2 (it
-	 * triggers an action mapping) and 4 (it repeats), the ids are those of the repeater and
-	 * action mapping nodes that live on the element. Text nodes and the head are left out.
+	 * A compact outline: [tag, flags, children, ids, expressions], children only when there are
+	 * any or something follows, ids only when there are any or expressions follow, expressions
+	 * only when there are any; the flags are 1 (the element does something), 2 (it triggers an
+	 * action mapping) and 4 (it repeats), the ids are those of the repeater and action mapping
+	 * nodes that live on the element, the expressions those that its text shows, see
+	 * expressionsOf. Text nodes and the head are left out.
 	 */
 	private List<Object> outlineOf(final HtmlNode html, final int depth) {
 
@@ -346,15 +372,96 @@ public class PagesMapContributor implements ApplicationMapContributor {
 			}
 		}
 
-		if (!children.isEmpty() || !ids.isEmpty()) {
+		final String expressions = expressionsOf(html);
+
+		if (!children.isEmpty() || !ids.isEmpty() || expressions != null) {
 			item.add(children);
 		}
 
-		if (!ids.isEmpty()) {
+		if (!ids.isEmpty() || expressions != null) {
 			item.add(ids);
 		}
 
+		if (expressions != null) {
+			item.add(expressions);
+		}
+
 		return item;
+	}
+
+	/**
+	 * The template expressions an element shows: those in its text nodes, or in its own content
+	 * for a template, each once, shortened to EXPRESSIONS_LENGTH together; null when there are
+	 * none. render(), include() and include_child() are left out, as they only place other
+	 * elements, which the outline shows itself.
+	 */
+	private String expressionsOf(final HtmlNode html) {
+
+		final Set<String> expressions = new LinkedHashSet<>();
+
+		if (!html.isElement) {
+
+			collectExpressions(html.content, expressions);
+
+		} else {
+
+			for (final HtmlNode child : html.children) {
+
+				if (!child.isElement && !child.node.is(StructrTraits.TEMPLATE) && !child.node.is(StructrTraits.COMMENT)) {
+					collectExpressions(child.content, expressions);
+				}
+			}
+		}
+
+		if (expressions.isEmpty()) {
+			return null;
+		}
+
+		return StringUtils.abbreviate(String.join(" ", expressions), EXPRESSIONS_LENGTH);
+	}
+
+	/**
+	 * Every ${...} in the text, up to the brace that closes it, with its whitespace collapsed.
+	 */
+	private void collectExpressions(final String text, final Set<String> expressions) {
+
+		if (text == null) {
+			return;
+		}
+
+		int start = text.indexOf("${");
+
+		while (start >= 0) {
+
+			int depth = 0;
+			int end   = -1;
+
+			for (int i = start + 1; i < text.length() && end < 0; i++) {
+
+				final char c = text.charAt(i);
+
+				if (c == '{') {
+
+					depth++;
+
+				} else if (c == '}' && --depth == 0) {
+
+					end = i;
+				}
+			}
+
+			if (end < 0) {
+				return;
+			}
+
+			final String expression = text.substring(start, end + 1).replaceAll("\\s+", " ");
+
+			if (!PLACING.matcher(expression).find()) {
+				expressions.add(expression);
+			}
+
+			start = text.indexOf("${", end + 1);
+		}
 	}
 
 	private void collectMapIds(final HtmlNode html, final List<String> ids) {

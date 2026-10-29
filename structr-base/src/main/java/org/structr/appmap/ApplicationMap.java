@@ -51,18 +51,19 @@ import java.util.stream.Stream;
  * Every artifact also belongs to a grouping and to an area, so that any client can lay the
  * application out the way Structr structures it. A grouping is an artifact as the developer
  * declared it: a type with its methods, a page or shared component with its repeaters and event
- * action mappings, a group, a REST endpoint; pages and shared components that belong together
- * form a section of the user interface instead (see sections); a user-defined function, like a method of a schema
+ * action mappings, a group, a REST endpoint; pages that belong together form a section of the
+ * user interface instead (see sections); a user-defined function, like a method of a schema
  * relationship, belongs to the type it writes most, else it stands alone, and so does one that
- * CronService runs. The area says which of Structr's mechanisms the grouping is: "ui" (pages
- * and shared components), "integration" (REST endpoints and external services),
+ * CronService runs. The area says which of Structr's mechanisms the grouping is: "ui" (pages),
+ * "components" (shared components), "integration" (REST endpoints and external services),
  * "security" (groups and the service classes that manage users and rights), "builtin" (the
  * system types the application extends), "logic" (user-defined functions and service classes),
  * "scheduled" (what CronService runs) and "data" (the application's own types).
  *
  * The result has six parts: "nodes" (id, k for the kind, n for the name, p for public, g for
  * the grouping, area, and depending on the kind d for the HTML outline (nested [tag, flags,
- * children, ids of the repeaters and action mappings on the element]), crud, svc, t for the
+ * children, ids of the repeaters and action mappings on the element, template expressions its
+ * text shows]), tpl for the template a page or shared component consists of alone, crud, svc, t for the
  * type, m for the method, how for the way the type was found, a and ev for the action and
  * the event of an action mapping, cron for the schedule, rest for
  * the resource access grants on a type or endpoint: n rules, pub and auth for whom they open it,
@@ -94,6 +95,7 @@ public class ApplicationMap {
 	public static final String EXTERNAL  = "external";
 
 	public static final String AREA_UI          = "ui";
+	public static final String AREA_COMPONENTS  = "components";
 	public static final String AREA_INTEGRATION = "integration";
 	public static final String AREA_SECURITY    = "security";
 	public static final String AREA_BUILTIN     = "builtin";
@@ -393,13 +395,12 @@ public class ApplicationMap {
 	}
 
 	/**
-	 * The sections of the user interface: pages and shared components that belong together, each a grouping that is no
-	 * artifact of its own, as { id, n for the name, how, members }. A page belongs to the category the developer gave
-	 * it; else to the type it works with most (see PAGE_WEIGHT), through its repeaters and action mappings; a shared
-	 * component without either to the section of the pages that hold it, and a page without either to the section of the
-	 * pages that lead to it, by links and by the success and failure URLs of action mappings, apart from the menu (see
-	 * MENU_LINKS), each only when more than half of them lie in that section. A section of one page or component is none:
-	 * it stays a grouping of its own.
+	 * The sections of the user interface: pages that belong together, each a grouping that is no artifact of its own, as
+	 * { id, n for the name, how, members }. A page belongs to the category the developer gave it; else to the type it
+	 * works with most (see PAGE_WEIGHT), through its repeaters and action mappings; else to the section of the pages that
+	 * lead to it, by links and by the success and failure URLs of action mappings, apart from the menu (see MENU_LINKS),
+	 * only when more than half of them lie in that section. A section of one page is none: it stays a grouping of its own.
+	 * Shared components belong to no section, they form an area of their own.
 	 */
 	private Map<String, Map<String, Object>> sections(final Set<String> kept, final CrudAnalysis analysis) {
 
@@ -407,18 +408,17 @@ public class ApplicationMap {
 		final Map<String, String> names              = new LinkedHashMap<>();
 		final Map<String, String> hows               = new LinkedHashMap<>();
 		final Map<String, Map<String, Double>> score = new LinkedHashMap<>();
-		final Map<String, List<String>> holders      = new LinkedHashMap<>();
 		final Map<String, List<String>> leaders      = new LinkedHashMap<>();
 		final Map<String, Set<String>> leadsTo       = new LinkedHashMap<>();
-		final List<String> sheets                    = new LinkedList<>();
+		final List<String> pages                     = new LinkedList<>();
 
 		for (final String id : kept) {
 
 			final MapNode node = nodes.get(id);
 
-			if (PAGE.equals(node.kind) || COMPONENT.equals(node.kind)) {
+			if (PAGE.equals(node.kind)) {
 
-				sheets.add(id);
+				pages.add(id);
 
 			} else if ((VIEW.equals(node.kind) || ACTION.equals(node.kind)) && node.home != null) {
 
@@ -440,11 +440,7 @@ public class ApplicationMap {
 				continue;
 			}
 
-			if ("include".equals(edge.kind) || "uses".equals(edge.kind)) {
-
-				holders.computeIfAbsent(edge.target, k -> new LinkedList<>()).add(edge.source);
-
-			} else if ("navigates".equals(edge.kind)) {
+			if ("navigates".equals(edge.kind)) {
 
 				leaders.computeIfAbsent(edge.target, k -> new LinkedList<>()).add(edge.source);
 				leadsTo.computeIfAbsent(edge.source, k -> new LinkedHashSet<>()).add(edge.target);
@@ -452,7 +448,7 @@ public class ApplicationMap {
 		}
 
 		// what the developer said, then what the page works with
-		for (final String id : sheets) {
+		for (final String id : pages) {
 
 			final MapNode node     = nodes.get(id);
 			final String typeId    = mostOf(score.get(id));
@@ -468,16 +464,16 @@ public class ApplicationMap {
 			}
 		}
 
-		// then where it is held or reached from; twice, so a page reached from a page placed in the first round finds its place
+		// then where it is reached from; twice, so a page reached from a page placed in the first round finds its place
 		for (int round = 0; round < 2; round++) {
 
-			for (final String id : sheets) {
+			for (final String id : pages) {
 
 				if (sectionOf.containsKey(id)) {
 					continue;
 				}
 
-				final List<String> from         = COMPONENT.equals(nodes.get(id).kind) && holders.containsKey(id) ? holders.get(id) : leaders.getOrDefault(id, List.of());
+				final List<String> from         = leaders.getOrDefault(id, List.of());
 				final List<String> counted      = from.stream().filter(source -> leadsTo.getOrDefault(source, Set.of()).size() <= MENU_LINKS).toList();
 				final Map<String, Double> votes = new LinkedHashMap<>();
 
@@ -548,8 +544,11 @@ public class ApplicationMap {
 
 		switch (anchor.kind) {
 
-			case PAGE, COMPONENT, VIEW, ACTION:
+			case PAGE, VIEW, ACTION:
 				return AREA_UI;
+
+			case COMPONENT:
+				return AREA_COMPONENTS;
 
 			case API, EXTERNAL:
 				return AREA_INTEGRATION;
@@ -643,6 +642,7 @@ public class ApplicationMap {
 		private boolean isPublic;
 		private boolean isService;
 		private List<Object> outline;
+		private String template;
 		private String home;
 		private String type;
 		private String method;
@@ -716,13 +716,25 @@ public class ApplicationMap {
 		}
 
 		/**
-		 * The HTML outline of a page or shared component: nested [tag, flags, children, ids] with
-		 * the flags 1 (the element does something), 2 (it triggers an action) and 4 (it repeats),
-		 * and the ids of the repeaters and action mappings that live on the element.
+		 * The HTML outline of a page or shared component: nested [tag, flags, children, ids,
+		 * expressions] with the flags 1 (the element does something), 2 (it triggers an action)
+		 * and 4 (it repeats), the ids of the repeaters and action mappings that live on the
+		 * element and the template expressions its text shows.
 		 */
 		public MapNode setOutline(final List<Object> outline) {
 
 			this.outline = outline;
+
+			return this;
+		}
+
+		/**
+		 * The template a page or shared component consists of alone, whose text a client can
+		 * show in place of the outline.
+		 */
+		public MapNode setTemplate(final String template) {
+
+			this.template = template;
 
 			return this;
 		}
@@ -887,6 +899,10 @@ public class ApplicationMap {
 
 			if (outline != null) {
 				map.put("d", outline);
+			}
+
+			if (template != null) {
+				map.put("tpl", template);
 			}
 
 			if (crud != null && !crud.isEmpty()) {

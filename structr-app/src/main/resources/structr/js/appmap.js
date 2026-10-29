@@ -117,11 +117,12 @@ let _AppMap = {
 
 				return (Array.isArray(result) ? result[0] : result) ?? {};
 			},
-			loadSource: async id => {
+			loadSource: async n => {
 
-				let response = await fetch(Structr.rootUrl + 'SchemaMethod/' + id);
+				let response = await fetch(Structr.rootUrl + (n.tpl ? 'Template/' + n.tpl : 'SchemaMethod/' + n.id));
+				let result   = response.ok ? (await response.json()).result : null;
 
-				return response.ok ? ((await response.json()).result?.source ?? '') : null;
+				return result ? ((n.tpl ? result.content : result.source) ?? '') : null;
 			},
 			onStatus: text => {
 

@@ -26,9 +26,10 @@
  */
 class AppMapPanels {
 
-	// the panel tree: one column per depth, one row per leaf, in units of the map
+	// the panel tree: one column per depth, one row per leaf, boxes this high, in units of the map
 	static COLUMN = 11;
 	static ROW    = 2.6;
+	static BOX    = 1.8;
 
 	// an HTML element that triggers an event action mapping is marked in this colour
 	static ACTION_COLOR = '#e8590c';
@@ -44,6 +45,9 @@ class AppMapPanels {
 	static CODE_COLUMNS = 100;
 	static CODE_SKETCH  = 1.5;
 	static CODE_READ    = 7;
+
+	// the advance of a character of code type as a share of its size
+	static CODE_ADVANCE = 0.6;
 
 	constructor(view) {
 
@@ -72,10 +76,11 @@ class AppMapPanels {
 			action:   !!(item[1] & 2),
 			repeater: !!(item[1] & 4),
 			children: (item[2] ?? []).map(toTree),
-			inner:    (item[3] ?? []).map(id => byId.get(id)).filter(n => n && inner.has(n))
+			inner:    (item[3] ?? []).map(id => byId.get(id)).filter(n => n && inner.has(n)),
+			shows:    item[4] ?? null
 		});
 
-		for (const page of this.view.nodes.filter(n => (n.k === 'page' || n.k === 'component') && n.d?.length)) {
+		for (const page of this.view.nodes.filter(n => (n.k === 'page' || n.k === 'component') && n.d?.length && !n.tpl)) {
 
 			const root = d3.hierarchy({ tag: page.n, children: page.d.map(toTree) });
 
@@ -90,6 +95,15 @@ class AppMapPanels {
 				d.lx   = d.y;
 				d.ly   = d.x;
 				d.page = page;
+			}
+
+			// how far an element without children may show its expressions: up to the next box to its right at its height,
+			// else to the edge
+			for (const d of all) {
+
+				if (d.data.shows && !d.children) {
+					d.room = d3.min(all, o => o.lx > d.lx && Math.abs(o.ly - d.ly) < AppMapPanels.BOX ? o.lx - d.lx : Infinity);
+				}
 			}
 
 			const boxOf = new Map(all.flatMap(d => (d.data.inner ?? []).map(n => [n, d])));
@@ -177,11 +191,10 @@ class AppMapPanels {
 			}
 		}
 
-		const [w, h] = AppMapRenderer.METHOD_BOX;
-
 		for (const n of this.reading) {
 
-			const r = this.view.shownRadius(n);
+			const r      = this.view.shownRadius(n);
+			const [w, h] = AppMapRenderer.boxOf(n);
 
 			if (Math.abs(x - n.x) <= r * w && Math.abs(y - n.y) <= r * h) {
 				return n;
@@ -225,7 +238,14 @@ class AppMapPanels {
 	}
 
 	// ----- the code of the methods -----
-	// reads the source of a method once, when its rectangle first comes close enough to show it
+	// whether an element shows its code close up: a method, and a page or shared component that consists of a single
+	// template, which shows the text of the template in place of its tree
+	static hasCode(n) {
+
+		return n.k === 'method' || !!n.tpl;
+	}
+
+	// reads the source of a method or the text of a template once, when its box first comes close enough to show it
 	requestCode(n) {
 
 		if (this.code.has(n) || !this.view.loadSource) {
@@ -234,7 +254,7 @@ class AppMapPanels {
 
 		this.code.set(n, { loading: true });
 
-		Promise.resolve(this.view.loadSource(n.id)).then(source => {
+		Promise.resolve(this.view.loadSource(n)).then(source => {
 
 			const lines = String(source ?? '').replace(/\t/g, '  ').replace(/\s+$/, '').split('\n');
 
@@ -252,15 +272,18 @@ class AppMapPanels {
 	// of lines and the longest of them, within CODE_LINES and CODE_COLUMNS
 	codePanel(n, k, radius = this.view.shownRadius(n)) {
 
-		const [bw, bh] = AppMapRenderer.METHOD_BOX;
+		const [bw, bh] = AppMapRenderer.boxOf(n);
 		const w        = radius * bw;
 		const h        = radius * bh;
 		const pad      = h * 0.08;
 		const title    = h * 0.16;
 		const lines    = this.code.get(n)?.lines ?? [];
-		const rows     = Math.min(AppMapPanels.CODE_LINES[1], Math.max(AppMapPanels.CODE_LINES[0], lines.length));
 		const columns  = Math.min(AppMapPanels.CODE_COLUMNS, Math.max(40, d3.max(lines, l => l.length) ?? 0));
 		const inner    = [2 * w - 2 * pad, 2 * h - 2 * pad - title];
+
+		// a box higher than wide, as the sheet of a page, holds more than CODE_LINES at the font its width allows
+		const fit      = Math.floor(inner[1] / (inner[0] / (columns * 0.6) * 1.3));
+		const rows     = Math.min(Math.max(AppMapPanels.CODE_LINES[1], fit), Math.max(AppMapPanels.CODE_LINES[0], lines.length));
 		const font     = Math.min(inner[0] / (columns * 0.6), inner[1] / (rows * 1.3));
 
 		return { x0: n.x - w, y0: n.y - h, w, h, pad, title, font, line: font * 1.3, rows, px: font * 1.3 * k };
@@ -275,7 +298,7 @@ class AppMapPanels {
 
 		for (const n of this.view.nodes) {
 
-			if (n.k !== 'method' || !renderer.onScreen(n, 200)) {
+			if (!AppMapPanels.hasCode(n) || !renderer.onScreen(n, 200)) {
 				continue;
 			}
 
@@ -299,7 +322,7 @@ class AppMapPanels {
 
 			// the rectangle opens: pale in the colour of the method, its name on top, the code below
 			ctx.beginPath();
-			ctx.roundRect(panel.x0, panel.y0, 2 * panel.w, 2 * panel.h, panel.h * 0.14);
+			ctx.roundRect(panel.x0, panel.y0, 2 * panel.w, 2 * panel.h, n.k === 'method' ? panel.h * 0.14 : 0);
 			ctx.globalAlpha = 0.35 + 0.65 * strong;
 			ctx.fillStyle   = look.bg;
 			ctx.fill();
@@ -315,7 +338,7 @@ class AppMapPanels {
 				this.reading.add(n);
 
 				ctx.fillStyle = colour;
-				renderer.screenText(n.n, left, panel.y0 + panel.pad + panel.title * 0.45, 600, panel.title * 0.6, false, 'left');
+				renderer.screenText(n.k === 'method' ? n.n : `${AppMapModel.KIND_LABEL[n.k]} ${n.n}`, left, panel.y0 + panel.pad + panel.title * 0.45, 600, panel.title * 0.6, false, 'left');
 				ctx.fillStyle = look.labelFocus;
 
 				for (let i = 0; i < shown; i++) {
@@ -389,7 +412,7 @@ class AppMapPanels {
 		const look    = this.view.look;
 		const hovered = this.view.hoveredDom ?? this.view.pinnedDom;
 		const s       = panel.scale;
-		const boxH    = 1.8 * s;
+		const boxH    = AppMapPanels.BOX * s;
 		const colour  = renderer.colorOf(page);
 		const widthOf = d => AppMapPanels.boxWidth(d, s);
 
@@ -479,12 +502,33 @@ class AppMapPanels {
 			renderer.screenText(d.data.tag, x + (sign ? 2 : 0.8) * s, y, plain ? 400 : 500, 1.05 * s, false, 'left');
 
 			d.panelHit = [x, y - r, w, boxH];
+
+			// what an element without children shows, in the free space behind it
+			if (d.data.shows && !d.children) {
+				const end = Math.min(x + d.room * s - 1.6 * s, page.x + panel.hw - 1.6 * s);
+
+				this.drawShows(renderer, d.data.shows, x + w + 0.8 * s, y, end - x - w - 0.8 * s, s);
+			}
 		}
 
 		this.drawRelations(renderer, page, tree, panel, k);
 
 		tree.frame = [page.x - panel.hw, page.y - panel.hh, 2 * panel.hw, 2 * panel.hh];
 		ctx.restore();
+	}
+
+	// the template expressions of an element in code type, cut to the given width
+	drawShows(renderer, text, x, y, width, s) {
+
+		const size  = 0.9 * s;
+		const fit   = Math.floor(width / (size * AppMapPanels.CODE_ADVANCE));
+
+		if (fit < 4) {
+			return;
+		}
+
+		renderer.ctx.fillStyle = this.view.look.label;
+		renderer.screenText(text.length > fit ? text.slice(0, fit - 1) + '…' : text, x, y, 400, size, true, 'left');
 	}
 
 	// the tree of a page that is not yet open: its branches and boxes without names, as strong as the page is close, on its
@@ -494,7 +538,7 @@ class AppMapPanels {
 		const ctx     = renderer.ctx;
 		const look    = this.view.look;
 		const s       = panel.scale;
-		const boxH    = 1.8 * s;
+		const boxH    = AppMapPanels.BOX * s;
 		const widthOf = d => AppMapPanels.boxWidth(d, s);
 
 		ctx.save();

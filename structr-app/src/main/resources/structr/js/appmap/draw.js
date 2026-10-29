@@ -31,7 +31,7 @@
 class AppMapRenderer {
 
 	// every area has its own hue for its name: the interface violet, the data model green and so on
-	static AREA_HUE = { ui: 265, logic: 190, security: 28, data: 135, builtin: 215, scheduled: 330, integration: 50 };
+	static AREA_HUE = { ui: 265, components: 295, logic: 190, security: 28, data: 135, builtin: 215, scheduled: 330, integration: 50 };
 
 	// what an edge does to data shows in its colour: create, change, delete; reading stays neutral; [light, dark]
 	static OP_COLOR   = { creates: ['#2b8a3e', '#69db7c'], updates: ['#c77700', '#ffc94d'], deletes: ['#c92a5a', '#ff8fab'] };
@@ -1636,21 +1636,31 @@ class AppMapRenderer {
 
 		ctx.stroke();
 
-		// a section of pages is an area of the user interface: tinted in the colour of the pages
-		ctx.beginPath();
+		// a section of pages is an area of the user interface: tinted in the colour of the pages, as long as it lies on the
+		// screen as an area; close up, where its circle grows beyond the screen, the tint would only colour the background
+		// behind the page, so it fades out and the outline remains
+		const screen = Math.min(this.view.width, this.view.height) / 2;
+
+		ctx.fillStyle   = this.view.look.kinds.page;
+		ctx.strokeStyle = this.view.look.kinds.page;
 
 		for (const c of sections) {
 
-			ctx.moveTo(c.x + c.r, c.y);
+			const tint = Math.max(0, Math.min(1, 2 - c.r * k / screen));
+
+			ctx.beginPath();
 			ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+
+			if (tint > 0) {
+
+				ctx.globalAlpha = (focus ? 0.02 : 0.06) * tint;
+				ctx.fill();
+			}
+
+			ctx.globalAlpha = focus ? 0.08 : 0.25;
+			ctx.stroke();
 		}
 
-		ctx.fillStyle   = this.view.look.kinds.page;
-		ctx.globalAlpha = focus ? 0.02 : 0.06;
-		ctx.fill();
-		ctx.strokeStyle = this.view.look.kinds.page;
-		ctx.globalAlpha = focus ? 0.08 : 0.25;
-		ctx.stroke();
 		ctx.restore();
 	}
 
