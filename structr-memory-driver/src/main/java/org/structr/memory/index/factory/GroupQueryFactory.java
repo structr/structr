@@ -53,7 +53,9 @@ public class GroupQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 					newGroup = true;
 					break;
 				case NOT:
-					query.not();
+					// matches none of the children, i.e. NOT a AND NOT b
+					query.beginGroup(Conjunction.Not);
+					newGroup = true;
 					break;
 			}
 

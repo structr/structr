@@ -98,9 +98,9 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 						switch (group.getOperation()) {
 
+							// the NOT is already in front of the group, so NOT (a OR b) matches neither a nor b
 							case NOT:
-								query.and();
-								query.not();
+								query.or();
 								break;
 							case AND:
 								query.and();
