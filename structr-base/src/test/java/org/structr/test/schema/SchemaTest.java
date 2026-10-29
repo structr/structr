@@ -2416,7 +2416,146 @@ public class SchemaTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testRelationshipEndsMustNotShareANameOnTheirType() {
+
+		// two outgoing ends on Item
+		assertNameTaken("Two relationships from one type must not give it two properties of the same name", schema -> {
+
+			final JsonObjectType item = schema.addType("Item");
+
+			item.relate(schema.addType("Category"), "HAS",    Cardinality.OneToMany, "item",  "entries");
+			item.relate(schema.addType("Tag"),      "LABELS", Cardinality.OneToMany, "label", "entries");
+		});
+
+		// two incoming ends on Item
+		assertNameTaken("Two relationships to one type must not give it two properties of the same name", schema -> {
+
+			final JsonObjectType item = schema.addType("Item");
+
+			schema.addType("Category").relate(item, "HAS",   Cardinality.OneToMany, "holder", "items");
+			schema.addType("Tag").relate(item,      "MARKS", Cardinality.OneToMany, "holder", "markedItems");
+		});
+
+		// an outgoing and an incoming end on Item
+		assertNameTaken("A relationship from a type and one to it must not give it two properties of the same name", schema -> {
+
+			final JsonObjectType item = schema.addType("Item");
+
+			item.relate(schema.addType("Category"), "HAS", Cardinality.OneToMany, "item", "related");
+			schema.addType("Tag").relate(item, "POINTS_TO", Cardinality.OneToMany, "related", "items");
+		});
+
+		// both ends of a relationship from a type to itself
+		assertNameTaken("A relationship from a type to itself must name its two ends differently", schema -> {
+
+			final JsonObjectType item = schema.addType("Item");
+
+			item.relate(item, "LINKS", Cardinality.OneToMany, "link", "link");
+		});
+
+		// an end and a property of the type
+		assertNameTaken("A relationship must not give a type a property it already has", schema -> {
+
+			final JsonObjectType item = schema.addType("Item");
+
+			item.addStringProperty("entries");
+			item.relate(schema.addType("Category"), "HAS", Cardinality.OneToMany, "item", "entries");
+		});
+	}
+
+	@Test
+	public void testRenamingARelationshipEndToATakenNameIsRejected() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType item = schema.addType("Item");
+
+			item.relate(schema.addType("Category"), "HAS",    Cardinality.OneToMany, "item",  "categories");
+			item.relate(schema.addType("Tag"),      "LABELS", Cardinality.OneToMany, "label", "tags");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Relationships whose ends have different names must be allowed");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Traits traits = Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE);
+
+			app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(traits.key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "LABELS").getFirst().setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "categories");
+
+			tx.success();
+
+			fail("Renaming the end of a relationship to a name its type already has must not be allowed");
+
+		} catch (FrameworkException fex) {
+
+			assertTrue("The rejection must say the name is taken", fex.getErrorBuffer().getErrorTokens().stream().anyMatch(t -> "already_exists".equals(t.getToken())));
+		}
+	}
+
+	@Test
+	public void testRelationshipEndsMayShareANameOnDifferentTypes() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType item = schema.addType("Item");
+
+			// both give their source type a property "entries", and Item a property of its own name
+			schema.addType("Category").relate(item, "HAS",    Cardinality.OneToMany, "category", "entries");
+			schema.addType("Tag").relate(item,      "LABELS", Cardinality.OneToMany, "tag",      "entries");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("The same name on the ends of relationships at different types must be allowed");
+		}
+	}
+
 	// ----- private methods -----
+	// applies the change to the schema and expects it to be rejected because a name is taken on a type
+	private void assertNameTaken(final String message, final SchemaChange change) {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			change.apply(schema);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+			fail(message);
+
+		} catch (FrameworkException fex) {
+
+			assertTrue(message + ": the rejection must say the name is taken, but it was " + fex.getErrorBuffer().getErrorTokens(), fex.getErrorBuffer().getErrorTokens().stream().anyMatch(t -> "already_exists".equals(t.getToken())));
+
+		} catch (URISyntaxException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	private interface SchemaChange {
+
+		void apply(final JsonSchema schema) throws URISyntaxException;
+	}
+
 	private void checkSchemaString(final String source) {
 
 		final Gson gson = new GsonBuilder().create();

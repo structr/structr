@@ -127,8 +127,10 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 						// clear error buffer so the schema build doesn't fail because of the above check
 						errorBuffer.getErrorTokens().clear();
 
-						// only if we are valid up to here, test for relationship uniqueness
+						// only if we are valid up to here, test for relationship uniqueness and for the names of its ends
 						valid &= isRelationshipDefinitionUnique(obj.as(SchemaRelationshipNode.class), errorBuffer);
+						valid &= isEndNameUnique(obj.as(SchemaRelationshipNode.class), true, errorBuffer);
+						valid &= isEndNameUnique(obj.as(SchemaRelationshipNode.class), false, errorBuffer);
 					}
 
 					return valid;
@@ -348,6 +350,66 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		}
 
 		return allow;
+	}
+
+	/**
+	 * A relationship gives each of its two types a property: the source type the target json name (or a name derived from
+	 * the relationship), the target type the source json name. That name must not be taken on the type already, by the end
+	 * of another relationship (or the other end of a relationship from a type to itself) or by a property of the type: two
+	 * keys of the same name would hide one another. Properties inherited from other types may be overridden, as elsewhere.
+	 */
+	private boolean isEndNameUnique(final SchemaRelationshipNode node, final boolean outgoing, final ErrorBuffer errorBuffer) {
+
+		final SchemaNode type = outgoing ? node.getSourceNode() : node.getTargetNode();
+
+		// an end at a type that is given by its name only is no schema node of this application
+		if (type == null) {
+			return true;
+		}
+
+		final String name   = SchemaHelper.cleanPropertyName(node.getPropertyName(new LinkedHashSet<>(), outgoing));
+		final String holder = takenBy(node, type, name, outgoing);
+
+		if (holder == null) {
+			return true;
+		}
+
+		errorBuffer.add(new SemanticErrorToken(node.getType(), outgoing ? TARGET_JSON_NAME_PROPERTY : SOURCE_JSON_NAME_PROPERTY, "already_exists")
+			.withValue(name)
+			.withDetail("Type " + type.getName() + " already has a property named '" + name + "' (" + holder + "), the relationship needs another name for this end."));
+
+		return false;
+	}
+
+	// what already holds the name on the type, or null
+	private String takenBy(final SchemaRelationshipNode node, final SchemaNode type, final String name, final boolean outgoing) {
+
+		for (final SchemaRelationshipNode other : type.getRelatedTo()) {
+
+			final boolean same = other.getUuid().equals(node.getUuid()) && outgoing;
+
+			if (!same && name.equals(SchemaHelper.cleanPropertyName(other.getPropertyName(new LinkedHashSet<>(), true)))) {
+				return "the end of the relationship " + other.getRelationshipType() + " to " + other.getSchemaNodeTargetType();
+			}
+		}
+
+		for (final SchemaRelationshipNode other : type.getRelatedFrom()) {
+
+			final boolean same = other.getUuid().equals(node.getUuid()) && !outgoing;
+
+			if (!same && name.equals(SchemaHelper.cleanPropertyName(other.getPropertyName(new LinkedHashSet<>(), false)))) {
+				return "the end of the relationship " + other.getRelationshipType() + " from " + other.getSchemaNodeSourceType();
+			}
+		}
+
+		for (final SchemaProperty property : type.getSchemaProperties()) {
+
+			if (name.equals(property.getName())) {
+				return "a property of the type";
+			}
+		}
+
+		return null;
 	}
 
 	private boolean isClassNameAffected(final SchemaRelationshipNode node, final GraphObjectMap modifications) {
