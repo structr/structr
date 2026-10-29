@@ -57,7 +57,8 @@ public class PredicateBinding implements ProxyObject {
 		Map.entry("lte",             Functions.get("find.lte")),
 		Map.entry("gte",             Functions.get("find.gte")),
 		Map.entry("gt",              Functions.get("find.gt")),
-		Map.entry("any",             Functions.get("find.any"))
+		Map.entry("any",             Functions.get("find.any")),
+		Map.entry("overlaps",        Functions.get("find.overlaps"))
 	);
 
 	public PredicateBinding(final ActionContext actionContext, final GraphObject entity) {

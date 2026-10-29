@@ -326,6 +326,7 @@ public class AutocompleteTest extends StructrUiTest {
 			"predicate.lte",
 			"predicate.not",
 			"predicate.or",
+			"predicate.overlaps",
 			"predicate.page",
 			"predicate.range",
 			"predicate.sort",

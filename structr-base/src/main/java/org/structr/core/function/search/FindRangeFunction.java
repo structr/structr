@@ -63,8 +63,8 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 
 			switch (sources.length) {
 
-				case 4: includeEnd   = Boolean.parseBoolean(sources[3].toString());
-				case 3: includeStart = Boolean.parseBoolean(sources[2].toString());
+				case 4: includeEnd   = Boolean.parseBoolean(String.valueOf(sources[3]));
+				case 3: includeStart = Boolean.parseBoolean(String.valueOf(sources[2]));
 				case 2: rangeEnd     = sources[1];
 				case 1: rangeStart   = sources[0];
 				default: break;
@@ -90,7 +90,7 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getShortDescription() {
 
-		return "Returns a range predicate that can be used with find() and search().";
+		return "Returns a query predicate that can be used with find() and search().";
 	}
 
 	@Override
@@ -145,8 +145,8 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("start", "start of range interval"),
-				Parameter.mandatory("end", "end of range interval"),
+				Parameter.mandatory("start", "start of search interval"),
+				Parameter.mandatory("end", "end of search interval"),
 				Parameter.optional("includeStart", "true to include startpoint of given interval - default: true"),
 				Parameter.optional("includeEnd", "true to include endpoint of given interval - default: true")
 		);

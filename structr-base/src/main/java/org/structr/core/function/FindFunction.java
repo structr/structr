@@ -87,6 +87,7 @@ public class FindFunction extends AbstractQueryFunction {
 		| `range(start, end [, withStart = true [, withEnd = true ]] )` | Returns only those nodes where the given propertyKey is in the range between start and end |
 		| `range(null, end)`    | Unbounded `range()` to emulate "lower than or equal" |
 		| `range(start, null)`  | Unbounded `range()` to emulate "greater than or equal" |
+		| `overlaps(startKey, endKey, start, end [, includeStart = false [, includeEnd = false ]])` | Returns only those nodes whose interval between the values of `startKey` and `endKey` overlaps the interval between start and end |
 		| `startsWith(key, prefix)` | Returns only those nodes whose value for the given key starts with the given prefix |
 		| `endsWith(key, suffix)`   | Returns only those nodes whose value for the given key ends with the given suffix |
 		| `withinDistance(latitude, longitude, distance)`  | Returns only those nodes that are within `distance` meters around the given coordinates. The type that is being searched for needs to extend the built-in type `Location` |

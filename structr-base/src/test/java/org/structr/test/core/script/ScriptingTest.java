@@ -7505,7 +7505,7 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
-	public void testFindPredicateOperationsWithRange() {
+	public void testFindPredicateOperationsWithRangeForDates() {
 
 		// create schema
 		try (final Tx tx = app.tx()) {
@@ -7532,7 +7532,45 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
-			final String result = ScriptTestHelper.testExternalScript(actionContext, ScriptingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithRanges.js")).toString();
+			final String result = ScriptTestHelper.testExternalScript(actionContext, ScriptingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithRangesForDates.js")).toString();
+
+			assertEquals("Success", result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testFindPredicateOperationsWithRangeForIntegers() {
+
+		// create schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType grant = schema.addType("ResearchGrant");
+
+			grant.addIntegerProperty("minAmount");
+			grant.addIntegerProperty("maxAmount");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+			final String result = ScriptTestHelper.testExternalScript(actionContext, ScriptingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithRangesForIntegers.js")).toString();
 
 			assertEquals("Success", result);
 
