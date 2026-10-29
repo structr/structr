@@ -89,6 +89,8 @@ public class ToExcelMigrationHandler {
 
 	private static final Pattern NUMBER = Pattern.compile("-?\\d+(\\.\\d+)?");
 
+	private static final Pattern IDENTIFIER = Pattern.compile("[A-Za-z_$][\\w$]*");
+
 	public enum Verdict {
 
 		/** nothing to migrate: already in the 7.0 form, or not a call in the old signature */
@@ -149,7 +151,16 @@ public class ToExcelMigrationHandler {
 
 	public static Finding assess(final String type, final String id, final String name, final String property, final String call) {
 
-		final Assessment assessment = examine(call);
+		return assess(type, id, name, property, call, null);
+	}
+
+	/**
+	 * Like {@link #assess(String, String, String, String, String)}, but with the source the call was found in, so a
+	 * variable in the second position can be looked up there.
+	 */
+	public static Finding assess(final String type, final String id, final String name, final String property, final String call, final String source) {
+
+		final Assessment assessment = examine(call, source);
 
 		return new Finding(type, id, name, property, call, assessment.verdict(), assessment.reason());
 	}
@@ -159,13 +170,14 @@ public class ToExcelMigrationHandler {
 	 */
 	public static String rewrite(final String call) {
 
-		final Assessment assessment = examine(call);
+		// the surrounding source can only turn a MANUAL call into an UP_TO_DATE one, so it does not matter here
+		final Assessment assessment = examine(call, null);
 
 		return assessment.verdict() == Verdict.AUTOMATIC ? assessment.rewrite() : null;
 	}
 
 	// ----- private methods -----
-	private static Assessment examine(final String call) {
+	private static Assessment examine(final String call, final String source) {
 
 		final int open           = call.indexOf('(');
 		final String function    = call.substring(0, open).trim();
@@ -196,6 +208,12 @@ public class ToExcelMigrationHandler {
 		final boolean isProperties = isArrayLiteral(second);
 
 		if (!isView && !isProperties) {
+
+			// a variable that the surrounding code only ever assigns an object to holds an options object
+			if (javaScript && isOnlyAssignedObjects(second, source)) {
+
+				return new Assessment(Verdict.UP_TO_DATE, "passes an options object in a variable", null);
+			}
 
 			// an odd count, or a flag where the new signature expects the next collection, can only be the old signature
 			final boolean certainlyOld = count % 2 != 0 || (count > 2 && isBooleanLiteral(args.get(2)));
@@ -338,7 +356,7 @@ public class ToExcelMigrationHandler {
 
 		for (final String call : findCalls(source)) {
 
-			final Finding finding = assess(type, node.getUuid(), node.getName(), propertyName, call);
+			final Finding finding = assess(type, node.getUuid(), node.getName(), propertyName, call, source);
 			if (finding.verdict() == Verdict.UP_TO_DATE) {
 
 				continue;
@@ -421,6 +439,36 @@ public class ToExcelMigrationHandler {
 				finding.verdict(), finding.type(), finding.name() != null ? "'" + finding.name() + "'" : "", finding.id(),
 				finding.property(), finding.call(), finding.reason());
 		}
+	}
+
+	/**
+	 * Whether the argument is a variable that is assigned somewhere in the source, and every assignment to it is an
+	 * object literal. The scope is not resolved: a variable of the same name elsewhere counts too, which can only
+	 * keep a call flagged, never hide one.
+	 */
+	private static boolean isOnlyAssignedObjects(final String argument, final String source) {
+
+		final String variable = argument.trim();
+		if (source == null || !IDENTIFIER.matcher(variable).matches()) {
+
+			return false;
+		}
+
+		// an assignment, not a comparison or an arrow function, and not a property of the same name (foo.config = ...)
+		final Matcher matcher = Pattern.compile("(?<![\\w.$])" + Pattern.quote(variable) + "\\s*=(?![=>])\\s*").matcher(source);
+		boolean assigned      = false;
+
+		while (matcher.find()) {
+
+			if (matcher.end() >= source.length() || source.charAt(matcher.end()) != '{') {
+
+				return false;
+			}
+
+			assigned = true;
+		}
+
+		return assigned;
 	}
 
 	private static boolean isStringLiteral(final String argument) {

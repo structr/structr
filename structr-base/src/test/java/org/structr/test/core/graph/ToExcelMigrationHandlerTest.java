@@ -133,6 +133,36 @@ public class ToExcelMigrationHandlerTest {
 	}
 
 	@Test
+	public void testAVariableHoldingAnOptionsObjectIsUpToDate() {
+
+		final String source = "{\n\tlet config = { properties: Object.keys(data) };\n\t$.toExcel(data, config);\n}";
+		final String call   = ToExcelMigrationHandler.findCalls(source).get(0);
+
+		assertEquals(Verdict.UP_TO_DATE, ToExcelMigrationHandler.assess("SchemaMethod", "id", "n", "source", call, source).verdict());
+
+		// reassigned later in the same object form
+		assertEquals(Verdict.UP_TO_DATE, verdictIn("let config = { view: 'public' }; if (x) { config = { view: 'ui' }; } $.toExcel(data, config);"));
+	}
+
+	@Test
+	public void testAVariableThatMayHoldSomethingElseStillNeedsAPerson() {
+
+		// a view name in a variable is the old signature
+		assertEquals(Verdict.MANUAL, verdictIn("const config = 'public'; $.toExcel(data, config);"));
+
+		// one assignment that is not an object is enough to keep the call flagged
+		assertEquals(Verdict.MANUAL, verdictIn("let config = { view: 'public' }; if (x) { config = ['id', 'name']; } $.toExcel(data, config);"));
+
+		// a parameter, or a variable assigned from an expression, is unknown
+		assertEquals(Verdict.MANUAL, verdictIn("function exportIt(data, config) { return $.toExcel(data, config); }"));
+		assertEquals(Verdict.MANUAL, verdictIn("const config = $.retrieve('excelConfig'); $.toExcel(data, config);"));
+
+		// comparisons, arrow functions and properties of the same name are not assignments
+		assertEquals(Verdict.MANUAL, verdictIn("if (config === null) { this.config = {}; } $.toExcel(data, config);"));
+		assertEquals(Verdict.MANUAL, verdictIn("const f = config => ({}); $.toExcel(data, config);"));
+	}
+
+	@Test
 	public void testTheRewrites() {
 
 		assertEquals("toExcel(find('User'), { view: 'public' })", ToExcelMigrationHandler.rewrite("toExcel(find('User'), 'public')"));
@@ -198,5 +228,15 @@ public class ToExcelMigrationHandlerTest {
 	private Verdict verdict(final String call) {
 
 		return ToExcelMigrationHandler.assess("SchemaMethod", "id", "name", "source", call).verdict();
+	}
+
+	/** The verdict for the only call in the given source, with that source to look variables up in. */
+	private Verdict verdictIn(final String source) {
+
+		final List<String> calls = ToExcelMigrationHandler.findCalls(source);
+
+		assertEquals("expected exactly one call in: " + source, 1, calls.size());
+
+		return ToExcelMigrationHandler.assess("SchemaMethod", "id", "name", "source", calls.get(0), source).verdict();
 	}
 }
