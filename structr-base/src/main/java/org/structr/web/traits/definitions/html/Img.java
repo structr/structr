@@ -32,13 +32,16 @@ import java.util.Set;
 
 public class Img extends GenericHtmlElementTraitDefinition {
 
-	public static final String ALT_PROPERTY         = getPrefixedHTMLAttributeName("alt");
-	public static final String SRC_PROPERTY         = getPrefixedHTMLAttributeName("src");
-	public static final String CROSSORIGIN_PROPERTY = getPrefixedHTMLAttributeName("crossorigin");
-	public static final String USEMAP_PROPERTY      = getPrefixedHTMLAttributeName("usemap");
-	public static final String ISMAP_PROPERTY       = getPrefixedHTMLAttributeName("ismap");
-	public static final String WIDTH_PROPERTY       = getPrefixedHTMLAttributeName("width");
-	public static final String HEIGHT_PROPERTY      = getPrefixedHTMLAttributeName("height");
+	public static final String ALT_PROPERTY           = getPrefixedHTMLAttributeName("alt");
+	public static final String SRC_PROPERTY           = getPrefixedHTMLAttributeName("src");
+	public static final String CROSSORIGIN_PROPERTY   = getPrefixedHTMLAttributeName("crossorigin");
+	public static final String USEMAP_PROPERTY        = getPrefixedHTMLAttributeName("usemap");
+	public static final String ISMAP_PROPERTY         = getPrefixedHTMLAttributeName("ismap");
+	public static final String WIDTH_PROPERTY         = getPrefixedHTMLAttributeName("width");
+	public static final String HEIGHT_PROPERTY        = getPrefixedHTMLAttributeName("height");
+	public static final String LOADING_PROPERTY       = getPrefixedHTMLAttributeName("loading");
+	public static final String DECODING_PROPERTY      = getPrefixedHTMLAttributeName("decoding");
+	public static final String FETCHPRIORITY_PROPERTY = getPrefixedHTMLAttributeName("fetchpriority");
 
 	public Img() {
 
@@ -80,20 +83,23 @@ public class Img extends GenericHtmlElementTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final PropertyKey<String> altProperty         = new StringProperty(ALT_PROPERTY);
-		final PropertyKey<String> srcProperty         = new StringProperty(SRC_PROPERTY);
-		final PropertyKey<String> crossoriginProperty = new StringProperty(CROSSORIGIN_PROPERTY);
-		final PropertyKey<String> usemapProperty      = new StringProperty(USEMAP_PROPERTY);
-		final PropertyKey<String> ismapProperty       = new StringProperty(ISMAP_PROPERTY);
-		final PropertyKey<String> widthProperty       = new StringProperty(WIDTH_PROPERTY);
-		final PropertyKey<String> heightProperty      = new StringProperty(HEIGHT_PROPERTY);
+		final PropertyKey<String> altProperty           = new StringProperty(ALT_PROPERTY);
+		final PropertyKey<String> srcProperty           = new StringProperty(SRC_PROPERTY);
+		final PropertyKey<String> crossoriginProperty   = new StringProperty(CROSSORIGIN_PROPERTY);
+		final PropertyKey<String> usemapProperty        = new StringProperty(USEMAP_PROPERTY);
+		final PropertyKey<String> ismapProperty         = new StringProperty(ISMAP_PROPERTY);
+		final PropertyKey<String> widthProperty         = new StringProperty(WIDTH_PROPERTY);
+		final PropertyKey<String> heightProperty        = new StringProperty(HEIGHT_PROPERTY);
+		final PropertyKey<String> loadingProperty       = new StringProperty(LOADING_PROPERTY);
+		final PropertyKey<String> decodingProperty      = new StringProperty(DECODING_PROPERTY);
+		final PropertyKey<String> fetchpriorityProperty = new StringProperty(FETCHPRIORITY_PROPERTY);
 
-		return newSet(altProperty, srcProperty, crossoriginProperty, usemapProperty, ismapProperty, widthProperty, heightProperty);
+		return newSet(altProperty, srcProperty, crossoriginProperty, usemapProperty, ismapProperty, widthProperty, heightProperty, loadingProperty, decodingProperty, fetchpriorityProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(PropertyView.Html, newSet(ALT_PROPERTY, SRC_PROPERTY, CROSSORIGIN_PROPERTY, USEMAP_PROPERTY, ISMAP_PROPERTY, WIDTH_PROPERTY, HEIGHT_PROPERTY));
+		return Map.of(PropertyView.Html, newSet(ALT_PROPERTY, SRC_PROPERTY, CROSSORIGIN_PROPERTY, USEMAP_PROPERTY, ISMAP_PROPERTY, WIDTH_PROPERTY, HEIGHT_PROPERTY, LOADING_PROPERTY, DECODING_PROPERTY, FETCHPRIORITY_PROPERTY));
 	}
 }
