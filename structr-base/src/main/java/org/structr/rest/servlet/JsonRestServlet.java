@@ -143,11 +143,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				} catch (FrameworkException fex) {
 
-					retry = RetryException.retry(fex, ++attempts);
+					retry = retry(handler, fex, ++attempts);
 
 				} catch (RuntimeException rex) {
 
-					retry = RetryException.retry(rex, ++attempts);
+					retry = retry(handler, rex, ++attempts);
 				}
 			}
 
@@ -386,11 +386,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 						} catch (FrameworkException fex) {
 
-							retry = RetryException.retry(fex, ++attempts);
+							retry = retry(handler, fex, ++attempts);
 
 						} catch (RuntimeException rex) {
 
-							retry = RetryException.retry(rex, ++attempts);
+							retry = retry(handler, rex, ++attempts);
 						}
 
 					} else {
@@ -406,11 +406,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 						} catch (FrameworkException fex) {
 
-							retry = RetryException.retry(fex, ++attempts);
+							retry = retry(handler, fex, ++attempts);
 
 						} catch (RuntimeException rex) {
 
-							retry = RetryException.retry(rex, ++attempts);
+							retry = retry(handler, rex, ++attempts);
 						}
 					}
 				}
@@ -583,11 +583,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					} catch (FrameworkException fex) {
 
-						retry = RetryException.retry(fex, ++attempts);
+						retry = retry(handler, fex, ++attempts);
 
 					} catch (RuntimeException rex) {
 
-						retry = RetryException.retry(rex, ++attempts);
+						retry = retry(handler, rex, ++attempts);
 					}
 				}
 
@@ -723,11 +723,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					} catch (FrameworkException fex) {
 
-						retry = RetryException.retry(fex, ++attempts);
+						retry = retry(handler, fex, ++attempts);
 
 					} catch (RuntimeException rex) {
 
-						retry = RetryException.retry(rex, ++attempts);
+						retry = retry(handler, rex, ++attempts);
 					}
 				}
 
@@ -925,6 +925,20 @@ public class JsonRestServlet extends AbstractDataServlet {
 	}
 
 	// ----- private methods -----
+	/**
+	 * Decides whether the request is repeated after the given exception, see RetryException.retry(). A handler that
+	 * is not repeatable fails with the exception instead, see RESTCallHandler.isRepeatable().
+	 */
+	private static <E extends Exception> boolean retry(final RESTCallHandler handler, final E ex, final int attempts) throws E {
+
+		if (!handler.isRepeatable()) {
+
+			throw ex;
+		}
+
+		return RetryException.retry(ex, attempts);
+	}
+
 	private IJsonInput cleanAndParseJsonString(final App app, final String input) throws FrameworkException {
 
 		final Gson gson      = getGson();

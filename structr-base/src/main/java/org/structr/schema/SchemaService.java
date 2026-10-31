@@ -48,6 +48,7 @@ import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.
@@ -230,7 +231,7 @@ public class SchemaService implements Service {
 					AbstractSchemaNodeTraitDefinition.createViewNodesForClass(newSchema, node.as(AbstractSchemaNode.class));
 				}
 
-				updateIndexConfiguration(newSchema, removedTypes);
+				updateIndexConfiguration(() -> newSchema, removedTypes);
 
 				tx.success();
 
@@ -430,13 +431,18 @@ public class SchemaService implements Service {
 	/**
 	 * Updates the indexes of the current schema in the background, e.g. after the size of a vector index
 	 * became known. The same update runs after every schema change.
+	 *
+	 * The schema is resolved when the update runs, not when it is requested: it must be the current one,
+	 * including the types of the dynamic schema - the root instance only knows the built-in types, so an
+	 * update based on it would drop the indexes of all other types - and an update requested during a
+	 * schema reload must not apply the schema the reload is about to replace.
 	 */
 	public static void triggerIndexUpdate() {
 
-		updateIndexConfiguration(TraitsManager.getRootInstance(), Map.of());
+		updateIndexConfiguration(TraitsManager::getCurrentInstance, Map.of());
 	}
 
-	private static void updateIndexConfiguration(final TraitsInstance traitsInstance, final Map<String, Map<String, PropertyKey>> removedTypes) {
+	private static void updateIndexConfiguration(final Supplier<TraitsInstance> traitsInstanceSupplier, final Map<String, Map<String, PropertyKey>> removedTypes) {
 
 		if (Services.overrideIndexManagement()) {
 
@@ -468,6 +474,7 @@ public class SchemaService implements Service {
 					return;
 				}
 
+				final TraitsInstance traitsInstance = traitsInstanceSupplier.get();
 				final Set<String> whitelist   = new LinkedHashSet<>(Set.of(StructrTraits.GRAPH_OBJECT, StructrTraits.NODE_INTERFACE));
 				final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 				final boolean vectorIndexes   = graphDb.supportsFeature(DatabaseFeature.VectorIndexes);
