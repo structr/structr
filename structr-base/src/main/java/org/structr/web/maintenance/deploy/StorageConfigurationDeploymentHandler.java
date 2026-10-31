@@ -48,8 +48,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -65,7 +67,9 @@ import java.util.TreeMap;
  *
  * Entry values are declared as EncryptedStringProperty: the accessor decrypts
  * them, so they are written to the export in clear text (like all other
- * deployment configuration) and re-encrypted on import.
+ * deployment configuration) and re-encrypted on import - except credentials
+ * (see {@link #isCredential}), which never leave the instance. The export ends
+ * up in a repository; on import, the instance keeps the credentials it had.
  */
 public abstract class StorageConfigurationDeploymentHandler {
 
@@ -109,6 +113,11 @@ public abstract class StorageConfigurationDeploymentHandler {
 				for (final NodeInterface entryNode : config.getEntries()) {
 
 					final StorageConfigurationEntry configEntry = entryNode.as(StorageConfigurationEntry.class);
+
+					if (isCredential(configEntry.getName())) {
+						continue;
+					}
+
 					entries.put(configEntry.getName(), configEntry.getValue());
 				}
 
@@ -184,6 +193,14 @@ public abstract class StorageConfigurationDeploymentHandler {
 			final Traits fileTraits  = Traits.of(StructrTraits.ABSTRACT_FILE);
 			final PropertyKey<NodeInterface> storageConfigKey = fileTraits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY);
 
+			// the credentials the export left out, by configuration uuid and name, to give back below
+			final Map<String, Map<String, String>> keptCredentials = new HashMap<>();
+
+			for (final NodeInterface existing : app.nodeQuery(StructrTraits.STORAGE_CONFIGURATION).getAsList()) {
+
+				keepCredentials(existing.as(StorageConfiguration.class), keptCredentials);
+			}
+
 			// clean slate: entries first (they reference the configuration), then configurations
 			for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.STORAGE_CONFIGURATION_ENTRY).getAsList()) {
 
@@ -223,9 +240,28 @@ public abstract class StorageConfigurationDeploymentHandler {
 
 				final NodeInterface configNode = app.create(StructrTraits.STORAGE_CONFIGURATION, props);
 
-				// entries
-				final Map<String, Object> entries = (Map<String, Object>) data.get(KEY_ENTRIES);
-				if (entries != null) {
+				// entries, plus the credentials the instance had for this configuration
+				final Map<String, Object> entries = new LinkedHashMap<>();
+
+				if (data.get(KEY_ENTRIES) instanceof Map map) {
+
+					entries.putAll(map);
+				}
+
+				Map<String, String> credentials = keptCredentials.get(id);
+
+				if (credentials == null) {
+
+					credentials = keptCredentials.get(name);
+				}
+
+				if (credentials != null) {
+
+					// an export written before credentials were left out still has them, and those win
+					credentials.forEach(entries::putIfAbsent);
+				}
+
+				if (!entries.isEmpty()) {
 
 					for (final Map.Entry<String, Object> configEntry : entries.entrySet()) {
 
@@ -259,6 +295,48 @@ public abstract class StorageConfigurationDeploymentHandler {
 			}
 
 			tx.success();
+		}
+	}
+	/**
+	 * Whether an entry holds a credential. Entries are free-form, so this goes by name: the S3
+	 * provider's accessKey and secretKey, and anything named like a secret, password, token or API key.
+	 */
+	private static boolean isCredential(final String name) {
+
+		if (name == null) {
+
+			return false;
+		}
+
+		final String lower = name.toLowerCase(Locale.ROOT);
+
+		return lower.equals("accesskey") || lower.equals("apikey") || lower.contains("secret") || lower.contains("password") || lower.contains("token");
+	}
+
+	private static void keepCredentials(final StorageConfiguration config, final Map<String, Map<String, String>> target) {
+
+		final Map<String, String> credentials = new LinkedHashMap<>();
+
+		for (final NodeInterface entryNode : config.getEntries()) {
+
+			final StorageConfigurationEntry configEntry = entryNode.as(StorageConfigurationEntry.class);
+
+			if (isCredential(configEntry.getName()) && configEntry.getValue() != null) {
+
+				credentials.put(configEntry.getName(), configEntry.getValue());
+			}
+		}
+
+		if (credentials.isEmpty()) {
+
+			return;
+		}
+
+		target.put(config.getUuid(), credentials);
+
+		if (config.getName() != null) {
+
+			target.putIfAbsent(config.getName(), credentials);
 		}
 	}
 }
