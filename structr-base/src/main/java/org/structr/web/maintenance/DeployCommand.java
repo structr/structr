@@ -558,6 +558,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (FrameworkException fex) {
 
+			logger.error("Deployment import failed", fex);
+
 			final String title          = "Fatal Error";
 			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information.<br><br>" + fex;
 
@@ -569,6 +571,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			throw fex;
 
 		} catch (Throwable t) {
+
+			logger.error("Deployment import failed", t);
 
 			final String title          = "Fatal Error";
 			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information.<br><br>" + t.getMessage();

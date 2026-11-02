@@ -289,6 +289,21 @@ public abstract class RESTCallHandler {
 		return true;
 	}
 
+	/**
+	 * Override this method in your resource implementation and return false
+	 * if a request must not be repeated when the database terminates one of its
+	 * transactions with a transient error. A request can only be repeated when it
+	 * consists of a single transaction; a handler that commits several
+	 * transactions of its own (e.g. a maintenance command like the deployment
+	 * import) would run again from the start. Default: true.
+	 *
+	 * @return whether the request may be repeated after a transient error
+	 */
+	public boolean isRepeatable() {
+
+		return true;
+	}
+
 	public String getEntityClassOrDefault(final SecurityContext securityContext) {
 
 		try {

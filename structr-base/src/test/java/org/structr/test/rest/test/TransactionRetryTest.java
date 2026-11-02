@@ -28,6 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
@@ -43,6 +44,8 @@ import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +53,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -162,6 +166,29 @@ public class TransactionRetryTest extends StructrRestTestBase {
 
 		assertEquals("The callbacks were not repeated until the attempts ran out", RetryException.MAX_ATTEMPTS, callbackRuns.get());
 		assertEquals("The request was repeated although its data was already committed", 1, getItems().size());
+	}
+
+	@Test
+	public void testMaintenanceCommandIsNotRepeated() throws Exception {
+
+		// a data deployment commits transactions of its own, so a repetition would run the whole import again
+		final Path source = Files.createTempDirectory("structr-retry-test");
+		final Path nodes  = Files.createDirectories(source.resolve("nodes"));
+
+		Files.writeString(nodes.resolve("RetryItem.json"), "[{ \"id\": \"" + NodeServiceCommand.getNextUuid() + "\", \"type\": \"RetryItem\", \"name\": \"item\" }]");
+
+		commitFailures.set(2);
+
+		final int status = RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.body("{ \"mode\": \"import\", \"doInnerCallbacks\": true, \"source\": \"" + source.toAbsolutePath() + "\" }")
+		.when()
+			.post("/maintenance/deployData")
+			.statusCode();
+
+		assertEquals("The maintenance command was repeated after a transient error", 1, commitFailures.get());
+		assertTrue("The maintenance command did not fail after a transient error", status >= 400);
+		assertEquals("The failed import created objects", 0, getItems().size());
 	}
 
 	// ----- private methods -----

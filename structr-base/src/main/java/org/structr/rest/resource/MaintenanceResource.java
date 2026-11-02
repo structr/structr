@@ -303,6 +303,16 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 			return false;
 		}
 
+		/**
+		 * Maintenance commands commit transactions of their own, so a repetition would run the
+		 * whole command again, e.g. restart a deployment import from the beginning.
+		 */
+		@Override
+		public boolean isRepeatable() {
+
+			return false;
+		}
+
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
 
