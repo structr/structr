@@ -38,6 +38,7 @@ public class A extends GenericHtmlElementTraitDefinition {
 	public static final String MEDIA_PROPERTY    = getPrefixedHTMLAttributeName("media");
 	public static final String HREFLANG_PROPERTY = getPrefixedHTMLAttributeName("hreflang");
 	public static final String TYPE_PROPERTY     = getPrefixedHTMLAttributeName("type");
+	public static final String DOWNLOAD_PROPERTY = getPrefixedHTMLAttributeName("download");
 
 	public A() {
 
@@ -74,13 +75,14 @@ public class A extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> mediaProperty    = new StringProperty(MEDIA_PROPERTY);
 		final PropertyKey<String> hreflangProperty = new StringProperty(HREFLANG_PROPERTY);
 		final PropertyKey<String> typeProperty     = new StringProperty(TYPE_PROPERTY);
+		final PropertyKey<String> downloadProperty = new StringProperty(DOWNLOAD_PROPERTY);
 
-		return newSet(hrefProperty, targetProperty, pingProperty, relProperty, mediaProperty, hreflangProperty, typeProperty);
+		return newSet(hrefProperty, targetProperty, pingProperty, relProperty, mediaProperty, hreflangProperty, typeProperty, downloadProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(PropertyView.Html, newSet(HREF_PROPERTY, TARGET_PROPERTY, PING_PROPERTY, REL_PROPERTY, MEDIA_PROPERTY, HREFLANG_PROPERTY, TYPE_PROPERTY));
+		return Map.of(PropertyView.Html, newSet(HREF_PROPERTY, TARGET_PROPERTY, PING_PROPERTY, REL_PROPERTY, MEDIA_PROPERTY, HREFLANG_PROPERTY, TYPE_PROPERTY, DOWNLOAD_PROPERTY));
 	}
 }

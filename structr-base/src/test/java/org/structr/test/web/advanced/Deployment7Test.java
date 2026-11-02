@@ -34,11 +34,14 @@ import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Site;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.definitions.FolderTraitDefinition;
 import org.structr.web.traits.definitions.SiteTraitDefinition;
+import org.structr.web.traits.definitions.html.A;
+import org.structr.web.traits.definitions.html.Img;
 import org.testng.annotations.Test;
 
 import java.io.BufferedInputStream;
@@ -392,6 +395,55 @@ public class Deployment7Test extends DeploymentTestBase {
 
 			assertEquals("crc32 should be identical after deployment roundtrip", checksumCrc32, file.getProperty(file.getTraits().key(FileTraitDefinition.CRC32_PROPERTY)));
 			assertEquals("sha1 should be identical after deployment roundtrip", checksumSha1, file.getProperty(file.getTraits().key(FileTraitDefinition.SHA1_PROPERTY)));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void test77ImgAndAnchorAttributesSurviveDeployment() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page       = Page.createNewPage(securityContext, "test77");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
+
+			createElement(page, head, "title", "test77");
+
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement img  = createElement(page, body, "img");
+			final DOMElement a    = createElement(page, body, "a", "download");
+
+			img.setProperty(img.getTraits().key(Img.LOADING_PROPERTY),       "lazy");
+			img.setProperty(img.getTraits().key(Img.DECODING_PROPERTY),      "async");
+			img.setProperty(img.getTraits().key(Img.FETCHPRIORITY_PROPERTY), "low");
+			a.setProperty(a.getTraits().key(A.DOWNLOAD_PROPERTY),            "${cit.fileName}");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface img = app.nodeQuery(StructrTraits.IMG).getFirst();
+			final NodeInterface a   = app.nodeQuery(StructrTraits.A).getFirst();
+
+			assertEquals("loading should survive the deployment roundtrip",       "lazy",            img.getProperty(img.getTraits().key(Img.LOADING_PROPERTY)));
+			assertEquals("decoding should survive the deployment roundtrip",      "async",           img.getProperty(img.getTraits().key(Img.DECODING_PROPERTY)));
+			assertEquals("fetchpriority should survive the deployment roundtrip", "low",             img.getProperty(img.getTraits().key(Img.FETCHPRIORITY_PROPERTY)));
+			assertEquals("download should survive the deployment roundtrip",      "${cit.fileName}", a.getProperty(a.getTraits().key(A.DOWNLOAD_PROPERTY)));
 
 			tx.success();
 
