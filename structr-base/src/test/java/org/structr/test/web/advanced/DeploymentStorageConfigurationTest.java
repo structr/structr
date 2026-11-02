@@ -61,7 +61,6 @@ public class DeploymentStorageConfigurationTest extends DeploymentTestBase {
 
 		config.put("mountTarget",   "/tmp/structr-storage-config-test");
 		config.put("customSetting", "custom-value");
-		config.put("secretSetting", "s3cr3t-value");
 
 		// the per-mount sync settings, which a deployment round trip has to keep (#1647)
 		config.put("sync.watchContents", "true");
@@ -153,6 +152,74 @@ public class DeploymentStorageConfigurationTest extends DeploymentTestBase {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
+		}
+	}
+
+	/**
+	 * A deployment export ends up in a repository, so credentials must not be in it. And because the
+	 * import replaces every configuration, the instance has to keep the ones it had.
+	 */
+	@Test
+	public void testCredentialsStayOnTheInstance() {
+
+		final Map<String, String> config = new LinkedHashMap<>();
+
+		config.put("bucketName", "some-bucket");
+		config.put("accessKey",  "AKIA-do-not-export");
+		config.put("secretKey",  "secret-do-not-export");
+		config.put("dbPassword", "password-do-not-export");
+
+		try (final Tx tx = app.tx()) {
+
+			StorageProviderFactory.createConfig("credentials-config", LocalFSStorageProvider.class, config);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		Path exportPath = null;
+
+		try {
+
+			exportPath = doExport();
+
+			final String moduleJson = Files.readString(exportPath.resolve("modules").resolve("ui").resolve(StorageConfigurationDeploymentHandler.STORAGE_CONFIGURATIONS_FILE));
+
+			assertTrue("The export must contain the other entries",       moduleJson.contains("some-bucket"));
+			assertFalse("The export must not contain the access key",     moduleJson.contains("AKIA-do-not-export"));
+			assertFalse("The export must not contain the secret key",     moduleJson.contains("secret-do-not-export"));
+			assertFalse("The export must not contain a password",         moduleJson.contains("password-do-not-export"));
+
+			doImport(exportPath);
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface node = app.nodeQuery(StructrTraits.STORAGE_CONFIGURATION).name("credentials-config").getFirst();
+
+				assertNotNull("The configuration must survive the import", node);
+
+				final Map<String, String> restored = node.as(StorageConfiguration.class).getConfiguration();
+
+				assertEquals("The instance must keep its entries and credentials", config, restored);
+
+				tx.success();
+			}
+
+		} catch (FrameworkException | IOException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+
+		} finally {
+
+			if (exportPath != null) {
+
+				try { deleteExportAt(exportPath); } catch (IOException ignore) {}
+			}
 		}
 	}
 
