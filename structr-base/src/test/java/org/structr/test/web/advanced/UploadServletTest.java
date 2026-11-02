@@ -110,6 +110,51 @@ public class UploadServletTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testUploadWithClientPathKeepsOnlyTheFileName() {
+
+		RestAssured.basePath = "/";
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// old browsers send the full client-side path as the file name
+		RestAssured
+			.given()
+				.header(X_USER_HEADER,       ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER,   ADMIN_PASSWORD)
+				.multiPart("file",      "C:\\Users\\test\\Documents\\report.pdf", "%PDF-1.4".getBytes(Charset.forName("utf-8")), "application/pdf")
+
+			.expect()
+				.statusCode(200)
+
+			.when()
+				.post(UPLOAD_SERVLET_PATH);
+
+		try (final Tx tx = app.tx()) {
+
+			final File file = app.nodeQuery(StructrTraits.FILE).getFirst().as(File.class);
+
+			assertEquals("Only the last path segment is the file name", "report.pdf", file.getName());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
 	public void testSuccessfulFileUploadWithRedirectAndUUID() {
 
 		RestAssured.basePath = "/";

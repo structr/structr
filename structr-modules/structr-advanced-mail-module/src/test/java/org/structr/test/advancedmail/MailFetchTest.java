@@ -45,7 +45,9 @@ import org.testng.annotations.Test;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.Date;
@@ -245,6 +247,42 @@ public class MailFetchTest extends StructrRestTestBase {
 		// and it is moved past: fetching again does not retry it, or anything else
 		fetch(mailbox);
 		assertEquals(0, lastFetchCount(mailbox));
+	}
+
+	@Test
+	public void testAnAttachmentNameWithASlashIsStored() throws Exception {
+
+		final GreenMailUser user    = greenMail.setUser("inbox@example.com", "inbox", "secret");
+		final MimeMessage message   = message("with attachment", null);
+		final MimeBodyPart text     = new MimeBodyPart();
+		final MimeBodyPart pdf      = new MimeBodyPart();
+		final MimeMultipart content = new MimeMultipart();
+
+		text.setText("see attachment");
+		pdf.setContent("%PDF-1.4", "application/pdf");
+		pdf.setFileName("RE_2026/123456.pdf");
+
+		content.addBodyPart(text);
+		content.addBodyPart(pdf);
+
+		message.setContent(content);
+		message.saveChanges();
+
+		user.deliver(message);
+
+		final String mailbox = createMailbox("inbox", "secret", null);
+
+		fetch(mailbox);
+
+		// File.name may not contain a slash, and the failed validation used to skip the whole message
+		assertEquals(List.of("with attachment"), subjectsIn(mailbox));
+
+		try (final Tx tx = app.tx()) {
+
+			assertNotNull("the attachment is stored with the slash replaced", app.nodeQuery(StructrTraits.FILE).name("RE_2026_123456.pdf").getFirst());
+
+			tx.success();
+		}
 	}
 
 	@Test

@@ -413,26 +413,9 @@ public class MailService implements RunnableService, MailServiceInterface {
 
 				NodeInterface fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), getStoragePath(mb.getUuid(), m.getReceivedDate()));
 
-				try {
+				final String fileName = attachmentFileName(p.getFileName());
 
-					String fileName = p.getFileName();
-					if (fileName == null) {
-
-						fileName = NodeServiceCommand.getNextUuid();
-
-					} else {
-
-						fileName = decodeText(fileName);
-
-					}
-
-					file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileType, fileName, fileFolder.as(org.structr.web.entity.Folder.class));
-
-				} catch (FrameworkException ex) {
-
-					logger.warn("EMail in mailbox[" + mb.getUuid() + "] attachment has invalid name. Using random UUID as fallback.");
-					file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileType, NodeServiceCommand.getNextUuid(), fileFolder.as(org.structr.web.entity.Folder.class));
-				}
+				file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileType, fileName, fileFolder.as(org.structr.web.entity.Folder.class));
 
 				tx.success();
 
@@ -447,6 +430,19 @@ public class MailService implements RunnableService, MailServiceInterface {
 		}
 
 		return file;
+	}
+
+	// names are validated only when the message commits, so a slash would cost the whole message
+	private static String attachmentFileName(final String rawName) {
+
+		if (rawName == null) {
+
+			return NodeServiceCommand.getNextUuid();
+		}
+
+		final String name = decodeText(rawName).replace('/', '_').replace('\\', '_').trim();
+
+		return name.isEmpty() ? NodeServiceCommand.getNextUuid() : name;
 	}
 
 	private Map<String,String> handleMultipart(final Mailbox mb, final Message message, final Multipart p, final List<NodeInterface> attachments) {
@@ -637,7 +633,7 @@ public class MailService implements RunnableService, MailServiceInterface {
 		return null;
 	}
 
-	private String decodeText (final String text) {
+	private static String decodeText (final String text) {
 
 		try {
 

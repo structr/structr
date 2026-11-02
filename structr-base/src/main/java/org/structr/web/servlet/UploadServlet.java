@@ -395,7 +395,8 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						uploadFolder = getFolderParent(securityContext, params.get(AbstractFileTraitDefinition.PARENT_ID_PROPERTY).toString());
 					}
 
-					final String name = (p.getSubmittedFileName() != null ? p.getSubmittedFileName() : p.getName()).replaceAll("\\\\", "/");
+					// some clients send a full client-side path, only its last segment is the file name
+					final String name = PathHelper.getName((p.getSubmittedFileName() != null ? p.getSubmittedFileName() : p.getName()).replaceAll("\\\\", "/"));
 					File newFile = null;
 					boolean retry = true;
 					int attempts  = 0;
