@@ -286,22 +286,23 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 		final App app       = StructrApp.getInstance();
 		final Logger logger = LoggerFactory.getLogger(Image.class);
 
-		try (final Tx tx = app.tx()) {
+		// best effort after the commit: concurrent requests queue the same thumbnail, so a failure must not fail the request
+		for (final String uuid : thumbnailUuids) {
 
-			for (final String uuid : thumbnailUuids) {
+			try (final Tx tx = app.tx()) {
 
 				final NodeInterface oldThumbnail = app.nodeQuery(StructrTraits.IMAGE).uuid(uuid).getFirst();
 				if (oldThumbnail != null) {
 
 					app.delete(oldThumbnail);
 				}
+
+				tx.success();
+
+			} catch (FrameworkException | RuntimeException ex) {
+
+				logger.info("Outdated thumbnail {} not deleted, probably already removed by a concurrent request: {}", uuid, ex.getMessage());
 			}
-
-			tx.success();
-
-		} catch (FrameworkException ex) {
-
-			logger.error("Unable to delete deprecated thumbnail", ex);
 		}
 	}
 }
