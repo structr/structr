@@ -194,7 +194,7 @@ test('pages', async ({page}, testInfo) => {
 
 		// click on a different element to disable highlighting for the element we want to screenshot
 		await page.locator('span').filter({hasText: 'body'}).click();
-		await page.locator('span').filter({hasText: 'script'}).hover();
+		await page.locator('span').filter({hasText: /^script$/}).hover();
 
 		// take a screenshot of the form element
 		await page.locator('div.node:has(b[title="form"])').nth(4).screenshot({path: 'screenshots/pages_create-form-element.png'});

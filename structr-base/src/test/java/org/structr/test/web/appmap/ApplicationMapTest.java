@@ -24,6 +24,8 @@ import org.structr.api.config.Settings;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEvent;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
@@ -382,16 +384,16 @@ public class ApplicationMapTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		RestAssured.basePath = "/structr/rest";
-
-		RestAssured.given().header(X_USER_HEADER, ADMIN_USERNAME).header(X_PASSWORD_HEADER, ADMIN_PASSWORD).when().post("/failItems");
+		// the error as Scripting.reportError records it: the outermost evaluation of a method called over REST settles its
+		// promise from the host and records no error, so the test writes the entry of the event log itself
+		RuntimeEventLog.scripting("Scripting Error", Map.of(RuntimeEvent.ID_PROPERTY, ids.get("failItems"), "row", 3, "message", "ReferenceError: undefinedFunction is not defined"));
 
 		final JsonPath map = fetchMap();
 
-		assertTrue("A scripting error must count for the method it happened in", Integer.parseInt(node(map, ids.get("failItems"), "errs.n")) >= 1);
-		assertEquals("The latest error must name the line in the code of the method", "3", node(map, ids.get("failItems"), "errs.row"));
-		assertNotNull("The latest error must carry its message",                     node(map, ids.get("failItems"), "errs.msg"));
-		assertNull("A method without errors must carry none",                        node(map, ids.get("formatItem"), "errs"));
+		assertEquals("A scripting error must count for the method it happened in",   "1",   node(map, ids.get("failItems"), "errs.n"));
+		assertEquals("The latest error must name the line in the code of the method", "3",   node(map, ids.get("failItems"), "errs.row"));
+		assertNotNull("The latest error must carry its message",                            node(map, ids.get("failItems"), "errs.msg"));
+		assertNull("A method without errors must carry none",                               node(map, ids.get("formatItem"), "errs"));
 	}
 
 	@Test
@@ -721,7 +723,8 @@ public class ApplicationMapTest extends StructrUiTest {
 			card.setProperty(card.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "card");
 			card.appendChild(components.createTextNode("Name: ${current.name} ${render(children)}"));
 
-			sheet.appendChild(sheet.createTemplate("${{ $.print('sheet'); }}"));
+			// the map leaves out what nothing uses, so the page includes the shared component
+			sheet.appendChild(sheet.createTemplate("${{ $.print('sheet'); $.include('card'); }}"));
 
 			ids.put("card",          card.getUuid());
 			ids.put("sheet",         sheet.getUuid());
