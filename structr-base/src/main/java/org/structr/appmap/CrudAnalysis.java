@@ -18,6 +18,7 @@
  */
 package org.structr.appmap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.appmap.ApplicationMap.MapEdge;
 import org.structr.appmap.ApplicationMap.MapNode;
 
@@ -198,7 +199,7 @@ class CrudAnalysis {
 		Matcher matcher = FINDER_ANY.matcher(source);
 
 		while (matcher.find()) {
-			note(id, matcher.group(2), CREATING.contains(matcher.group(1)) ? "C" : "R", name + ": $." + matcher.group(1) + "('" + matcher.group(2) + "')");
+			note(id, matcher.group(2), CREATING.contains(matcher.group(1)) ? "C" : "R", lineOf(name, source, matcher.start()));
 		}
 
 		for (final Pattern pattern : List.of(ASSIGN_FINDER, LOOP_FINDER)) {
@@ -225,7 +226,7 @@ class CrudAnalysis {
 					if (target != null) {
 
 						vars.put(matcher.group(1), target);
-						note(id, target, "R", name + ": " + matcher.group(2) + "." + matcher.group(3) + " → " + target);
+						note(id, target, "R", lineOf(name, source, matcher.start()));
 					}
 				}
 			}
@@ -250,10 +251,10 @@ class CrudAnalysis {
 
 				final String target = schema.getRelationshipTarget(type, matcher.group(2));
 
-				note(id, type, "U", name + ": " + matcher.group(1) + "." + matcher.group(2) + " = …");
+				note(id, type, "U", lineOf(name, source, matcher.start()));
 
 				if (target != null) {
-					note(id, target, "R", name + ": links " + type + "." + matcher.group(2) + " to " + target);
+					note(id, target, "R", lineOf(name, source, matcher.start()));
 				}
 			}
 		}
@@ -263,7 +264,7 @@ class CrudAnalysis {
 		while (matcher.find()) {
 
 			if (vars.containsKey(matcher.group(1))) {
-				note(id, vars.get(matcher.group(1)), "U", name + ": $.set(" + matcher.group(1) + ", …)");
+				note(id, vars.get(matcher.group(1)), "U", lineOf(name, source, matcher.start()));
 			}
 		}
 
@@ -272,7 +273,7 @@ class CrudAnalysis {
 		while (matcher.find()) {
 
 			if (vars.containsKey(matcher.group(1))) {
-				note(id, vars.get(matcher.group(1)), "D", name + ": $.delete(" + matcher.group(1) + ")");
+				note(id, vars.get(matcher.group(1)), "D", lineOf(name, source, matcher.start()));
 			}
 		}
 
@@ -301,6 +302,20 @@ class CrudAnalysis {
 				call(id, callee);
 			}
 		}
+	}
+
+	/**
+	 * The evidence of what a method does: its name, and the line of its code where it does it,
+	 * with its number, so that a reader finds it.
+	 */
+	private static String lineOf(final String name, final String source, final int index) {
+
+		final int start   = source.lastIndexOf('\n', index - 1) + 1;
+		final int end     = source.indexOf('\n', index);
+		final int number  = (int) source.substring(0, start).chars().filter(c -> c == '\n').count() + 1;
+		final String line = source.substring(start, end < 0 ? source.length() : end).trim();
+
+		return name + ", line " + number + ": " + StringUtils.abbreviate(line, 160);
 	}
 
 	/**

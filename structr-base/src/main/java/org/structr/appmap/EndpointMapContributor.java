@@ -51,6 +51,11 @@ public class EndpointMapContributor implements ApplicationMapContributor {
 
 		for (final NodeInterface node : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).getAsList()) {
 
+			// a node with the label but without a known type comes back as a GenericNode
+			if (!node.is(StructrTraits.RESOURCE_ACCESS)) {
+				continue;
+			}
+
 			final ResourceAccess access = node.as(ResourceAccess.class);
 			final String signature      = access.getResourceSignature();
 

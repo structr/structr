@@ -62,6 +62,17 @@ class AppMapRenderer {
 	// [light, dark]
 	static ACCESS_COLOR = { pub: ['#e03131', '#ff6b6b'], auth: ['#1c7ed6', '#4dabf7'], none: ['#495057', '#adb5bd'] };
 
+	// the glow of the activity lens reaches this many pixels beyond an element, plus this many more for the hottest one, in
+	// a turquoise that no kind of element has; the strength is in size and opacity. Errors are a red ring around the element,
+	// as wide in pixels as these plus the share of the most failing one, so both show at once; [light, dark]
+	static HEAT_GLOW    = [4, 20];
+	static HEAT_COLOUR  = ['#12b886', '#38d9a9'];
+	static ERROR_RING   = [1, 2.5];
+	static ERROR_COLOUR = ['#e03131', '#ff6b6b'];
+
+	// the tags of a page below it: the start page green, the pages shown for errors red; [light, dark]
+	static ROUTING_COLOR = { start: ['#2f9e44', '#69db7c'], error: ['#e03131', '#ff6b6b'] };
+
 	// a method is a rectangle lying on its side, as wide and as high as these shares of its radius on each side, so it can
 	// show its code when it comes close (see AppMapPanels.codePanel); a page or shared component is a sheet standing upright
 	// in the proportion of A4, with about the area of the square it was
@@ -260,8 +271,10 @@ class AppMapRenderer {
 		}
 
 		this.drawGroupings(k, focus, rect);
+		this.drawHeat(k, rect);
 		this.drawFound(k, rect);
 		this.drawElements(k, focus, near, around, rect);
+		this.drawErrors(k, rect);
 
 		if (view.access && !focus) {
 			this.drawLens(k, rect);
@@ -317,8 +330,11 @@ class AppMapRenderer {
 		const top    = edge + (view.trail.length ? (view.trailBar.offsetHeight || 24) + 8 : 0);
 		const bottom = view.height - edge - AppMapRenderer.MARKER_HUD;
 
-		// the relations of an HTML element run as calm arcs from its box (see AppMapPanels.drawRelations)
+		// the relations of an HTML element run as calm arcs from its box (see AppMapPanels.drawRelations); so do those of an open
+		// page held as a whole, each from the box it starts at, as its card covers the lines from its middle
 		const origin = view.pinnedDom ? view.panels.boxOrigin(view.pinnedDom) : null;
+		const tree   = view.pinnedDom ? null : view.panels.trees.get(view.pinned);
+		const open   = tree?.open ? tree : null;
 
 		this.markers = [];
 
@@ -355,7 +371,7 @@ class AppMapRenderer {
 			} else {
 
 				// where the drawn relation leaves the screen on its way to the element, else the line from the middle
-				const points         = origin ? AppMapRenderer.arcPoints(origin, anchor, 0.12) : this.markerPoints(view.pinned, anchor);
+				const points         = origin ? AppMapRenderer.arcPoints(origin, anchor, 0.12) : (this.boxPoints(open, anchor) ?? this.markerPoints(view.pinned, anchor));
 				const [x, y, dx, dy] = this.exitOf(points, [edge, top, view.width - edge, bottom]) ?? AppMapRenderer.edgeToward(sx, sy, view, edge, top, bottom);
 				const near           = outside.find(m => Math.abs(m.x - x) < AppMapRenderer.MARKER_MERGE[0] && Math.abs(m.y - y) < AppMapRenderer.MARKER_MERGE[1]);
 
@@ -447,6 +463,27 @@ class AppMapRenderer {
 
 	// the course that leads from the element held to a grouping it reaches: the strongest relation between them as the map
 	// draws it, from the side of the element held, in map units
+	// the arc of the first relation an open page has from one of its boxes toward an element, as drawn by
+	// AppMapPanels.drawRelations; null when the page is not open or no box leads there
+	boxPoints(tree, anchor) {
+
+		if (!tree) {
+			return null;
+		}
+
+		const view  = this.view;
+		const page  = view.pinned;
+		const found = view.panels.relationsOf(page, tree).find(([, other]) => view.anchorOf(other) === anchor);
+
+		if (!found) {
+			return null;
+		}
+
+		const [d, other] = found;
+
+		return AppMapRenderer.arcPoints(AppMapPanels.origin(d, view.panels.pagePanel(page, tree, view.transform.k)), other, 0.12);
+	}
+
 	markerPoints(from, anchor) {
 
 		const view  = this.view;
@@ -926,9 +963,7 @@ class AppMapRenderer {
 				continue;
 			}
 
-			// in focus the elements one step beyond the neighbours stay half visible, the rest steps back; so does what the
-			// global search did not find
-			ctx.globalAlpha = focus ? (around.nodes.has(n) ? 0.55 : 0.08) : (this.view.found && !this.view.found.elements.has(n) ? 0.3 : (this.view.access && !AppMapAccess.reaches(this.view.access, n) ? 0.15 : 1));
+			ctx.globalAlpha = this.presence(n, focus, around);
 			ctx.fillStyle   = this.colorOf(n);
 			this.shape(n, r);
 			ctx.fill();
@@ -1025,13 +1060,15 @@ class AppMapRenderer {
 		return { x: n.x + r * w - size * 0.35, y: n.y - r * h - size * 0.65, size };
 	}
 
-	// what a page is for beyond its content, as a small tag below it: the start page, the errors it is shown for, a content
-	// type other than HTML; the start page always, the others once the page is large enough on screen
+	// what a page is for beyond its content, as small tags in a row below it: the start page, the errors it is shown for, a
+	// content type other than HTML; the start page always, the others once the page is large enough on screen
 	drawRouting(k, rect, focus, near) {
 
 		const view  = this.view;
 		const ctx   = this.ctx;
 		const start = view.startPage();
+		const dark  = view.look.dark ? 1 : 0;
+		const gap   = 2 / k;
 
 		ctx.save();
 		ctx.font         = this.font(600, 9 / k);
@@ -1045,23 +1082,35 @@ class AppMapRenderer {
 			}
 
 			const r    = Math.max(view.shownRadius(n), 2 / k);
-			const tags = [n === start ? 'start' : null, ...(r * k >= 4 ? [n.err ? String(n.err) : null, n.ct ? AppMapRenderer.shortType(n.ct) : null] : [])].filter(Boolean);
+			const page = this.colorOf(n);
+			const tags = [
+				n === start ? ['start', AppMapRenderer.ROUTING_COLOR.start[dark]] : null,
+				...(r * k >= 4 ? [
+					n.err ? [String(n.err), AppMapRenderer.ROUTING_COLOR.error[dark]] : null,
+					n.ct ? [AppMapRenderer.shortType(n.ct), page] : null
+				] : [])
+			].filter(Boolean).map(([text, colour]) => ({ text, colour, width: this.textWidth(text, 600) * 9 / AppMapRenderer.LABEL_SIZE / k + 6 / k }));
 
 			if (!tags.length) {
 				continue;
 			}
 
-			const text  = tags.join(' · ');
-			const width = this.textWidth(text, 600) * 9 / AppMapRenderer.LABEL_SIZE / k + 6 / k;
-			const y     = n.y + r * (AppMapRenderer.boxOf(n)?.[1] ?? 1) + 7 / k;
+			const y = n.y + r * (AppMapRenderer.boxOf(n)?.[1] ?? 1) + 7 / k;
+			let x   = n.x - (d3.sum(tags, t => t.width) + gap * (tags.length - 1)) / 2;
 
 			ctx.globalAlpha = 0.95;
-			ctx.fillStyle   = this.colorOf(n);
-			ctx.beginPath();
-			ctx.roundRect(n.x - width / 2, y - 5.5 / k, width, 11 / k, 5.5 / k);
-			ctx.fill();
-			ctx.fillStyle   = view.look.bg;
-			ctx.fillText(text, n.x, y);
+
+			for (const tag of tags) {
+
+				ctx.fillStyle = tag.colour;
+				ctx.beginPath();
+				ctx.roundRect(x, y - 5.5 / k, tag.width, 11 / k, 5.5 / k);
+				ctx.fill();
+				ctx.fillStyle = view.look.bg;
+				ctx.fillText(tag.text, x + tag.width / 2, y);
+
+				x += tag.width + gap;
+			}
 		}
 
 		ctx.restore();
@@ -1093,7 +1142,8 @@ class AppMapRenderer {
 
 			const [w, h] = AppMapRenderer.PAGE_BOX;
 
-			ctx.rect(n.x - r * w, n.y - r * h, 2 * r * w, 2 * r * h);
+			// rounded as the card it opens to (see AppMapPanels.drawCard), so the card covers it to the corners
+			ctx.roundRect(n.x - r * w, n.y - r * h, 2 * r * w, 2 * r * h, 2 * r * Math.min(w, h) * 0.035);
 
 		} else if (n.k === 'method') {
 
@@ -1347,6 +1397,100 @@ class AppMapRenderer {
 	}
 
 	// what the global search found lies on a mark as from a highlighter, large enough to be seen from afar
+	// the activity lens: a glow behind every measured element, as wide and as strong as it is used, slow or failing; its size is in
+	// pixels, so the heat shows in the overview as close up
+	drawHeat(k, rect) {
+
+		const activity = this.view.activity;
+		const ctx      = this.ctx;
+
+		if (!activity) {
+			return;
+		}
+
+		ctx.save();
+
+		for (const [n, heat] of activity.heat) {
+
+			const inner = Math.max(this.view.shownRadius(n) * (AppMapRenderer.boxOf(n)?.[0] ?? 1), 2 / k);
+			const r     = inner + (AppMapRenderer.HEAT_GLOW[0] + AppMapRenderer.HEAT_GLOW[1] * heat) / k;
+
+			if (n.x + r < rect[0] || n.x - r > rect[2] || n.y + r < rect[1] || n.y - r > rect[3]) {
+				continue;
+			}
+
+			const colour   = d3.color(AppMapRenderer.HEAT_COLOUR[this.view.look.dark ? 1 : 0]);
+			const gradient = ctx.createRadialGradient(n.x, n.y, inner, n.x, n.y, r);
+
+			gradient.addColorStop(0, colour.copy({ opacity: 0.15 + 0.45 * heat }).formatRgb());
+			gradient.addColorStop(1, colour.copy({ opacity: 0 }).formatRgb());
+
+			ctx.fillStyle = gradient;
+			ctx.beginPath();
+			ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+			ctx.fill();
+		}
+
+		ctx.restore();
+	}
+
+	// how strongly an element shows: in focus the elements one step beyond the neighbours stay half visible and the rest
+	// steps back; so does what the global search did not find, what the role of the access lens does not reach, and what
+	// neither the activity nor the errors measured
+	presence(n, focus, around) {
+
+		const view = this.view;
+
+		if (focus) {
+			return around.nodes.has(n) ? 0.55 : 0.08;
+		}
+
+		if (view.found && !view.found.elements.has(n)) {
+			return 0.3;
+		}
+
+		if (view.access && !AppMapAccess.reaches(view.access, n)) {
+			return 0.15;
+		}
+
+		if ((view.activity || view.errors) && !view.activity?.heat.has(n) && !view.errors?.heat.has(n)) {
+			return 0.55;
+		}
+
+		return 1;
+	}
+
+	// the scripting errors: a red ring around every element that had one, as wide as it fails often
+	drawErrors(k, rect) {
+
+		const errors = this.view.errors;
+		const ctx    = this.ctx;
+
+		if (!errors) {
+			return;
+		}
+
+		ctx.save();
+		ctx.strokeStyle = AppMapRenderer.ERROR_COLOUR[this.view.look.dark ? 1 : 0];
+
+		for (const [n, heat] of errors.heat) {
+
+			const r = Math.max(this.view.shownRadius(n) * (AppMapRenderer.boxOf(n)?.[0] ?? 1), 2 / k) + 3 / k;
+
+			if (n.x + r < rect[0] || n.x - r > rect[2] || n.y + r < rect[1] || n.y - r > rect[3]) {
+				continue;
+			}
+
+			ctx.globalAlpha = 0.6 + 0.4 * heat;
+			ctx.lineWidth   = (AppMapRenderer.ERROR_RING[0] + AppMapRenderer.ERROR_RING[1] * heat) / k;
+			ctx.beginPath();
+			ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+			ctx.stroke();
+		}
+
+		ctx.restore();
+	}
+
 	drawFound(k, rect) {
 
 		const found = this.view.found;
@@ -1596,13 +1740,13 @@ class AppMapRenderer {
 		return cache.circles.list;
 	}
 
-	// the outline of a grouping: around the centre of its members, wide enough for each of them at the given radius
+	// the outline of a grouping: the smallest circle around its members at the given radius. Not around their mean, which
+	// drifts toward the denser side when the members lie unevenly on a ring, and leaves the outline off centre
 	static circleOf(members, radiusOf) {
 
-		const x = d3.mean(members, n => n.x);
-		const y = d3.mean(members, n => n.y);
+		const { x, y, r } = d3.packEnclose(members.map(n => ({ x: n.x, y: n.y, r: radiusOf(n) })));
 
-		return { x, y, r: d3.max(members, n => Math.hypot(n.x - x, n.y - y) + radiusOf(n)) + 6 };
+		return { x, y, r: r + 6 };
 	}
 
 	drawGroupings(k, focus, rect) {

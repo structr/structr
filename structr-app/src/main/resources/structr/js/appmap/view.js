@@ -35,11 +35,11 @@ class AppMapView {
 	// two looks: a sober one on white and a dark one; on white, overlaps darken like ink, on black they glow
 	static LOOKS = {
 		light: {
-			bg: '#ffffff', trace: '#7d8794', ring: '#1b2026', outline: '#ffffff', halo: '#ffffff', label: '#4f5862', labelNear: '#2a3038', labelFocus: '#111418', column: '#9aa3ad', found: '#ffd84d', blend: 'multiply', dark: false,
+			bg: '#ffffff', card: '#ffffff', veil: '#eef1f4', trace: '#7d8794', ring: '#1b2026', outline: '#ffffff', halo: '#ffffff', label: '#4f5862', labelNear: '#2a3038', labelFocus: '#111418', column: '#9aa3ad', found: '#ffd84d', blend: 'multiply', dark: false,
 			kinds: { page: '#5b2fe0', component: '#b0179b', type: '#1f8f12', method: '#0081a7', api: '#0b5ed7', external: '#123a9c', group: '#e04e00', dom: '#9a86f2', view: '#d18b00', action: '#e0123f' }
 		},
 		dark: {
-			bg: '#0b0e12', trace: '#8a96a3', ring: '#ffffff', outline: '#0b0e12', halo: '#0b0e12', label: '#aab3bd', labelNear: '#dfe4e9', labelFocus: '#ffffff', column: '#c3cbd3', found: '#d4a900', blend: 'lighter', dark: true,
+			bg: '#0b0e12', card: '#161b22', veil: '#000000', trace: '#8a96a3', ring: '#ffffff', outline: '#0b0e12', halo: '#0b0e12', label: '#aab3bd', labelNear: '#dfe4e9', labelFocus: '#ffffff', column: '#c3cbd3', found: '#d4a900', blend: 'lighter', dark: true,
 			kinds: { page: '#a78bfa', component: '#f472d0', type: '#6ee05a', method: '#22d3ee', api: '#60a5fa', external: '#a5c8ff', group: '#ff8a3d', dom: '#b9a8ff', view: '#ffd04d', action: '#ff5c7c' }
 		}
 	};
@@ -92,6 +92,10 @@ class AppMapView {
 	static KEY_PAGES = AppMapModel.HOTSPOTS;
 	static GLIDE_FILL = 0.86;
 
+	// exploring an element without inner structure ends at most so close that it takes this share of the screen, so its
+	// relations and neighbours stay in view
+	static EXPLORE_SIZE = 0.12;
+
 	// the room around the map when it fits the screen, in pixels, across and down: the names of the areas are wide
 	static FIT_MARGIN = [110, 40];
 
@@ -143,6 +147,13 @@ class AppMapView {
 
 		// the access lens: what one role reaches, see AppMapAccess
 		this.access = null;
+
+		// the activity lens: how much the entry points are used or how slowly they answer, and where scripting errors
+		// happened, see setActivity and setErrors
+		this.activity      = null;
+		this.errors        = null;
+		this.loadActivity  = options.loadActivity ?? null;
+		this.activityTimer = null;
 
 		this.transform  = d3.zoomIdentity;
 		this.baseK      = 1;
@@ -201,6 +212,7 @@ class AppMapView {
 	destroy() {
 
 		this.destroyed = true;
+		clearInterval(this.activityTimer);
 		this.layout.stop();
 		this.strands.cancel();
 		this.resizeObserver?.disconnect();
@@ -220,7 +232,7 @@ class AppMapView {
 
 	get settings() {
 
-		return { look: this.look.dark ? 'dark' : 'light' };
+		return { look: this.look.dark ? 'dark' : 'light', activity: this.activity?.mode ?? null, errors: !!this.errors };
 	}
 
 	get counts() {
@@ -706,6 +718,122 @@ class AppMapView {
 		this.requestDraw();
 	}
 
+	// ----- the activity lens: what the HTTP service measured at the entry points -----
+	// 'usage' for the number of requests, 'slow' for their average time, or null
+	setActivity(mode) {
+
+		this.activity = AppMapView.ACTIVITY[mode] ? { mode } : null;
+		this.measure();
+		this.watchActivity();
+	}
+
+	// the scripting errors since the last start, on or off; they show together with the activity
+	setErrors(on) {
+
+		this.errors = on ? {} : null;
+		this.measure();
+		this.watchActivity();
+	}
+
+	// the heat of the activity and the errors from the numbers the elements carry now
+	measure() {
+
+		if (this.activity) {
+			this.activity = { mode: this.activity.mode, ...this.heatOf(n => n.hits, AppMapView.ACTIVITY[this.activity.mode]) };
+		}
+
+		if (this.errors) {
+			this.errors = this.heatOf(n => n.errs, n => n.errs.n);
+		}
+
+		this.updateHint();
+		this.requestDraw();
+	}
+
+	// while the activity or the errors show, their numbers are fetched fresh: at once when they come on, then every
+	// ACTIVITY_REFRESH milliseconds; the map itself is not loaded again
+	watchActivity() {
+
+		const on = !!(this.activity || this.errors) && !!this.loadActivity;
+
+		if (on && this.activityTimer == null) {
+
+			this.refreshActivity();
+			this.activityTimer = setInterval(() => this.refreshActivity(), AppMapView.ACTIVITY_REFRESH);
+
+		} else if (!on && this.activityTimer != null) {
+
+			clearInterval(this.activityTimer);
+			this.activityTimer = null;
+		}
+	}
+
+	static ACTIVITY_REFRESH = 30000;
+
+	async refreshActivity() {
+
+		const fresh = await this.loadActivity();
+
+		if (!fresh || this.destroyed) {
+			return;
+		}
+
+		for (const n of this.nodes) {
+
+			n.hits = fresh[n.id]?.hits;
+			n.errs = fresh[n.id]?.errs;
+		}
+
+		this.measure();
+	}
+
+	// what the activity lens shows of an element: its number of requests or their average time
+	static ACTIVITY = { usage: n => n.hits.n, slow: n => n.hits.avg };
+
+	/**
+	 * Every measured element with a heat between 0 and 1 by its rank, not by its value: the square of its percentile, so in
+	 * any application, quiet or under heavy load, only the top stands out and the lower half stays faint; the numbers
+	 * themselves are in the tooltip. As { heat, top }, top the element of the highest value.
+	 */
+	heatOf(measured, value) {
+
+		const nodes  = this.nodes.filter(measured);
+		const sorted = nodes.map(value).sort((a, b) => a - b);
+		const rank   = v => {
+
+			// equal values share the middle of their ranks
+			const first = d3.bisectLeft(sorted, v);
+			const last  = d3.bisectRight(sorted, v) - 1;
+
+			return sorted.length > 1 ? (first + last) / 2 / (sorted.length - 1) : 1;
+		};
+
+		return { heat: new Map(nodes.map(n => [n, rank(value(n)) ** 2])), top: nodes.reduce((a, b) => value(b) > value(a) ? b : a, nodes[0]) };
+	}
+
+	// the activity and the errors in one line, for the line below the map
+	describeActivity() {
+
+		const parts = [];
+
+		if (this.activity) {
+
+			const { mode, heat, top } = this.activity;
+
+			parts.push(!top ? 'No requests recorded yet'
+				: `${heat.size} pages, endpoints and types measured · ` + (mode === 'usage' ? `most used: ${top.n} with ${top.hits.n.toLocaleString()} requests` : `slowest: ${top.n} with ${top.hits.avg.toLocaleString()} ms on average`));
+		}
+
+		if (this.errors) {
+
+			const { heat, top } = this.errors;
+
+			parts.push(!top ? 'no scripting errors since the last start' : `${heat.size} with scripting errors in red, most: ${top.n} with ${top.errs.n.toLocaleString()}`);
+		}
+
+		return parts.join(' · ');
+	}
+
 	// the lens in one line, for the line below the map
 	describeLens() {
 
@@ -727,11 +855,16 @@ class AppMapView {
 		return pages.length ? pages.reduce((a, b) => b.pos < a.pos ? b : a) : null;
 	}
 
-	// glides to an element at the current zoom and holds its focus
+	// glides to an element and holds its focus: at the current zoom, unless that is so close that an element without inner
+	// structure, like a type, fills the screen and hides its relations; then only as close as EXPLORE_SIZE allows
 	explore(n) {
 
+		const inner  = AppMapPanels.hasCode(n) || this.panels.trees.has(n);
+		const [w, h] = AppMapRenderer.boxOf(n) ?? [1, 1];
+		const close  = this.zoomWhere(k => 2 * Math.max(w, h) * this.drawnRadiusAt(n, k) * k, AppMapView.EXPLORE_SIZE * Math.min(this.width, this.height));
+
 		this.pin(n);
-		this.glide(n.x, n.y, this.transform.k);
+		this.glide(n.x, n.y, inner ? this.transform.k : Math.min(this.transform.k, close));
 	}
 
 	// the way exploring took, as a row of names above the map: a name leads back there, the cross ends exploring
@@ -792,6 +925,7 @@ class AppMapView {
 		const open = this.panels.reading.size || [...this.panels.trees.values()].some(t => t.open);
 		const hint = !this.nodes.length ? ''
 			: this.access && !this.pinned ? this.describeLens()
+			: (this.activity || this.errors) && !this.pinned ? this.describeActivity()
 			: this.found ? `${this.found.elements.size ? this.found.elements.size : 'No'} ${this.found.elements.size === 1 ? 'element matches' : 'elements match'} “${this.found.text}” · click a result of the search to go there`
 			: this.pinned ? 'Click a name at the end of a relation to go there · Esc or a click on the empty map ends exploring'
 			: open ? 'Double-click the empty map to see the whole map again'
@@ -1213,6 +1347,16 @@ class AppMapView {
 		// how a page is reached and what it is for
 		parts.push(...this.describeRouting(n));
 
+		// how often it was requested and how fast it answered, as the HTTP service measured it
+		if (n.hits) {
+			parts.push(`${n.hits.n.toLocaleString()} ${n.hits.n === 1 ? 'request' : 'requests'}, ${n.hits.avg.toLocaleString()} ms on average, ${n.hits.max.toLocaleString()} ms at most`);
+		}
+
+		// the scripting errors since the last start, with the latest
+		if (n.errs) {
+			parts.push(`${n.errs.n.toLocaleString()} scripting ${n.errs.n === 1 ? 'error' : 'errors'}` + (n.errs.msg ? `, latest${n.errs.row ? ` in line ${n.errs.row}` : ''}: ${n.errs.msg}` : ''));
+		}
+
 		// what deleting it takes along, and what it passes on
 		if (n.k === 'type') {
 			parts.push(...this.describeSchema(n));
@@ -1441,6 +1585,93 @@ class AppMapView {
 		)));
 	}
 
+	/**
+	 * Why another element is related to the element in focus, as lines: the relations behind the arc between them (see
+	 * liftedLinks), each explained in the terms of the application (see explainLink); those with the element itself when
+	 * it has any, else those with its whole grouping. The same line once with its number, the most frequent first, at most
+	 * EXPLAIN_LINES.
+	 */
+	explainRelation(focus, other) {
+
+		const links  = this.liftedLinks(focus).get(this.anchorOf(other)) ?? [];
+		const own    = links.filter(l => l.source === other || l.target === other);
+		const chosen = own.length ? own : links;
+
+		// fields that save themselves when they change are one line: what they change, and the fields
+		const edits  = chosen.filter(l => AppMapView.isFieldEdit(l.via));
+		const fields = d3.rollups(edits, v => [...new Set(v.map(l => l.via.use?.el ?? l.via.n))], l => `${{ create: 'creates', update: 'updates', delete: 'deletes' }[l.via.a]} ${l.via.t ?? 'an object'}`)
+			.map(([what, names]) => [`${what} from ${names.length === 1 ? 'the field' : `${names.length} fields:`} ${names.slice(0, 6).map(n => `“${n}”`).join(', ')}${names.length > 6 ? ', …' : ''}`, 1]);
+
+		const lines  = d3.rollups(chosen.filter(l => !AppMapView.isFieldEdit(l.via)), v => v.length, l => this.explainLink(l, focus, other)).concat(fields).sort((a, b) => b[1] - a[1]);
+		const shown  = lines.slice(0, AppMapView.EXPLAIN_LINES).map(([line, count]) => count > 1 ? `${count} × ${line}` : line);
+
+		if (lines.length > shown.length) {
+			shown.push(`… and ${d3.sum(lines.slice(shown.length), ([, count]) => count)} more`);
+		}
+
+		return shown;
+	}
+
+	static EXPLAIN_LINES = 8;
+
+	// the events of a field that saves itself as it is edited, as opposed to a button that saves a form
+	static FIELD_EVENTS = new Set(['change', 'input', 'focusout', 'blur', 'keyup', 'keydown']);
+
+	// an event action mapping that creates, updates or deletes an object when a field changes, without user input of others
+	static isFieldEdit(via) {
+
+		return via?.k === 'action' && ['create', 'update', 'delete'].includes(via.a) && AppMapView.FIELD_EVENTS.has(via.ev) && !via.use?.in?.length;
+	}
+
+	/**
+	 * A relation in the terms of the application: what the repeater or the event action mapping behind it does (see the
+	 * use the server sends), else the line of code the server found it in. The page it lies in is named unless it is one of
+	 * the two elements the reader already looks at.
+	 */
+	explainLink(l, focus, other) {
+
+		const via   = l.via;
+		const home  = via ? (l.source.k === 'page' || l.source.k === 'component' ? l.source : l.target) : null;
+		const where = home && home !== focus && home !== other ? `${home.n}: ` : '';
+
+		if (via?.k === 'view') {
+
+			const use  = via.use ?? {};
+			const type = via.t ?? 'object';
+			const what = use.role === 'choice' ? `a dropdown to choose a ${type}${use.f ? ` for ${use.f}` : ''}`
+				: use.role === 'row' ? `a table row for every ${type}`
+				: `repeats an element for every ${type}`;
+
+			return `${where}${what}${use.q ? ` · ${use.q}` : ''}`;
+		}
+
+		if (via?.k === 'action') {
+
+			const use    = via.use ?? {};
+			const method = this.byId.get(via.m)?.n;
+			const verb   = { create: 'creates', update: 'updates', delete: 'deletes' }[via.a];
+			const what   = via.a === 'method' || (!via.a && method) ? `runs ${method ?? String(via.n).split('→').pop().trim()}`
+				: verb ? `${verb} ${via.t ?? 'an object'}${use.in?.length ? ` (${use.in.join(', ')})` : ''}`
+				: (AppMapView.ACTIONS[via.a] ?? `does ${via.a ?? 'nothing'}`);
+
+			return `${where}on ${via.ev ?? 'an event'} at “${use.el ?? 'an element'}”: ${what}`;
+		}
+
+		const label = AppMapModel.EDGE_LABEL[l.kind] ?? l.kind;
+
+		if (l.kind === 'current') {
+			return `${where}opens a ${l.target.n} by its ${l.evidence ?? 'URL'}`;
+		}
+
+		// the evidence of what a method does names the method and the line of its code, which says what but not to whom;
+		// the evidence of a call is a sentence of its own
+		if (l.evidence && AppMapModel.OPERATION_KINDS.has(l.kind)) {
+			return `${label} ${l.target.n} · ${l.evidence}`;
+		}
+
+		return l.evidence ?? `${l.source.n} ${label} ${l.target.n}`;
+	}
+
 	// what the built-in actions of an event action mapping do, in words
 	static ACTIONS = {
 		'next-page':      'shows the next page of a list',
@@ -1510,8 +1741,12 @@ class AppMapView {
 			this.canvas.style.cursor = 'pointer';
 			this.tip.hidden          = marker.anchors.length > 1;
 
+			// a marker of the element held says why it leads there
 			if (marker.anchors.length === 1) {
-				this.showTip(e, `Go to ${first.n}`, AppMapModel.KIND_LABEL[first.k], 300);
+
+				const why = this.pinned && !this.pinnedDom ? this.explainRelation(this.pinned, first) : [];
+
+				this.showTip(e, `Go to ${first.n}`, why.length ? [AppMapModel.KIND_LABEL[first.k], ...why] : AppMapModel.KIND_LABEL[first.k], why.length ? 480 : 300);
 			}
 
 			return;
@@ -1611,7 +1846,14 @@ class AppMapView {
 
 		} else if (n) {
 
-			this.showTip(e, n.n, this.describe(n), 300);
+			// while an element is held, another one says why it is related to it
+			const why = this.pinned && n !== this.pinned && !this.pinnedDom ? this.explainRelation(this.pinned, n) : [];
+
+			if (why.length) {
+				this.showTip(e, `${n.n} and ${this.pinned.n}`, why, 480);
+			} else {
+				this.showTip(e, n.n, this.describe(n), 300);
+			}
 
 		} else {
 

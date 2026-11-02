@@ -28,7 +28,7 @@
 class AppMapStrands {
 
 	// the strongest effect of a pair leads and gives the line its colour: creating before deleting before changing before reading
-	static EFFECT_RANK = ['creates', 'deletes', 'updates', 'reads', 'invokes', 'calls', 'requests', 'mails', 'endpoint', 'member', 'contains', 'inherits', 'relates', 'navigates'];
+	static EFFECT_RANK = ['creates', 'deletes', 'updates', 'reads', 'invokes', 'calls', 'requests', 'queries', 'executes', 'mails', 'endpoint', 'member', 'contains', 'inherits', 'relates', 'navigates'];
 
 	// the relations that change data
 	static WRITES = new Set(['creates', 'updates', 'deletes']);

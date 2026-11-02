@@ -63,9 +63,10 @@ import java.util.stream.Stream;
  * The result has six parts: "nodes" (id, k for the kind, n for the name, p for public, g for
  * the grouping, area, and depending on the kind d for the HTML outline (nested [tag, flags,
  * children, ids of the repeaters and action mappings on the element, template expressions its
- * text shows]), tpl for the template a page or shared component consists of alone, crud, svc, t for the
+ * text shows, data key of a repeater]), tpl for the template a page or shared component consists of alone, crud, svc, t for the
  * type, m for the method, how for the way the type was found, a and ev for the action and
- * the event of an action mapping, cron for the schedule, rest for
+ * the event of an action mapping, use for how a repeater or an action mapping uses its type
+ * (see MapNode.setUse), cron for the schedule, rest for
  * the resource access grants on a type or endpoint: n rules, pub and auth for whom they open it,
  * pubw and authw whether those may write, acc for who may see a page or shared component:
  * pub and auth for its visibility, own for its owner, g for the grants as [principal,
@@ -73,7 +74,11 @@ import java.util.stream.Stream;
  * HTML elements of a page or shared component, dv for whom every object of a type is visible:
  * pub and auth, r for the URL routes of a page: p the path, cur the type of its current
  * object, w the number of warnings, pos for its position, err for the error codes it is shown
- * for, ct for a content type other than HTML), "edges"
+ * for, ct for a content type other than HTML, hits for the requests to a page, endpoint or
+ * type: n their number, avg and max their average and longest time in milliseconds, see
+ * HttpActivity, errs for the scripting errors since the last start: n their number, t the time,
+ * msg the message and row the line in the node's own code of the latest, see ScriptErrors),
+ * "edges"
  * ([source, target, weight, kind, inferred, evidence, details?]; the details of a schema
  * relationship: m for its multiplicity, cd for cascading delete, pp for the direction in which
  * it passes on rights, r, w, d and a for what it does with read, write, delete and access
@@ -179,6 +184,9 @@ public class ApplicationMap {
 			contributor.contribute(map, app);
 		}
 
+		HttpActivity.apply(map);
+		ScriptErrors.apply(map, app);
+
 		return map;
 	}
 
@@ -269,6 +277,33 @@ public class ApplicationMap {
 	public MapGroup addGroup(final String id, final String name, final int members) {
 
 		return groups.computeIfAbsent(id, k -> new MapGroup(id, name, members));
+	}
+
+	/**
+	 * Only the requests and the scripting errors, per id of the nodes that have either, as hits and errs like in the nodes:
+	 * a client refreshes them without loading the whole map, which needs no analysis for them. Nodes the map leaves out
+	 * may be among them; a client ignores what it does not show.
+	 */
+	public GraphObjectMap toActivityObject() {
+
+		final Map<String, Object> activity = new LinkedHashMap<>();
+
+		for (final MapNode node : nodes.values()) {
+
+			if (node.hasActivity()) {
+
+				final Map<String, Object> values = new LinkedHashMap<>();
+
+				node.putActivity(values);
+				activity.put(node.id, values);
+			}
+		}
+
+		final GraphObjectMap result = new GraphObjectMap();
+
+		result.put(new GenericProperty<>("nodes"), activity);
+
+		return result;
 	}
 
 	/**
@@ -663,6 +698,14 @@ public class ApplicationMap {
 		private Integer position;
 		private String errorCodes;
 		private String contentType;
+		private Map<String, Object> use;
+		private long requests;
+		private long requestTime;
+		private long slowest;
+		private int errors;
+		private String lastError;
+		private Integer errorRow;
+		private long lastErrorTime;
 
 		private MapNode(final String id, final String kind, final String name) {
 
@@ -717,9 +760,11 @@ public class ApplicationMap {
 
 		/**
 		 * The HTML outline of a page or shared component: nested [tag, flags, children, ids,
-		 * expressions] with the flags 1 (the element does something), 2 (it triggers an action)
-		 * and 4 (it repeats), the ids of the repeaters and action mappings that live on the
-		 * element and the template expressions its text shows.
+		 * expressions, data key] with the flags 1 (the element does something), 2 (it triggers
+		 * an action) and 4 (it repeats), the ids of the repeaters and action mappings that live
+		 * on the element, the template expressions its text shows (empty if none) and the data
+		 * key under which a repeater names each object it shows. Trailing parts that are empty
+		 * are left out.
 		 */
 		public MapNode setOutline(final List<Object> outline) {
 
@@ -778,6 +823,52 @@ public class ApplicationMap {
 		public MapNode setEvent(final String event) {
 
 			this.event = event;
+
+			return this;
+		}
+
+		/**
+		 * How a repeater or an action mapping uses its type, in the terms of the page: q for the
+		 * data expression of a repeater, role for what its copies are (choice for the options of
+		 * a select or datalist, row for table rows, item for anything else), f for the property
+		 * a choice sets, as Type.property where the type is known; el for the element that
+		 * triggers an action mapping and in for the names of the user input it sends.
+		 */
+		public MapNode setUse(final Map<String, Object> use) {
+
+			this.use = use != null && !use.isEmpty() ? use : null;
+
+			return this;
+		}
+
+		/**
+		 * Requests to an entry point, as counted by the HTTP service: their number, their average
+		 * and their longest time in milliseconds; several sources, like the views of a type, add up.
+		 */
+		public MapNode addActivity(final long count, final long average, final long max) {
+
+			this.requests    += count;
+			this.requestTime += count * average;
+			this.slowest      = Math.max(slowest, max);
+
+			return this;
+		}
+
+		/**
+		 * Scripting errors that happened in the node: how many, and the message, the line in the
+		 * node's own code (null for code elsewhere, like an HTML element of a page) and the time
+		 * of the latest; several sources, like the elements of a page, add up.
+		 */
+		public MapNode addErrors(final int count, final String message, final Integer row, final long time) {
+
+			this.errors += count;
+
+			if (time >= lastErrorTime) {
+
+				this.lastError     = message;
+				this.errorRow      = row;
+				this.lastErrorTime = time;
+			}
 
 			return this;
 		}
@@ -965,11 +1056,48 @@ public class ApplicationMap {
 				map.put("ct", contentType);
 			}
 
+			if (use != null) {
+				map.put("use", use);
+			}
+
+			putActivity(map);
+
 			if (restRules > 0) {
 				map.put("rest", Map.of("n", restRules, "pub", restPublic ? 1 : 0, "auth", restAuthenticated ? 1 : 0, "pubw", restPublicWrite ? 1 : 0, "authw", restAuthenticatedWrite ? 1 : 0));
 			}
 
 			return map;
+		}
+
+		// the requests and the scripting errors of the node, as hits and errs, see the class comment
+		private void putActivity(final Map<String, Object> map) {
+
+			if (requests > 0) {
+				map.put("hits", Map.of("n", requests, "avg", requestTime / requests, "max", slowest));
+			}
+
+			if (errors > 0) {
+
+				final Map<String, Object> errs = new LinkedHashMap<>();
+
+				errs.put("n", errors);
+				errs.put("t", lastErrorTime);
+
+				if (lastError != null) {
+					errs.put("msg", lastError);
+				}
+
+				if (errorRow != null) {
+					errs.put("row", errorRow);
+				}
+
+				map.put("errs", errs);
+			}
+		}
+
+		private boolean hasActivity() {
+
+			return requests > 0 || errors > 0;
 		}
 	}
 

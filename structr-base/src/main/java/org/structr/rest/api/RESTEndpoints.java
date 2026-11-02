@@ -45,6 +45,7 @@ public class RESTEndpoints {
 
 		// initialize static API endpoints
 		RESTEndpoints.register(new ApplicationMapResource());
+		RESTEndpoints.register(new ApplicationMapActivityResource());
 		RESTEndpoints.register(new ApplicationMapLocateResource());
 		RESTEndpoints.register(new CollectionRelationshipsResource());
 		RESTEndpoints.register(new CypherQueryResource());

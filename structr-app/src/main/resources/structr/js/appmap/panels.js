@@ -49,6 +49,16 @@ class AppMapPanels {
 	// the advance of a character of code type as a share of its size
 	static CODE_ADVANCE = 0.6;
 
+	// an open page is a card with a header (see header): its padding as a share of its shorter side, the line of its kind
+	// and its name as shares of its height
+	// the relations of a page as a whole that are not drawn from the document at the root of its open tree: grants and
+	// helper calls connect it with almost everything
+	static UNDRAWN_AT_ROOT = new Set(['grant', 'helper']);
+
+	static CARD_PAD  = 0.05;
+	static CARD_KIND = 0.022;
+	static CARD_NAME = 0.045;
+
 	constructor(view) {
 
 		this.view  = view;
@@ -77,7 +87,8 @@ class AppMapPanels {
 			repeater: !!(item[1] & 4),
 			children: (item[2] ?? []).map(toTree),
 			inner:    (item[3] ?? []).map(id => byId.get(id)).filter(n => n && inner.has(n)),
-			shows:    item[4] ?? null
+			shows:    item[4] || null,
+			key:      item[5] ?? null
 		});
 
 		for (const page of this.view.nodes.filter(n => (n.k === 'page' || n.k === 'component') && n.d?.length && !n.tpl)) {
@@ -112,36 +123,125 @@ class AppMapPanels {
 		}
 	}
 
-	// the place of the tree in the sheet of a page, with the height of a row on screen: the sheet becomes the frame
+	// the place of the tree in the sheet of a page, with the height of a row on screen: the sheet becomes a card with a
+	// header for the kind and the name, and the tree fills the room below it
 	pagePanel(page, tree, k, radius = this.view.shownRadius(page)) {
 
 		// the sheet exactly as the element is drawn, at the current zoom or, for a glide, at the one it heads for
 		const r      = Math.max(radius, 2 / k);
 		const hw     = r * AppMapRenderer.PAGE_BOX[0];
 		const hh     = r * AppMapRenderer.PAGE_BOX[1];
-		const title  = r * 2 * 0.08;
-		const scale  = Math.min(hw * 2 * 0.88 / tree.panel.width, (hh * 2 * 0.88 - title) / tree.panel.height);
+		const head   = AppMapPanels.header(page.x - hw, page.y - hh, 2 * hw, 2 * hh);
+		const room   = [2 * hw - 2 * head.pad, page.y + hh - head.bottom - head.pad];
+		const scale  = Math.min(room[0] / tree.panel.width, room[1] / tree.panel.height);
 		const width  = tree.panel.width * scale;
 		const height = tree.panel.height * scale;
 
-		return { x0: page.x - width / 2, y0: page.y - height / 2 + title / 2, width, height, scale, top: tree.panel.top, hw, hh, title, row: scale * AppMapPanels.ROW * k };
+		return { x0: page.x - width / 2, y0: head.bottom + (room[1] - height) / 2, width, height, scale, top: tree.panel.top, hw, hh, head, row: scale * AppMapPanels.ROW * k };
 	}
 
-	// the frame is the element itself: its sheet, open, in a pale tint of its colour with its colour as border; the
-	// background covers what lies beneath by the given share
+	// the header of a card at the given place and size: a small line for the kind, the name below it and a divider, with
+	// the padding of the card; the name gets its size from the height of the card and shrinks to fit its width (see
+	// drawHeader). Bottom is where the content below the divider begins
+	static header(x0, y0, width, height) {
+
+		const pad  = Math.min(width, height) * AppMapPanels.CARD_PAD;
+		const kind = height * AppMapPanels.CARD_KIND;
+		const name = height * AppMapPanels.CARD_NAME;
+		const line = y0 + pad + kind * 1.6 + name * 1.4;
+
+		return { x0, y0, width, height, pad, kind, name, kindY: y0 + pad + kind * 0.5, nameY: y0 + pad + kind * 1.6 + name * 0.7, line, bottom: line + pad * 0.8 };
+	}
+
+	// the frame is the element itself: its sheet, open, as a card on the map, white with a soft shadow, rounded, and a fine
+	// border in its colour; the card covers what lies beneath by the given share
 	drawFrame(ctx, page, panel, colour, k, cover) {
 
-		const { hw, hh } = panel;
+		this.drawCard(ctx, page.x - panel.hw, page.y - panel.hh, 2 * panel.hw, 2 * panel.hh, colour, k, cover);
+	}
 
-		ctx.globalAlpha = cover;
-		ctx.fillStyle   = this.view.look.bg;
-		ctx.fillRect(page.x - hw, page.y - hh, 2 * hw, 2 * hh);
-		ctx.globalAlpha = 1;
-		ctx.fillStyle   = d3.color(colour).copy({ opacity: 0.06 }).formatRgb();
-		ctx.fillRect(page.x - hw, page.y - hh, 2 * hw, 2 * hh);
-		ctx.strokeStyle = colour;
-		ctx.lineWidth   = 1.6 / k;
-		ctx.strokeRect(page.x - hw, page.y - hh, 2 * hw, 2 * hh);
+	drawCard(ctx, x, y, width, height, colour, k, cover) {
+
+		const look   = this.view.look;
+		const radius = Math.min(width, height) * 0.035;
+
+		ctx.save();
+		ctx.beginPath();
+		ctx.roundRect(x, y, width, height, radius);
+
+		// the shadow is given in pixels on the screen, whatever the zoom
+		ctx.globalAlpha   = cover;
+		ctx.shadowColor   = look.dark ? 'rgba(0, 0, 0, 0.55)' : 'rgba(16, 24, 40, 0.14)';
+		ctx.shadowBlur    = 28;
+		ctx.shadowOffsetY = 6;
+		ctx.fillStyle     = look.card;
+		ctx.fill();
+		ctx.restore();
+
+		ctx.save();
+		ctx.beginPath();
+		ctx.roundRect(x, y, width, height, radius);
+		ctx.globalAlpha = Math.min(1, cover * 1.2);
+		ctx.strokeStyle = d3.color(colour).copy({ opacity: 0.45 }).formatRgb();
+		ctx.lineWidth   = 1.2 / k;
+		ctx.stroke();
+		ctx.restore();
+	}
+
+	// the header of a card: the kind in small capitals with a dot in the colour of the element, the name below it as large
+	// as the header allows and no wider than the card, cut with an ellipsis only where even half that size is too wide
+	drawHeader(renderer, head, kind, name, colour, k) {
+
+		const ctx   = renderer.ctx;
+		const look  = this.view.look;
+		const left  = head.x0 + head.pad;
+		const room  = head.width - 2 * head.pad;
+		const fit   = AppMapPanels.fitText(renderer, name, 600, head.name, room);
+		const caps  = kind.toUpperCase();
+
+		ctx.fillStyle = colour;
+		ctx.beginPath();
+		ctx.arc(left + head.kind * 0.35, head.kindY, head.kind * 0.35, 0, Math.PI * 2);
+		ctx.fill();
+
+		renderer.screenText(caps, left + head.kind * 1.1, head.kindY, 600, head.kind * 0.85, false, 'left');
+
+		ctx.fillStyle = look.labelFocus;
+		renderer.screenText(fit.text, left, head.nameY, 600, fit.size, false, 'left');
+
+		if (head.line == null) {
+			return;
+		}
+
+		ctx.strokeStyle = look.dark ? 'rgba(255, 255, 255, 0.10)' : 'rgba(16, 24, 40, 0.08)';
+		ctx.lineWidth   = 1 / k;
+		ctx.beginPath();
+		ctx.moveTo(head.x0, head.line);
+		ctx.lineTo(head.x0 + head.width, head.line);
+		ctx.stroke();
+	}
+
+	// a text at the given size, made smaller to fit the width, down to half of it, and cut with an ellipsis below that
+	static fitText(renderer, text, weight, size, width) {
+
+		const per = renderer.textWidth(text, weight) / AppMapRenderer.LABEL_SIZE;
+
+		if (per * size <= width) {
+			return { text, size };
+		}
+
+		if (per * size / 2 <= width) {
+			return { text, size: width / per };
+		}
+
+		const small = size / 2;
+		let cut     = text;
+
+		while (cut.length > 1 && renderer.textWidth(cut + '…', weight) / AppMapRenderer.LABEL_SIZE * small > width) {
+			cut = cut.slice(0, -1);
+		}
+
+		return { text: cut + '…', size: small };
 	}
 
 	// branches from the right end of a parent to the left end of each child, with rounded bends, all in one path
@@ -171,7 +271,7 @@ class AppMapPanels {
 	// the width of the box of an HTML element: its tag, and the sign of what it does, at the scale of the panel
 	static boxWidth(d, s) {
 
-		return (d.data.tag.length * 0.6 + (d.data.action || d.data.repeater ? 2.8 : 1.6)) * s;
+		return ((d.data.tag.length + (d.data.key ? d.data.key.length + 1 : 0)) * 0.6 + (d.data.action || d.data.repeater ? 2.8 : 1.6)) * s;
 	}
 
 	static box(d, panel) {
@@ -276,7 +376,7 @@ class AppMapPanels {
 		const w        = radius * bw;
 		const h        = radius * bh;
 		const pad      = h * 0.08;
-		const title    = h * 0.16;
+		const title    = h * 0.2;
 		const lines    = this.code.get(n)?.lines ?? [];
 		const columns  = Math.min(AppMapPanels.CODE_COLUMNS, Math.max(40, d3.max(lines, l => l.length) ?? 0));
 		const inner    = [2 * w - 2 * pad, 2 * h - 2 * pad - title];
@@ -289,24 +389,24 @@ class AppMapPanels {
 		return { x0: n.x - w, y0: n.y - h, w, h, pad, title, font, line: font * 1.3, rows, px: font * 1.3 * k };
 	}
 
-	drawCode(renderer, k) {
+	// the elements on screen that are close enough to show their code, with their panel and how far they have opened
+	codePanels(renderer, k) {
+
+		return this.view.nodes
+			.filter(n => AppMapPanels.hasCode(n) && renderer.onScreen(n, 200))
+			.map(n => ({ n, panel: this.codePanel(n, k) }))
+			.filter(({ panel }) => panel.px >= AppMapPanels.CODE_SKETCH)
+			.map(c => ({ ...c, strong: Math.min(1, (c.panel.px - AppMapPanels.CODE_SKETCH) / (AppMapPanels.CODE_READ - AppMapPanels.CODE_SKETCH)) }));
+	}
+
+	drawCode(renderer, k, codePanels) {
 
 		const ctx  = renderer.ctx;
 		const look = this.view.look;
 
 		this.reading.clear();
 
-		for (const n of this.view.nodes) {
-
-			if (!AppMapPanels.hasCode(n) || !renderer.onScreen(n, 200)) {
-				continue;
-			}
-
-			const panel = this.codePanel(n, k);
-
-			if (panel.px < AppMapPanels.CODE_SKETCH) {
-				continue;
-			}
+		for (const { n, panel, strong } of codePanels) {
 
 			this.requestCode(n);
 
@@ -316,29 +416,43 @@ class AppMapPanels {
 			const shown  = lines.length > panel.rows ? panel.rows - 1 : lines.length;
 			const left   = panel.x0 + panel.pad;
 			const top    = panel.y0 + panel.pad + panel.title;
-			const strong = Math.min(1, (panel.px - AppMapPanels.CODE_SKETCH) / (AppMapPanels.CODE_READ - AppMapPanels.CODE_SKETCH));
 
 			ctx.save();
 
-			// the rectangle opens: pale in the colour of the method, its name on top, the code below
+			// the rectangle opens as a card like an open page: its name on top, the code below
+			this.drawCard(ctx, panel.x0, panel.y0, 2 * panel.w, 2 * panel.h, colour, k, 0.35 + 0.65 * strong);
+
 			ctx.beginPath();
-			ctx.roundRect(panel.x0, panel.y0, 2 * panel.w, 2 * panel.h, n.k === 'method' ? panel.h * 0.14 : 0);
-			ctx.globalAlpha = 0.35 + 0.65 * strong;
-			ctx.fillStyle   = look.bg;
-			ctx.fill();
-			ctx.fillStyle   = d3.color(colour).copy({ opacity: 0.08 }).formatRgb();
-			ctx.fill();
-			ctx.strokeStyle = colour;
-			ctx.lineWidth   = 1.4 / k;
-			ctx.stroke();
+			ctx.roundRect(panel.x0, panel.y0, 2 * panel.w, 2 * panel.h, Math.min(panel.w, panel.h) * 0.07);
 			ctx.clip();
 
 			if (panel.px >= AppMapPanels.CODE_READ) {
 
-				this.reading.add(n);
+				// the header of a page card in the title band, and the code on a field of its own below it
+				const head = { x0: panel.x0, y0: panel.y0, width: 2 * panel.w, height: 2 * panel.h, pad: panel.pad, kind: panel.title * 0.22, name: panel.title * 0.4, kindY: panel.y0 + panel.pad + panel.title * 0.11, nameY: panel.y0 + panel.pad + panel.title * 0.58, line: null };
 
-				ctx.fillStyle = colour;
-				renderer.screenText(n.k === 'method' ? n.n : `${AppMapModel.KIND_LABEL[n.k]} ${n.n}`, left, panel.y0 + panel.pad + panel.title * 0.45, 600, panel.title * 0.6, false, 'left');
+				this.reading.add(n);
+				this.drawHeader(renderer, head, AppMapModel.KIND_LABEL[n.k], n.n, colour, k);
+
+				ctx.beginPath();
+				ctx.roundRect(panel.x0 + panel.pad * 0.6, top - panel.pad * 0.3, 2 * panel.w - panel.pad * 1.2, panel.y0 + 2 * panel.h - top - panel.pad * 0.3, panel.pad * 0.3);
+				ctx.fillStyle   = look.dark ? 'rgba(255, 255, 255, 0.05)' : '#f4f6f8';
+				ctx.strokeStyle = look.dark ? 'rgba(255, 255, 255, 0.12)' : '#e3e7ec';
+				ctx.lineWidth   = 1 / k;
+				ctx.fill();
+				ctx.stroke();
+
+				// the line of the latest scripting error, on a red band
+				const failed = (n.errs?.row ?? 0) - 1;
+
+				if (failed >= 0 && failed < shown) {
+
+					ctx.fillStyle   = AppMapRenderer.ROUTING_COLOR.error[look.dark ? 1 : 0];
+					ctx.globalAlpha = 0.18;
+					ctx.fillRect(panel.x0 + panel.pad * 0.6, top + failed * panel.line, 2 * panel.w - panel.pad * 1.2, panel.line);
+					ctx.globalAlpha = 1;
+				}
+
 				ctx.fillStyle = look.labelFocus;
 
 				for (let i = 0; i < shown; i++) {
@@ -348,7 +462,7 @@ class AppMapPanels {
 					renderer.screenText(text, left, top + (i + 0.5) * panel.line, 400, panel.font, true, 'left');
 				}
 
-				ctx.fillStyle = look.label;
+				ctx.fillStyle = look.labelNear;
 
 				if (lines.length > shown) {
 					renderer.screenText(`… ${lines.length - shown} more lines`, left, top + (shown + 0.5) * panel.line, 400, panel.font, true, 'left');
@@ -384,11 +498,30 @@ class AppMapPanels {
 
 	draw(renderer, k) {
 
-		this.drawCode(renderer, k);
+		const codePanels = this.codePanels(renderer, k);
+		const panels     = [...this.trees].map(([page, tree]) => [page, tree, renderer.onScreen(page, 2000) ? this.pagePanel(page, tree, k) : null]);
+		const near       = Math.max(
+			d3.max(panels, ([, , panel]) => panel ? Math.min(1, Math.max(0, (panel.row - AppMapPanels.SKETCH_ROW) / (AppMapPanels.OPEN_ROW - AppMapPanels.SKETCH_ROW))) : 0) ?? 0,
+			d3.max(codePanels, c => c.strong) ?? 0
+		);
 
-		for (const [page, tree] of this.trees) {
+		// the closer a page comes, the further the map around it steps back behind a veil, so that its card stands apart
+		// from the elements and lines around it
+		if (near > 0) {
 
-			const panel = renderer.onScreen(page, 2000) ? this.pagePanel(page, tree, k) : null;
+			const ctx = renderer.ctx;
+
+			ctx.save();
+			ctx.setTransform(1, 0, 0, 1, 0, 0);
+			ctx.globalAlpha = 0.75 * near;
+			ctx.fillStyle   = this.view.look.veil;
+			ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+			ctx.restore();
+		}
+
+		this.drawCode(renderer, k, codePanels);
+
+		for (const [page, tree, panel] of panels) {
 
 			// open only when the boxes can be read
 			tree.open = !!panel && panel.row >= AppMapPanels.OPEN_ROW;
@@ -420,18 +553,21 @@ class AppMapPanels {
 		ctx.globalAlpha = 1;
 
 		this.drawFrame(ctx, page, panel, colour, k, 1);
+		this.drawHeader(renderer, panel.head, AppMapModel.KIND_LABEL[page.k], page.n, colour, k);
 
-		ctx.fillStyle = colour;
-		renderer.screenText(`${AppMapModel.KIND_LABEL[page.k]} ${page.n}`, page.x - panel.hw + panel.title * 0.5, page.y - panel.hh + panel.title * 0.75, 600, panel.title * 0.7, false, 'left');
-
-		ctx.strokeStyle = look.column;
-		ctx.lineWidth   = Math.max(0.6 / k, 0.12 * s);
+		ctx.globalAlpha = 0.8;
+		ctx.strokeStyle = look.trace;
+		ctx.lineWidth   = Math.max(0.7 / k, 0.1 * s);
 		ctx.stroke(AppMapPanels.branches(tree, panel));
+		ctx.globalAlpha = 1;
+
+		// the relations leave from the middle of their elements, so they go first and the elements cover where they start
+		this.drawRelations(renderer, page, tree, panel, k);
 
 		// the page itself: a document at the root
 		const [rx, ry] = AppMapPanels.box(tree.root, panel);
 
-		ctx.fillStyle   = look.bg;
+		ctx.fillStyle   = look.card;
 		ctx.strokeStyle = colour;
 		ctx.lineWidth   = Math.max(1 / k, 0.15 * s);
 		ctx.beginPath();
@@ -462,7 +598,7 @@ class AppMapPanels {
 
 					ctx.beginPath();
 					ctx.roundRect(x + o * s, y - r + o * s, w, boxH, r);
-					ctx.fillStyle   = look.bg;
+					ctx.fillStyle   = look.card;
 					ctx.fill();
 					ctx.strokeStyle = d3.color(tone).copy({ opacity: 0.45 }).formatRgb();
 					ctx.stroke();
@@ -478,18 +614,19 @@ class AppMapPanels {
 				ctx.fill();
 			}
 
-			// a pill, tinted in the colour of what the element does, filled with it when it is pointed at or held
+			// a pill: a plain element a quiet grey chip with a fine edge, one that does something tinted in the colour of
+			// what it does, filled with it when it is pointed at or held
 			ctx.beginPath();
 			ctx.roundRect(x, y - r, w, boxH, r);
-			ctx.fillStyle = look.bg;
+			ctx.fillStyle = look.card;
 			ctx.fill();
-			ctx.fillStyle = lit ? tone : d3.color(tone).copy({ opacity: plain ? 0 : 0.12 }).formatRgb();
+			ctx.fillStyle = lit ? tone : d3.color(tone).copy({ opacity: plain ? (look.dark ? 0.3 : 0.16) : 0.14 }).formatRgb();
 			ctx.fill();
-			ctx.strokeStyle = plain ? d3.color(tone).copy({ opacity: 0.7 }).formatRgb() : tone;
+			ctx.strokeStyle = d3.color(tone).copy({ opacity: plain ? 0.45 : 0.9 }).formatRgb();
 			ctx.stroke();
 
 			// what it does, as a small sign at its start: a flash for an event action mapping, the data a repeater shows
-			const ink  = lit ? look.bg : tone;
+			const ink  = lit ? look.card : tone;
 			const sign = d.data.action || d.data.repeater;
 
 			if (d.data.action) {
@@ -498,8 +635,15 @@ class AppMapPanels {
 				this.drawDatabase(ctx, x + 1.1 * s, y, s * 0.8, ink);
 			}
 
-			ctx.fillStyle = lit ? look.bg : (plain ? look.label : look.labelFocus);
-			renderer.screenText(d.data.tag, x + (sign ? 2 : 0.8) * s, y, plain ? 400 : 500, 1.05 * s, false, 'left');
+			ctx.fillStyle = lit ? look.card : (plain ? look.labelNear : look.labelFocus);
+			renderer.screenText(d.data.tag, x + (sign ? 2 : 0.8) * s, y, plain ? 500 : 600, 1.05 * s, false, 'left');
+
+			// a repeater names the data key under which each of its copies holds its object, behind the tag
+			if (d.data.key) {
+
+				ctx.fillStyle = lit ? look.card : look.labelNear;
+				renderer.screenText(d.data.key, x + 2 * s + renderer.textWidth(d.data.tag, plain ? 500 : 600) * 1.05 * s / AppMapRenderer.LABEL_SIZE + 0.5 * s, y, 400, 1.05 * s, false, 'left');
+			}
 
 			d.panelHit = [x, y - r, w, boxH];
 
@@ -510,8 +654,6 @@ class AppMapPanels {
 				this.drawShows(renderer, d.data.shows, x + w + 0.8 * s, y, end - x - w - 0.8 * s, s);
 			}
 		}
-
-		this.drawRelations(renderer, page, tree, panel, k);
 
 		tree.frame = [page.x - panel.hw, page.y - panel.hh, 2 * panel.hw, 2 * panel.hh];
 		ctx.restore();
@@ -527,7 +669,7 @@ class AppMapPanels {
 			return;
 		}
 
-		renderer.ctx.fillStyle = this.view.look.label;
+		renderer.ctx.fillStyle = this.view.look.labelNear;
 		renderer.screenText(text.length > fit ? text.slice(0, fit - 1) + '…' : text, x, y, 400, size, true, 'left');
 	}
 
@@ -573,7 +715,8 @@ class AppMapPanels {
 	}
 
 	// the relations that leave from the boxes of a page, as [box, the element on the other side, relation], for the current
-	// relation set; kept until the set changes
+	// relation set; kept until the set changes. Those of the page as a whole, which no box of it makes, such as a link from
+	// another page or a shared component it uses, leave from the document at its root, as the card covers its middle
 	relationsOf(page, tree) {
 
 		const view = this.view;
@@ -584,10 +727,14 @@ class AppMapPanels {
 
 			for (const l of view.links) {
 
+				if (l.source !== page && l.target !== page) {
+					continue;
+				}
+
 				const d = l.via && tree.boxOf.get(l.via);
 
-				if (d && (l.source === page || l.target === page) && !AppMapModel.STRUCTURE.has(l.kind)) {
-					list.push([d, l.source === page ? l.target : l.source, l]);
+				if (d ? !AppMapModel.STRUCTURE.has(l.kind) : !AppMapPanels.UNDRAWN_AT_ROOT.has(l.kind)) {
+					list.push([d || tree.root, l.source === page ? l.target : l.source, l]);
 				}
 			}
 
@@ -597,7 +744,7 @@ class AppMapPanels {
 		return tree.relations.list;
 	}
 
-	// from the right end of a box to the element it relates to, in the colour of the effect; with a box under the pointer its
+	// from the middle of a box to the element it relates to, in the colour of the effect; with a box under the pointer its
 	// relations come forward and the others step back
 	drawRelations(renderer, page, tree, panel, k) {
 
@@ -625,12 +772,13 @@ class AppMapPanels {
 		ctx.globalAlpha = 1;
 	}
 
-	// where the relations of an HTML element leave its box: its right end
+	// where the relations of an HTML element leave its box: its middle; for the page itself the middle of the document at the
+	// root
 	static origin(d, panel) {
 
 		const [x, y] = AppMapPanels.box(d, panel);
 
-		return { x: x + AppMapPanels.boxWidth(d, panel.scale) + 0.3 * panel.scale, y };
+		return { x: x + (d.parent ? AppMapPanels.boxWidth(d, panel.scale) : 3.8 * panel.scale) / 2, y };
 	}
 
 	// ----- exploring from an HTML element: the elements its repeaters and action mappings reach -----

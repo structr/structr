@@ -48,6 +48,7 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
 import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
+import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
 import org.structr.web.traits.definitions.PagePathTraitDefinition;
 import org.structr.web.traits.definitions.SiteTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
@@ -319,6 +320,109 @@ public class ApplicationMapTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testRequestsCountForTheirEntryPoints() {
+
+		createApplication();
+
+		RestAssured.basePath = "/";
+
+		RestAssured.given().header(X_USER_HEADER, ADMIN_USERNAME).header(X_PASSWORD_HEADER, ADMIN_PASSWORD).expect().statusCode(200).when().get("/items");
+
+		RestAssured.basePath = "/structr/rest";
+
+		RestAssured.given().header(X_USER_HEADER, ADMIN_USERNAME).header(X_PASSWORD_HEADER, ADMIN_PASSWORD).expect().statusCode(200).when().get("/Item");
+
+		// a page is rendered on a thread of its own, which records the statistics after the response has gone out
+		JsonPath map = fetchMap();
+
+		for (int i = 0; i < 20 && node(map, ids.get("page"), "hits") == null; i++) {
+
+			try {
+
+				Thread.sleep(100);
+
+			} catch (InterruptedException ignore) {
+			}
+
+			map = fetchMap();
+		}
+
+		assertNotNull("A rendered page must count its requests",                     node(map, ids.get("page"), "hits.n"));
+		assertTrue("A REST request to a type without an endpoint must count for the type", Integer.parseInt(node(map, ids.get("Item"), "hits.n")) >= 1);
+		assertNotNull("A measured element must carry the average time of its requests", node(map, ids.get("Item"), "hits.avg"));
+		assertNull("An element nobody requested must carry no requests",              node(map, ids.get("formatItem"), "hits"));
+
+		final JsonPath activity = RestAssured
+			.given()
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+				.statusCode(200)
+			.when()
+				.get("/_appmap/activity")
+			.jsonPath();
+
+		assertEquals("The activity endpoint must report the requests of a type as the map does", node(map, ids.get("Item"), "hits.n"), activity.getString("result.nodes.'" + ids.get("Item") + "'.hits.n"));
+		assertNull("The activity endpoint must leave out elements nobody requested",               activity.get("result.nodes.'" + ids.get("formatItem") + "'"));
+	}
+
+	@Test
+	public void testScriptingErrorsLieAtTheirMethod() {
+
+		createApplication();
+
+		try (final Tx tx = app.tx()) {
+
+			ids.put("failItems", createMethod("failItems", null, "{\n\t$.find('Item');\n\tundefinedFunction();\n}").getUuid());
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/structr/rest";
+
+		RestAssured.given().header(X_USER_HEADER, ADMIN_USERNAME).header(X_PASSWORD_HEADER, ADMIN_PASSWORD).when().post("/failItems");
+
+		final JsonPath map = fetchMap();
+
+		assertTrue("A scripting error must count for the method it happened in", Integer.parseInt(node(map, ids.get("failItems"), "errs.n")) >= 1);
+		assertEquals("The latest error must name the line in the code of the method", "3", node(map, ids.get("failItems"), "errs.row"));
+		assertNotNull("The latest error must carry its message",                     node(map, ids.get("failItems"), "errs.msg"));
+		assertNull("A method without errors must carry none",                        node(map, ids.get("formatItem"), "errs"));
+	}
+
+	@Test
+	public void testIntegrationsThroughBuiltInFunctions() {
+
+		createApplication();
+
+		final JsonPath map    = fetchMap();
+		final String   method = ids.get("integrateItems");
+
+		assertTrue("A request with FETCH must be an edge to the host",                                  hasEdge(map, method, "ext:fetch.example.com", "requests"));
+		assertTrue("A request to a computed URL must be an edge to the dynamic HTTP service",           hasEdge(map, method, "ext:http", "requests"));
+		assertEquals("The dynamic HTTP service must say that its target is computed", "HTTP (dynamic)", node(map, "ext:http", "n"));
+
+		assertTrue("A jdbc query must be an edge to the database host",                                 hasEdge(map, method, "ext:jdbc:db.example.com", "queries"));
+		assertEquals("A database must be named by its host and the kind of access", "db.example.com (JDBC)", node(map, "ext:jdbc:db.example.com", "n"));
+		assertTrue("A mongodb query must be an edge to the host, without the credentials of its URL",   hasEdge(map, method, "ext:mongodb:mongo.example.com", "queries"));
+		assertTrue("A remoteCypher query with a template string must be an edge to the host",           hasEdge(map, method, "ext:cypher:graph.example.com", "queries"));
+
+		assertTrue("Geocoding must be an edge to the geocoding service",                                hasEdge(map, method, "ext:geocoding", "requests"));
+		assertEquals("The geocoding service must name the configured provider", "Geocoding (Google)",   node(map, "ext:geocoding", "n"));
+		assertTrue("A translation with a provider must be an edge to that provider",                    hasEdge(map, method, "ext:translation:deepl", "requests"));
+		assertEquals("A translation provider must have its proper name", "Translation (DeepL)",         node(map, "ext:translation:deepl", "n"));
+		assertTrue("A translation without a provider must be an edge to Google",                        hasEdge(map, method, "ext:translation:google", "requests"));
+
+		assertTrue("exec must be an edge to the configured script",                                     hasEdge(map, method, "ext:exec:backup", "executes"));
+		assertTrue("execBinary must be an edge to the configured script in its second argument",        hasEdge(map, method, "ext:exec:render", "executes"));
+		assertNull("exec() of a regular expression must not be an integration",                         node(map, "ext:exec", "k"));
+	}
+
+	@Test
 	public void testGroupsWithGrants() {
 
 		createApplication();
@@ -362,8 +466,8 @@ public class ApplicationMapTest extends StructrUiTest {
 			final NodeInterface relation = app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(relTraits.key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "HAS").getFirst();
 
 			relation.setProperty(relTraits.key(SchemaRelationshipNodeTraitDefinition.CASCADING_DELETE_FLAG_PROPERTY), 1L);
-			relation.setProperty(relTraits.key(SchemaRelationshipNodeTraitDefinition.PERMISSION_PROPAGATION_PROPERTY), PropagationDirection.Out);
-			relation.setProperty(relTraits.key(SchemaRelationshipNodeTraitDefinition.READ_PROPAGATION_PROPERTY), PropagationMode.Add);
+			relation.setProperty(relTraits.key(SchemaRelationshipNodeTraitDefinition.PERMISSION_PROPAGATION_PROPERTY), PropagationDirection.Out.name());
+			relation.setProperty(relTraits.key(SchemaRelationshipNodeTraitDefinition.READ_PROPAGATION_PROPERTY), PropagationMode.Add.name());
 
 			app.getNodeById(StructrTraits.SCHEMA_NODE, ids.get("Item")).setProperty(nodeTraits.key(SchemaNodeTraitDefinition.DEFAULT_VISIBLE_TO_AUTH_PROPERTY), true);
 
@@ -501,6 +605,58 @@ public class ApplicationMapTest extends StructrUiTest {
 		}
 
 		assertNotNull("An action mapping whose action was never chosen must still be on the map", node(fetchMap(), ids.get("emptyAction"), "k"));
+	}
+
+	@Test
+	public void testRepeatersAndActionsSayHowTheyUseTheirType() {
+
+		createApplication();
+
+		try (final Tx tx = app.tx()) {
+
+			final Traits elementTraits   = Traits.of(StructrTraits.DOM_ELEMENT);
+			final Traits parameterTraits = Traits.of(StructrTraits.PARAMETER_MAPPING);
+			final Page page              = app.getNodeById(StructrTraits.PAGE, ids.get("page")).as(Page.class);
+			final DOMElement select      = page.createElement("select");
+			final DOMElement option      = page.createElement("option");
+			final DOMElement saveButton  = page.createElement("button");
+
+			option.setProperty(elementTraits.key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "choice");
+			option.setProperty(elementTraits.key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Category')");
+
+			page.getElementsByTagName("div").get(0).appendChild(select);
+			page.getElementsByTagName("div").get(0).appendChild(saveButton);
+			select.appendChild(option);
+
+			final NodeInterface save = createActionMapping(saveButton, "update", null, "Item", "${item.id}");
+
+			app.create(StructrTraits.PARAMETER_MAPPING,
+				new NodeAttribute<>(parameterTraits.key(ParameterMappingTraitDefinition.ACTION_MAPPING_PROPERTY), save),
+				new NodeAttribute<>(parameterTraits.key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY), "user-input"),
+				new NodeAttribute<>(parameterTraits.key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY), "category"),
+				new NodeAttribute<>(parameterTraits.key(ParameterMappingTraitDefinition.INPUT_ELEMENT_PROPERTY),  select)
+			);
+
+			ids.put("optionRepeater", option.getUuid());
+			ids.put("saveAction",     save.getUuid());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final JsonPath map = fetchMap();
+
+		assertEquals("A repeater must name its data expression",                               "find('Item')",     node(map, ids.get("itemRepeater"), "use.q"));
+		assertEquals("A repeater of other elements than options and rows must be items",       "item",             node(map, ids.get("itemRepeater"), "use.role"));
+		assertEquals("The options of a select must be a choice",                               "choice",           node(map, ids.get("optionRepeater"), "use.role"));
+		assertEquals("A choice must name the property the action mapping it is the input of sets", "Item.category", node(map, ids.get("optionRepeater"), "use.f"));
+		assertEquals("An action mapping must name the user input it sends",                    List.of("category"), map.getList("result.nodes.find { it.id == '" + ids.get("saveAction") + "' }.use.in"));
+		assertTrue("The outline of a page must name the data key of a repeater",               map.getList("result.nodes.find { it.id == '" + ids.get("page") + "' }.d").toString().contains("choice"));
+		assertTrue("The evidence of a method must name the line of its code",                  evidence(map, ids.get("createItem"), ids.get("Item"), "creates").startsWith("ItemService.createItem, line 1: { const item = $.create('Item');"));
 	}
 
 	@Test
@@ -673,6 +829,11 @@ public class ApplicationMapTest extends StructrUiTest {
 
 			ids.put("syncItems", createMethod("syncItems", null, "{ $.GET('https://api.example.com/items'); Structr.POST('https://legacy.example.com/items', '{}'); $.sendPlaintextMail('a@example.com', 'A', 'b@example.com', 'B', 'Items', 'synced'); }").getUuid());
 
+			ids.put("integrateItems", createMethod("integrateItems", null, "{ const url = 'https://' + $.me.name; $.FETCH('https://fetch.example.com/items', 'GET'); $.GET(url); "
+				+ "$.jdbc('jdbc:mysql://db.example.com:3306/shop', 'SELECT 1'); $.mongodb('mongodb://user:secret@mongo.example.com:27017', 'shop', 'items'); $.remoteCypher(`bolt://graph.example.com`, 'user', 'secret', 'MATCH (n) RETURN n'); "
+				+ "$.geocode('Main Street', 'Frankfurt', 'Germany'); $.translate('Hallo', 'de', 'en', 'deepl'); $.translate(['Hallo', 'Welt'].join(' '), 'de', 'en'); "
+				+ "$.exec('backup', ['a', 'b']); $.execBinary($.response, 'render'); /a/.exec('a'); }").getUuid());
+
 			// four callers make formatItem a helper
 			ids.put("listItems", createMethod("listItems", null, "{ $.formatItem(); return $.find('Item'); }").getUuid());
 
@@ -843,6 +1004,11 @@ public class ApplicationMapTest extends StructrUiTest {
 		final List<String> crud = map.getList("result.nodes.find { it.id == '" + id + "' }.crud");
 
 		return crud != null ? crud : List.of();
+	}
+
+	private String evidence(final JsonPath map, final String source, final String target, final String kind) {
+
+		return map.getString("result.edges.find { it[0] == '" + source + "' && it[1] == '" + target + "' && it[3] == '" + kind + "' }[5]");
 	}
 
 	private boolean hasEdge(final JsonPath map, final String source, final String target, final String kind) {

@@ -102,6 +102,13 @@ public class LoginResourceHandler extends RESTCallHandler {
 				try {
 
 					user = getUserForCredentials(securityContext, emailOrUsername, password, twoFactorToken, twoFactorCode, propertySet);
+
+					// a two-factor token that belongs to nobody (used up, or invalidated by too many wrong codes) and a second factor
+					// that cannot be checked leave no user, which is a failed login and not one with nobody
+					if (user == null) {
+						throw new AuthenticationException(getErrorMessage());
+					}
+
 					returnedMethodResult = doLogin(securityContext, user);
 
 					userId = user.getNode().getId();

@@ -38,7 +38,8 @@
  *          error codes it is shown for, ct a content type other than HTML
  * - edge:  [source id, target id, weight, kind, inferred (0 or 1), evidence, details?], kind one of include, reads,
  *          contains, member, creates, updates, deletes, uses, helper, calls, relates, invokes, navigates, endpoint,
- *          inherits, requests (to an external host), mails, current (a page to the type of the current object of its
+ *          inherits, requests (to a web host or a geocoding or translation service), queries (a foreign database), executes
+ *          (a script configured for exec), mails, current (a page to the type of the current object of its
  *          route); details of a schema relationship as { m: multiplicity, cd?: cascading delete, pp?: direction in which
  *          it passes on rights, r, w, d, a: Add, Keep or Remove per right }, see AppMapAccess
  * - group: { id, n, m: number of members, t: ids of the types the group has grants on, p: the rights per type as the
@@ -79,18 +80,19 @@ class AppMapModel {
 	};
 
 	static KIND_LABEL  = { page: 'Page', component: 'Shared Component', type: 'Type', method: 'Method', api: 'REST Endpoint', external: 'External Service', group: 'Group', view: 'Repeater', action: 'Event Action Mapping' };
-	static EDGE_LABEL  = { creates: 'creates', updates: 'updates', deletes: 'deletes', inherits: 'inherits from', helper: 'uses helper', contains: 'contains', reads: 'reads', current: 'opens with the current', invokes: 'invokes', calls: 'calls', member: 'belongs to', relates: 'relationship', navigates: 'navigates to', endpoint: 'endpoint', include: 'includes', uses: 'uses', grant: 'grants', requests: 'sends requests to', mails: 'sends mail with' };
+	static EDGE_LABEL  = { creates: 'creates', updates: 'updates', deletes: 'deletes', inherits: 'inherits from', helper: 'uses helper', contains: 'contains', reads: 'reads', current: 'opens with the current', invokes: 'invokes', calls: 'calls', member: 'belongs to', relates: 'relationship', navigates: 'navigates to', endpoint: 'endpoint', include: 'includes', uses: 'uses', grant: 'grants', requests: 'sends requests to', queries: 'queries', executes: 'executes', mails: 'sends mail with' };
 
 	// business relations: what a page or method does to which type (C/R/U/D), the data model between types, navigation
 	// between pages; the wiring in between (page contains action, action invokes method, method calls method) is folded into them
 	static OP_KIND = { C: 'creates', D: 'deletes', U: 'updates', R: 'reads' };
+	static OPERATION_KINDS = new Set(Object.values(AppMapModel.OP_KIND));
 
 	// the functional relations: what the application does, with its data, its methods and the world outside; the others
 	// (the data model between types, inheritance, navigation between pages) describe how it is built
-	static FUNCTIONAL = new Set(['creates', 'updates', 'deletes', 'reads', 'current', 'invokes', 'calls', 'endpoint', 'requests', 'mails']);
+	static FUNCTIONAL = new Set(['creates', 'updates', 'deletes', 'reads', 'current', 'invokes', 'calls', 'endpoint', 'requests', 'queries', 'executes', 'mails']);
 
 	// how much a relation says about what matters, for the rank of a grouping: changing data weighs most, reading least
-	static RANK_WEIGHT = { creates: 3, updates: 2.5, deletes: 2.5, reads: 1, current: 1, invokes: 1.5, calls: 1.5, endpoint: 1, requests: 1.5, mails: 1.5 };
+	static RANK_WEIGHT = { creates: 3, updates: 2.5, deletes: 2.5, reads: 1, current: 1, invokes: 1.5, calls: 1.5, endpoint: 1, requests: 1.5, queries: 1.5, executes: 1.5, mails: 1.5 };
 
 	// the hotspots: the highest ranked groupings that at least this many others use
 	static HOTSPOTS      = 8;
@@ -253,7 +255,7 @@ class AppMapModel {
 		for (const l of this.techLinks) {
 
 			// the data model, where methods and actions belong, what goes out to external services and the scaffolding stay as they are
-			if (['relates', 'inherits', 'member', 'endpoint', 'contains', 'requests', 'mails'].includes(l.kind) || AppMapModel.STRUCTURE.has(l.kind)) {
+			if (['relates', 'inherits', 'member', 'endpoint', 'contains', 'requests', 'queries', 'executes', 'mails'].includes(l.kind) || AppMapModel.STRUCTURE.has(l.kind)) {
 
 				result.push(l);
 

@@ -67,6 +67,11 @@ class DataBindings {
 
 	private final Map<String, String> currentTypes = new HashMap<>();
 	private final Map<String, String> viewTypes    = new HashMap<>();
+
+	// the input elements that action mappings send as user input: the property each one sets, as Type.property where
+	// the type of the action mapping is known
+	private final Map<String, String> inputTargets = new HashMap<>();
+	private final List<HtmlNode> views             = new ArrayList<>();
 	private final Function<String, String> pageOf;
 	private final List<HtmlNode> all;
 	private final ApplicationMap map;
@@ -95,6 +100,8 @@ class DataBindings {
 				addAction(action, html);
 			}
 		}
+
+		describeViews();
 	}
 
 	// ----- private methods -----
@@ -202,9 +209,72 @@ class DataBindings {
 				map.addNode(id, ApplicationMap.VIEW, html.dataKey + ": " + type).setHome(html.home).setType(type, how);
 				map.addEdge(html.home, id, "contains", 1.5, null);
 
+				// the type a repeater shows takes part with its page, also when no script of the page names it
+				map.connect(html.home, schema.getTypeIds().get(type));
+
 				html.mapIds.add(id);
+				views.add(html);
 			}
 		}
+	}
+
+	/**
+	 * How each repeater uses its type, in the terms of the page: its data expression and what its
+	 * copies are. The options of a select are a choice, and the select is mostly the input of an
+	 * action mapping elsewhere, a button that saves the form; the choice sets the property that
+	 * action mapping sends it as, else the property the select is named after.
+	 */
+	private void describeViews() {
+
+		for (final HtmlNode html : views) {
+
+			final Map<String, Object> use = new LinkedHashMap<>();
+			final String script           = StringUtils.isNotEmpty(html.functionQuery) ? html.functionQuery : html.cypherQuery;
+			final HtmlNode select         = choiceOf(html);
+
+			if (StringUtils.isNotBlank(script)) {
+				use.put("q", StringUtils.abbreviate(script.trim().replaceAll("\\s+", " "), 200));
+			}
+
+			if (select != null) {
+
+				final String name  = select.attribute("_html_name");
+				final String field = inputTargets.getOrDefault(select.id, StringUtils.isNotEmpty(name) && !name.contains("${") ? name : null);
+
+				use.put("role", "choice");
+
+				if (field != null) {
+					use.put("f", field);
+				}
+
+			} else {
+
+				use.put("role", "tr".equals(html.tag) ? "row" : "item");
+			}
+
+			for (final String id : html.mapIds) {
+				map.getNode(id).setUse(use);
+			}
+		}
+	}
+
+	/**
+	 * The select or datalist whose options a repeater makes, or null.
+	 */
+	private HtmlNode choiceOf(final HtmlNode html) {
+
+		if (!"option".equals(html.tag) && !"optgroup".equals(html.tag)) {
+			return null;
+		}
+
+		for (final HtmlNode ancestor : html.ancestors()) {
+
+			if ("select".equals(ancestor.tag) || "datalist".equals(ancestor.tag)) {
+				return ancestor;
+			}
+		}
+
+		return null;
 	}
 
 	private void addAction(final ActionMapping action, final HtmlNode trigger) {
@@ -298,8 +368,27 @@ class DataBindings {
 		final String where    = map.getNode(trigger.home) != null ? map.getNode(trigger.home).getName() : "";
 		final String id       = action.getUuid();
 
-		map.addNode(id, ApplicationMap.ACTION, where + ": " + labelOf(trigger) + " → " + target).setHome(trigger.home).setType(type, how).setAction(action.getAction()).setEvent(action.getEvent()).setMethod(method);
+		// the input elements it sends set the properties of its type; a choice among them names them (see describeViews)
+		for (final ParameterMapping parameter : action.getParameterMappings()) {
+
+			if ("user-input".equals(parameter.getParameterType()) && parameter.getParameterName() != null && parameter.getInputElement() != null) {
+				inputTargets.putIfAbsent(parameter.getInputElement().getUuid(), type != null ? type + "." + parameter.getParameterName() : parameter.getParameterName());
+			}
+		}
+
+		final Map<String, Object> use = new LinkedHashMap<>();
+
+		use.put("el", labelOf(trigger));
+
+		if (!inputs.isEmpty()) {
+			use.put("in", new LinkedList<>(inputs));
+		}
+
+		map.addNode(id, ApplicationMap.ACTION, where + ": " + labelOf(trigger) + " → " + target).setHome(trigger.home).setType(type, how).setAction(action.getAction()).setEvent(action.getEvent()).setMethod(method).setUse(use);
 		map.addEdge(trigger.home, id, "contains", 1.5, null);
+
+		// as with repeaters, the type an action mapping works on takes part with its page
+		map.connect(trigger.home, type != null ? schema.getTypeIds().get(type) : null);
 
 		trigger.mapIds.add(id);
 

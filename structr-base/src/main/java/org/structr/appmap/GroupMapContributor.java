@@ -40,6 +40,11 @@ public class GroupMapContributor implements ApplicationMapContributor {
 
 		for (final NodeInterface node : app.nodeQuery(StructrTraits.GROUP).getAsList()) {
 
+			// a node with the label but without a known type comes back as a GenericNode
+			if (!node.is(StructrTraits.GROUP)) {
+				continue;
+			}
+
 			final Group group = node.as(Group.class);
 
 			final ApplicationMap.MapGroup mapGroup = map.addGroup(group.getUuid(), group.getName(), Iterables.count(group.getMembers()));

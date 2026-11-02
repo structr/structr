@@ -35,6 +35,7 @@ import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.test.web.StructrUiTest;
+import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.servlet.HtmlServlet;
 import org.testng.annotations.Test;
 
@@ -398,6 +399,58 @@ public class TwoFactorAuthenticationTest extends StructrUiTest {
 					.post("/doScriptedLogin");
 
 			assertTrue("a refused login must not open a session", sessionIdsOf("wrongpassword").isEmpty());
+
+		} finally {
+
+			Settings.TwoFactorLevel.setValue(previousLevel);
+		}
+	}
+
+	/**
+	 * A token that belongs to nobody, here because wrong codes used it up, left LoginResourceHandler
+	 * without a user, and the login went on with nobody and ended in a NullPointerException and a 500.
+	 * It is a failed login like any other.
+	 */
+	@Test
+	public void testAUsedUpTokenIsRefusedLikeWrongCredentials() {
+
+		final Integer previousLevel = Settings.TwoFactorLevel.getValue();
+
+		Settings.TwoFactorLevel.setValue(2);
+
+		try {
+
+			final int maximumAllowedFailedAttempts = Settings.PasswordAttempts.getValue();
+			final String id                        = createTwoFactorUser("usedup", true);
+			final String token                     = startSecondFactor(id);
+
+			assertNotNull("The password step must issue a token", token);
+
+			grant("_login", UiAuthenticator.NON_AUTH_USER_POST, true);
+
+			// one guess more than the account is allowed, which takes the token away
+			for (int i = 0; i <= maximumAllowedFailedAttempts; i++) {
+
+				RestAssured
+					.given()
+						.contentType("application/json; charset=UTF-8")
+						.body("{ 'twoFactorToken': '" + token + "', 'twoFactorCode': '000000' }")
+					.expect()
+						.statusCode(401)
+					.when()
+						.post("/login");
+			}
+
+			RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.body("{ 'twoFactorToken': '" + token + "', 'twoFactorCode': '000000' }")
+				.expect()
+					.statusCode(401)
+				.when()
+					.post("/login");
+
+			assertTrue("a refused login must not open a session", sessionIdsOf("usedup").isEmpty());
 
 		} finally {
 

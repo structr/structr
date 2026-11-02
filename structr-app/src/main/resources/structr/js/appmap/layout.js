@@ -58,6 +58,10 @@ class AppMapLayout {
 	static DISC_SPAN    = 0.91;
 	static ELEMENT_SPAN = 0.95;
 
+	// nothing comes closer to the centre than this share of the field, where the sectors are so narrow that a direction
+	// would mean little; the innermost places of the groupings begin there too (see areaSlots)
+	static INNER = 0.1;
+
 	// every sector is at least this wide, in degrees, an empty one too; the rest of the circle goes to the areas after the room
 	// their groupings need
 	static MIN_SECTOR = 16;
@@ -405,7 +409,7 @@ class AppMapLayout {
 		// its disc, so a page with many actions does not crowd its neighbours; inward lies what others depend on, outward what
 		// only uses others (the grouping's own instability), the angle scatters by the golden ratio
 		const slotOf = new Map();
-		const inner  = 0.1 * field;
+		const inner  = AppMapLayout.INNER * field;
 		const outer  = field;
 		const own    = d => instability(groupIn.get(d.key) ?? 0, groupOut.get(d.key) ?? 0);
 
@@ -439,29 +443,20 @@ class AppMapLayout {
 	discSimulation(discs, slotOf, field, spread) {
 
 		// radial consistency: a disc stays within DISC_SPAN of the ray of its area, so its direction from the centre is the same
-		// in every layout; near the centre a direction means little, so the sector only binds further out
+		// in every layout
 		const keepInSector = alpha => {
 
 			for (const d of discs) {
 
-				const place             = slotOf.has(d) && this.areaPlaces.get(d.area);
-				const [angle, distance] = AppMapLayout.polar(d.x, d.y);
+				const target = slotOf.has(d) && this.areaPlaces.get(d.area) ? this.inSector(d.x, d.y, this.sectors.get(d.area), AppMapLayout.DISC_SPAN) : null;
 
-				if (!place || distance < 0.25 * field) {
-					continue;
-				}
-
-				const off    = AppMapLayout.normalizeAngle(angle - this.sectors.get(d.area).angle);
-				const sector = this.sectors.get(d.area).half * AppMapLayout.DISC_SPAN;
-
-				if (Math.abs(off) > sector) {
+				if (target) {
 
 					// turn the disc back toward the edge of its sector, along the ellipse it is on
-					const turn   = (Math.abs(off) - sector) * Math.sign(off) * Math.min(1, alpha * 3);
-					const [x, y] = AppMapLayout.point(angle - turn, distance);
+					const pull = Math.min(1, alpha * 3);
 
-					d.vx += x - d.x;
-					d.vy += y - d.y;
+					d.vx += (target[0] - d.x) * pull;
+					d.vy += (target[1] - d.y) * pull;
 				}
 			}
 		};
@@ -588,7 +583,6 @@ class AppMapLayout {
 
 		const cohesion = alpha * this.forces.cohesion * 0.6;
 		const pull     = Math.min(0.5, alpha * 3);
-		const free     = 0.25 * this.areaField;
 
 		for (const n of this.nodes) {
 
@@ -616,24 +610,55 @@ class AppMapLayout {
 			}
 
 			// and no element leaves the sector of its area: past the border it is turned back along its circle, more gently as
-			// the layout cools down, so the map comes to rest
-			const sector              = this.sectors.get(n.c?.[0]);
-			const [angle, fromCentre] = AppMapLayout.polar(n.x, n.y);
+			// the layout cools down, so the map comes to rest; when it rests, confine puts it inside for good
+			const target = this.inSector(n.x, n.y, this.sectors.get(n.c?.[0]), AppMapLayout.ELEMENT_SPAN);
 
-			if (sector && fromCentre > free) {
+			if (target) {
 
-				const off   = AppMapLayout.normalizeAngle(angle - sector.angle);
-				const limit = sector.half * AppMapLayout.ELEMENT_SPAN;
-
-				if (Math.abs(off) > limit) {
-
-					const [x, y] = AppMapLayout.point(angle - (Math.abs(off) - limit) * Math.sign(off), fromCentre);
-
-					n.vx += (x - n.x) * pull;
-					n.vy += (y - n.y) * pull;
-				}
+				n.vx += (target[0] - n.x) * pull;
+				n.vy += (target[1] - n.y) * pull;
 			}
 		}
+	}
+
+	// the nearest place to a point inside a sector, within the given share of its half width and no closer to the centre
+	// than INNER; null when the point lies there already or there is no sector
+	inSector(x, y, sector, span) {
+
+		if (!sector) {
+			return null;
+		}
+
+		const [angle, distance] = AppMapLayout.polar(x, y);
+		const limit             = sector.half * span;
+		const off               = AppMapLayout.normalizeAngle(angle - sector.angle);
+		const inner             = AppMapLayout.INNER * this.areaField;
+
+		if (Math.abs(off) <= limit && distance >= inner) {
+			return null;
+		}
+
+		return AppMapLayout.point(sector.angle + Math.max(-limit, Math.min(limit, off)), Math.max(inner, distance));
+	}
+
+	// every element inside the sector of its area, whatever the forces left it at or a remembered layout says; true when
+	// one had to move
+	confine() {
+
+		let moved = false;
+
+		for (const n of this.nodes) {
+
+			const target = this.inSector(n.x, n.y, this.sectors.get(n.c?.[0]), AppMapLayout.ELEMENT_SPAN);
+
+			if (target) {
+
+				[n.x, n.y] = target;
+				moved      = true;
+			}
+		}
+
+		return moved;
 	}
 
 	// the own type is the innermost level, then the grouping and the area; the levels are 0, 1, 3 and 4, as a level between
@@ -763,6 +788,8 @@ class AppMapLayout {
 
 	// the layout rests: every element is anchored at its place, the place is remembered
 	settled(moved) {
+
+		moved = this.confine() || moved;
 
 		for (const n of this.nodes) {
 			this.held.set(n, [n.x, n.y]);

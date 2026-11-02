@@ -157,16 +157,12 @@ class HtmlNode {
 	}
 
 	/**
-	 * An element that binds data, is shown conditionally, embeds a shared component or reacts
-	 * to events does something; the rest is structure.
+	 * An element that binds data, embeds a shared component or reacts to events does something;
+	 * the rest is structure, also an element that is only shown conditionally.
 	 */
 	private static boolean isActive(final DOMNode node) {
 
 		if (node.getDataKey() != null || StringUtils.isNotBlank(node.getFunctionQuery()) || StringUtils.isNotBlank(node.getCypherQuery())) {
-			return true;
-		}
-
-		if (StringUtils.isNotBlank(node.getShowConditions()) || StringUtils.isNotBlank(node.getHideConditions())) {
 			return true;
 		}
 

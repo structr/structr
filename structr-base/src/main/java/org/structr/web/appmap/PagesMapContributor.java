@@ -373,17 +373,22 @@ public class PagesMapContributor implements ApplicationMapContributor {
 		}
 
 		final String expressions = expressionsOf(html);
+		final String dataKey     = StringUtils.trimToNull(html.dataKey);
 
-		if (!children.isEmpty() || !ids.isEmpty() || expressions != null) {
+		if (!children.isEmpty() || !ids.isEmpty() || expressions != null || dataKey != null) {
 			item.add(children);
 		}
 
-		if (!ids.isEmpty() || expressions != null) {
+		if (!ids.isEmpty() || expressions != null || dataKey != null) {
 			item.add(ids);
 		}
 
-		if (expressions != null) {
-			item.add(expressions);
+		if (expressions != null || dataKey != null) {
+			item.add(StringUtils.defaultString(expressions));
+		}
+
+		if (dataKey != null) {
+			item.add(dataKey);
 		}
 
 		return item;

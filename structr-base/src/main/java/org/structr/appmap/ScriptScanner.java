@@ -18,26 +18,41 @@
  */
 package org.structr.appmap;
 
+import org.structr.api.config.Settings;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Reads a script (a method, a function property, the content and function query of an HTML
  * element) for what it connects to: the types it names in find() and its relatives, the
- * methods it calls, the external hosts it sends HTTP requests to and whether it sends mail.
+ * methods it calls, and the systems outside Structr it talks to through built-in functions.
  * Type and method references only decide which artifacts take part in the map, what a script
- * does to the data is the business of the CRUD analysis; a request to an external host and
- * sending mail are edges of their own (requests, mails), since nothing else shows them.
+ * does to the data is the business of the CRUD analysis; the integrations are edges of their
+ * own, since nothing else shows them: requests to a web host (GET and its relatives, FETCH),
+ * to the geocoding and translation services; queries to a foreign database (jdbc, mongodb,
+ * remoteCypher); executes for a script configured for exec and execBinary; mails for sending
+ * mail. An integration whose target the script names as a literal is one external service
+ * per target, one whose target is computed one per kind of integration, marked dynamic, so
+ * the dependency stays visible.
  */
 public class ScriptScanner {
 
 	public static final String MAIL_ID = "ext:mail";
 
+	// the translation providers by the key the translate function takes
+	private static final Map<String, String> TRANSLATION_PROVIDERS = Map.of("google", "Google", "deepl", "DeepL");
+
 	static final Pattern TYPE_CALL      = Pattern.compile("\\b(?:find|find_privileged|findPrivileged|search|create|getOrCreate|get_or_create|delete|search_fulltext|merge_unique|mergeUnique)\\s*\\(\\s*['\"]([A-Z][A-Za-z0-9_]*)['\"]");
 	static final Pattern STATIC_CALL    = Pattern.compile("\\$\\.([A-Z][A-Za-z0-9_]*)\\.([a-zA-Z_][A-Za-z0-9_]*)\\s*\\(");
 	static final Pattern CALL           = Pattern.compile("(?:\\$\\.|\\bcall\\(\\s*['\"]|\\b)([a-zA-Z_][A-Za-z0-9_]*)\\s*\\(");
-	// $.GET() in JavaScript, Structr.GET() in older JavaScript, GET() in StructrScript
-	static final Pattern URL            = Pattern.compile("(?:\\$\\.|\\bStructr\\.|\\b)(?:GET|POST|PUT|DELETE|PATCH|HEAD)\\s*\\(\\s*['\"`](https?://[^'\"`,)\\s]+)");
+	// a built-in function that talks to a system outside Structr: $.GET() in JavaScript, Structr.GET() in older JavaScript,
+	// GET() in StructrScript, but not a method of the same name on another object, like exec() of a regular expression
+	static final Pattern INTEGRATION    = Pattern.compile("(?:\\$\\.|\\bStructr\\.|(?<![\\w.$]))(GET|POST|PUT|DELETE|PATCH|HEAD|FETCH|jdbc|mongodb|remoteCypher|remote_cypher|geocode|translate|exec|execBinary|exec_binary)\\s*\\(");
+	static final Pattern LITERAL        = Pattern.compile("^(['\"`])([^'\"`]*)\\1$");
 	static final Pattern MAIL           = Pattern.compile("\\b(send_?html_?mail|send_?plaintext_?mail|mail_?begin)\\b", Pattern.CASE_INSENSITIVE);
 
 	public static void scan(final ApplicationMap map, final String source, final String origin) {
@@ -68,17 +83,10 @@ public class ScriptScanner {
 			map.connect(origin, schema.getGlobalMethod(matcher.group(1)));
 		}
 
-		matcher = URL.matcher(source);
+		matcher = INTEGRATION.matcher(source);
 
 		while (matcher.find()) {
-
-			final String host = hostOf(matcher.group(1));
-
-			if (host != null && host.contains(".") && !host.contains("$")) {
-
-				map.addNode("ext:" + host, ApplicationMap.EXTERNAL, host);
-				map.addReference(origin, "ext:" + host, "requests", 1.0);
-			}
+			integration(map, origin, matcher.group(1), arguments(source, matcher.end()));
 		}
 
 		if (MAIL.matcher(source).find()) {
@@ -89,10 +97,205 @@ public class ScriptScanner {
 	}
 
 	// ----- private methods -----
+	private static void integration(final ApplicationMap map, final String origin, final String function, final List<String> arguments) {
+
+		switch (function) {
+
+			case "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "FETCH" -> {
+
+				final String url = literal(arguments, 0);
+
+				if (url == null) {
+
+					connect(map, origin, "ext:http", "HTTP (dynamic)", "requests");
+
+				} else if (url.startsWith("http://") || url.startsWith("https://")) {
+
+					final String host = hostOf(url);
+
+					// a host without a domain is the server itself or one in the same network, not an integration
+					if (host != null && host.contains(".")) {
+						connect(map, origin, "ext:" + host, host, "requests");
+					}
+				}
+
+				// a relative URL is a request to Structr itself
+			}
+
+			case "jdbc"                           -> database(map, origin, literal(arguments, 0), "jdbc", "JDBC");
+			case "mongodb"                        -> database(map, origin, literal(arguments, 0), "mongodb", "MongoDB");
+			case "remoteCypher", "remote_cypher"  -> database(map, origin, literal(arguments, 0), "cypher", "Neo4j");
+
+			case "geocode" -> {
+
+				// the provider is configured, its class is called like GoogleGeoCodingProvider
+				final String provider = Settings.GeocodingProvider.getValue();
+				final String name     = provider.substring(provider.lastIndexOf('.') + 1).replace("GeoCodingProvider", "");
+
+				connect(map, origin, "ext:geocoding", name.isEmpty() ? "Geocoding" : "Geocoding (" + name + ")", "requests");
+			}
+
+			case "translate" -> {
+
+				// the provider is the fourth argument, Google without it
+				final String provider = arguments.size() > 3 ? literal(arguments, 3) : "google";
+
+				if (provider == null) {
+
+					connect(map, origin, "ext:translation", "Translation (dynamic)", "requests");
+
+				} else {
+
+					final String key = provider.toLowerCase();
+
+					connect(map, origin, "ext:translation:" + key, "Translation (" + TRANSLATION_PROVIDERS.getOrDefault(key, provider) + ")", "requests");
+				}
+			}
+
+			case "exec", "execBinary", "exec_binary" -> {
+
+				// execBinary takes the output first, then the key of the script in structr.conf
+				final String key = literal(arguments, "exec".equals(function) ? 0 : 1);
+
+				if (key == null) {
+
+					connect(map, origin, "ext:exec", "exec (dynamic)", "executes");
+
+				} else {
+
+					connect(map, origin, "ext:exec:" + key, key + " (exec)", "executes");
+				}
+			}
+		}
+	}
+
+	// a foreign database, one per host its URL names; a URL without a host, like an Oracle thin URL, as it is written
+	private static void database(final ApplicationMap map, final String origin, final String url, final String kind, final String label) {
+
+		if (url == null) {
+
+			connect(map, origin, "ext:" + kind, label + " (dynamic)", "queries");
+
+			return;
+		}
+
+		final String host = url.contains("://") ? hostOf(url) : url;
+
+		if (host != null) {
+			connect(map, origin, "ext:" + kind + ":" + host, host + " (" + label + ")", "queries");
+		}
+	}
+
+	private static void connect(final ApplicationMap map, final String origin, final String id, final String name, final String kind) {
+
+		map.addNode(id, ApplicationMap.EXTERNAL, name);
+		map.addReference(origin, id, kind, 1.0);
+	}
+
+	// the arguments of a call, as written, from just behind its opening parenthesis to the closing one; commas inside
+	// brackets, braces, nested calls and strings do not separate arguments
+	static List<String> arguments(final String source, final int start) {
+
+		final List<String> arguments = new ArrayList<>();
+		final StringBuilder current  = new StringBuilder();
+		char quote                   = 0;
+		int depth                    = 0;
+
+		for (int i = start; i < source.length(); i++) {
+
+			final char c = source.charAt(i);
+
+			if (quote != 0) {
+
+				current.append(c);
+
+				if (c == '\\' && i + 1 < source.length()) {
+
+					current.append(source.charAt(++i));
+
+				} else if (c == quote) {
+
+					quote = 0;
+				}
+
+				continue;
+			}
+
+			switch (c) {
+
+				case '\'', '"', '`' -> {
+
+					quote = c;
+					current.append(c);
+				}
+
+				case '(', '[', '{' -> {
+
+					depth++;
+					current.append(c);
+				}
+
+				case ')', ']', '}' -> {
+
+					if (depth == 0) {
+
+						if (!current.isEmpty() || !arguments.isEmpty()) {
+							arguments.add(current.toString().trim());
+						}
+
+						return arguments;
+					}
+
+					depth--;
+					current.append(c);
+				}
+
+				case ',' -> {
+
+					if (depth == 0) {
+
+						arguments.add(current.toString().trim());
+						current.setLength(0);
+
+					} else {
+
+						current.append(c);
+					}
+				}
+
+				default -> current.append(c);
+			}
+		}
+
+		// the script ends inside the call
+		arguments.add(current.toString().trim());
+
+		return arguments;
+	}
+
+	// the text of an argument that is a plain string literal, or null for anything computed, including a template string
+	// with an expression
+	static String literal(final List<String> arguments, final int index) {
+
+		if (index >= arguments.size()) {
+			return null;
+		}
+
+		final Matcher matcher = LITERAL.matcher(arguments.get(index));
+
+		if (!matcher.matches() || matcher.group(2).contains("${")) {
+			return null;
+		}
+
+		return matcher.group(2);
+	}
+
+	// the host of a URL, without the credentials it may carry
 	private static String hostOf(final String url) {
 
-		final String rest = url.substring(url.indexOf("://") + 3);
-		final String host = rest.split("[/?#:]", 2)[0].toLowerCase();
+		final String rest      = url.substring(url.indexOf("://") + 3);
+		final String authority = rest.split("[/?#]", 2)[0];
+		final String host      = authority.substring(authority.lastIndexOf('@') + 1).split(":", 2)[0].toLowerCase();
 
 		return host.isEmpty() ? null : host;
 	}

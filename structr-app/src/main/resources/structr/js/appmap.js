@@ -35,22 +35,52 @@ let _AppMap = {
 	introKey: 'structrAppMapIntroSeen_' + location.port,
 
 	// the introduction for a first visit: what the map shows and how it is used
-	intro: [
-		['The map', 'Every sector is an area of Structr, every point a type, page, method, endpoint or group of the application; bold names are the hotspots many others rely on and the most important pages. Pages that belong together form a section, by their category or by the type they work with most.'],
-		['Move', 'The wheel zooms, dragging pans the map.'],
-		['Look', 'Hover an element to see what it connects to.'],
-		['Explore', 'Click an element to hold it, then click the names at the ends of its relations to go there; the row above the map leads back, Esc ends exploring.'],
-		['Open', 'Double-click a page to see its HTML tree, a method to read its code; double-click the empty map for the whole map again.'],
-		['Search', 'The global search at the top right marks what it finds on the map; a click on one of its results goes there.'],
-		['Access', 'The badge at a page shows who may see it: red for public users, blue for signed-in users, grey for admins and grants only. "Access of" above the map shows what a role sees and may do: around every type a ring of read, write and delete, and in red the pages it sees that do what it may not.'],
-		['Data model', 'Hover a type to see its relationships with their multiplicities: red ones delete along, orange ones pass rights on; dashed red rings mark everything deleting one of its objects takes with it.'],
-		['Pages', 'A tag below a page marks the start page, the errors it is shown for and content other than HTML; its tooltip names its URLs and the type of object they open.']
-	],
+	intro: {
+
+		// the shapes of the elements, each in the colour the light look gives its kind (see AppMapView.LOOKS); as SVG paths
+		// in a box of 20 by 20
+		shapes: [
+			['type',      'Type',             'M10 3a7 7 0 1 1 0 14a7 7 0 1 1 0-14z'],
+			['page',      'Page',             'M5 2h7l3 3v13h-10z'],
+			['component', 'Shared Component', 'M5 2h7l3 3v13h-10z'],
+			['method',    'Method',           'M2.5 5.5h15a1.5 1.5 0 0 1 1.5 1.5v6a1.5 1.5 0 0 1-1.5 1.5h-15a1.5 1.5 0 0 1-1.5-1.5v-6a1.5 1.5 0 0 1 1.5-1.5z'],
+			['api',       'REST Endpoint',    'M10 2.5l8 13.5h-16z'],
+			['group',     'Group',            'M10 2l7 4v8l-7 4l-7-4v-8z'],
+			['external',  'External Service', 'M10 1.5l2 5.6l5.9 0.2l-4.7 3.6l1.7 5.7l-4.9-3.4l-4.9 3.4l1.7-5.7l-4.7-3.6l5.9-0.2z']
+		],
+
+		read: [
+			['Sectors',  'Each sector is an area of Structr.'],
+			['Bold',     'Hotspots and key pages.'],
+			['Tags',     'Mark the <span class="appmap-intro-tag appmap-intro-start">start</span> page and <span class="appmap-intro-tag appmap-intro-error">404</span> error pages.'],
+			['Badges',   'Who sees a page: <span class="appmap-intro-dot" style="--dot: var(--access-pub)"></span>public, <span class="appmap-intro-dot" style="--dot: var(--access-auth)"></span>signed in, <span class="appmap-intro-dot" style="--dot: var(--access-none)"></span>admins.']
+		],
+
+		use: [
+			[['Hover'],        'Shows the connections.'],
+			[['Click'],        'Holds an element to explore it.'],
+			[['Double-click'], 'Opens a page or method.'],
+			[['Esc'],          'Ends exploring.']
+		]
+	},
+
+	// the colours the map gives start and error tags and access badges, in the light look, for the introduction to show
+	introColours: () => {
+
+		const routing = AppMapRenderer.ROUTING_COLOR;
+		const access  = AppMapRenderer.ACCESS_COLOR;
+
+		return `--start: ${routing.start[0]}; --error: ${routing.error[0]}; --access-pub: ${access.pub[0]}; --access-auth: ${access.auth[0]}; --access-none: ${access.none[0]}`;
+	},
 
 	onload: async () => {
 
 		Structr.setMainContainerHTML(_AppMap.templates.main());
 		Structr.setFunctionBarHTML(_AppMap.templates.functions());
+
+		// the menu is blocked while a module opens; the map can take a while to load or fail to, and leaving it in the
+		// meantime is safe (see load)
+		Structr.mainMenu.unblock(100);
 
 		await _AppMap.load();
 	},
@@ -117,6 +147,20 @@ let _AppMap = {
 
 				return (Array.isArray(result) ? result[0] : result) ?? {};
 			},
+			// the current requests and scripting errors per element, see ApplicationMap.toActivityObject
+			loadActivity: async () => {
+
+				let response = await fetch(Structr.rootUrl + '_appmap/activity');
+
+				if (!response.ok) {
+					return null;
+				}
+
+				// a single result may come wrapped in a list
+				let result = (await response.json()).result;
+
+				return (Array.isArray(result) ? result[0] : result)?.nodes ?? null;
+			},
 			loadSource: async n => {
 
 				let response = await fetch(Structr.rootUrl + (n.tpl ? 'Template/' + n.tpl : 'SchemaMethod/' + n.id));
@@ -148,7 +192,7 @@ let _AppMap = {
 		document.querySelector('#appmap-counts').textContent = `${counts.elements.toLocaleString()} elements · ${counts.dom.toLocaleString()} HTML elements · ${counts.relations.toLocaleString()} relations`;
 	},
 	saveSettings: () => {
-		LSWrapper.setItem(_AppMap.settingsKey, { look: _AppMap.view.settings.look });
+		LSWrapper.setItem(_AppMap.settingsKey, _AppMap.view.settings);
 	},
 	initControls: () => {
 
@@ -192,6 +236,32 @@ let _AppMap = {
 			view.setLens(role?.kind ? role : null);
 		});
 
+		// the activity lens and the errors, both remembered: how much the entry points are used or how slowly they answer,
+		// and where scripting errors happened
+		let saved    = LSWrapper.getItem(_AppMap.settingsKey, {});
+		let activity = bar.querySelector('#appmap-activity');
+		let errors   = bar.querySelector('#appmap-errors');
+
+		activity.value = saved.activity ?? '';
+		view.setActivity(activity.value || null);
+		errors.setAttribute('aria-pressed', String(!!saved.errors));
+		view.setErrors(!!saved.errors);
+
+		activity.addEventListener('change', () => {
+
+			view.setActivity(activity.value || null);
+			_AppMap.saveSettings();
+		});
+
+		errors.addEventListener('click', () => {
+
+			let on = errors.getAttribute('aria-pressed') !== 'true';
+
+			errors.setAttribute('aria-pressed', String(on));
+			view.setErrors(on);
+			_AppMap.saveSettings();
+		});
+
 		// the introduction: open on a first visit, the question mark brings it back
 		let intro     = document.querySelector('#appmap-intro');
 		let introOpen = bar.querySelector('#appmap-intro-toggle');
@@ -202,11 +272,14 @@ let _AppMap = {
 		};
 
 		introOpen.addEventListener('click', () => showIntro(intro.classList.contains('hidden')));
-		intro.querySelector('#appmap-intro-close').addEventListener('click', () => {
+		for (const close of intro.querySelectorAll('[data-intro-close]')) {
 
-			showIntro(false);
-			LSWrapper.setItem(_AppMap.introKey, true);
-		});
+			close.addEventListener('click', () => {
+
+				showIntro(false);
+				LSWrapper.setItem(_AppMap.introKey, true);
+			});
+		}
 
 		showIntro(!LSWrapper.getItem(_AppMap.introKey, false));
 	},
@@ -217,12 +290,32 @@ let _AppMap = {
 
 			<div class="main-app-box" id="appmap">
 				<div id="appmap-canvas"></div>
-				<div id="appmap-intro" class="appmap-panel appmap-intro hidden">
-					<b>How to read the map</b>
-					<dl>
-						${_AppMap.intro.map(([term, text]) => `<dt>${term}</dt><dd>${text}</dd>`).join('')}
-					</dl>
-					<button id="appmap-intro-close" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Got it</button>
+				<div id="appmap-intro" class="appmap-panel appmap-intro hidden" role="dialog" aria-labelledby="appmap-intro-title" style="${_AppMap.introColours()}">
+					<header>
+						<h3 id="appmap-intro-title">How to read the map</h3>
+						<button class="appmap-intro-x" data-intro-close aria-label="Close">×</button>
+					</header>
+					<ul class="appmap-intro-shapes">
+						${_AppMap.intro.shapes.map(([kind, label, path]) => `<li><svg viewBox="0 0 20 20" aria-hidden="true"><path d="${path}" style="--kind: ${AppMapView.LOOKS.light.kinds[kind]}"/></svg>${label}</li>`).join('')}
+					</ul>
+					<div class="appmap-intro-columns">
+						<section>
+							<h4>Reading</h4>
+							<dl>
+								${_AppMap.intro.read.map(([term, text]) => `<dt>${term}</dt><dd>${text}</dd>`).join('')}
+							</dl>
+						</section>
+						<section>
+							<h4>Using</h4>
+							<dl>
+								${_AppMap.intro.use.map(([keys, text]) => `<dt>${keys.map(key => `<kbd>${key}</kbd>`).join('')}</dt><dd>${text}</dd>`).join('')}
+							</dl>
+						</section>
+					</div>
+					<footer>
+						<span><kbd>?</kbd> brings this back.</span>
+						<button id="appmap-intro-close" data-intro-close class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Got it</button>
+					</footer>
 				</div>
 				<div id="appmap-hud">
 					<span id="appmap-hint"></span>
@@ -239,6 +332,16 @@ let _AppMap = {
 				<label class="appmap-lens">Access of
 					<select id="appmap-lens" title="Shows what a role sees and may do, and where a page it sees does what it may not"></select>
 				</label>
+				<label class="appmap-lens">Activity
+					<select id="appmap-activity" title="Shows how much pages, endpoints and types are requested, or how slowly they answer">
+						<option value="">off</option>
+						<option value="usage">Usage</option>
+						<option value="slow">Slow</option>
+					</select>
+				</label>
+				<span class="appmap-segment" role="group" aria-label="Errors">
+					<button id="appmap-errors" aria-pressed="false" title="Marks where scripting errors happened since the last start">Errors</button>
+				</span>
 				<span class="appmap-segment" role="group" aria-label="Help">
 					<button id="appmap-intro-toggle" aria-pressed="false" title="How to read and use the map">?</button>
 				</span>
