@@ -138,11 +138,21 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 		return linkedConcepts;
 	}
 
+	/** Reads server log files only, the current one unless another one of them is requested. */
 	public static String getServerLog(final int numberOfLines, final Integer truncateLinesAfter, final String requestedLogfileName, final String filter) {
+
+		return getLog(numberOfLines, truncateLinesAfter, requestedLogfileName, filter, GetAvailableServerLogsFunction.getListOfServerlogFileNames());
+	}
+
+	/**
+	 * Reads one of the given log files, the first one unless another one of them is requested.
+	 *
+	 * @param logFileNames the files that may be read
+	 */
+	public static String getLog(final int numberOfLines, final Integer truncateLinesAfter, final String requestedLogfileName, final String filter, final List<String> logFileNames) {
 
 		final boolean filterEmpty = StringUtils.isBlank(filter);
 		int linesToGet = numberOfLines;
-		final List<String> logFileNames = GetAvailableServerLogsFunction.getListOfServerlogFileNames();
 
 		final File logFile;
 

@@ -42,10 +42,9 @@ import org.structr.rest.exception.NotAllowedException;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 @Documentation(name="Server log endpoint", type=ConceptType.RestEndpoint, shortDescription="HTTP endpoint that returns the server log, for admin users only. URL path is /_serverLog, with the optional request parameters lines (default 50), level (minimum level), filter (only entries containing this text), since (the offset of a previous response, to read only what was logged after it) and logFile (one of availableLogFiles in the response, the current log first and the rotated ones newest first; since cannot be used with a compressed one).", parent="System endpoints")
 public class ServerLogResource extends ExactMatchEndpoint {
@@ -59,13 +58,39 @@ public class ServerLogResource extends ExactMatchEndpoint {
 
 	public ServerLogResource() {
 
-		super(RESTParameter.forStaticString(UriPart._serverLog.name(), true));
+		this(UriPart._serverLog.name());
+	}
+
+	protected ServerLogResource(final String uriPart) {
+
+		super(RESTParameter.forStaticString(uriPart, true));
 	}
 
 	@Override
 	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
 		return new ServerLogResourceHandler(call);
+	}
+
+	/** The current log first, its rotated logs newest first. */
+	protected List<String> getLogFiles() {
+
+		return GetAvailableServerLogsFunction.newestFirst(GetAvailableServerLogsFunction.getListOfServerlogFileNames(true));
+	}
+
+	protected Pattern getEntryStart() {
+
+		return ServerLogReader.SERVER_LOG_ENTRY;
+	}
+
+	protected boolean hasLevels() {
+
+		return true;
+	}
+
+	protected String getLogName() {
+
+		return "server log";
 	}
 
 	private class ServerLogResourceHandler extends RESTCallHandler {
@@ -81,11 +106,11 @@ public class ServerLogResource extends ExactMatchEndpoint {
 			// the log carries everything the instance has been sent, so a grant alone must not open it
 			if (securityContext == null || !securityContext.isSuperUser()) {
 
-				throw new NotAllowedException("Access to the server log is restricted to admin users");
+				throw new NotAllowedException("Access to the " + getLogName() + " is restricted to admin users");
 			}
 
 			final HttpServletRequest request = securityContext.getRequest();
-			final List<String> logFiles      = newestFirst(GetAvailableServerLogsFunction.getListOfServerlogFileNames(true));
+			final List<String> logFiles      = getLogFiles();
 			final String requestedFile       = request != null ? request.getParameter("logFile") : null;
 			final String filter              = request != null ? request.getParameter("filter") : null;
 			final String levelValue          = request != null ? request.getParameter("level") : null;
@@ -96,6 +121,11 @@ public class ServerLogResource extends ExactMatchEndpoint {
 			if (requestedFile != null && !logFiles.contains(requestedFile)) {
 
 				throw new FrameworkException(422, "Unknown log file " + requestedFile + ", available are " + logFiles);
+			}
+
+			if (StringUtils.isNotBlank(levelValue) && !hasLevels()) {
+
+				throw new FrameworkException(422, "The " + getLogName() + " has no levels, level cannot be used");
 			}
 
 			if (StringUtils.isNotBlank(levelValue) && level == null) {
@@ -119,11 +149,11 @@ public class ServerLogResource extends ExactMatchEndpoint {
 							throw new FrameworkException(422, "since cannot be used with " + logFile + ", a compressed log has no offsets");
 						}
 
-						log = ServerLogReader.tailCompressed(path, lines, level, filter);
+						log = ServerLogReader.tailCompressed(path, lines, level, filter, getEntryStart());
 
 					} else {
 
-						log = since != null ? ServerLogReader.since(path, since, lines, level, filter) : ServerLogReader.tail(path, lines, level, filter);
+						log = since != null ? ServerLogReader.since(path, since, lines, level, filter, getEntryStart()) : ServerLogReader.tail(path, lines, level, filter, getEntryStart());
 					}
 
 				} catch (IOException ex) {
@@ -160,22 +190,6 @@ public class ServerLogResource extends ExactMatchEndpoint {
 		}
 
 		// ----- private methods -----
-		private List<String> newestFirst(final List<String> logFiles) {
-
-			// sorted by name, the current log comes first and the rotated ones follow by date, oldest first
-			if (logFiles.size() < 2) {
-
-				return logFiles;
-			}
-
-			final List<String> sorted = new ArrayList<>(logFiles.subList(1, logFiles.size()));
-
-			Collections.reverse(sorted);
-			sorted.addFirst(logFiles.getFirst());
-
-			return sorted;
-		}
-
 		private Long getSince(final HttpServletRequest request) throws FrameworkException {
 
 			final String value = request != null ? request.getParameter("since") : null;

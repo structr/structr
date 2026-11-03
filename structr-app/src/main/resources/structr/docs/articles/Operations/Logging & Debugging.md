@@ -99,7 +99,7 @@ The Debian package leaves rotation to the system's logrotate service instead, co
 
 The environment variable `LOG_ROTATION` selects who rotates: `structr` (the default) or `external`, which the Debian package sets. With `external`, Structr only appends to the files, so any outside rotator works as long as it truncates the files in place, like logrotate's `copytruncate`. The variables `LOG_FILE` and `REQUEST_LOG_FILE` set other locations.
 
-When rotation is active, the Dashboard Server Log tab shows a log source selector where you can choose between the current and archived log files.
+The Dashboard Server Log tab has a log source selector for the server log, the request log and their rotated files, except the compressed ones.
 
 ## Logging Configuration
 

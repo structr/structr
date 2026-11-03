@@ -305,6 +305,55 @@ public class AdminOnlyEndpointTest extends StructrUiTest {
 				.get("/_serverLog?logFile=/etc/passwd");
 	}
 
+	@Test
+	public void testRequestLogIsRefusedForNonAdmins() {
+
+		createUser("requestlogreader");
+
+		grant("_requestLog", UiAuthenticator.AUTH_USER_GET, true);
+
+		RestAssured
+			.given()
+				.headers(X_USER_HEADER, "requestlogreader", X_PASSWORD_HEADER, PASSWORD)
+			.expect()
+				.statusCode(403)
+			.when()
+				.get("/_requestLog");
+	}
+
+	/** The request log has no levels, and it serves only request logs. */
+	@Test
+	public void testRequestLogWorksForAdmins() {
+
+		createAdminUser();
+
+		RestAssured
+			.given()
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+				.statusCode(200)
+				.body("result.availableLogFiles", notNullValue())
+				.body("result.lines", notNullValue())
+			.when()
+				.get("/_requestLog?lines=10&filter=GET");
+
+		RestAssured
+			.given()
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+				.statusCode(422)
+			.when()
+				.get("/_requestLog?level=warn");
+
+		RestAssured
+			.given()
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+				.statusCode(422)
+			.when()
+				.get("/_requestLog?logFile=/etc/passwd");
+	}
+
 	/**
 	 * A user-defined function marked private must not be callable over REST. StaticMethodResource,
 	 * InstanceMethodResource and MeMethodResource all refuse one; the two resources that serve
