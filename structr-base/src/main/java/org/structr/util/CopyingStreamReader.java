@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
@@ -36,15 +35,13 @@ public class CopyingStreamReader extends Thread {
 
 	private InputStream inputStream   = null;
 	private OutputStream outputStream = null;
-	private AtomicBoolean running     = null;
 
-	public CopyingStreamReader(final InputStream is, final OutputStream out, final AtomicBoolean running) {
+	public CopyingStreamReader(final InputStream is, final OutputStream out) {
 
 		super("StreamReader");
 
 		this.inputStream  = is;
 		this.outputStream = out;
-		this.running      = running;
 
 		this.setDaemon(true);
 	}
@@ -52,18 +49,14 @@ public class CopyingStreamReader extends Thread {
 	@Override
 	public void run() {
 
-		while (running.get()) {
+		// until the process closes the stream, so nothing it wrote before exiting is lost
+		try {
 
-			try {
+			IOUtils.copy(inputStream, outputStream);
 
-				IOUtils.copy(inputStream, outputStream);
+		} catch (Throwable t) {
 
-				Thread.sleep(10);
-
-			} catch (Throwable t) {
-
-				logger.warn("", t);
-			}
+			logger.warn("", t);
 		}
 	}
 }

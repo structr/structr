@@ -24,6 +24,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
@@ -34,12 +36,16 @@ import org.structr.schema.action.Function;
 import org.structr.util.AbstractProcess;
 
 import java.io.File;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +56,7 @@ import java.util.concurrent.Executors;
 public class ExecFunction extends AdvancedScriptingFunction {
 
 	public static final String SCRIPTS_FOLDER = Settings.ScriptsPath.getValue();
+	private static final String MASK          = "***";
 
 	@Override
 	public String getName() {
@@ -60,7 +67,11 @@ public class ExecFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("scriptConfigKey [, parameters [, logBehaviour ] ]");
+		final List<Signature> signatures = new ArrayList<>(Signature.forAllScriptingLanguages("scriptConfigKey [, parameters [, logBehaviour [, input ] ] ]"));
+
+		signatures.addAll(Signature.forAllScriptingLanguages("scriptConfigKey, parameter1 [, parameter2, ... ]"));
+
+		return signatures;
 	}
 
 	public String getSignature() {
@@ -73,7 +84,8 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
+			// logBehaviour and input may be null, to pass an input with the default log behaviour
+			assertMandatoryArgumentsNotNull(sources, 1, 2);
 
 			final String sanityCheckedAbsolutePathOrNull = getSanityCheckedPathForScriptSetting(sources[0].toString());
 			if (sanityCheckedAbsolutePathOrNull != null) {
@@ -82,17 +94,13 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 				if (sources.length > 1) {
 
-					final boolean isNewCallSignature = (sources[1] instanceof Collection<?>);
-					if (!isNewCallSignature) {
-
-						logger.warn("{}(): Deprecation Warning: The call signature for this function has changed. The old signature of providing all arguments to the script is still supported but will be removed in a future version. Please consider upgrading to the new signature: {}", getName(), getSignature());
+					// two equal modes: the parameters as one collection, followed by logBehaviour and input, or each parameter as an argument of its own
+					final boolean parametersAsCollection = (sources[1] instanceof Collection<?>);
+					if (!parametersAsCollection) {
 
 						for (int i = 1; i < sources.length; i++) {
 
-							if (sources[i] != null) {
-
-								scriptingProcess.addParameter(sources[i].toString());
-							}
+							scriptingProcess.addParameter(sources[i]);
 						}
 
 					} else {
@@ -105,29 +113,22 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 								scriptingProcess.setLogBehaviour(logBehavior);
 
-							} else {
+							} else if (sources[2] != null) {
 
 								logger.warn("{}(): If using a collection of parameters as second argument, the third argument (logBehaviour) must either be 0, 1 or 2 (or omitted, where default 2 will apply). Value given: {}", getName(), sources[2]);
 							}
+						}
+
+						if (sources.length > 3) {
+
+							scriptingProcess.setInput(toInput(sources[3]));
 						}
 
 						final Collection params = (Collection)sources[1];
 
 						for (final Object param : params) {
 
-							if (param instanceof Map<?,?>) {
-
-								scriptingProcess.addParameter((Map)param);
-
-							} else {
-
-								if (param == null) {
-
-									throw new ArgumentNullException();
-								}
-
-								scriptingProcess.addParameter(param.toString());
-							}
+							scriptingProcess.addParameter(param);
 						}
 					}
 				}
@@ -170,8 +171,8 @@ public class ExecFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${exec(scriptConfigKey [, parameters [, logBehaviour ] ])}. Example: ${exec('my-script', merge('param1', 'param2'), 1)}"),
-			Usage.javaScript("Usage: ${{ $.exec(scriptConfigKey  [, parameters [, logBehaviour ] ]); }}. Example: ${{ $.exec('my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
+			Usage.structrScript("Usage: ${exec(scriptConfigKey [, parameters [, logBehaviour [, input ] ] ])}. Example: ${exec('my-script', merge('param1', 'param2'), 1)}"),
+			Usage.javaScript("Usage: ${{ $.exec(scriptConfigKey [, parameters [, logBehaviour [, input ] ] ]); }}. Example: ${{ $.exec('my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
 		);
 	}
 
@@ -179,7 +180,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-				"Scripts are executed using `/bin/sh` - thus this function is only supported in environments where this exists.",
+				"Scripts are executed directly, without a shell in between: a script needs a shebang line (e.g. `#!/bin/sh`), otherwise it is run with `/bin/sh`.",
 				"All script files are looked up inside the `scripts` folder in the main folder of the installation (not in the files area).",
 				"Symlinks are are allowed, if `scripts.path.allowsymboliclinks` is enabled.",
 				"Directory traversal are allowed, if `scripts.path.allowpathtraversal` is enabled.",
@@ -187,9 +188,10 @@ public class ExecFunction extends AdvancedScriptingFunction {
 				"The script must be executable (`chmod +x`)",
 				"This function does not preserve binary content, it can **not** be used to stream binary data through Structr. Use `execBinary()` for that.",
 				"Caution: Supplying unvalidated user input to this command may introduce security vulnerabilities.",
-				"All parameter values are automatically put in double-quotes",
+				"Secrets like passwords belong in `input`, not in `parameters`: parameters are command-line arguments, which every user on the host can see with `ps` while the script runs. The script reads its input from stdin, e.g. with `read -r PASSWORD`.",
+				"Every parameter is passed to the script as one argument, exactly as given: quotes, spaces, `$(...)` or backticks in a value are not interpreted.",
 				"All parameters can be passed as a string or as an object containing a `value` field and a `mask` flag.",
-				"Double-quotes in parameter values are automatically escaped as `\\\"`"
+				"The parameters can be given as one collection, which allows `logBehaviour` and `input` to follow, or each as an argument of its own. Both modes are fully supported; a single parameter that is itself a collection must be given in the first mode."
 		);
 	}
 
@@ -204,7 +206,8 @@ public class ExecFunction extends AdvancedScriptingFunction {
 								+ "<p>`0`: skip logging the command line<br>"
 								+ "`1`: log only the script's full path<br>"
 								+ "`2`: log the script path and all parameters, applying masking as configured</p>"
-								+ "The default for this can be set via `%s`").formatted(Settings.LogScriptProcessCommandLine.getKey())));
+								+ "The default for this can be set via `%s`").formatted(Settings.LogScriptProcessCommandLine.getKey())),
+				Parameter.optional("input", "text, byte array or file the script reads from its standard input, e.g. a password; never logged and, unlike a parameter, not visible in the process list of the host"));
 	}
 
 	@Override
@@ -222,6 +225,8 @@ public class ExecFunction extends AdvancedScriptingFunction {
 			
 			Upon successful execution, the complete output of the script (not the return value) is returned.
 			
+			`input` is written to the script's standard input, which is closed afterwards; without `input`, the script reads an empty standard input.
+			
 			`logBehaviour` controls how and if the command line is logged upon execution. If no value is given, the global setting `%s` will be used.
 			""".formatted(Settings.LogScriptProcessCommandLine.getKey());
 	}
@@ -235,7 +240,12 @@ public class ExecFunction extends AdvancedScriptingFunction {
 						${{
 							$.exec('key.for.my.script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2);
 						}}
-						""", "Execute a script with 2 parameters, where one is being masked in the log output")
+						""", "Execute a script with 2 parameters, where one is being masked in the log output"),
+				Example.javaScript("""
+						${{
+							$.exec('key.for.login.script', ['admin'], null, password);
+						}}
+						""", "Pass a password on standard input, so it does not show up in the process list of the host")
 		);
 	}
 
@@ -300,9 +310,16 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 		final List<String> rendered = new ArrayList<>();
 
-		for (final Object parameter : parameters) {
+		for (int i = 0; i < parameters.length; i++) {
 
-			if (parameter instanceof Collection<?> collection) {
+			final Object parameter = parameters[i];
+
+			// only the collection mode has an input argument
+			if (i == inputIndex() && parameter != null && parameters[inputIndex() - 2] instanceof Collection<?>) {
+
+				rendered.add(MASK);
+
+			} else if (parameter instanceof Collection<?> collection) {
 
 				rendered.add(collection.stream().map(ExecFunction::parameterForLog).toList().toString());
 
@@ -315,11 +332,49 @@ public class ExecFunction extends AdvancedScriptingFunction {
 		return rendered.toString();
 	}
 
+	/** At least minLength arguments, and none of the first mandatoryCount null. */
+	protected void assertMandatoryArgumentsNotNull(final Object[] sources, final int minLength, final int mandatoryCount) throws ArgumentCountException {
+
+		if (sources.length < minLength) {
+
+			throw ArgumentCountException.tooFew(sources.length, minLength);
+		}
+
+		assertArrayHasNoNullValues(Arrays.copyOf(sources, Math.min(sources.length, mandatoryCount)));
+	}
+
+	/** The position of the input argument, which is never logged. */
+	protected int inputIndex() {
+
+		return 3;
+	}
+
+	/** The input of a script: a string as UTF-8, a byte array, or the content of a file. */
+	protected static InputStream toInput(final Object value) throws IOException {
+
+		if (value == null) {
+
+			return null;
+		}
+
+		if (value instanceof byte[] bytes) {
+
+			return new ByteArrayInputStream(bytes);
+		}
+
+		if (value instanceof AbstractNode node && node.is(StructrTraits.FILE)) {
+
+			return node.as(org.structr.web.entity.File.class).getInputStream();
+		}
+
+		return new ByteArrayInputStream(value.toString().getBytes(StandardCharsets.UTF_8));
+	}
+
 	private static String parameterForLog(final Object parameter) {
 
 		if (parameter instanceof Map<?, ?> map) {
 
-			return Boolean.TRUE.equals(map.get("mask")) ? "***" : String.valueOf(map.get("value"));
+			return Boolean.TRUE.equals(map.get("mask")) ? MASK : String.valueOf(map.get("value"));
 		}
 
 		return String.valueOf(parameter);
@@ -329,23 +384,29 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 		private static final String MASK_STRING = "***";
 
-		private final StringBuilder cmdLineBuilder = new StringBuilder();
+		private final List<String> arguments      = new ArrayList<>();
 		private final StringBuilder logLineBuilder = new StringBuilder();
+		private InputStream input                  = null;
 
 		public ScriptingProcess(final SecurityContext securityContext, final String scriptName) {
 
 			super(securityContext);
 
-			// put quotes around full path for script to allow for spaces etc.
-			this.cmdLineBuilder.append("\"" + scriptName + "\"");
-
+			this.arguments.add(scriptName);
 			this.logLineBuilder.append(scriptName);
 		}
 
 		@Override
 		public StringBuilder getCommandLine() {
 
-			return cmdLineBuilder;
+			return null;
+		}
+
+		// no shell in between: parameter values reach the script as they are, $(...) or a quote in them is not interpreted
+		@Override
+		public List<String> getCommandArguments() {
+
+			return arguments;
 		}
 
 		@Override
@@ -355,14 +416,36 @@ public class ExecFunction extends AdvancedScriptingFunction {
 		}
 
 		@Override
+		public InputStream getInput() {
+
+			return input;
+		}
+
+		private void setInput(final InputStream input) {
+
+			this.input = input;
+		}
+
+		@Override
 		public String processExited(final int exitCode) {
 
 			return outputStream();
 		}
 
-		private void addParameter(final String parameter) {
+		private void addParameter(final Object parameter) {
 
-			this.addParameter(parameter, false);
+			if (parameter instanceof Map<?,?> map) {
+
+				this.addParameter(map);
+
+			} else if (parameter == null) {
+
+				throw new ArgumentNullException();
+
+			} else {
+
+				this.addParameter(parameter.toString(), false);
+			}
 		}
 
 		private void addParameter(final Map parameterConfig) {
@@ -385,15 +468,11 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 		private void addParameter(final String parameter, final boolean maskInLog) {
 
-			// put quotes around full path for script to allow for spaces etc.
-			// also escape quotes in the parameter to not break the quoting
-			final String safeParam = "\"" + parameter.replaceAll("\"", "\\\\\"") + "\"";
-
-			this.cmdLineBuilder.append(" ").append(safeParam);
+			this.arguments.add(parameter);
 
 			if (this.getLogBehaviour() == Settings.SCRIPT_PROCESS_LOG_STYLE.CUSTOM) {
 
-				this.logLineBuilder.append(" ").append(maskInLog ? MASK_STRING : safeParam);
+				this.logLineBuilder.append(" ").append(maskInLog ? MASK_STRING : "\"" + parameter + "\"");
 			}
 		}
 

@@ -36,7 +36,9 @@ import org.structr.util.AbstractBinaryProcess;
 import org.structr.web.entity.File;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +57,11 @@ public class ExecBinaryFunction extends ExecFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("output, scriptConfigKey [, parameters [, logBehaviour ] ]");
+		final List<Signature> signatures = new ArrayList<>(Signature.forAllScriptingLanguages("output, scriptConfigKey [, parameters [, logBehaviour [, input ] ] ]"));
+
+		signatures.addAll(Signature.forAllScriptingLanguages("output, scriptConfigKey, parameter1 [, parameter2, ... ]"));
+
+		return signatures;
 	}
 
 	@Override
@@ -63,7 +69,8 @@ public class ExecBinaryFunction extends ExecFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+			// logBehaviour and input may be null, to pass an input with the default log behaviour
+			assertMandatoryArgumentsNotNull(sources, 2, 3);
 
 			final String sanityCheckedAbsolutePathOrNull = getSanityCheckedPathForScriptSetting(sources[1].toString());
 			if (sanityCheckedAbsolutePathOrNull != null) {
@@ -97,17 +104,13 @@ public class ExecBinaryFunction extends ExecFunction {
 
 				if (sources.length > 2) {
 
-					final boolean isNewCallSignature = (sources[2] instanceof Collection<?>);
-					if (!isNewCallSignature) {
-
-						logger.warn("{}(): Deprecation Warning: The call signature for this function has changed. The old signature of providing all arguments to the script is still supported but will be removed in a future version. Please consider upgrading to the new signature: {}", getName(), getSignature());
+					// two equal modes: the parameters as one collection, followed by logBehaviour and input, or each parameter as an argument of its own
+					final boolean parametersAsCollection = (sources[2] instanceof Collection<?>);
+					if (!parametersAsCollection) {
 
 						for (int i = 2; i < sources.length; i++) {
 
-							if (sources[i] != null) {
-
-								scriptingProcess.addParameter(sources[i].toString());
-							}
+							scriptingProcess.addParameter(sources[i]);
 						}
 
 					} else {
@@ -120,29 +123,22 @@ public class ExecBinaryFunction extends ExecFunction {
 
 								scriptingProcess.setLogBehaviour(logBehavior);
 
-							} else {
+							} else if (sources[3] != null) {
 
-								logger.warn("{}(): If using a collection of parameters as third argument, the fourth argument (logBehaviour) must either be 0, 1 or 2 (or omitted, where default 2 will apply). Value given: {}", getName(), sources[2]);
+								logger.warn("{}(): If using a collection of parameters as third argument, the fourth argument (logBehaviour) must either be 0, 1 or 2 (or omitted, where default 2 will apply). Value given: {}", getName(), sources[3]);
 							}
+						}
+
+						if (sources.length > 4) {
+
+							scriptingProcess.setInput(toInput(sources[4]));
 						}
 
 						final Collection params = (Collection)sources[2];
 
 						for (final Object param : params) {
 
-							if (param instanceof Map<?,?>) {
-
-								scriptingProcess.addParameter((Map)param);
-
-							} else {
-
-								if (param == null) {
-
-									throw new ArgumentNullException();
-								}
-
-								scriptingProcess.addParameter(param.toString());
-							}
+							scriptingProcess.addParameter(param);
 						}
 					}
 				}
@@ -160,6 +156,12 @@ public class ExecBinaryFunction extends ExecFunction {
 				} finally {
 
 					executorService.shutdown();
+
+					// a file's stream is opened here, so it is closed here too, which also stores the content
+					if (sources[0] instanceof AbstractNode) {
+
+						out.close();
+					}
 				}
 			}
 
@@ -185,8 +187,8 @@ public class ExecBinaryFunction extends ExecFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${execBinary(output, scriptConfigKey [, parameters [, logBehaviour ] ])}. Example: ${exec(response, 'my-script', merge('param1', 'param2'), 1)}"),
-			Usage.javaScript("Usage: ${{ $.execBinary(output, scriptConfigKey [, parameters [, logBehaviour ] ]}}. Example: ${{ $.exec($.response, 'my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
+			Usage.structrScript("Usage: ${execBinary(output, scriptConfigKey [, parameters [, logBehaviour [, input ] ] ])}. Example: ${execBinary(response, 'my-script', merge('param1', 'param2'), 1)}"),
+			Usage.javaScript("Usage: ${{ $.execBinary(output, scriptConfigKey [, parameters [, logBehaviour [, input ] ] ]); }}. Example: ${{ $.execBinary($.response, 'my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
 		);
 	}
 
@@ -194,7 +196,7 @@ public class ExecBinaryFunction extends ExecFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-				"Scripts are executed using `/bin/sh` - thus this function is only supported in environments where this exists.",
+				"Scripts are executed directly, without a shell in between: a script needs a shebang line (e.g. `#!/bin/sh`), otherwise it is run with `/bin/sh`.",
 				"All script files are looked up inside the `scripts` folder in the main folder of the installation (not in the files area).",
 				"Symlinks are are allowed, if `scripts.path.allowsymboliclinks` is enabled.",
 				"Directory traversal are allowed, if `scripts.path.allowpathtraversal` is enabled.",
@@ -203,9 +205,10 @@ public class ExecBinaryFunction extends ExecFunction {
 				"The first parameter can be a file or `response` which streams the output to the HTTP response and is only possible in a page context.",
 				"A page using this should have the correct content-type and have the `pageCreatesRawData` flag enabled",
 				"Caution: Supplying unvalidated user input to this command may introduce security vulnerabilities.",
-				"All parameters are automatically put in double-quotes",
+				"Secrets like passwords belong in `input`, not in `parameters`: parameters are command-line arguments, which every user on the host can see with `ps` while the script runs. The script reads its input from stdin, e.g. with `read -r PASSWORD`.",
+				"Every parameter is passed to the script as one argument, exactly as given: quotes, spaces, `$(...)` or backticks in a value are not interpreted.",
 				"All parameters can be passed as a string or as an object containing a `value` field and a `mask` flag.",
-				"Double-quotes in parameter values are automatically escaped as `\\\"`"
+				"The parameters can be given as one collection, which allows `logBehaviour` and `input` to follow, or each as an argument of its own. Both modes are fully supported; a single parameter that is itself a collection must be given in the first mode."
 		);
 	}
 
@@ -221,7 +224,8 @@ public class ExecBinaryFunction extends ExecFunction {
 										+ "<p>`0`: skip logging the command line<br>"
 										+ "`1`: log only the script's full path<br>"
 										+ "`2`: log the script path and all parameters, applying masking as configured</p>"
-										+ "The default for this can be set via `%s`").formatted(Settings.LogScriptProcessCommandLine.getKey())));
+										+ "The default for this can be set via `%s`").formatted(Settings.LogScriptProcessCommandLine.getKey())),
+				Parameter.optional("input", "text, byte array or file the script reads from its standard input, e.g. a password; never logged and, unlike a parameter, not visible in the process list of the host"));
 	}
 
 	@Override
@@ -249,6 +253,12 @@ public class ExecBinaryFunction extends ExecFunction {
 	}
 
 	@Override
+	protected int inputIndex() {
+
+		return 4;
+	}
+
+	@Override
 	public FunctionCategory getCategory() {
 
 		return FunctionCategory.InputOutput;
@@ -258,23 +268,29 @@ public class ExecBinaryFunction extends ExecFunction {
 
 		private static final String MASK_STRING = "***";
 
-		private final StringBuilder cmdLineBuilder = new StringBuilder();
+		private final List<String> arguments      = new ArrayList<>();
 		private final StringBuilder logLineBuilder = new StringBuilder();
+		private InputStream input                  = null;
 
 		public ScriptingProcess(final SecurityContext securityContext, final String scriptName, final OutputStream out) {
 
 			super(securityContext, out);
 
-			// put quotes around full path for script to allow for spaces etc.
-			this.cmdLineBuilder.append("\"" + scriptName + "\"");
-
+			this.arguments.add(scriptName);
 			this.logLineBuilder.append(scriptName);
 		}
 
 		@Override
 		public StringBuilder getCommandLine() {
 
-			return cmdLineBuilder;
+			return null;
+		}
+
+		// no shell in between: parameter values reach the script as they are, $(...) or a quote in them is not interpreted
+		@Override
+		public List<String> getCommandArguments() {
+
+			return arguments;
 		}
 
 		@Override
@@ -284,14 +300,36 @@ public class ExecBinaryFunction extends ExecFunction {
 		}
 
 		@Override
+		public InputStream getInput() {
+
+			return input;
+		}
+
+		private void setInput(final InputStream input) {
+
+			this.input = input;
+		}
+
+		@Override
 		public String processExited(final int exitCode) {
 
 			return errorStream();
 		}
 
-		private void addParameter(final String parameter) {
+		private void addParameter(final Object parameter) {
 
-			this.addParameter(parameter, false);
+			if (parameter instanceof Map<?,?> map) {
+
+				this.addParameter(map);
+
+			} else if (parameter == null) {
+
+				throw new ArgumentNullException();
+
+			} else {
+
+				this.addParameter(parameter.toString(), false);
+			}
 		}
 
 		private void addParameter(final Map parameterConfig) {
@@ -316,15 +354,11 @@ public class ExecBinaryFunction extends ExecFunction {
 
 		private void addParameter(final String parameter, final boolean maskInLog) {
 
-			// put quotes around full path for script to allow for spaces etc.
-			// also escape quotes in the parameter to not break the quoting
-			final String safeParam = "\"" + parameter.replaceAll("\"", "\\\\\"") + "\"";
-
-			this.cmdLineBuilder.append(" ").append(safeParam);
+			this.arguments.add(parameter);
 
 			if (this.getLogBehaviour() == Settings.SCRIPT_PROCESS_LOG_STYLE.CUSTOM) {
 
-				this.logLineBuilder.append(" ").append(maskInLog ? MASK_STRING : safeParam);
+				this.logLineBuilder.append(" ").append(maskInLog ? MASK_STRING : "\"" + parameter + "\"");
 			}
 		}
 

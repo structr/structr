@@ -219,6 +219,21 @@ names, orders and objects. Two calls behave differently than before:
 When sorting nodes, a value after a name that is neither an order nor a known key, like
 `'descending'`, raises an error instead of being ignored.
 
+### Script Parameters Are No Longer Interpreted by a Shell
+
+`exec()` and `execBinary()` start the registered script directly and pass every parameter as one
+argument, exactly as given. Before, Structr built a command line and ran it with `/bin/sh -c`, so
+`$(...)`, backticks and `$VARIABLES` in a parameter value were expanded and executed. A value taken from
+user data could run any command on the host.
+
+Scripts that only use their parameters need no change. A script that relied on the shell expanding a
+parameter has to do the expansion itself. A script without a shebang line is still run with `/bin/sh`.
+
+Both functions also gained an optional input argument, which is written to the script's standard
+input: use it for passwords and other secrets, which as parameters are visible in the process list of the
+host. A script that reads its standard input no longer waits forever when no input is given. See Host
+Script Execution in the APIs & Integrations chapter.
+
 ## Migrating to Structr 6.x
 
 Version 6 introduces several breaking changes that require manual migration from 5.x.
