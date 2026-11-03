@@ -133,6 +133,29 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 
 					return "Fetches new emails from this mailbox in the background and returns immediately. This is the only way a mailbox is fetched: for a schedule, call it from a cron job. Creates EMailMessage objects for new messages and extracts attachments.";
 				}
+			}, new JavaMethod("retryFailedMessages", false, false) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) {
+
+					final MailService mailService = Services.getInstance().getServiceImplementation(MailService.class);
+					if (mailService != null) {
+
+						mailService.fetchMails(entity.as(Mailbox.class), true);
+
+					} else {
+
+						throw new RuntimeException("MailService not configured or not running.");
+					}
+
+					return null;
+				}
+
+				@Override
+				public String getDescription() {
+
+					return "Fetches this mailbox like fetchMails(), but first tries the messages that could not be imported before again (IMAP only). They are listed under \"failed\" in fetchState; call this after fixing the cause.";
+				}
 			}
 		);
 	}
@@ -153,7 +176,7 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Date> lastFetchSucceededProperty         = new DateProperty(LAST_FETCH_SUCCEEDED_PROPERTY).readOnly().description("When a fetch of this mailbox last completed without an error.");
 		final Property<String> lastFetchErrorProperty           = new StringProperty(LAST_FETCH_ERROR_PROPERTY).readOnly().description("What went wrong in the last fetch, empty if it succeeded. A message that could not be read is reported here and skipped.");
 		final Property<Integer> lastFetchCountProperty          = new IntProperty(LAST_FETCH_COUNT_PROPERTY).readOnly().description("How many new messages the last fetch stored.");
-		final Property<String> fetchStateProperty               = new StringProperty(FETCH_STATE_PROPERTY).readOnly().description("Per folder, the UIDVALIDITY and the highest UID fetched so far (IMAP only). Clear it to make the next fetch start over from the newest messages.");
+		final Property<String> fetchStateProperty               = new StringProperty(FETCH_STATE_PROPERTY).readOnly().description("Per folder, the UIDVALIDITY, the highest UID fetched so far and, under \"failed\", the messages that could not be imported, for retryFailedMessages() (IMAP only). Clear it to make the next fetch start over from the newest messages.");
 
 		return newSet(
 			emailsProperty,

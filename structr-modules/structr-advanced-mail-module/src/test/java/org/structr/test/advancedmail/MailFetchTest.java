@@ -42,17 +42,20 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import javax.activation.DataHandler;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TreeSet;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -250,6 +253,63 @@ public class MailFetchTest extends StructrRestTestBase {
 	}
 
 	@Test
+	public void testAFailedMessageIsImportedByARetryAfterTheFix() throws Exception {
+
+		// rejects one subject until a group named "allow" exists, which stands for fixing the cause
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("PickyMail");
+
+			type.addTrait(StructrTraits.EMAIL_MESSAGE);
+			type.addMethod("onCreate", "{ $.assert($.this.subject !== 'reject me' || $.find('Group', { name: 'allow' }).length > 0, 422, 'rejected'); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+		}
+
+		final GreenMailUser user = greenMail.setUser("inbox@example.com", "inbox", "secret");
+
+		deliver(user, "before", "reject me", "after");
+
+		final String mailbox = createMailbox("inbox", "secret", "PickyMail");
+
+		fetch(mailbox);
+
+		assertEquals(List.of("after", "before"), subjectsIn(mailbox));
+		assertTrue("the failed message is listed in the fetch state", fetchState(mailbox).contains("\"failed\":{\"2\":"));
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.GROUP, "allow");
+
+			tx.success();
+		}
+
+		// the cause is fixed, but a plain fetch does not try it again
+		fetch(mailbox);
+		assertEquals(List.of("after", "before"), subjectsIn(mailbox));
+		assertTrue("the failed message is still listed", fetchState(mailbox).contains("\"failed\":{\"2\":"));
+
+		// requested while a plain fetch is still running, the retry runs right after it instead of being dropped
+		try (final Tx tx = app.tx()) {
+
+			final Mailbox node = app.getNodeById(StructrTraits.MAILBOX, mailbox).as(Mailbox.class);
+
+			mailService.fetchMails(node, false);
+			mailService.fetchMails(node, true);
+
+			tx.success();
+		}
+
+		fetch(mailbox, false);
+
+		assertEquals("the retry imports the failed message", List.of("after", "before", "reject me"), subjectsIn(mailbox));
+		assertTrue("and removes it from the list: " + fetchState(mailbox), !fetchState(mailbox).contains("failed"));
+	}
+
+	@Test
 	public void testAnAttachmentNameWithASlashIsStored() throws Exception {
 
 		final GreenMailUser user    = greenMail.setUser("inbox@example.com", "inbox", "secret");
@@ -280,6 +340,95 @@ public class MailFetchTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			assertNotNull("the attachment is stored with the slash replaced", app.nodeQuery(StructrTraits.FILE).name("RE_2026_123456.pdf").getFirst());
+
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testAnAttachmentWithoutDispositionIsStored() throws Exception {
+
+		final GreenMailUser user    = greenMail.setUser("inbox@example.com", "inbox", "secret");
+		final MimeMessage message   = message("with image", null);
+		final MimeBodyPart text     = new MimeBodyPart();
+		final MimeBodyPart png      = new MimeBodyPart();
+		final MimeMultipart content = new MimeMultipart();
+
+		text.setText("see image");
+		png.setDataHandler(new DataHandler(new ByteArrayDataSource(new byte[] { (byte)0x89, 'P', 'N', 'G' }, "image/png; name=328.png")));
+		png.setHeader("Content-Transfer-Encoding", "base64");
+
+		content.addBodyPart(text);
+		content.addBodyPart(png);
+
+		message.setContent(content);
+		message.saveChanges();
+
+		assertNull("the part carries its name in the Content-Type only", png.getHeader("Content-Disposition"));
+
+		user.deliver(message);
+
+		final String mailbox = createMailbox("inbox", "secret", null);
+
+		fetch(mailbox);
+
+		assertEquals(List.of("with image"), subjectsIn(mailbox));
+
+		try (final Tx tx = app.tx()) {
+
+			assertNotNull("a part without Content-Disposition used to be dropped", app.nodeQuery(StructrTraits.FILE).name("328.png").getFirst());
+
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testAttachmentsWithTheSameNameKeepTheirNames() throws Exception {
+
+		final GreenMailUser user = greenMail.setUser("inbox@example.com", "inbox", "secret");
+
+		for (final String subject : List.of("first", "second")) {
+
+			final MimeMessage message   = message(subject, null);
+			final MimeBodyPart text     = new MimeBodyPart();
+			final MimeBodyPart gif      = new MimeBodyPart();
+			final MimeMultipart content = new MimeMultipart();
+
+			text.setText("signature");
+			gif.setDataHandler(new DataHandler(new ByteArrayDataSource(new byte[] { 'G', 'I', 'F', '8' }, "image/gif; name=image001.gif")));
+
+			content.addBodyPart(text);
+			content.addBodyPart(gif);
+
+			message.setContent(content);
+			message.saveChanges();
+
+			user.deliver(message);
+		}
+
+		final String mailbox = createMailbox("inbox", "secret", null);
+
+		fetch(mailbox);
+
+		assertEquals(List.of("first", "second"), subjectsIn(mailbox));
+
+		try (final Tx tx = app.tx()) {
+
+			final Set<String> expected = new TreeSet<>();
+			final Set<String> actual   = new TreeSet<>();
+
+			for (final NodeInterface message : app.nodeQuery(StructrTraits.EMAIL_MESSAGE).getAsList()) {
+
+				expected.add(message.getUuid() + "/image001.gif");
+			}
+
+			for (final NodeInterface file : app.nodeQuery(StructrTraits.FILE).getAsList()) {
+
+				final String path = file.as(org.structr.web.entity.File.class).getPath();
+				actual.add(path.substring(path.lastIndexOf('/', path.lastIndexOf('/') - 1) + 1));
+			}
+
+			assertEquals("each message has its own attachment folder, named after the message", expected, actual);
 
 			tx.success();
 		}
@@ -411,9 +560,19 @@ public class MailFetchTest extends StructrRestTestBase {
 	/** requests a fetch and waits for it, which runs in the background */
 	private void fetch(final String mailboxUuid) throws Exception {
 
+		fetch(mailboxUuid, false);
+	}
+
+	private void retry(final String mailboxUuid) throws Exception {
+
+		fetch(mailboxUuid, true);
+	}
+
+	private void fetch(final String mailboxUuid, final boolean retryFailed) throws Exception {
+
 		try (final Tx tx = app.tx()) {
 
-			mailService.fetchMails(app.getNodeById(StructrTraits.MAILBOX, mailboxUuid).as(Mailbox.class));
+			mailService.fetchMails(app.getNodeById(StructrTraits.MAILBOX, mailboxUuid).as(Mailbox.class), retryFailed);
 
 			tx.success();
 		}
@@ -469,6 +628,18 @@ public class MailFetchTest extends StructrRestTestBase {
 			tx.success();
 
 			return count != null ? count : -1;
+		}
+	}
+
+	private String fetchState(final String mailboxUuid) throws FrameworkException {
+
+		try (final Tx tx = app.tx()) {
+
+			final String state = app.getNodeById(StructrTraits.MAILBOX, mailboxUuid).getProperty(key(MailboxTraitDefinition.FETCH_STATE_PROPERTY));
+
+			tx.success();
+
+			return state;
 		}
 	}
 

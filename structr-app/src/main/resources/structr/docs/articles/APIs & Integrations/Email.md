@@ -303,7 +303,7 @@ Configure the MailService in the Configuration Interface:
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `mail.maxemails` | 25 | Maximum number of emails to fetch per mailbox per fetch. With IMAP, a larger backlog is fetched over several runs. |
-| `mail.attachmentbasepath` | /mail/attachments | Path in Structr's virtual filesystem where the attachments of fetched e-mails are stored, in subfolders by received date and mailbox. |
+| `mail.attachmentbasepath` | /mail/attachments | Path in Structr's virtual filesystem where the attachments of fetched e-mails are stored, in subfolders by received date, mailbox and message. |
 | `mail.connecttimeout` | 30000 | How long to wait for a mail server to accept a connection, in milliseconds. Without a limit, a server that stops answering holds the fetch of its mailbox forever. |
 | `mail.readtimeout` | 60000 | How long to wait for a mail server to answer once connected, in milliseconds, for the TLS handshake as well as for every command. |
 | `mail.maxconcurrentfetches` | 4 | How many mailboxes are fetched at the same time. Mailboxes on one server all connect from your Structr host, and a server that sees too many connections at once may stop answering. Changes need a restart of the MailService. |
@@ -346,7 +346,7 @@ When `fetchMails()` is called on a mailbox, the MailService:
 
 Duplicate detection first tries to match by `messageId`. If no Message-ID header exists, it falls back to matching by subject, from, to, and dates. Duplicates are looked for in the same mailbox only: a mail sent to two of your mailboxes is stored once for each. Every message is stored in a transaction of its own, so one that fails costs only itself.
 
-A fetch requested while the previous fetch of the same mailbox is still running is not started. A message that cannot be read or stored is skipped, logged and reported on the mailbox, and the rest of the folder is still fetched; a skipped message is not fetched again. If the connection drops during a fetch, the next fetch resumes where it stopped.
+A fetch requested while the previous fetch of the same mailbox is still running is not started. A message that cannot be read or stored is skipped, logged and reported on the mailbox, and the rest of the folder is still fetched. With IMAP, a skipped message is recorded in `fetchState`, and `retryFailedMessages()` tries it again once you have fixed the cause, see [Retrying Failed Messages](#retrying-failed-messages). If the connection drops during a fetch, the next fetch resumes where it stopped.
 
 ### Fetch Status
 
@@ -358,7 +358,7 @@ Each mailbox records the outcome of its fetches, so a mailbox that stopped recei
 | `lastFetchSucceeded` | When a fetch last completed without an error |
 | `lastFetchError` | What went wrong in the last fetch, empty if it succeeded |
 | `lastFetchCount` | How many new messages the last fetch stored |
-| `fetchState` | Per IMAP folder, the highest message UID fetched so far. Clear it to make the next fetch start over from the newest messages; the duplicate check keeps messages that are already stored from being stored again. |
+| `fetchState` | Per IMAP folder, the highest message UID fetched so far and, under `failed`, the messages that could not be imported, each with the error, the number of attempts and when it first failed. Clear it to make the next fetch start over from the newest messages; the duplicate check keeps messages that are already stored from being stored again. |
 
 Every fetch is logged at info level twice, when it is requested and when it ends, each time with a short status of the MailService: fetches running and queued, how long the oldest has been running, and how many fetches were requested, succeeded or failed since the service started, together with the last error. For example:
 
@@ -432,6 +432,23 @@ fetchAllMailboxes.cronExpression = 0 */5 * * * *
 
 Choose the interval by how quickly you need incoming mail, and by how many mailboxes share a server: at most `mail.maxconcurrentfetches` of them are fetched at the same time, and the rest wait in a queue. A fetch requested while the previous one is still running is skipped, so a short interval cannot pile up connections. See [Scheduled Tasks](/structr/docs/ontology/Building%20Applications/Scheduled%20Tasks) for the cron syntax.
 
+### Retrying Failed Messages
+
+A message that cannot be stored, for example because a lifecycle method of your email type rejects it, is skipped so that it does not block the rest of the folder. With IMAP, the mailbox remembers it under `failed` in `fetchState`:
+
+```json
+{"INBOX": {"uidValidity": 1699999999, "lastUid": 4711, "failed": {"4702": {"error": "...", "attempts": 1, "since": "2026-11-02T09:15:00Z"}}}}
+```
+
+A regular fetch does not try these messages again. After you have fixed the cause, call `retryFailedMessages()` on the mailbox. It works like `fetchMails()`, but first tries the listed messages again:
+
+```javascript
+let mailbox = $.first($.find('Mailbox', 'name', 'Support Inbox'));
+mailbox.retryFailedMessages();
+```
+
+If a fetch of the mailbox is still running, for example one started by a scheduled task, the retry is not dropped but runs as soon as that fetch has ended. A message that is now stored leaves the list; one that fails again stays in it with its `attempts` counted up. A message that has been deleted on the server in the meantime is dropped from the list. If the server assigns new UIDs to a folder (a changed UIDVALIDITY), the list of that folder is cleared together with the rest of its state. POP3 has no stable message IDs, so failed messages cannot be retried there.
+
 ### Custom Email Types
 
 To add custom properties or methods to incoming emails, create a type that extends `EMailMessage` and configure it on the mailbox:
@@ -470,10 +487,12 @@ To automatically process incoming emails, create an `onCreate` method on `EMailM
 Email attachments are automatically extracted and stored as File objects. The storage path follows this structure:
 
 ```
-{mail.attachmentbasepath}/{year}/{month}/{day}/{mailbox-uuid}/
+{mail.attachmentbasepath}/{year}/{month}/{day}/{mailbox-uuid}/{message-uuid}/
 ```
 
-For example: `/mail/attachments/2026/2/2/a1b2c3d4-...`
+For example: `/mail/attachments/2026/2/2/a1b2c3d4.../e5f6a7b8.../invoice.pdf`. The last folder is named after the `EMailMessage` the attachments belong to, so attachments of different messages keep their names even when they are equal, like the `image001.gif` that many mail clients use for inline images.
+
+Every part of a message that is not its plain-text or HTML body is stored as an attachment, including inline images and parts that carry their file name only in the Content-Type header.
 
 Attachments are linked to their email via the `attachedFiles` property.
 
