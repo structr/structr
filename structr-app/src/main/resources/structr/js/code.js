@@ -1800,6 +1800,8 @@ let _Code = {
 
 			_Code.codeContents.append(_Code.templates.cypherProperty({ property: property }));
 
+			_Helpers.activateCommentsInElement(_Code.codeContents[0]);
+
 			let cypherMonacoConfig = {
 				language: 'cypher',
 				lint: false,
@@ -4097,7 +4099,7 @@ let _Code = {
 			<div id="property-buttons"></div>
 			<div class="flex flex-col flex-grow">
 				<div id="cypher-code-container" class="mb-4 flex flex-col h-full">
-					<h4>Cypher Query</h4>
+					<h4 data-comment="The id and type of the current object are passed as parameters into the query to be used as <code>$id</code> and <code>$type</code>">Cypher Query</h4>
 					<div class="editor flex-grow" data-property="format"></div>
 					<div class="editor-info"></div>
 				</div>

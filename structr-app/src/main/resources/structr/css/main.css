@@ -754,7 +754,7 @@ img.disabled {
 	width: calc(100% - 1rem);
 }
 
-.props tr td.value input.readonly {
+.props tr td.value input.system-attribute {
 	margin: -3px;
 	border: 1px solid transparent;
 	background-color: var(--light-gray-bg-f7);
@@ -801,41 +801,14 @@ img.disabled {
 	margin: 0 2px 3px 0;
 }
 
-.props tr td .pager {
-	width: 16px;
-	position: absolute;
-	right: 2px;
+.props tr td .pager svg {
+	color: var(--solid-black);
 	cursor: pointer;
 }
 
-.props tr td .pager.disabled {
-	cursor: default;
-}
-
-.props tr td .pager.up {
-	top: 2px;
-}
-
-.props tr td .pager.down {
-	bottom: 2px;
-}
-
-.props tr td .pager i {
-	color: var(--solid-black);
-}
-
-.props tr td .pager.disabled i {
+.props tr td .pager.disabled svg {
 	color: var(--gray-ccc);
 	cursor: default;
-}
-
-.props tr td .pager.range {
-	top: calc(50% - 8px);
-	height: 16px;
-	width: 100px;
-	cursor: default;
-	right: 6px;
-	text-align: right;
 }
 
 .tabs-menu {
@@ -3722,7 +3695,7 @@ div#database-connections form input {
 	cursor: pointer;
 }
 
-table.props input.readonly {
+table.props input.system-attribute {
 	border: none;
 	background-color: transparent ! important;
 }
