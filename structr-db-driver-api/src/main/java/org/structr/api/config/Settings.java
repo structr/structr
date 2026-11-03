@@ -182,7 +182,8 @@ public class Settings {
 	public static final Setting<String> LogLevel                       = new ChoiceSetting(generalGroup,             "Logging",     "log.level",                             "INFO", Settings.getAvailableLogLevels(), "Configures the default log level. Takes effect immediately.");
 	public static final Setting<Integer> QueryTimeLoggingThreshold     = new IntegerSetting(generalGroup,            "Logging",     "log.querytime.threshold",               3000, "Milliseconds after which a long-running query will be logged.");
 	public static final Setting<Integer> CallbackLoggingThreshold      = new IntegerSetting(generalGroup,            "Logging",     "log.callback.threshold",                50000, "Number of callbacks after which a transaction will be logged.");
-	public static final Setting<Boolean> RequestLogging                = new BooleanSetting(generalGroup,            "Logging",     "log.requests",                          false);
+	public static final Setting<Boolean> RequestLogging                = new BooleanSetting(generalGroup,            "Logging",     "log.requests",                          false, "Writes every HTTP request to the request log (logs/request.log by default), in the format set by log.requests.format.");
+	public static final Setting<String> RequestLogFormat               = new ChoiceSetting(generalGroup,             "Logging",     "log.requests.format",                   "ultimate", Settings.getRequestLogFormats(), "Format of the request log. The default can be read by log analysers like the Screaming Frog Log File Analyser. Takes effect on restart.");
 	public static final Setting<Boolean> LogFunctionsShortenStacktrace = new BooleanSetting(generalGroup,            "Logging",     "log.functions.shortenstacktrace",       true, "If true, a shortened stack trace will be logged for exceptions occurring during script evaluation. The stack trace is being cut off at the transition to the internals of GraalVM. If this is set to false, the full stacktrace is logged.");
 	public static final Setting<Integer> LogScriptProcessCommandLine   = new IntegerChoiceSetting(generalGroup,      "Logging",     "log.scriptprocess.commandline",         2, Settings.getScriptProcessLogCommandLineOptions(), "Configures the default logging behaviour for the command line generated for script processes. This applies to the exec()- and exec_binary() functions, as well as some processes handling media conversion or processing. For the exec() and exec_binary() function, this can be overridden for each call of the function.");
 	public static final Setting<Boolean> LogDirectoryWatchServiceQuiet = new BooleanSetting(generalGroup,            "Logging",     "log.directorywatchservice.scanquietly", false, "Prevents logging of each scan process for every sync root processed by the storage sync service (formerly the directory watch service, the setting key is kept for compatibility)");
@@ -1449,6 +1450,17 @@ public class Settings {
 		options.put("inline", "Inline");
 		options.put("sandbox", "Sandboxed");
 		options.put("attachment", "Download");
+
+		return options;
+	}
+
+	public static Map<String, String> getRequestLogFormats() {
+
+		final Map<String, String> options = new LinkedHashMap<>();
+
+		options.put("ultimate", "ultimate: Apache combined plus the time taken in microseconds (Screaming Frog \"ultimate\" format)");
+		options.put("apache",   "apache: Apache combined, as written by Apache and nginx");
+		options.put("legacy",   "legacy: the format of earlier Structr versions");
 
 		return options;
 	}

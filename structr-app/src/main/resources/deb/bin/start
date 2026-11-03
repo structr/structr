@@ -21,6 +21,20 @@ if [ ! -e "logs" ]; then
 
 fi
 
+# logs/ keeps the HTTP statistics only, the logs of earlier versions move to /var/log/structr
+mkdir -p /var/log/structr
+
+for file in logs/request.log* logs/server.log*; do
+
+	if [ -f "$file" ]; then
+
+		echo "Moving $file to /var/log/structr/"
+		mv -n "$file" /var/log/structr/
+
+	fi
+
+done
+
 # Static UI resources are served directly from the application jar (class path); no need to
 # unpack them. To customize them locally, create a 'structr' directory in the working directory -
 # it takes precedence over the bundled resources (see HttpService).

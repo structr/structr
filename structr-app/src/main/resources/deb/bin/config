@@ -3,7 +3,11 @@
 # configuration options for FINAL_NAME
 #
 
-export LOG_FILE="/var/log/structr.log"
+export LOG_FILE="/var/log/structr/server.log"
+export REQUEST_LOG_FILE="/var/log/structr/request.log"
+
+# logrotate rotates both files, see /etc/logrotate.d/structr
+export LOG_ROTATION="external"
 
 # Read config entries from structr.conf if available
 if [ -f "structr.conf" ]; then

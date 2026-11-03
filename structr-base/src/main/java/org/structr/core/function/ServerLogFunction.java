@@ -50,7 +50,7 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("[ lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' (default different based on configuration) [, filter ] ] ] ]");
+		return Signature.forAllScriptingLanguages("[ lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr/server.log' (default different based on configuration) [, filter ] ] ] ]");
 	}
 
 	@Override
@@ -88,8 +88,8 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' [, filter ]]]])}. Example: ${serverlog(200, -1, '/var/log/structr.log')}"),
-			Usage.javaScript("Usage: ${{ $.serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' [, filter ]]]]); }}. Example: ${{ $.serverlog(200, -1, '/var/log/structr.log'); }}")
+			Usage.structrScript("Usage: ${serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr/server.log' [, filter ]]]])}. Example: ${serverlog(200, -1, '/var/log/structr/server.log')}"),
+			Usage.javaScript("Usage: ${{ $.serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr/server.log' [, filter ]]]]); }}. Example: ${{ $.serverlog(200, -1, '/var/log/structr/server.log'); }}")
 		);
 	}
 

@@ -145,12 +145,12 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 				return getLogFilesInDirectory(logPath, logFile.getName(), includeCompressed);
 			}
 
-			// third priority: deb installation / log files in /var/log/ (although ENV can also use this path)
-			logFile = new File("/var/log/structr.log");
+			// third priority: deb installation / log files in /var/log/structr/ (although ENV can also use this path)
+			logFile = new File("/var/log/structr/server.log");
 
 			if (logFile.exists()) {
 
-				return getLogFilesInDirectory("/var/log/", logFile.getName(), includeCompressed);
+				return getLogFilesInDirectory("/var/log/structr/", logFile.getName(), includeCompressed);
 			}
 
 			logger.warn("Could not locate logfile(s)");

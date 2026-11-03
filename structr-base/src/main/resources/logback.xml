@@ -10,32 +10,15 @@
 		org.structr.test.common.TestContextListener.
 	-->
 
-	<appender name="SERVERLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${LOG_FILE:-logs/server.log}</file>
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${LOG_FILE:-logs/server.log}.%d</fileNamePattern>
-			<maxHistory>30</maxHistory>
-			<totalSizeCap>1GB</totalSizeCap>
-		</rollingPolicy>
-		<encoder>
-			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread]%X{structrScratchMDC}%X{test} %-5level %logger{36} - %msg%n%prefixedEx{structrScratchMDC}</pattern>
-		</encoder>
-	</appender>
+	<!--
+		LOG_ROTATION selects who rotates the server and request logs: "structr" (default) rolls them,
+		"external" writes plain files for an outside rotator like logrotate, which the Debian package uses.
+	-->
+	<include resource="logback-rotation-${LOG_ROTATION:-structr}.xml" />
+
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
 			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread]%X{structrScratchMDC}%X{test} %-5level %logger{36} - %msg%n%prefixedEx{structrScratchMDC}</pattern>
-		</encoder>
-	</appender>
-	<appender name="REQUESTLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${REQUEST_LOG_FILE:-logs/request.log}</file>
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${REQUEST_LOG_FILE:-logs/request.log}.%d</fileNamePattern>
-			<maxHistory>30</maxHistory>
-			<totalSizeCap>1GB</totalSizeCap>
-		</rollingPolicy>
-		<encoder>
-			<charset>UTF-8</charset>
-			<pattern>%d%msg%n</pattern>
 		</encoder>
 	</appender>
 
