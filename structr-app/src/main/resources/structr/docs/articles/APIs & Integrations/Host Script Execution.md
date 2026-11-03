@@ -16,6 +16,8 @@ docker.restart.app = restart-container.sh
 
 The key (left side) is what you use in your code to call the script. The value (right side) is the filename of the script. Keys must be lowercase.
 
+A key added to `structr.conf` by hand takes effect after reloading the configuration file in the Configuration Interface, or after a restart. A key created in the Configuration Interface takes effect immediately.
+
 ## The Scripts Folder
 
 All scripts must be placed in the `scripts` folder within your Structr installation directory. The location is controlled by the `scripts.path` setting, which defaults to `scripts` relative to `base.path`.
