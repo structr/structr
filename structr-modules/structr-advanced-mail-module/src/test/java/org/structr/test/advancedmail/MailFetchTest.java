@@ -50,6 +50,8 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.Date;
@@ -429,6 +431,49 @@ public class MailFetchTest extends StructrRestTestBase {
 			}
 
 			assertEquals("each message has its own attachment folder, named after the message", expected, actual);
+
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testATextPartWithAnEmptyCharsetIsReadAsUtf8() throws Exception {
+
+		final GreenMailUser user = greenMail.setUser("inbox@example.com", "inbox", "secret");
+		final String raw         = String.join("\r\n",
+			"From: sender@example.com",
+			"To: inbox@example.com",
+			"Subject: empty charset",
+			"MIME-Version: 1.0",
+			"Content-Type: multipart/mixed; boundary=\"outer\"",
+			"",
+			"--outer",
+			"Content-Type: multipart/alternative; boundary=\"inner\"",
+			"",
+			"--inner",
+			"Content-Type: text/plain; charset=\"\"",
+			"Content-Transfer-Encoding: 8bit",
+			"",
+			"Grüße",
+			"--inner--",
+			"--outer--",
+			""
+		);
+
+		user.deliver(new MimeMessage(session, new ByteArrayInputStream(raw.getBytes(StandardCharsets.UTF_8))));
+
+		final String mailbox = createMailbox("inbox", "secret", null);
+
+		fetch(mailbox);
+
+		// the unreadable part used to fail the whole message on every retry
+		assertEquals(List.of("empty charset"), subjectsIn(mailbox));
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface message = app.nodeQuery(StructrTraits.EMAIL_MESSAGE).getFirst();
+
+			assertEquals("Grüße", message.getProperty(Traits.of(StructrTraits.EMAIL_MESSAGE).key(EMailMessageTraitDefinition.CONTENT_PROPERTY)));
 
 			tx.success();
 		}

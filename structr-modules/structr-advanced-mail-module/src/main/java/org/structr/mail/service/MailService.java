@@ -56,7 +56,9 @@ import javax.activation.DataSource;
 import javax.mail.*;
 import javax.mail.internet.MimeUtility;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -472,76 +474,92 @@ public class MailService implements RunnableService, MailServiceInterface {
 		return name.isEmpty() ? NodeServiceCommand.getNextUuid() : name;
 	}
 
-	private Map<String,String> handleMultipart(final Mailbox mb, final Message message, final String messageUuid, final Multipart p, final List<NodeInterface> attachments) {
+	// a part that cannot be read fails the whole message, so the fetch keeps it for a retry
+	private Map<String,String> handleMultipart(final Mailbox mb, final Message message, final String messageUuid, final Multipart p, final List<NodeInterface> attachments) throws MessagingException, IOException {
 
 		final Map<String,String> result = new HashMap<>();
 
-		try {
+		for (int i = 0, len = p.getCount(); i < len; i++) {
 
-			for (int i = 0, len = p.getCount(); i < len; i++) {
+			final String htmlContent = result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) != null ? result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) : "";
+			final String content     = result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) != null ? result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) : "";
+			final BodyPart part      = p.getBodyPart(i);
+			final Object partContent = content(part);
 
-				final String htmlContent = result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) != null ? result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) : "";
-				final String content     = result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) != null ? result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) : "";
-				BodyPart part = (BodyPart) p.getBodyPart(i);
+			if (partContent instanceof Multipart multipart) {
 
-				if (part.getContent() instanceof Multipart) {
+				final Map<String,String> subResult = handleMultipart(mb, message, messageUuid, multipart, attachments);
+				if (subResult.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) != null) {
 
-					final Map<String,String> subResult = handleMultipart(mb, message, messageUuid, (Multipart)part.getContent(), attachments);
-					if (subResult.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) != null) {
+					result.put(EMailMessageTraitDefinition.CONTENT_PROPERTY, content.concat(subResult.get(EMailMessageTraitDefinition.CONTENT_PROPERTY)));
+				}
 
-						result.put(EMailMessageTraitDefinition.CONTENT_PROPERTY, content.concat(subResult.get(EMailMessageTraitDefinition.CONTENT_PROPERTY)));
-					}
+				if (subResult.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) != null) {
 
-					if (subResult.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) != null) {
+					result.put(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY, htmlContent.concat(subResult.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY)));
+				}
 
-						result.put(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY, htmlContent.concat(subResult.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY)));
-					}
+			} else if (part.isMimeType("message/delivery-status")) {
 
-				} else if (part.isMimeType("message/delivery-status")) {
+				continue;
 
-					continue;
+			} else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()) || !(part.isMimeType("text/html") || part.isMimeType("text/plain"))) {
 
-				} else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()) || !(part.isMimeType("text/html") || part.isMimeType("text/plain"))) {
+				// many clients send attachments without a Content-Disposition, so every part that is not body text is one
+				final NodeInterface file = extractFileAttachment(mb, message, messageUuid, part);
+				if (file != null) {
 
-					// many clients send attachments without a Content-Disposition, so every part that is not body text is one
-					final NodeInterface file = extractFileAttachment(mb, message, messageUuid, part);
-					if (file != null) {
-
-						attachments.add(file);
-
-					} else {
-
-						logger.warn("Attachment of type {} in message \"{}\" of mailbox [{}] could not be stored", part.getContentType(), message.getSubject(), mb.getUuid());
-					}
-
-				} else if (part.isMimeType("text/html")) {
-
-					result.put(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY, htmlContent.concat(getText(part)));
+					attachments.add(file);
 
 				} else {
 
-					result.put(EMailMessageTraitDefinition.CONTENT_PROPERTY, content.concat(getText(part)));
+					logger.warn("Attachment of type {} in message \"{}\" of mailbox [{}] could not be stored", part.getContentType(), message.getSubject(), mb.getUuid());
 				}
+
+			} else if (part.isMimeType("text/html")) {
+
+				result.put(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY, htmlContent.concat(getText(part)));
+
+			} else {
+
+				result.put(EMailMessageTraitDefinition.CONTENT_PROPERTY, content.concat(getText(part)));
 			}
-
-			return result;
-
-		} catch (MessagingException | IOException ex) {
-
-			logger.error("Error while handling multipart message: ", ex);
 		}
 
-		return null;
+		return result;
+	}
+
+	// an empty or unknown charset in the header must not cost the message, the text is read as UTF-8 then
+	private static Object content(final Part part) throws MessagingException, IOException {
+
+		try {
+
+			return part.getContent();
+
+		} catch (UnsupportedEncodingException ex) {
+
+			if (!part.isMimeType("text/*")) {
+
+				throw ex;
+			}
+
+			logger.warn("Unknown charset in {}, reading the text as UTF-8", part.getContentType());
+
+			try (final InputStream in = part.getInputStream()) {
+
+				return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+			}
+		}
 	}
 
 	private String getText(Part p) throws MessagingException, IOException {
 
 		if (p.isMimeType("text/plain") || p.isMimeType("text/html")) {
 
-			final Object content = p.getContent();
+			final Object content = content(p);
 			if (!(content instanceof BASE64DecoderStream)) {
 
-				return (String)p.getContent();
+				return (String)content;
 
 			} else if("base64".equals(p.getContentType())) {
 
@@ -1358,7 +1376,7 @@ public class MailService implements RunnableService, MailServiceInterface {
 				// Handle content extraction
 				String content = null;
 				String htmlContent = null;
-				final Object contentObj = message.getContent();
+				final Object contentObj = content(message);
 				final List<NodeInterface> attachments = new ArrayList<>();
 
 				// attachments go into a folder named after the message, so equal names in different messages do not collide
