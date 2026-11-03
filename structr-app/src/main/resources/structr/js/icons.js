@@ -86,6 +86,8 @@ let _Icons = {
 	iconFileTypeScripting:    'file-code',
 	iconFileUpload:           'file-upload',
 	iconIncludeInFrontendExport: 'deployment-package-export',
+	iconExpandArrows:         'expand-arrows',
+	iconShrinkArrows:         'shrink-arrows',
 
 	iconSchemaNodeDefault:       'file-code',
 	iconSchemaMethods:           'code-icon',
