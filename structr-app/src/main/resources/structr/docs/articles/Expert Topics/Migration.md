@@ -247,9 +247,10 @@ The Debian package now writes all logs to the new folder `/var/log/structr`: the
 `/var/log/structr/server.log` instead of `/var/log/structr.log`, and the request log to
 `/var/log/structr/request.log` instead of `logs/request.log` in the installation directory. Both are rotated by
 logrotate only; the server log was previously rotated twice, by Structr and by logrotate. Update scripts or
-monitoring that read the old paths. On its first start, Structr moves the request logs from `logs/` to
-`/var/log/structr`; `/var/log/structr.log` and the files logrotate rotated from it stay where they are. In
-the other installation types, Structr still rotates both logs itself and now compresses the rotated files.
+monitoring that read the old paths. On its first start, Structr moves the existing logs: the request logs from
+`logs/` to `/var/log/structr`, and `/var/log/structr.log` with its rotated files to `/var/log/structr/server.log`
+and `server.log.<suffix>`. In the other installation types, Structr still rotates both logs itself and now
+compresses the rotated files.
 
 ## Migrating to Structr 6.x
 
