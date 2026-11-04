@@ -754,7 +754,7 @@ img.disabled {
 	width: calc(100% - 1rem);
 }
 
-.props tr td.value input.readonly {
+.props tr td.value input.system-attribute {
 	margin: -3px;
 	border: 1px solid transparent;
 	background-color: var(--light-gray-bg-f7);
@@ -801,41 +801,14 @@ img.disabled {
 	margin: 0 2px 3px 0;
 }
 
-.props tr td .pager {
-	width: 16px;
-	position: absolute;
-	right: 2px;
+.props tr td .pager svg {
+	color: var(--solid-black);
 	cursor: pointer;
 }
 
-.props tr td .pager.disabled {
-	cursor: default;
-}
-
-.props tr td .pager.up {
-	top: 2px;
-}
-
-.props tr td .pager.down {
-	bottom: 2px;
-}
-
-.props tr td .pager i {
-	color: var(--solid-black);
-}
-
-.props tr td .pager.disabled i {
+.props tr td .pager.disabled svg {
 	color: var(--gray-ccc);
 	cursor: default;
-}
-
-.props tr td .pager.range {
-	top: calc(50% - 8px);
-	height: 16px;
-	width: 100px;
-	cursor: default;
-	right: 6px;
-	text-align: right;
 }
 
 .tabs-menu {
@@ -2697,22 +2670,6 @@ input.tree-search-input {
 	color: var(--dark-red);
 }
 
-i.fa.red {
-	color: var(--solid-red);
-}
-
-i.fa.green {
-	color: var(--structr-green);
-}
-
-i.fa.gray {
-	color: var(--gray-666);
-}
-
-i.fa.blue {
-	color: var(--medium-blue);
-}
-
 #duplicate-type-content-add-property,
 #duplicate-type-content-add-method {
 	display: none;
@@ -2736,14 +2693,6 @@ table.dataTable thead th, table.dataTable thead td {
 
 .jstree-default .jstree-wholerow-hovered {
 	background: var(--structr-light-green) ! important;
-}
-
-i.fa {
-	font-size: 16px;
-}
-
-i.fa-sitemap {
-	color: var(--color-folder);
 }
 
 .ui-tooltip {
@@ -3722,7 +3671,7 @@ div#database-connections form input {
 	cursor: pointer;
 }
 
-table.props input.readonly {
+table.props input.system-attribute {
 	border: none;
 	background-color: transparent ! important;
 }
@@ -5065,6 +5014,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .max-h-24 {
 	max-height: 6rem;
 }
+.max-h-32 {
+	max-height: 8rem;
+}
 .min-h-5 {
 	min-height: 1.25rem;
 }
@@ -5507,6 +5459,20 @@ ul.combined-input-select-field li:not(.nohover):hover {
 }
 .group-\[\.show-checkmark\]\:hidden {
 	&:is(:where(.group):is(.show-checkmark) *) {
+		display: none;
+	}
+}
+/* END special tailwind-style classes */
+
+/* BEGIN special tailwind-style classes */
+/* conditionally toggle expand/shrink arrows */
+.group-\[\.is-expanded\]\:block {
+	&:is(:where(.group):is(.is-expanded) *) {
+		display: block;
+	}
+}
+.group-\[\.is-expanded\]\:hidden {
+	&:is(:where(.group):is(.is-expanded) *) {
 		display: none;
 	}
 }

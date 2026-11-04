@@ -22,7 +22,7 @@ let _Entities = {
 	activeQueryTabPrefix: 'structrActiveQueryTab_' + location.port,
 	activeEditTabPrefix: 'structrActiveEditTab_' + location.port,
 	selectedObjectIdKey: 'structrSelectedObjectId_' + location.port,
-	readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
+	protectedAttributes: ['id', 'type', 'lastModifiedDate', 'createdDate', 'createdBy'],
 	pencilEditBlacklist: ['html', 'body', 'head', 'title', ' script',  'input', 'label', 'button', 'textarea', 'link', 'meta', 'noscript', 'tbody', 'thead', 'tr', 'td', 'caption', 'colgroup', 'tfoot', 'col', 'style'],
 	null_prefix: 'null_attr_',
 	collectionPropertiesResultCount: {},
@@ -776,10 +776,8 @@ let _Entities = {
 		let cell = $(`.value.${key}_`, container);
 		cell.css('height', '60px');
 
-		let fetchKey = key;
-		if (key === 'syncedNodesIds') { fetchKey = 'syncedNodes'; }
-		if (key === 'childrenIds') { fetchKey = 'children'; }
-		if (key === 'linkingElementsIds') { fetchKey = 'linkingElements'; }
+		let idKeys   = ['syncedNodesIds', 'childrenIds', 'linkingElementsIds'];
+		let fetchKey = idKeys.includes(key) ? key.slice(0, -3) : key;
 
 		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${fetchKey}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
 			headers: _Helpers.getHeadersForCustomView(['id', 'name'])
@@ -796,20 +794,23 @@ let _Entities = {
 					resultCount = _Entities.collectionPropertiesResultCount[key];
 				}
 
-				if (!cell.prev('td.key').find('.pager').length) {
+				if (!cell.prev('td.key').find('[data-key-wrapper] .pager').length) {
 
-					// display arrow buttons
-					cell.prev('td.key').append('<div class="pager up disabled"><i title="Previous Page" class="fa fa-caret-up"></i></div><div class="pager range"></div><div class="pager down"><i title="Next Page" class="fa fa-caret-down"></i></div>');
+					cell.prev('td.key').find('[data-key-wrapper]').append(`
+						<div class="h-full flex flex-col justify-between items-center w-8">
+							<div class="pager up disabled">${_Icons.getSvgIcon(_Icons.iconChevronUpFilled, 10, 10)}</div>
+							<div class="pager range"></div>
+							<div class="pager down">${_Icons.getSvgIcon(_Icons.iconChevronDownFilled, 10, 10)}</div>
+						</div>
+					`);
 
-					// display result count
-					cell.prev('td.key').append(' <span></span>');
+					cell.prev('td.key').find('[data-key-name]').append(' <span class="result-count"></span>');
 				}
 
-				// update result count
-				cell.prev('td.key').find('span').text('(' + ((resultCount !== undefined) ? resultCount : '?') + ')');
+				cell.prev('td.key').find('[data-key-name] span.result-count').text(`(${resultCount ?? '?'})`);
 
-				let pageUpButton   = cell.prev('td.key').find('.pager.up');
-				let pageDownButton = cell.prev('td.key').find('.pager.down');
+				let pageUpButton   = cell.prev('td.key').find('[data-key-wrapper] .pager.up');
+				let pageDownButton = cell.prev('td.key').find('[data-key-wrapper] .pager.down');
 
 				pageUpButton.off('click').addClass('disabled');
 				pageDownButton.off('click').addClass('disabled');
@@ -919,12 +920,16 @@ let _Entities = {
 		for (let key of keys) {
 
 			let valueCell    = undefined;
-			let isReadOnly   = _Entities.readOnlyAttrs.includes(key) || (typeInfo[key]?.readOnly ?? false);
+			let isReadOnly   = (typeInfo[key]?.readOnly ?? false);
 			let isSystem     = (typeInfo[key]?.system ?? false);
 			let isBoolean    = (typeInfo[key]?.type === 'Boolean');
+			let isConstBool  = (typeInfo[key].className === 'org.structr.core.property.ConstantBooleanProperty');
+			let isCypher     = (typeInfo[key].className === 'org.structr.core.property.CypherQueryProperty');
 			let isDate       = (typeInfo[key]?.type === 'Date');
 			let isRelated    = (typeInfo[key]?.relatedType !== undefined);
 			let isCollection = (typeInfo[key]?.isCollection ?? false);
+
+			let editForbidden = isSystem || _Entities.protectedAttributes.includes(key) || isConstBool || isCypher;
 
 			if (view === '_html_') {
 
@@ -946,8 +951,8 @@ let _Entities = {
 					rowClass: (showKeyInitially === false) ? 'hidden' : '',
 					displayKey: _Entities.getDisplayKeyForHTMLKey(key),
 					key,
-					value,
-					typeInfo: typeInfo[key]
+					postKeyHtml: _Entities.templates.htmlPropertyAdditionalHtml(),
+					valueCellHtml: _Helpers.formatValueInputField(key, value, typeInfo[key])
 				}));
 				propsTable[0].appendChild(row);
 				valueCell = $(`.value.${key}_`, propsTable);
@@ -956,9 +961,21 @@ let _Entities = {
 
 			} else {
 
-				let row = $(`<tr><td class="key">${_Helpers.formatKey(key)}</td><td class="value ${key}_"></td><td>${_Entities.getNullIconForKey(key)}</td></tr>`);
+				let row = $(_Entities.templates.propertyRow({
+					displayKey: _Helpers.formatKey(key),
+					key,
+					typeInfo: typeInfo[key]
+				}));
 				propsTable.append(row);
 				valueCell = $(`.value.${key}_`, propsTable);
+
+				if (isReadOnly && !isSystem && !isConstBool) {
+					_Helpers.appendInfoTextToElement({
+						element: $('.key:last [data-key-name]', propsTable),
+						text: 'Read-only attribute. Administrators are allowed to edit, regular users are not.',
+						customToggleIcon: _Icons.iconVisibilityLocked
+					});
+				}
 
 				if (!typeInfo[key]) {
 
@@ -976,12 +993,7 @@ let _Entities = {
 							let val = res[key] ?? false;
 							checkbox.prop('checked', val);
 
-							let allowChange = ((!isReadOnly || StructrWS.isAdmin) && !isSystem);
-							if (typeInfo[key].className === 'org.structr.core.property.ConstantBooleanProperty') {
-								allowChange = false;
-							}
-
-							if (allowChange) {
+							if (!editForbidden) {
 
 								checkbox.on('change', function() {
 
@@ -997,12 +1009,16 @@ let _Entities = {
 
 							} else {
 
-								checkbox.prop('disabled', 'disabled').addClass('readOnly').addClass('disabled');
+								checkbox.prop('disabled', 'disabled').addClass('system-attribute').addClass('disabled');
 							}
 
-						} else if (isDate && !isReadOnly) {
+						} else if (isDate) {
 
 							valueCell.append(`<input class="dateField" name="${key}" type="text" value="${res[key] || ''}" data-date-format="${typeInfo[key].format}">`);
+
+							if (editForbidden) {
+								valueCell.find('input').prop('disabled', 'disabled').addClass('system-attribute').addClass('disabled');
+							}
 
 						} else if (isRelated) {
 
@@ -1095,19 +1111,19 @@ let _Entities = {
 				}
 			}
 
-			let hintText = typeInfo[key]?.hint;
-
-			if (hintText) {
-				_Helpers.appendInfoTextToElement({
-					element: $('.key:last', propsTable),
-					text: hintText,
-					class: 'hint'
-				});
-			}
+			// let hintText = typeInfo[key]?.hint;
+			//
+			// if (hintText) {
+			// 	_Helpers.appendInfoTextToElement({
+			// 		element: $('.key:last', propsTable),
+			// 		text: hintText,
+			// 		class: 'hint'
+			// 	});
+			// }
 
 			let nullIcon = container[0].querySelector(`#${_Entities.null_prefix}${key}`);
 
-			if (isSystem || isReadOnly || isBoolean) {
+			if (editForbidden || isBoolean) {
 
 				nullIcon?.remove();
 
@@ -1243,7 +1259,8 @@ let _Entities = {
 								rowClass: '',
 								displayKey: _Entities.getDisplayKeyForHTMLKey(key),
 								key: newKey,
-								value: val,
+								postKeyHtml: _Entities.templates.htmlPropertyAdditionalHtml(),
+								valueCellHtml: _Helpers.formatValueInputField(newKey, val, typeInfo),
 								typeInfo: typeInfo[key]
 							}));
 
@@ -1401,14 +1418,14 @@ let _Entities = {
 			return false;
 		});
 	},
-	clearSearch: (el) => {
-		if (_Entities.clearSearchResults(el)) {
-			$('.clearSearchIcon').hide().off('click');
-			$('.search').val('');
-			$('#resourceTabs', $(Structr.mainContainer)).show();
-			$('#resourceBox', $(Structr.mainContainer)).show();
-		}
-	},
+	// clearSearch: (el) => {
+	// 	if (_Entities.clearSearchResults(el)) {
+	// 		$('.clearSearchIcon').hide().off('click');
+	// 		$('.search').val('');
+	// 		$('#resourceTabs', $(Structr.mainContainer)).show();
+	// 		$('#resourceBox', $(Structr.mainContainer)).show();
+	// 	}
+	// },
 	clearSearchResults: (el) => {
 		let searchResults = $('.searchResults', el);
 		if (searchResults.length) {
@@ -1536,7 +1553,7 @@ let _Entities = {
 			cell = input.closest('.__value');
 		}
 
-		if (!input.classList.contains('readonly') && !input.classList.contains('newKey')) {
+		if (!input.classList.contains('system-attribute') && !input.classList.contains('newKey')) {
 
 			if (input.dataset['activated'] !== 'true') {
 
@@ -2662,17 +2679,18 @@ let _Entities = {
 	},
 	templates: {
 		propertyRow: config => `
-			<tr class="${config.rowClass}">
+			<tr class="${config.rowClass ?? ''}">
 				<td class="key">
-					<span class="flex justify-between items-center">
-						<span>${config.displayKey}</span>
-						<span class="${_Entities.classNameForEmptyStringWarningContainer} flex"></span>
-					</span>
+					<div data-key-wrapper class="h-full flex justify-between items-center">
+						<span data-key-name>${config.displayKey}</span>
+						${config.postKeyHtml ?? ''}
+					</div>
 				</td>
-				<td class="value ${config.key}_">${_Helpers.formatValueInputField(config.key, config.value, config.typeInfo)}</td>
+				<td class="value ${config.key}_">${config.valueCellHtml ?? ''}</td>
 				<td>${_Entities.getNullIconForKey(config.key)}</td>
 			</tr>
-		`
+		`,
+		htmlPropertyAdditionalHtml: config => `<span class="${_Entities.classNameForEmptyStringWarningContainer} flex"></span>`,
 	},
 
 	generalTab: {

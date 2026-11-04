@@ -51,7 +51,7 @@ public class CypherPropertyGenerator extends PropertyGenerator {
 	@Override
 	protected Property newInstance() throws FrameworkException {
 
-		return new CypherQueryProperty(source.getPropertyName(), source.getFormat());
+		return new CypherQueryProperty(source.getPropertyName(), source.getFormat()).readOnly();
 	}
 
 	@Override

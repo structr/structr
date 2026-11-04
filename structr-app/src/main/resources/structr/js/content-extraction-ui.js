@@ -147,7 +147,10 @@ let _ContentExtraction = {
 
 		let response = await fetch(`${Structr.rootUrl}ExtractedContentNode/searchFiles`, {
 			method: 'POST',
-			body: JSON.stringify({ query: searchString })
+			body: JSON.stringify({
+				query: searchString,
+				maxSnippets: UISettings.getValueForSetting(UISettings.settingGroups.files.settings.maxSearchResultSnippets)
+			})
 		});
 
 		if (!response.ok) {

@@ -93,7 +93,7 @@ public class ExtractedContentNodeTraitDefinition extends AbstractNodeTraitDefini
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
-					return ContentFileSearch.search(actionContext.getSecurityContext(), arguments.get("query"), arguments.get("folder"), arguments.get("limit"));
+					return ContentFileSearch.search(actionContext.getSecurityContext(), arguments.get("query"), arguments.get("folder"), arguments.get("limit"), arguments.get("maxSnippets"));
 				}
 
 				@Override

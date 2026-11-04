@@ -106,7 +106,6 @@ public class ConsoleCommand extends AbstractCommand {
 			final MessageBuilder messageBuilder = MessageBuilder.forName(getCommand())
 														  .callback(webSocketData.getCallback())
 														  .data(PROMPT_KEY, console.getPrompt())
-														  .data(MODE_KEY, console.getMode())
 														  .data(VERSION_INFO_KEY, VersionHelper.getFullVersionInfo());
 
 			if (isCompletion) {
@@ -125,6 +124,8 @@ public class ConsoleCommand extends AbstractCommand {
 
 				console.run(line, writeable);
 			}
+
+			messageBuilder.data(MODE_KEY, console.getMode());
 
 			tx.success();
 
