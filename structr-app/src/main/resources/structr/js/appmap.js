@@ -58,9 +58,9 @@ let _AppMap = {
 
 		use: [
 			[['Hover'],        'Shows the connections.'],
-			[['Click'],        'Holds an element to explore it.'],
+			[['Click'],        'Holds an element to explore it, or edits its code.'],
 			[['Double-click'], 'Opens a page or method.'],
-			[['Esc'],          'Ends exploring.']
+			[['Esc'],          'Ends editing or exploring.']
 		]
 	},
 
@@ -86,8 +86,19 @@ let _AppMap = {
 	},
 	unload: () => {
 
+		// unsaved changes in the editor keep the map open, unless they are discarded
+		if (_AppMap.view?.editor?.isDirty() && !confirm('Discard unsaved changes?')) {
+			return false;
+		}
+
 		_AppMap.view?.destroy();
 		_AppMap.view = undefined;
+	},
+	beforeunloadHandler: () => {
+
+		if (_AppMap.view?.editor?.isDirty()) {
+			return 'There are unsaved changes - discard changes?';
+		}
 	},
 
 	// the global search finds on the map too: its results are marked there, and a click on one goes there (see
@@ -123,7 +134,8 @@ let _AppMap = {
 			storage: {
 				get:    key => LSWrapper.getItem(key),
 				set:    (key, value) => LSWrapper.setItem(key, value),
-				remove: key => LSWrapper.removeItem(key)
+				remove: keys => LSWrapper.removeItems([].concat(keys)),
+				keys:   () => LSWrapper.keys()
 			},
 			onHint: text => {
 
@@ -147,7 +159,7 @@ let _AppMap = {
 
 				return (Array.isArray(result) ? result[0] : result) ?? {};
 			},
-			// the current requests and scripting errors per element, see ApplicationMap.toActivityObject
+			// the current use per element, see ApplicationMap.toActivityObject
 			loadActivity: async () => {
 
 				let response = await fetch(Structr.rootUrl + '_appmap/activity');
@@ -161,6 +173,7 @@ let _AppMap = {
 
 				return (Array.isArray(result) ? result[0] : result)?.nodes ?? null;
 			},
+			editor: _AppMap.codeEditor(container),
 			loadSource: async n => {
 
 				let response = await fetch(Structr.rootUrl + (n.tpl ? 'Template/' + n.tpl : 'SchemaMethod/' + n.id));
@@ -184,6 +197,194 @@ let _AppMap = {
 		if (Structr.globalSearch.current) {
 			_AppMap.view.search(Structr.globalSearch.current);
 		}
+	},
+	// the data of the map loaded anew in place, after a change to the application, see AppMapView.replaceModel
+	reload: async () => {
+
+		let response = await fetch(Structr.rootUrl + '_appmap');
+
+		if (!response.ok || !_AppMap.view) {
+			return;
+		}
+
+		let json = await response.json();
+
+		_AppMap.view?.replaceModel(new AppMapModel(json.result));
+		_AppMap.showCounts();
+
+		if (Structr.globalSearch.current) {
+			_AppMap.view?.search(Structr.globalSearch.current);
+		}
+	},
+
+	// the code of a method or the text of a template, edited above its field on the map (see AppMapView.edit) in the editor
+	// of the Code area; Ctrl+S saves, and the map loads its data anew, as a change of code may change relations
+	codeEditor: container => {
+
+		let box      = null;
+		let editor   = null;
+		let entity   = null;
+		let property = null;
+		let saved    = '';
+		let size     = null;
+		let run      = 0;
+
+		let isDirty = () => !!editor && editor.getValue() !== saved;
+		let state   = text => {
+
+			let element = box?.querySelector('.appmap-editor-state');
+
+			if (element) {
+				element.textContent = text ?? (isDirty() ? 'Unsaved changes · Ctrl+S saves' : 'Ctrl+S saves · Esc closes');
+				element.classList.toggle('appmap-editor-dirty', !text && isDirty());
+			}
+		};
+
+		let dispose = () => {
+
+			run++;
+
+			if (editor) {
+				_Editors.disposeEditor(entity.id, property);
+			}
+
+			box?.remove();
+
+			box    = null;
+			editor = null;
+			entity = null;
+			size   = null;
+		};
+
+		let save = async () => {
+
+			if (!isDirty()) {
+				return;
+			}
+
+			let current  = run;
+			let target   = entity;
+			let value    = editor.getValue();
+			let response = await fetch(Structr.rootUrl + target.id, { method: 'PUT', body: JSON.stringify({ [property]: value }) });
+
+			if (!response.ok) {
+
+				let data = await response.json().catch(() => ({ message: `${response.status} ${response.statusText}` }));
+
+				Structr.errorFromResponse(data, undefined, { requiresConfirmation: true });
+
+				return;
+			}
+
+			target[property] = value;
+
+			// the editor may have been closed or opened elsewhere meanwhile; the map loads anew all the same
+			if (current === run) {
+				saved = value;
+			}
+
+			state();
+			_AppMap.reload();
+		};
+
+		return {
+			isDirty,
+			dispose,
+
+			open: async n => {
+
+				dispose();
+
+				let current = run;
+
+				box           = document.createElement('div');
+				box.className = 'appmap-editor';
+				box.hidden    = true;
+				box.innerHTML = '<div class="appmap-editor-code"></div><div class="appmap-editor-bar"><span class="appmap-editor-state"></span></div>';
+
+				container.appendChild(box);
+				state('Loading …');
+
+				// a method with its type, as the Code area reads it, a template with its content type
+				let response = await fetch(Structr.rootUrl + (n.tpl ? n.tpl + '/ui' : n.id + '/schema'));
+				let result   = response.ok ? (await response.json()).result : null;
+
+				// another element was opened meanwhile, or editing ended
+				if (current !== run) {
+					return;
+				}
+
+				entity   = Array.isArray(result) ? result[0] : result;
+				property = n.tpl ? 'content' : 'source';
+
+				if (!entity) {
+
+					state('The code could not be read.');
+
+					return;
+				}
+
+				saved  = entity[property] ?? '';
+				editor = _Editors.getMonacoEditor(entity, property, box.querySelector('.appmap-editor-code'), {
+					value:                  saved,
+					language:               n.tpl ? (entity.contentType || 'text/html') : 'auto',
+					lint:                   !n.tpl,
+					autocomplete:           true,
+					isAutoscriptEnv:        !n.tpl,
+					forceAllowAutoComplete: !!n.tpl,
+					preventRestoreModel:    true,
+					changeFn:               () => state(),
+					saveFn:                 () => save()
+				});
+
+				state();
+				_AppMap.view?.requestDraw();
+				editor.focus();
+			},
+
+			// on the field of the code, in the size of the code on the map, but never too small to read or too large to see
+			// enough of it
+			place: (rect, font) => {
+
+				if (!box) {
+					return;
+				}
+
+				box.hidden = false;
+
+				Object.assign(box.style, { left: `${rect.left}px`, top: `${rect.top}px`, width: `${rect.width}px`, height: `${rect.height}px` });
+
+				let fontSize = Math.round(Math.min(18, Math.max(10, font)));
+				let key      = `${Math.round(rect.width)}x${Math.round(rect.height)}@${fontSize}`;
+
+				if (editor && key !== size) {
+
+					size = key;
+
+					editor.updateOptions({ fontSize, lineHeight: Math.round(fontSize * 1.4) });
+					editor.layout();
+				}
+			},
+
+			hide: () => {
+
+				if (box) {
+					box.hidden = true;
+				}
+			},
+
+			// says whether editing ended; unsaved changes end only when they are discarded
+			close: async () => {
+
+				if (isDirty() && !(await _Dialogs.confirmation.showPromise('There are unsaved changes - discard?', false))) {
+					return false;
+				}
+
+				dispose();
+
+				return true;
+			}
+		};
 	},
 	showCounts: () => {
 
@@ -236,29 +437,45 @@ let _AppMap = {
 			view.setLens(role?.kind ? role : null);
 		});
 
-		// the activity lens and the errors, both remembered: how much the entry points are used or how slowly they answer,
-		// and where scripting errors happened
+		// the activity lens, remembered: how much the entry points are used; Slow, which an earlier version offered, shows the
+		// use as well
 		let saved    = LSWrapper.getItem(_AppMap.settingsKey, {});
 		let activity = bar.querySelector('#appmap-activity');
-		let errors   = bar.querySelector('#appmap-errors');
+		let showUse  = on => {
 
-		activity.value = saved.activity ?? '';
-		view.setActivity(activity.value || null);
-		errors.setAttribute('aria-pressed', String(!!saved.errors));
-		view.setErrors(!!saved.errors);
+			activity.setAttribute('aria-pressed', String(on));
+			view.setActivity(on ? 'usage' : null);
+		};
 
-		activity.addEventListener('change', () => {
+		showUse(!!saved.activity);
 
-			view.setActivity(activity.value || null);
-			_AppMap.saveSettings();
-		});
+		// the hotspots show while the pointer or the keyboard focus rests on their button: the most used elements
+		let spotlight = bar.querySelector('#appmap-spotlight');
 
-		errors.addEventListener('click', () => {
+		// pointer and focus each hold them on their own: one that leaves does not end what the other still holds
+		let holders = new Set();
 
-			let on = errors.getAttribute('aria-pressed') !== 'true';
+		for (let [event, holder, on] of [['pointerenter', 'pointer', true], ['pointerleave', 'pointer', false], ['focus', 'focus', true], ['blur', 'focus', false]]) {
 
-			errors.setAttribute('aria-pressed', String(on));
-			view.setErrors(on);
+			spotlight.addEventListener(event, () => {
+
+				let was = holders.size > 0;
+
+				if (on) {
+					holders.add(holder);
+				} else {
+					holders.delete(holder);
+				}
+
+				if (was !== holders.size > 0) {
+					view.setSpotlight(!was);
+				}
+			});
+		}
+
+		activity.addEventListener('click', () => {
+
+			showUse(activity.getAttribute('aria-pressed') !== 'true');
 			_AppMap.saveSettings();
 		});
 
@@ -332,15 +549,11 @@ let _AppMap = {
 				<label class="appmap-lens">Access of
 					<select id="appmap-lens" title="Shows what a role sees and may do, and where a page it sees does what it may not"></select>
 				</label>
-				<label class="appmap-lens">Activity
-					<select id="appmap-activity" title="Shows how much pages, endpoints and types are requested, or how slowly they answer">
-						<option value="">off</option>
-						<option value="usage">Usage</option>
-						<option value="slow">Slow</option>
-					</select>
-				</label>
-				<span class="appmap-segment" role="group" aria-label="Errors">
-					<button id="appmap-errors" aria-pressed="false" title="Marks where scripting errors happened since the last start">Errors</button>
+				<span class="appmap-segment" role="group" aria-label="Activity">
+					<button id="appmap-activity" aria-pressed="false" title="Shows how often pages, endpoints and types were requested and scheduled methods ran since the start">Usage</button>
+				</span>
+				<span class="appmap-segment" role="group" aria-label="Hotspots">
+					<button id="appmap-spotlight" title="Hover to grey out the map and show only the most used pages, endpoints, types and scheduled methods, with their number of requests or runs">Hotspots</button>
 				</span>
 				<span class="appmap-segment" role="group" aria-label="Help">
 					<button id="appmap-intro-toggle" aria-pressed="false" title="How to read and use the map">?</button>

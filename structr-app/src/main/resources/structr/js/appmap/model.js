@@ -25,7 +25,7 @@
  * - node:  { id, k, n, p, g, area, d?, crud?, svc?, cron?, rest?, acc?, dv?, r?, pos?, err?, ct? }
  *          k is the kind (type, method, page, component, action, view, api, external), n the name, p 1 for a public
  *          element; g is the grouping it belongs to (the type, page, component, group or endpoint), area the Structr area
- *          of that grouping (ui, components, integration, security, builtin, logic, scheduled, data), both worked out on the server;
+ *          of that grouping (ui, components, api, integration, security, builtin, logic, scheduled, data), both worked out on the server;
  *          d is the DOM tree of a page or shared component as nested [tag, flags, children?, ids?, expressions?]
  *          with the flags 1 active, 2 has an event action mapping, 4 repeater, the ids of the repeaters and event
  *          action mappings that live on the element and the template expressions its text shows; crud lists what a method, action, repeater or endpoint does to which
@@ -66,7 +66,9 @@ class AppMapModel {
 	// on the left, clockwise follow the others; the order lets the relations between the areas take the shortest way: of all
 	// circular orders it is the one where a relation crosses the fewest sectors on average, grants of groups on types included,
 	// worked out on two real applications and kept fixed, so that every application is read the same way; the shared
-	// components close the circle between the data model and the pages they are part of. How wide a sector is follows
+	// components close the circle between the data model and the pages they are part of. The REST API came later, split off
+	// from the integrations when the grants on types became endpoints; it took the place in the fixed order where its
+	// relations, almost all to the data model, run the shortest way, between the functions and security. How wide a sector is follows
 	// from what it holds, see AppMapLayout.sectorsFor
 	static AREAS = {
 		ui:          { label: 'Pages' },
@@ -74,6 +76,7 @@ class AppMapModel {
 		scheduled:   { label: 'Scheduled Tasks' },
 		integration: { label: 'Integrations' },
 		logic:       { label: 'Services & Functions' },
+		api:         { label: 'REST API' },
 		security:    { label: 'Security' },
 		data:        { label: 'Data Model' },
 		components:  { label: 'Shared Components' }

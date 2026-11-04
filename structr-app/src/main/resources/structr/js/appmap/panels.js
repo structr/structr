@@ -389,6 +389,29 @@ class AppMapPanels {
 		return { x0: n.x - w, y0: n.y - h, w, h, pad, title, font, line: font * 1.3, rows, px: font * 1.3 * k };
 	}
 
+	// the field of a code panel the code stands on, below the header, as x, y, width and height on the map
+	static codeField(panel) {
+
+		const top = panel.y0 + panel.pad + panel.title;
+
+		return [panel.x0 + panel.pad * 0.6, top - panel.pad * 0.3, 2 * panel.w - panel.pad * 1.2, panel.y0 + 2 * panel.h - top - panel.pad * 0.3];
+	}
+
+	// the readable code a point on the map lies on, or null
+	codeAt(x, y, k) {
+
+		for (const n of this.reading) {
+
+			const [fx, fy, fw, fh] = AppMapPanels.codeField(this.codePanel(n, k));
+
+			if (x >= fx && x <= fx + fw && y >= fy && y <= fy + fh) {
+				return n;
+			}
+		}
+
+		return null;
+	}
+
 	// the elements on screen that are close enough to show their code, with their panel and how far they have opened
 	codePanels(renderer, k) {
 
@@ -434,23 +457,21 @@ class AppMapPanels {
 				this.reading.add(n);
 				this.drawHeader(renderer, head, AppMapModel.KIND_LABEL[n.k], n.n, colour, k);
 
+				const [fx, fy, fw, fh] = AppMapPanels.codeField(panel);
+
 				ctx.beginPath();
-				ctx.roundRect(panel.x0 + panel.pad * 0.6, top - panel.pad * 0.3, 2 * panel.w - panel.pad * 1.2, panel.y0 + 2 * panel.h - top - panel.pad * 0.3, panel.pad * 0.3);
+				ctx.roundRect(fx, fy, fw, fh, panel.pad * 0.3);
 				ctx.fillStyle   = look.dark ? 'rgba(255, 255, 255, 0.05)' : '#f4f6f8';
 				ctx.strokeStyle = look.dark ? 'rgba(255, 255, 255, 0.12)' : '#e3e7ec';
 				ctx.lineWidth   = 1 / k;
 				ctx.fill();
 				ctx.stroke();
 
-				// the line of the latest scripting error, on a red band
-				const failed = (n.errs?.row ?? 0) - 1;
+				// the code being edited stands in the editor above the field
+				if (this.view.editing === n) {
 
-				if (failed >= 0 && failed < shown) {
-
-					ctx.fillStyle   = AppMapRenderer.ROUTING_COLOR.error[look.dark ? 1 : 0];
-					ctx.globalAlpha = 0.18;
-					ctx.fillRect(panel.x0 + panel.pad * 0.6, top + failed * panel.line, 2 * panel.w - panel.pad * 1.2, panel.line);
-					ctx.globalAlpha = 1;
+					ctx.restore();
+					continue;
 				}
 
 				ctx.fillStyle = look.labelFocus;

@@ -55,7 +55,8 @@ import java.util.stream.Stream;
  * user interface instead (see sections); a user-defined function, like a method of a schema
  * relationship, belongs to the type it writes most, else it stands alone, and so does one that
  * CronService runs. The area says which of Structr's mechanisms the grouping is: "ui" (pages),
- * "components" (shared components), "integration" (REST endpoints and external services),
+ * "components" (shared components), "api" (the REST endpoints the application offers),
+ * "integration" (the external services it uses),
  * "security" (groups and the service classes that manage users and rights), "builtin" (the
  * system types the application extends), "logic" (user-defined functions and service classes),
  * "scheduled" (what CronService runs) and "data" (the application's own types).
@@ -74,10 +75,8 @@ import java.util.stream.Stream;
  * HTML elements of a page or shared component, dv for whom every object of a type is visible:
  * pub and auth, r for the URL routes of a page: p the path, cur the type of its current
  * object, w the number of warnings, pos for its position, err for the error codes it is shown
- * for, ct for a content type other than HTML, hits for the requests to a page, endpoint or
- * type: n their number, avg and max their average and longest time in milliseconds, see
- * HttpActivity, errs for the scripting errors since the last start: n their number, t the time,
- * msg the message and row the line in the node's own code of the latest, see ScriptErrors),
+ * for, ct for a content type other than HTML, hits for the use of a page, endpoint, type or
+ * scheduled method since the start: n the number of its requests or runs, see Usage),
  * "edges"
  * ([source, target, weight, kind, inferred, evidence, details?]; the details of a schema
  * relationship: m for its multiplicity, cd for cascading delete, pp for the direction in which
@@ -101,6 +100,7 @@ public class ApplicationMap {
 
 	public static final String AREA_UI          = "ui";
 	public static final String AREA_COMPONENTS  = "components";
+	public static final String AREA_API         = "api";
 	public static final String AREA_INTEGRATION = "integration";
 	public static final String AREA_SECURITY    = "security";
 	public static final String AREA_BUILTIN     = "builtin";
@@ -184,8 +184,7 @@ public class ApplicationMap {
 			contributor.contribute(map, app);
 		}
 
-		HttpActivity.apply(map);
-		ScriptErrors.apply(map, app);
+		Usage.apply(map);
 
 		return map;
 	}
@@ -280,7 +279,7 @@ public class ApplicationMap {
 	}
 
 	/**
-	 * Only the requests and the scripting errors, per id of the nodes that have either, as hits and errs like in the nodes:
+	 * Only the use, per id of the nodes that have one, as hits like in the nodes:
 	 * a client refreshes them without loading the whole map, which needs no analysis for them. Nodes the map leaves out
 	 * may be among them; a client ignores what it does not show.
 	 */
@@ -585,7 +584,10 @@ public class ApplicationMap {
 			case COMPONENT:
 				return AREA_COMPONENTS;
 
-			case API, EXTERNAL:
+			case API:
+				return AREA_API;
+
+			case EXTERNAL:
 				return AREA_INTEGRATION;
 
 			case METHOD:
@@ -700,12 +702,6 @@ public class ApplicationMap {
 		private String contentType;
 		private Map<String, Object> use;
 		private long requests;
-		private long requestTime;
-		private long slowest;
-		private int errors;
-		private String lastError;
-		private Integer errorRow;
-		private long lastErrorTime;
 
 		private MapNode(final String id, final String kind, final String name) {
 
@@ -842,33 +838,12 @@ public class ApplicationMap {
 		}
 
 		/**
-		 * Requests to an entry point, as counted by the HTTP service: their number, their average
-		 * and their longest time in milliseconds; several sources, like the views of a type, add up.
+		 * Requests to an entry point or runs of a scheduled method; several sources, like the views
+		 * of a type, add up.
 		 */
-		public MapNode addActivity(final long count, final long average, final long max) {
+		public MapNode addUse(final long count) {
 
-			this.requests    += count;
-			this.requestTime += count * average;
-			this.slowest      = Math.max(slowest, max);
-
-			return this;
-		}
-
-		/**
-		 * Scripting errors that happened in the node: how many, and the message, the line in the
-		 * node's own code (null for code elsewhere, like an HTML element of a page) and the time
-		 * of the latest; several sources, like the elements of a page, add up.
-		 */
-		public MapNode addErrors(final int count, final String message, final Integer row, final long time) {
-
-			this.errors += count;
-
-			if (time >= lastErrorTime) {
-
-				this.lastError     = message;
-				this.errorRow      = row;
-				this.lastErrorTime = time;
-			}
+			this.requests += count;
 
 			return this;
 		}
@@ -884,9 +859,8 @@ public class ApplicationMap {
 		}
 
 		/**
-		 * A resource access grant that opens this type or endpoint to REST: it is a property of the
-		 * type, not an element of its own; the flags of the grant say whether it opens it to anonymous
-		 * or to authenticated users, and whether they may write.
+		 * A resource access grant that opens this type or endpoint to REST; the flags of the grant
+		 * say whether it opens it to anonymous or to authenticated users, and whether they may write.
 		 */
 		public MapNode addRestAccess(final long flags) {
 
@@ -1069,35 +1043,17 @@ public class ApplicationMap {
 			return map;
 		}
 
-		// the requests and the scripting errors of the node, as hits and errs, see the class comment
+		// the use of the node, as hits, see the class comment
 		private void putActivity(final Map<String, Object> map) {
 
 			if (requests > 0) {
-				map.put("hits", Map.of("n", requests, "avg", requestTime / requests, "max", slowest));
-			}
-
-			if (errors > 0) {
-
-				final Map<String, Object> errs = new LinkedHashMap<>();
-
-				errs.put("n", errors);
-				errs.put("t", lastErrorTime);
-
-				if (lastError != null) {
-					errs.put("msg", lastError);
-				}
-
-				if (errorRow != null) {
-					errs.put("row", errorRow);
-				}
-
-				map.put("errs", errs);
+				map.put("hits", Map.of("n", requests));
 			}
 		}
 
 		private boolean hasActivity() {
 
-			return requests > 0 || errors > 0;
+			return requests > 0;
 		}
 	}
 

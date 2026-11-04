@@ -8,6 +8,7 @@ The Structr Admin User Interface is a web-based console for building and managin
 |--------------|------------------------------------------------------------------------------------------------|
 | Define data types and relationships | <a href="javascript:void(0);" onclick="window.parent.location.hash='#schema'">Schema</a>       |
 | Write business logic and methods | <a href="javascript:void(0);" onclick="window.parent.location.hash='#code'">Code</a>           |
+| See how my application works and what is used | <a href="javascript:void(0);" onclick="window.parent.location.hash='#appmap'">Application Map</a> |
 | View and edit data in the database | <a href="javascript:void(0);" onclick="window.parent.location.hash='#crud'">Data</a>           |
 | Build web pages and templates | <a href="javascript:void(0);" onclick="window.parent.location.hash='#pages'">Pages</a>         |
 | Manage static files (CSS, JS, images) | <a href="javascript:void(0);" onclick="window.parent.location.hash='#files'">Files</a>        |
@@ -21,7 +22,7 @@ The Structr Admin User Interface is a web-based console for building and managin
 
 ![The Admin User Interface](/structr/docs/dashboard_about-structr.png)
 
-The interface is organized around a header bar that stays visible across all areas. The main navigation on the left side of the header takes you to the different functional areas: Dashboard, Pages, Files, Security, Schema, Code, Data, and more. Less frequently used items are available in the burger menu, which also contains the Documentation entry and the logout link. You can configure which items appear in the main navigation through the UI Settings on the Dashboard.
+The interface is organized around a header bar that stays visible across all areas. The main navigation on the left side of the header takes you to the different functional areas: Dashboard, Pages, Files, Security, Schema, Code, Application Map, Data, and more. Less frequently used items are available in the burger menu, which also contains the Documentation entry and the logout link. You can configure which items appear in the main navigation through the UI Settings on the Dashboard.
 
 On the right side of the header, tools are available regardless of which area you are working in:
 
@@ -83,6 +84,12 @@ This is the visual data modeler. Types appear as boxes, relationships as connect
 Here you can write and organize your business logic. The same types as in the Schema area are displayed, but organized for writing and editing methods rather than visualizing relationships.
 
 ![Code](/structr/docs/code.png)
+
+### Application Map
+
+This is a zoomable map of your whole application: pages, data model, methods, REST endpoints and external services, with the relations between them. You can explore how the application works, see who may access what, find the parts that are used most, and edit code right where it appears on the map.
+
+![Application Map](/structr/docs/appmap.png)
 
 ### Data
 

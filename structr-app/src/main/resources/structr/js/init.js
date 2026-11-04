@@ -927,7 +927,10 @@ let Structr = {
 		lastMenuEntry: undefined,
 		lastMenuEntryKey: 'structrLastMenuEntry_' + location.port,
 		isBlocked: false,
-		defaultMainMenuItems: ['Dashboard', 'Apps', 'Pages', 'Files', 'Security', 'Schema', 'Code', 'Map', 'Data'],
+		defaultMainMenuItems: ['Dashboard', 'Apps', 'Pages', 'Files', 'Security', 'Schema', 'Code', 'Application Map', 'Data'],
+
+		// the entries a saved menu configuration may still know under an earlier name
+		renamedItems: { 'Map': 'Application Map' },
 		getSavedMenuConfig: () => {
 
 			return LSWrapper.getItem(Structr.keyMenuConfig, {
@@ -950,8 +953,14 @@ let Structr = {
 
 			if (menuConfig) {
 
+				// an entry that was renamed keeps its place; one that no longer exists is left out
 				for (let entry of menuConfig.main) {
-					hamburger.before(menu.querySelector(`li[data-name="${entry}"]`));
+
+					let item = menu.querySelector(`li[data-name="${Structr.mainMenu.renamedItems[entry] ?? entry}"]`);
+
+					if (item) {
+						hamburger.before(item);
+					}
 				}
 
 				// sort submenu
@@ -2437,7 +2446,7 @@ let Structr = {
 								<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>
 								<li data-name="Schema"><a id="schema_" href="#schema" data-activate-module="schema">Schema</a></li>
 								<li data-name="Code"><a id="code_" href="#code" data-activate-module="code">Code</a></li>
-								<li data-name="Map"><a id="appmap_" href="#appmap" data-activate-module="appmap">Map</a></li>
+								<li data-name="Application Map"><a id="appmap_" href="#appmap" data-activate-module="appmap">Application Map</a></li>
 								<li data-name="Flows"><a id="flows_" href="#flows" data-activate-module="flows">Flows</a></li>
 								<li data-name="Processes"><a id="processes_" href="#processes" data-activate-module="processes">Processes</a></li>
 								<li data-name="Data"><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>

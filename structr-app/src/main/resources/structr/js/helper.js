@@ -1086,9 +1086,42 @@ let LSWrapper = new (function() {
 	let _localStorageLastSyncToServerKey = 'structrLocalStorageLastSyncToServer_';
 	let _persistInterval = 60;
 
+	// the server takes no websocket message larger than a megabyte and closes the connection (WebSocketConfigurator); the
+	// limit for the message leaves room below it
+	let _maxServerSize = 900 * 1024;
+
 	let _lastLoadTimestamp = null;
 
 	this.save = function (callback) {
+
+		// a message the server refuses closes the connection, and nothing could be removed any more, as removing saves first;
+		// what can be pruned is pruned, also in the real localStorage, or it would come back with the next read
+		let tooLarge = this.serverMessageSize() > _maxServerSize;
+
+		if (tooLarge) {
+
+			this.prune();
+
+			try {
+				this.writeToRealLocalStorage();
+			} catch (e) {
+				// the pruned settings are smaller, so the real localStorage can only be full for other reasons; the server still gets them
+			}
+
+			tooLarge = this.serverMessageSize() > _maxServerSize;
+		}
+
+		// still too large: the settings stay in this browser, and what waits for the save goes on
+		if (tooLarge) {
+
+			console.warn('The stored UI settings are too large to be saved on the server.');
+
+			if (typeof callback === 'function') {
+				callback();
+			}
+
+			return;
+		}
 
 		Command.saveLocalStorage(function () {
 
@@ -1152,6 +1185,16 @@ let LSWrapper = new (function() {
 		this.persistToRealLocalStorage();
 	};
 
+	// several keys at once, persisted once: every persist may send everything to the server, which fails while it is too large
+	this.removeItems = function (keys) {
+
+		for (const key of keys) {
+			delete _localStorageObject[key];
+		}
+
+		this.persistToRealLocalStorage();
+	};
+
 	this.clear = function () {
 
 		_localStorageObject = {};
@@ -1162,6 +1205,18 @@ let LSWrapper = new (function() {
 	this.getAsJSON = function () {
 
 		return JSON.stringify(_localStorageObject);
+	};
+
+	this.keys = function () {
+
+		return Object.keys(_localStorageObject);
+	};
+
+	// the size in bytes of the message that saves the settings on the server: the stored data travels as a string inside
+	// it, escaped once more, and as UTF-8
+	this.serverMessageSize = function () {
+
+		return new TextEncoder().encode(JSON.stringify({ command: 'SAVE_LOCAL_STORAGE', data: { localStorageString: this.getAsJSON() } })).length;
 	};
 
 	this.restoreFromServer = function (callback) {
@@ -1195,10 +1250,7 @@ let LSWrapper = new (function() {
 
 		try {
 
-			let now = new Date().getTime();
-
-			localStorage.setItem(_localStoragePersistenceKey, this.getAsJSON());
-			localStorage.setItem(_localStoragePersistenceDateKey, now);
+			let now = this.writeToRealLocalStorage();
 
 			let lastSyncTime = localStorage.getItem(_localStorageLastSyncToServerKey);
 
@@ -1221,6 +1273,17 @@ let LSWrapper = new (function() {
 		}
 	};
 
+	// the settings into the real localStorage, without a sync to the server; returns the time of the write
+	this.writeToRealLocalStorage = function () {
+
+		let now = new Date().getTime();
+
+		localStorage.setItem(_localStoragePersistenceKey, this.getAsJSON());
+		localStorage.setItem(_localStoragePersistenceDateKey, now);
+
+		return now;
+	};
+
 	this.restoreFromRealLocalStorage = function () {
 
 		let lsContent = localStorage.getItem(_localStoragePersistenceKey);
@@ -1238,11 +1301,12 @@ let LSWrapper = new (function() {
 
 	this.prune = function() {
 
-		// if localstorage save fails, remove the following elements
+		// if localstorage save fails, or the server would refuse it, remove the following elements
 		let pruneKeys = [
 			'structrActiveEditTab',			// last selected properties tab for node
 			'structrScrollInfoKey',			// scroll info in editor
-			'structrTreeExpandedIds'		// expanded tree info for pages tree
+			'structrTreeExpandedIds',		// expanded tree info for pages tree
+			'structrAppMapLayout_'			// layout of the application map, it is laid out anew
 		];
 
 		let lsKeys = Object.keys(_localStorageObject);

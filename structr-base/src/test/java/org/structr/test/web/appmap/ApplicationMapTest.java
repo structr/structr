@@ -24,7 +24,6 @@ import org.structr.api.config.Settings;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.event.RuntimeEvent;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
@@ -192,7 +191,7 @@ public class ApplicationMapTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testRestAccessIsAPropertyOfTheType() {
+	public void testRestAccessOpensTypesAndMethods() {
 
 		createApplication();
 
@@ -227,9 +226,97 @@ public class ApplicationMapTest extends StructrUiTest {
 		assertEquals("A PATCH grant for public users must open the endpoint to them",                     1, map.getInt("result.nodes.find { it.id == 'api:listItems' }.rest.pub"));
 		assertEquals("A PATCH grant for public users must let them write",                                1, map.getInt("result.nodes.find { it.id == 'api:listItems' }.rest.pubw"));
 		assertNull("A type without grants must not carry REST access", map.get("result.nodes.find { it.id == '" + ids.get("Category") + "' }.rest"));
-		assertNull("A grant on a type must not become an endpoint",     map.get("result.nodes.find { it.k == 'api' && it.n == '/Item' }"));
+		assertTrue("The grants on a type must make an endpoint for the type", hasEdge(map, "api:Item", ids.get("Item"), "endpoint"));
+		assertEquals("Every grant on a type or one of its views must count as a rule of its endpoint", 2, map.getInt("result.nodes.find { it.id == 'api:Item' }.rest.n"));
+		assertEquals("The endpoint of a type must be part of the REST API", "api", node(map, "api:Item", "area"));
+		assertEquals("The endpoint of a method must be part of the REST API", "api", node(map, "api:ItemService/createItem", "area"));
+		assertNull("A type without grants must not become an endpoint", map.get("result.nodes.find { it.id == 'api:Category' }"));
 		assertTrue("A grant on a method must make the method an endpoint", hasEdge(map, "api:ItemService/createItem", ids.get("createItem"), "endpoint"));
 		assertTrue("A grant that spells the method with a capital letter, as older versions wrote it, must find the method", hasEdge(map, "api:Item/Archive", ids.get("archive"), "endpoint"));
+	}
+
+	@Test
+	public void testUserEndpointsStandForTheUsers() {
+
+		createApplication();
+
+		final Traits nodeTraits = Traits.of(StructrTraits.SCHEMA_NODE);
+		final Traits traits     = Traits.of(StructrTraits.RESOURCE_ACCESS);
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface member = app.create(StructrTraits.SCHEMA_NODE,
+				new NodeAttribute<>(nodeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),            "Member"),
+				new NodeAttribute<>(nodeTraits.key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { StructrTraits.USER })
+			);
+
+			ids.put("Member", member.getUuid());
+			ids.put("updateProfile", createMethod("updateProfile", member, "{ $.me.name = 'member'; }").getUuid());
+
+			for (final Object[] grant : new Object[][] { { "_login", 64L }, { "_logout", 4L }, { "_registration", 64L }, { "_resetPassword", 64L }, { "_token", 64L }, { "me", 1L }, { "me/_Ui", 1L }, { "me/updateProfile", 4L }, { "_schema", 1L } }) {
+
+				app.create(StructrTraits.RESOURCE_ACCESS,
+					new NodeAttribute<>(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), (String) grant[0]),
+					new NodeAttribute<>(traits.key(ResourceAccessTraitDefinition.FLAGS_PROPERTY),     (Long) grant[1])
+				);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final JsonPath map = fetchMap();
+		final String user  = map.getString("result.nodes.find { it.k == 'type' && it.n == 'User' }.id");
+
+		for (final String endpoint : new String[] { "_login", "_logout", "_registration", "_resetPassword", "_token", "me" }) {
+
+			assertTrue("The endpoint " + endpoint + " must stand for the users", hasEdge(map, "api:" + endpoint, user, "endpoint"));
+			assertEquals("The endpoint " + endpoint + " must be part of the REST API", "api", node(map, "api:" + endpoint, "area"));
+		}
+
+		assertEquals("A grant for anonymous users on the registration must open it to them",     1, map.getInt("result.nodes.find { it.id == 'api:_registration' }.rest.pub"));
+		assertEquals("The grants on the current user and its views must make one endpoint",      2, map.getInt("result.nodes.find { it.id == 'api:me' }.rest.n"));
+		assertNull("The endpoints of the users must not count as REST access to the users as data", map.get("result.nodes.find { it.id == '" + user + "' }.rest"));
+		assertTrue("A grant on a method of the current user must make the method of a user type an endpoint", hasEdge(map, "api:me/updateProfile", ids.get("updateProfile"), "endpoint"));
+		assertNull("A grant on the schema must not become an endpoint", map.get("result.nodes.find { it.id == 'api:_schema' }"));
+		assertEquals("Users the application does not extend must be on the map as the built-in type", "type:User", user);
+		assertEquals("The built-in users must lie among the system types", "builtin", node(map, user, "area"));
+		assertTrue("A type that extends the built-in users must inherit from them", hasEdge(map, ids.get("Member"), user, "inherits"));
+	}
+
+	@Test
+	public void testUserEndpointsStandForTheExtendedUsers() {
+
+		createApplication();
+
+		final Traits nodeTraits = Traits.of(StructrTraits.SCHEMA_NODE);
+		final Traits traits     = Traits.of(StructrTraits.RESOURCE_ACCESS);
+
+		try (final Tx tx = app.tx()) {
+
+			ids.put("User", app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(nodeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), StructrTraits.USER)).getUuid());
+
+			app.create(StructrTraits.RESOURCE_ACCESS,
+				new NodeAttribute<>(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), "_login"),
+				new NodeAttribute<>(traits.key(ResourceAccessTraitDefinition.FLAGS_PROPERTY),     64L)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final JsonPath map = fetchMap();
+
+		assertTrue("The login must stand for the type User the application extends", hasEdge(map, "api:_login", ids.get("User"), "endpoint"));
+		assertNull("Users the application extends must not be on the map a second time", map.get("result.nodes.find { it.id == 'type:User' }"));
 	}
 
 	@Test
@@ -318,6 +405,7 @@ public class ApplicationMapTest extends StructrUiTest {
 		assertTrue("A request with $.GET must be an edge to the host",                               hasEdge(map, ids.get("syncItems"), "ext:api.example.com", "requests"));
 		assertTrue("A request with the older Structr.POST must be an edge to the host",              hasEdge(map, ids.get("syncItems"), "ext:legacy.example.com", "requests"));
 		assertTrue("Sending mail must be an edge to the mail service, whatever the spelling of the function", hasEdge(map, ids.get("syncItems"), "ext:mail", "mails"));
+		assertEquals("The mail service must say that it sends e-mail, and through which server", "Send e-mail via " + Settings.SmtpHost.getValue(), node(map, "ext:mail", "n"));
 		assertEquals("An external service must be part of the integrations", "integration", node(map, "ext:api.example.com", "area"));
 	}
 
@@ -351,7 +439,6 @@ public class ApplicationMapTest extends StructrUiTest {
 
 		assertNotNull("A rendered page must count its requests",                     node(map, ids.get("page"), "hits.n"));
 		assertTrue("A REST request to a type without an endpoint must count for the type", Integer.parseInt(node(map, ids.get("Item"), "hits.n")) >= 1);
-		assertNotNull("A measured element must carry the average time of its requests", node(map, ids.get("Item"), "hits.avg"));
 		assertNull("An element nobody requested must carry no requests",              node(map, ids.get("formatItem"), "hits"));
 
 		final JsonPath activity = RestAssured
@@ -366,16 +453,18 @@ public class ApplicationMapTest extends StructrUiTest {
 
 		assertEquals("The activity endpoint must report the requests of a type as the map does", node(map, ids.get("Item"), "hits.n"), activity.getString("result.nodes.'" + ids.get("Item") + "'.hits.n"));
 		assertNull("The activity endpoint must leave out elements nobody requested",               activity.get("result.nodes.'" + ids.get("formatItem") + "'"));
-	}
 
-	@Test
-	public void testScriptingErrorsLieAtTheirMethod() {
-
-		createApplication();
+		final String requests = node(map, ids.get("Item"), "hits.n");
 
 		try (final Tx tx = app.tx()) {
 
-			ids.put("failItems", createMethod("failItems", null, "{\n\t$.find('Item');\n\tundefinedFunction();\n}").getUuid());
+			final Traits traits = Traits.of(StructrTraits.RESOURCE_ACCESS);
+
+			app.create(StructrTraits.RESOURCE_ACCESS,
+				new NodeAttribute<>(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), "Item"),
+				new NodeAttribute<>(traits.key(ResourceAccessTraitDefinition.FLAGS_PROPERTY),     1L)
+			);
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -384,16 +473,48 @@ public class ApplicationMapTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		// the error as Scripting.reportError records it: the outermost evaluation of a method called over REST settles its
-		// promise from the host and records no error, so the test writes the entry of the event log itself
-		RuntimeEventLog.scripting("Scripting Error", Map.of(RuntimeEvent.ID_PROPERTY, ids.get("failItems"), "row", 3, "message", "ReferenceError: undefinedFunction is not defined"));
+		map = fetchMap();
+
+		assertEquals("A REST request to a type with grants must count for the endpoint of the type", requests, node(map, "api:Item", "hits.n"));
+		assertNull("A REST request to a type with grants must not count for the type as well",      node(map, ids.get("Item"), "hits"));
+	}
+
+	@Test
+	public void testUsageCountsEveryMethodAndTheRunsOfTasks() {
+
+		createApplication();
+
+		try (final Tx tx = app.tx()) {
+
+			final Traits traits = Traits.of(StructrTraits.RESOURCE_ACCESS);
+
+			app.create(StructrTraits.RESOURCE_ACCESS,
+				new NodeAttribute<>(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), "ItemService/createItem"),
+				new NodeAttribute<>(traits.key(ResourceAccessTraitDefinition.FLAGS_PROPERTY),     4L)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final long before = RuntimeEventLog.getRestCounts().getOrDefault("ItemService/createItem", 0L);
+
+		RestAssured.given().header(X_USER_HEADER, ADMIN_USERNAME).header(X_PASSWORD_HEADER, ADMIN_PASSWORD).body("{}").expect().statusCode(200).when().post("/ItemService/createItem");
+		RestAssured.given().header(X_USER_HEADER, ADMIN_USERNAME).header(X_PASSWORD_HEADER, ADMIN_PASSWORD).body("{}").expect().statusCode(200).when().post("/ItemService/createItem");
+
+		// the counts run since the start, so earlier tests may have added to them
+		assertEquals("Every POST to a method must be counted under its resource signature", before + 2, (long) RuntimeEventLog.getRestCounts().get("ItemService/createItem"));
+
+		RuntimeEventLog.cron("listItems");
 
 		final JsonPath map = fetchMap();
 
-		assertEquals("A scripting error must count for the method it happened in",   "1",   node(map, ids.get("failItems"), "errs.n"));
-		assertEquals("The latest error must name the line in the code of the method", "3",   node(map, ids.get("failItems"), "errs.row"));
-		assertNotNull("The latest error must carry its message",                            node(map, ids.get("failItems"), "errs.msg"));
-		assertNull("A method without errors must carry none",                               node(map, ids.get("formatItem"), "errs"));
+		assertEquals("The POST requests to a method must count for its endpoint", String.valueOf(before + 2), node(map, "api:ItemService/createItem", "hits.n"));
+		assertTrue("The runs of a scheduled function must count for the function", Integer.parseInt(node(map, ids.get("listItems"), "hits.n")) >= 1);
 	}
 
 	@Test
@@ -406,17 +527,18 @@ public class ApplicationMapTest extends StructrUiTest {
 
 		assertTrue("A request with FETCH must be an edge to the host",                                  hasEdge(map, method, "ext:fetch.example.com", "requests"));
 		assertTrue("A request to a computed URL must be an edge to the dynamic HTTP service",           hasEdge(map, method, "ext:http", "requests"));
-		assertEquals("The dynamic HTTP service must say that its target is computed", "HTTP (dynamic)", node(map, "ext:http", "n"));
+		assertEquals("The dynamic HTTP service must say that its target is computed", "Call computed URLs", node(map, "ext:http", "n"));
+		assertEquals("A web host must be named after the calls to it", "Call fetch.example.com", node(map, "ext:fetch.example.com", "n"));
 
 		assertTrue("A jdbc query must be an edge to the database host",                                 hasEdge(map, method, "ext:jdbc:db.example.com", "queries"));
-		assertEquals("A database must be named by its host and the kind of access", "db.example.com (JDBC)", node(map, "ext:jdbc:db.example.com", "n"));
+		assertEquals("A database must be named by its host and the kind of access", "Query db.example.com (JDBC)", node(map, "ext:jdbc:db.example.com", "n"));
 		assertTrue("A mongodb query must be an edge to the host, without the credentials of its URL",   hasEdge(map, method, "ext:mongodb:mongo.example.com", "queries"));
 		assertTrue("A remoteCypher query with a template string must be an edge to the host",           hasEdge(map, method, "ext:cypher:graph.example.com", "queries"));
 
 		assertTrue("Geocoding must be an edge to the geocoding service",                                hasEdge(map, method, "ext:geocoding", "requests"));
-		assertEquals("The geocoding service must name the configured provider", "Geocoding (Google)",   node(map, "ext:geocoding", "n"));
+		assertEquals("The geocoding service must name the configured provider", "Geocode via Google",  node(map, "ext:geocoding", "n"));
 		assertTrue("A translation with a provider must be an edge to that provider",                    hasEdge(map, method, "ext:translation:deepl", "requests"));
-		assertEquals("A translation provider must have its proper name", "Translation (DeepL)",         node(map, "ext:translation:deepl", "n"));
+		assertEquals("A translation provider must have its proper name", "Translate via DeepL",        node(map, "ext:translation:deepl", "n"));
 		assertTrue("A translation without a provider must be an edge to Google",                        hasEdge(map, method, "ext:translation:google", "requests"));
 
 		assertTrue("exec must be an edge to the configured script",                                     hasEdge(map, method, "ext:exec:backup", "executes"));

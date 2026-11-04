@@ -52,6 +52,7 @@ Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Da
 Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Pages.md"
 Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Security.md"
 Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Code.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Application Map.md"
 Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Files.md"
 Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Graph.md"
 Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Flows.md"

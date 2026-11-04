@@ -143,6 +143,41 @@
 	color: var(--gray-888);
 }
 
+/* ----- the editor on the field of the code it edits, see _AppMap.codeEditor ----- */
+.appmap-editor {
+	position: absolute;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	background-color: var(--solid-white);
+	border: 1px solid var(--input-field-border);
+	border-radius: .25rem;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+}
+
+.appmap-editor[hidden] {
+	display: none;
+}
+
+.appmap-editor-code {
+	flex: 1;
+	min-height: 0;
+}
+
+.appmap-editor-bar {
+	flex: none;
+	padding: .125rem .5rem;
+	font-size: .75rem;
+	color: var(--gray-888);
+	border-top: 1px solid var(--input-field-border);
+}
+
+.appmap-editor-dirty {
+	color: var(--body-text);
+	font-weight: 600;
+}
+
 /* ----- the way exploring took, above the map ----- */
 .appmap-trail {
 	position: absolute;

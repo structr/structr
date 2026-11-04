@@ -32,10 +32,11 @@
  */
 class AppMapView {
 
-	// two looks: a sober one on white and a dark one; on white, overlaps darken like ink, on black they glow
+	// two looks: a sober one on white and a dark one; on black overlaps glow, on white they are simply painted over each other:
+	// darkening them by multiplying took more than half of every frame and was hardly to be seen
 	static LOOKS = {
 		light: {
-			bg: '#ffffff', card: '#ffffff', veil: '#eef1f4', trace: '#7d8794', ring: '#1b2026', outline: '#ffffff', halo: '#ffffff', label: '#4f5862', labelNear: '#2a3038', labelFocus: '#111418', column: '#9aa3ad', found: '#ffd84d', blend: 'multiply', dark: false,
+			bg: '#ffffff', card: '#ffffff', veil: '#eef1f4', trace: '#7d8794', ring: '#1b2026', outline: '#ffffff', halo: '#ffffff', label: '#4f5862', labelNear: '#2a3038', labelFocus: '#111418', column: '#9aa3ad', found: '#ffd84d', blend: 'source-over', dark: false,
 			kinds: { page: '#5b2fe0', component: '#b0179b', type: '#1f8f12', method: '#0081a7', api: '#0b5ed7', external: '#123a9c', group: '#e04e00', dom: '#9a86f2', view: '#d18b00', action: '#e0123f' }
 		},
 		dark: {
@@ -148,10 +149,10 @@ class AppMapView {
 		// the access lens: what one role reaches, see AppMapAccess
 		this.access = null;
 
-		// the activity lens: how much the entry points are used or how slowly they answer, and where scripting errors
-		// happened, see setActivity and setErrors
+		// the activity lens: how much the entry points are used, see setActivity
 		this.activity      = null;
-		this.errors        = null;
+		this.spotlight     = false;
+		this.spotlightLens = false;
 		this.loadActivity  = options.loadActivity ?? null;
 		this.activityTimer = null;
 
@@ -173,6 +174,12 @@ class AppMapView {
 		// reads the source of a method, or the text of the template a page consists of, for its box close up, as a promise of
 		// the text
 		this.loadSource = options.loadSource ?? null;
+
+		// edits the code of a method or the text of a template above its field, see edit; the editor itself is the Admin
+		// UI's, the map only says where it stands
+		this.editor  = options.editor ?? null;
+		this.editing = null;
+		this.ending  = false;
 
 		this.fonts = {
 			main: style.getPropertyValue('--font-main').trim() || 'Inter, sans-serif',
@@ -223,6 +230,8 @@ class AppMapView {
 
 		this.stopCoast();
 		document.removeEventListener('keydown', this.onKey);
+		document.removeEventListener('keyup', this.onKey);
+		this.editor?.dispose();
 
 		d3.select(this.canvas).on('.zoom', null).on('mousemove', null).on('mouseleave', null).on('click', null).on('dblclick', null);
 		this.canvas.remove();
@@ -232,7 +241,7 @@ class AppMapView {
 
 	get settings() {
 
-		return { look: this.look.dark ? 'dark' : 'light', activity: this.activity?.mode ?? null, errors: !!this.errors };
+		return { look: this.look.dark ? 'dark' : 'light', activity: this.spotlightLens ? null : (this.activity?.mode ?? null) };
 	}
 
 	get counts() {
@@ -533,6 +542,7 @@ class AppMapView {
 	draw() {
 
 		this.renderer.draw();
+		this.placeEditor();
 		this.updateHint();
 	}
 
@@ -554,6 +564,20 @@ class AppMapView {
 		const [wx, wy] = this.transform.invert([px, py]);
 		const marker   = this.renderer.findMarker(px, py);
 		const dom      = this.panels.findDom(wx, wy);
+		const code     = this.editor && this.panels.codeAt(wx, wy, this.transform.k);
+
+		// readable code is edited where it stands; a click beside the editor ends editing first
+		if (code && !marker) {
+
+			this.edit(code);
+			return;
+		}
+
+		if (this.editing) {
+
+			this.endEdit();
+			return;
+		}
 
 		// a marker leads to the element it names; a collapsed one opens under the pointer, so each of its elements can be chosen
 		if (marker) {
@@ -580,6 +604,127 @@ class AppMapView {
 
 			this.unpin();
 		}
+	}
+
+	// ----- editing: the code of a method or the text of a template, in the editor of the Admin UI above its field -----
+	async edit(n) {
+
+		if (this.editing === n || !(await this.endEdit())) {
+			return;
+		}
+
+		this.editing = n;
+		this.editor.open(n);
+		this.requestDraw();
+	}
+
+	// ends editing, unless there are unsaved changes the user keeps; says whether it ended. While the question about them is
+	// open, a second Escape or click asks nothing more
+	async endEdit() {
+
+		const editing = this.editing;
+
+		if (!editing) {
+			return true;
+		}
+
+		if (this.ending) {
+			return false;
+		}
+
+		this.ending = true;
+
+		try {
+
+			if (!(await this.editor.close())) {
+				return false;
+			}
+
+		} finally {
+
+			this.ending = false;
+		}
+
+		if (this.editing === editing) {
+			this.editing = null;
+		}
+
+		this.requestDraw();
+
+		return true;
+	}
+
+	// the editor stands on the field of the code it edits, in the size the map shows it; while the code is not readable, or
+	// the hotspots show, it waits hidden
+	placeEditor() {
+
+		const n = this.editing;
+
+		if (!n || !this.editor) {
+			return;
+		}
+
+		if (this.spotlight || !this.panels.reading.has(n)) {
+
+			this.editor.hide();
+			return;
+		}
+
+		const t                = this.transform;
+		const panel            = this.panels.codePanel(n, t.k);
+		const [fx, fy, fw, fh] = AppMapPanels.codeField(panel);
+
+		this.editor.place({ left: t.applyX(fx), top: t.applyY(fy), width: fw * t.k, height: fh * t.k }, panel.font * t.k);
+	}
+
+	// the data of the map loaded anew, after a change to the application: the elements keep their places, the view, the
+	// trail, the lenses and what is edited stay; new elements are placed and settle, relations come and go
+	replaceModel(model) {
+
+		const trail   = this.trail.map(n => n.id);
+		const pinned  = this.pinned?.id;
+		const editing = this.editing?.id;
+
+		this.layout.stop();
+		this.strands.cancel();
+
+		this.model = model;
+		this.nodes = model.nodes;
+		this.byId  = model.byId;
+		this.links = [...model.links];
+
+		this.hovered        = null;
+		this.hoveredDom     = null;
+		this.hoveredStrand  = null;
+		this.hoveredMarker  = null;
+		this.expandedMarker = null;
+		this.pinnedDom      = null;
+		this.trail          = trail.map(id => this.byId.get(id)).filter(n => n);
+		this.pinned         = this.byId.get(pinned) ?? null;
+		this.editing        = this.byId.get(editing) ?? null;
+		this.found          = null;
+		this.foundFor       = new Map();
+
+		// what was edited is gone from the map
+		if (editing && !this.editing) {
+			this.editor.dispose();
+		}
+
+		this.rebuildIndex();
+
+		this.layout  = new AppMapLayout(this);
+		this.strands = new AppMapStrands(this);
+		this.panels  = new AppMapPanels(this);
+
+		this.renderer.recolor();
+		this.setLens(this.accessRole ?? null);
+		this.measure();
+
+		// the view stays where it is, also when the layout moves something
+		this.userZoomed = true;
+		this.layout.start(moved => this.onSettled(moved));
+		this.showTrail();
+		this.requestDraw();
 	}
 
 	pin(n) {
@@ -713,13 +858,14 @@ class AppMapView {
 	// shows what a role reaches (see AppMapAccess), or nothing for null; role is { kind, id?, name }
 	setLens(role) {
 
-		this.access = role ? AppMapAccess.of(this.model, this.links, role) : null;
+		this.accessRole = role;
+		this.access     = role ? AppMapAccess.of(this.model, this.links, role) : null;
 		this.updateHint();
 		this.requestDraw();
 	}
 
-	// ----- the activity lens: what the HTTP service measured at the entry points -----
-	// 'usage' for the number of requests, 'slow' for their average time, or null
+	// ----- the activity lens: how much the entry points are used, see Usage on the server -----
+	// 'usage' for the number of requests or runs, or null
 	setActivity(mode) {
 
 		this.activity = AppMapView.ACTIVITY[mode] ? { mode } : null;
@@ -727,34 +873,43 @@ class AppMapView {
 		this.watchActivity();
 	}
 
-	// the scripting errors since the last start, on or off; they show together with the activity
-	setErrors(on) {
+	// the hotspots, while the pointer rests on their button: the map steps back into grey, the glow of the activity and the
+	// names of the most used elements stay; without the activity lens on, the usage shows meanwhile
+	setSpotlight(on) {
 
-		this.errors = on ? {} : null;
-		this.measure();
-		this.watchActivity();
+		this.spotlight = on;
+
+		if (on && !this.activity) {
+
+			this.spotlightLens = true;
+			this.setActivity('usage');
+		}
+
+		if (!on && this.spotlightLens) {
+
+			this.spotlightLens = false;
+			this.setActivity(null);
+		}
+
+		this.requestDraw();
 	}
 
-	// the heat of the activity and the errors from the numbers the elements carry now
+	// the heat of the activity from the numbers the elements carry now
 	measure() {
 
 		if (this.activity) {
 			this.activity = { mode: this.activity.mode, ...this.heatOf(n => n.hits, AppMapView.ACTIVITY[this.activity.mode]) };
 		}
 
-		if (this.errors) {
-			this.errors = this.heatOf(n => n.errs, n => n.errs.n);
-		}
-
 		this.updateHint();
 		this.requestDraw();
 	}
 
-	// while the activity or the errors show, their numbers are fetched fresh: at once when they come on, then every
-	// ACTIVITY_REFRESH milliseconds; the map itself is not loaded again
+	// while the activity shows, its numbers are fetched fresh: at once when it comes on, then every ACTIVITY_REFRESH
+	// milliseconds; the map itself is not loaded again
 	watchActivity() {
 
-		const on = !!(this.activity || this.errors) && !!this.loadActivity;
+		const on = !!this.activity && !!this.loadActivity;
 
 		if (on && this.activityTimer == null) {
 
@@ -781,14 +936,21 @@ class AppMapView {
 		for (const n of this.nodes) {
 
 			n.hits = fresh[n.id]?.hits;
-			n.errs = fresh[n.id]?.errs;
 		}
 
 		this.measure();
 	}
 
-	// what the activity lens shows of an element: its number of requests or their average time
-	static ACTIVITY = { usage: n => n.hits.n, slow: n => n.hits.avg };
+	// what the activity lens shows of an element: its number of requests or runs
+	static ACTIVITY = { usage: n => n.hits.n };
+
+	// the use of an element in words: a scheduled method runs, anything else is requested
+	static describeUse(n) {
+
+		const count = n.hits.n;
+
+		return `${count.toLocaleString()} ` + (n.cron ? (count === 1 ? 'run' : 'runs') : (count === 1 ? 'request' : 'requests'));
+	}
 
 	/**
 	 * Every measured element with a heat between 0 and 1 by its rank, not by its value: the square of its percentile, so in
@@ -811,27 +973,12 @@ class AppMapView {
 		return { heat: new Map(nodes.map(n => [n, rank(value(n)) ** 2])), top: nodes.reduce((a, b) => value(b) > value(a) ? b : a, nodes[0]) };
 	}
 
-	// the activity and the errors in one line, for the line below the map
+	// the activity in one line, for the line below the map
 	describeActivity() {
 
-		const parts = [];
+		const { heat, top } = this.activity;
 
-		if (this.activity) {
-
-			const { mode, heat, top } = this.activity;
-
-			parts.push(!top ? 'No requests recorded yet'
-				: `${heat.size} pages, endpoints and types measured · ` + (mode === 'usage' ? `most used: ${top.n} with ${top.hits.n.toLocaleString()} requests` : `slowest: ${top.n} with ${top.hits.avg.toLocaleString()} ms on average`));
-		}
-
-		if (this.errors) {
-
-			const { heat, top } = this.errors;
-
-			parts.push(!top ? 'no scripting errors since the last start' : `${heat.size} with scripting errors in red, most: ${top.n} with ${top.errs.n.toLocaleString()}`);
-		}
-
-		return parts.join(' · ');
+		return !top ? 'Nothing used since the start' : `${heat.size.toLocaleString()} elements used since the start · most used: ${top.n} with ${AppMapView.describeUse(top)}`;
 	}
 
 	// the lens in one line, for the line below the map
@@ -925,7 +1072,7 @@ class AppMapView {
 		const open = this.panels.reading.size || [...this.panels.trees.values()].some(t => t.open);
 		const hint = !this.nodes.length ? ''
 			: this.access && !this.pinned ? this.describeLens()
-			: (this.activity || this.errors) && !this.pinned ? this.describeActivity()
+			: this.activity && !this.pinned ? this.describeActivity()
 			: this.found ? `${this.found.elements.size ? this.found.elements.size : 'No'} ${this.found.elements.size === 1 ? 'element matches' : 'elements match'} “${this.found.text}” · click a result of the search to go there`
 			: this.pinned ? 'Click a name at the end of a relation to go there · Esc or a click on the empty map ends exploring'
 			: open ? 'Double-click the empty map to see the whole map again'
@@ -980,15 +1127,39 @@ class AppMapView {
 			.on('mousemove', e => this.onPointerMove(e))
 			.on('mouseleave', () => this.onPointerLeave());
 
-		// Escape ends exploring
+		// Escape ends editing, then exploring; an Escape the editor used itself, to close its suggestions, ends nothing, and
+		// the editor stops it on its way, so only one that arrives here unused counts. Editing ends when the key is released:
+		// the question about unsaved changes takes the focus, and a release in it would answer it at once
 		this.onKey = e => {
 
-			if (e.key === 'Escape' && this.pinned) {
-				this.unpin();
+			if (e.key !== 'Escape') {
+				return;
+			}
+
+			if (e.type === 'keydown') {
+
+				this.escapeFree = !e.defaultPrevented;
+
+				if (!this.editing && this.escapeFree && this.pinned) {
+					this.unpin();
+				}
+
+			} else {
+
+				// every release ends what its key began, so an earlier Escape says nothing about the next
+				const free      = this.escapeFree;
+				this.escapeFree = false;
+
+				if (this.editing && free) {
+					this.endEdit();
+				}
 			}
 		};
 
+		this.escapeFree = false;
+
 		document.addEventListener('keydown', this.onKey);
+		document.addEventListener('keyup', this.onKey);
 
 		this.resizeObserver = new ResizeObserver(() => {
 
@@ -1067,6 +1238,12 @@ class AppMapView {
 		const n        = dom ? dom.page : (this.panels.openAt(wx, wy) ?? this.find(px, py));
 
 		e.preventDefault();
+
+		// its first click opened the editor on readable code, and the view stays where it is; while the code loads, the editor
+		// is not shown yet, so the second click lands on the map
+		if (this.editor && this.panels.codeAt(wx, wy, this.transform.k)) {
+			return;
+		}
 
 		// the element opened is the one explored from: its jump markers lead on; inside an open page the HTML element stays held
 		if (dom) {
@@ -1347,14 +1524,9 @@ class AppMapView {
 		// how a page is reached and what it is for
 		parts.push(...this.describeRouting(n));
 
-		// how often it was requested and how fast it answered, as the HTTP service measured it
+		// how often it was requested or ran since the start
 		if (n.hits) {
-			parts.push(`${n.hits.n.toLocaleString()} ${n.hits.n === 1 ? 'request' : 'requests'}, ${n.hits.avg.toLocaleString()} ms on average, ${n.hits.max.toLocaleString()} ms at most`);
-		}
-
-		// the scripting errors since the last start, with the latest
-		if (n.errs) {
-			parts.push(`${n.errs.n.toLocaleString()} scripting ${n.errs.n === 1 ? 'error' : 'errors'}` + (n.errs.msg ? `, latest${n.errs.row ? ` in line ${n.errs.row}` : ''}: ${n.errs.msg}` : ''));
+			parts.push(AppMapView.describeUse(n) + ' since the start');
 		}
 
 		// what deleting it takes along, and what it passes on

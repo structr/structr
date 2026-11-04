@@ -26,13 +26,25 @@ import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
 /**
  * The REST endpoints an application opens up. A resource access grant on a method of a type or
  * on a user-defined function makes that method an entry point from outside, so it becomes an
- * endpoint of its own; a grant on a type (with or without a view or a relationship path) only
- * opens the type to REST and is recorded as a property of the type, with whether it opens it to
- * anonymous or to authenticated users; the login endpoint opens the users. Grants on the schema,
- * on single objects by id and on HTML elements say nothing about the application and are left out.
+ * endpoint of its own. The grants on a type (with or without a view or a relationship path)
+ * together make one endpoint for the type, so that the requests to it show among the
+ * integrations; they are also recorded as a property of the type, with whether they open it to
+ * anonymous or to authenticated users. The endpoints of the users (login, logout, registration,
+ * password reset, token and the current user) stand for the users, also when the application
+ * does not extend the type User (see usersOf); whether an application grants them says who may
+ * register, reset a password or take a token. A grant on a method of the current user
+ * (me/method) opens that method of the users. Grants on the schema, on single objects by id, on
+ * HTML elements and on the other built-in endpoints say nothing about the application and are
+ * left out.
  */
 public class EndpointMapContributor implements ApplicationMapContributor {
 
@@ -43,6 +55,12 @@ public class EndpointMapContributor implements ApplicationMapContributor {
 	static final long AUTHENTICATED_FLAGS       = 1 | 2 | 4 | 8 | 256 | 1024 | 4096;
 	static final long PUBLIC_WRITE_FLAGS        = 32 | 64 | 128 | 8192;
 	static final long AUTHENTICATED_WRITE_FLAGS = 2 | 4 | 8 | 4096;
+
+	// the signatures of the built-in endpoints that work on the users
+	static final Set<String> USER_ENDPOINTS     = Set.of("_login", "_logout", "_registration", "_resetPassword", "_token", "me");
+
+	// the id of the built-in users on the map when the application does not extend them
+	static final String BUILTIN_USER_ID         = "type:" + StructrTraits.USER;
 
 	@Override
 	public void contribute(final ApplicationMap map, final App app) throws FrameworkException {
@@ -77,10 +95,24 @@ public class EndpointMapContributor implements ApplicationMapContributor {
 				continue;
 			}
 
-			final String type = typeOf(schema, signature, parts);
+			final String type = schema.isType(parts[0]) ? schema.getTypeIds().get(parts[0]) : (USER_ENDPOINTS.contains(parts[0]) ? usersOf(map, schema) : null);
 
 			if (type != null && map.getNode(type) != null) {
-				map.getNode(type).addRestAccess(flags);
+
+				final String id     = "api:" + parts[0];
+				final boolean first = !map.hasNode(id);
+
+				// the endpoints of the users are no access to the users as data
+				if (schema.isType(parts[0])) {
+					map.getNode(type).addRestAccess(flags);
+				}
+
+				map.addNode(id, ApplicationMap.API, "/" + parts[0]).setPublic(node.isVisibleToPublicUsers()).addRestAccess(flags);
+
+				// the grants of a type and its views (Item, Item/_Ui) make one endpoint, joined to the type once
+				if (first) {
+					map.addReference(id, type, "endpoint", 1.5);
+				}
 			}
 		}
 	}
@@ -93,6 +125,10 @@ public class EndpointMapContributor implements ApplicationMapContributor {
 	 */
 	private String methodOf(final SchemaIndex schema, final String[] parts) {
 
+		if (parts.length == 2 && "me".equals(parts[0])) {
+			return userMethod(schema, parts[1]);
+		}
+
 		if (parts.length == 2 && schema.isType(parts[0])) {
 			return ObjectUtils.firstNonNull(schema.getTypeMethod(parts[0], parts[1]), schema.getTypeMethod(parts[0], StringUtils.uncapitalize(parts[1])));
 		}
@@ -104,16 +140,71 @@ public class EndpointMapContributor implements ApplicationMapContributor {
 		return null;
 	}
 
-	private String typeOf(final SchemaIndex schema, final String signature, final String[] parts) {
+	/**
+	 * The users on the map: the type User if the application extends it, else a type of its own
+	 * for the built-in users, which has no schema node and so no id of one; the types that extend
+	 * User inherit from it.
+	 */
+	private String usersOf(final ApplicationMap map, final SchemaIndex schema) {
 
-		if (schema.isType(parts[0])) {
-			return schema.getTypeIds().get(parts[0]);
+		final String own = schema.getTypeIds().get(StructrTraits.USER);
+
+		if (own != null) {
+			return own;
 		}
 
-		if ("_login".equals(signature)) {
-			return schema.getTypeIds().get(StructrTraits.USER);
+		if (!map.hasNode(BUILTIN_USER_ID)) {
+
+			map.addNode(BUILTIN_USER_ID, ApplicationMap.TYPE, StructrTraits.USER);
+
+			for (final Map.Entry<String, String> type : schema.getTypeIds().entrySet()) {
+
+				if (schema.getParents(type.getKey()).contains(StructrTraits.USER)) {
+					map.addEdge(type.getValue(), BUILTIN_USER_ID, "inherits", 1.5, type.getKey() + " inherits from " + StructrTraits.USER);
+				}
+			}
 		}
 
-		return null;
+		return BUILTIN_USER_ID;
+	}
+
+	// the method of the users a grant on me/method opens, in either spelling: one on User, else one on a type that extends
+	// User, directly or further down, as long as only one of them has it
+	private String userMethod(final SchemaIndex schema, final String name) {
+
+		final String own = typeMethodOf(schema, StructrTraits.USER, name);
+
+		if (own != null) {
+			return own;
+		}
+
+		final List<String> found = schema.getTypeIds().keySet().stream()
+			.filter(type -> extendsUser(schema, type, new HashSet<>()))
+			.map(type -> typeMethodOf(schema, type, name))
+			.filter(Objects::nonNull)
+			.toList();
+
+		return found.size() == 1 ? found.get(0) : null;
+	}
+
+	private String typeMethodOf(final SchemaIndex schema, final String type, final String name) {
+
+		return ObjectUtils.firstNonNull(schema.getTypeMethod(type, name), schema.getTypeMethod(type, StringUtils.uncapitalize(name)));
+	}
+
+	private boolean extendsUser(final SchemaIndex schema, final String type, final Set<String> seen) {
+
+		if (!seen.add(type)) {
+			return false;
+		}
+
+		for (final String parent : schema.getParents(type)) {
+
+			if (StructrTraits.USER.equals(parent) || extendsUser(schema, parent, seen)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

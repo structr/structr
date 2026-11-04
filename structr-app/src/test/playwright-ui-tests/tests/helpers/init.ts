@@ -39,9 +39,28 @@ export async function initialize(playwright, createData?, adminPassword: string 
 	// clear database. Fail loudly if this does not succeed (e.g. wrong
 	// SUPERUSER_PASSWORD): a silently dirty database makes tests fail later
 	// in ways that are much harder to diagnose.
-	const clearResponse = await context.post(process.env.BASE_URL + '/structr/rest/maintenance/clearDatabase');
-	if (!clearResponse.ok()) {
-		throw new Error(`clearDatabase failed with status ${clearResponse.status()}, check SUPERUSER_PASSWORD`);
+	//
+	// The server does not repeat a maintenance command after a transient error (MaintenanceResource.isRepeatable),
+	// so a deadlock with a transaction that is still running, like one the server starts after the database
+	// connection is set up, answers 500 with a RetryException; it is repeated here a few times.
+	for (let attempt = 1; ; attempt++) {
+
+		const clearResponse = await context.post(process.env.BASE_URL + '/structr/rest/maintenance/clearDatabase');
+
+		if (clearResponse.ok()) {
+			break;
+		}
+
+		// the body says why, whether a wrong SUPERUSER_PASSWORD or an error on the server
+		const body = await clearResponse.text().catch(() => '(no body)');
+
+		if (attempt < 5 && clearResponse.status() === 500 && body.includes('RetryException')) {
+
+			await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+			continue;
+		}
+
+		throw new Error(`clearDatabase failed with status ${clearResponse.status()}: ${body}`);
 	}
 
 	// create admin user

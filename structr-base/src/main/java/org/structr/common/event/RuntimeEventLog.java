@@ -22,15 +22,21 @@ import org.structr.api.Predicate;
 import org.structr.core.entity.Principal;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * An event log implementation that records runtime events and stores
- * them for a limited amount of time.
+ * them for a limited amount of time. Alongside it counts some of the
+ * events since the start, which the log itself forgets as it fills:
+ * the REST requests per resource signature and the runs of the cron
+ * tasks per task.
  */
 public class RuntimeEventLog {
 
@@ -40,6 +46,11 @@ public class RuntimeEventLog {
 	public static final String NAME_KEY   = "name";
 
 	private static final BlockingDeque<RuntimeEvent> events = new LinkedBlockingDeque<>(101_000);
+
+	// a type of event counts at most this many keys; a key beyond them, like an unusual path, is not counted
+	private static final int MAX_COUNTED_KEYS = 10_000;
+
+	private static final Map<EventType, Map<String, LongAdder>> counts = new ConcurrentHashMap<>();
 
 	private enum EventType {
 
@@ -88,10 +99,14 @@ public class RuntimeEventLog {
 
 	public static void cron(final String command) {
 
+		count(EventType.Cron, command);
+
 		add(EventType.Cron, command);
 	}
 
 	public static void cron(final String command, final Map<String, Object> data) {
+
+		count(EventType.Cron, command);
 
 		add(EventType.Cron, command, data);
 	}
@@ -107,6 +122,11 @@ public class RuntimeEventLog {
 	}
 
 	public static void rest(final String method, final String path, final Principal user) {
+
+		// a preflight of the browser is no use of the endpoint, and one the servlet cannot resolve carries the raw path
+		if (!"Options".equals(method)) {
+			count(EventType.Rest, path);
+		}
 
 		if (user != null) {
 
@@ -192,7 +212,53 @@ public class RuntimeEventLog {
 		}
 	}
 
+	/**
+	 * The REST requests since the start, of every method, per resource signature.
+	 */
+	public static Map<String, Long> getRestCounts() {
+
+		return getCounts(EventType.Rest);
+	}
+
+	/**
+	 * The runs of the cron tasks since the start, per task.
+	 */
+	public static Map<String, Long> getCronCounts() {
+
+		return getCounts(EventType.Cron);
+	}
+
 	// ----- private methods -----
+	private static Map<String, Long> getCounts(final EventType type) {
+
+		final Map<String, Long> result = new LinkedHashMap<>();
+
+		for (final Map.Entry<String, LongAdder> entry : counts.getOrDefault(type, Map.of()).entrySet()) {
+			result.put(entry.getKey(), entry.getValue().sum());
+		}
+
+		return result;
+	}
+
+	private static void count(final EventType type, final String key) {
+
+		if (key == null) {
+			return;
+		}
+
+		final Map<String, LongAdder> keys = counts.computeIfAbsent(type, t -> new ConcurrentHashMap<>());
+		final LongAdder counter           = keys.get(key);
+
+		if (counter != null) {
+
+			counter.increment();
+
+		} else if (keys.size() < MAX_COUNTED_KEYS) {
+
+			keys.computeIfAbsent(key, k -> new LongAdder()).increment();
+		}
+	}
+
 	private static void add(final EventType type, final String description) {
 
 		add(type, description, Collections.EMPTY_MAP);

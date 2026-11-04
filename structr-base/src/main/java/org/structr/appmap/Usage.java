@@ -18,6 +18,7 @@
  */
 package org.structr.appmap;
 
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Services;
 import org.structr.rest.common.Stats;
 import org.structr.rest.service.HttpService;
@@ -28,24 +29,26 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * How much the entry points of an application are used and how fast they answer, from the
- * request statistics of the HTTP service: a page by the name it is rendered under, a REST
- * endpoint by the resource signature of the request, which is the signature of its grant;
- * a request to a type that no endpoint stands for counts for the type. The statistics only
- * know entry points: what a method or page calls on its way is not measured and gets nothing.
+ * How much the entry points of an application are used since the start: a page by the
+ * renderings the HTTP service counts under its name, a REST endpoint by the requests of every
+ * method the event log counts under the resource signature of the request, which is the
+ * signature of its grant, a request to a type by the endpoint its grants make (a request to a
+ * type without grants, which only an administrator may send, counts for the type), and a
+ * method CronService runs by its runs. Only entry points are counted: what a method or page
+ * calls on its way gets nothing.
  */
-public class HttpActivity {
+public class Usage {
 
 	public static void apply(final ApplicationMap map) {
 
 		final HttpService http = Services.getInstance().getServiceImplementation(HttpService.class);
 
-		if (http == null) {
-			return;
+		if (http != null) {
+			applyToPages(map, http.getRequestStats("html"));
 		}
 
-		applyToPages(map, http.getRequestStats("html"));
-		applyToEndpoints(map, http.getRequestStats("json"));
+		applyToEndpoints(map, RuntimeEventLog.getRestCounts());
+		applyToSchedules(map, RuntimeEventLog.getCronCounts());
 	}
 
 	// ----- private methods -----
@@ -67,28 +70,46 @@ public class HttpActivity {
 			final ApplicationMap.MapNode page = pages.get(entry.getKey());
 
 			if (page != null) {
-				add(page, entry.getValue());
+				page.addUse(entry.getValue().getCount());
 			}
 		}
 	}
 
-	private static void applyToEndpoints(final ApplicationMap map, final Map<String, Stats> stats) {
+	private static void applyToEndpoints(final ApplicationMap map, final Map<String, Long> requests) {
 
 		final SchemaIndex schema = map.getSchema();
 
-		for (final Map.Entry<String, Stats> entry : stats.entrySet()) {
+		for (final Map.Entry<String, Long> entry : requests.entrySet()) {
 
 			final ApplicationMap.MapNode node = endpointOf(map, schema, entry.getKey());
 
 			if (node != null) {
-				add(node, entry.getValue());
+				node.addUse(entry.getValue());
+			}
+		}
+	}
+
+	// a task is the name of a user-defined function or Type.method
+	private static void applyToSchedules(final ApplicationMap map, final Map<String, Long> runs) {
+
+		final SchemaIndex schema = map.getSchema();
+
+		for (final Map.Entry<String, Long> entry : runs.entrySet()) {
+
+			final String[] parts = entry.getKey().split("\\.");
+			final String method  = parts.length == 1 ? schema.getGlobalMethod(parts[0]) : (parts.length == 2 ? schema.getTypeMethod(parts[0], parts[1]) : null);
+			final ApplicationMap.MapNode node = method != null ? map.getNode(method) : null;
+
+			if (node != null) {
+				node.addUse(entry.getValue());
 			}
 		}
 	}
 
 	/**
 	 * The map element a REST request went to: the endpoint of its signature, also without the view the signature ends with
-	 * (Project/_Ui) and without the placeholder of an object id (Project/_id/archive); otherwise the type it names.
+	 * (Project/_Ui) and without the placeholder of an object id (Project/_id/archive); otherwise the endpoint of the
+	 * type it names (Project/_id/tasks), or else the type.
 	 */
 	private static ApplicationMap.MapNode endpointOf(final ApplicationMap map, final SchemaIndex schema, final String signature) {
 
@@ -105,15 +126,12 @@ public class HttpActivity {
 			}
 		}
 
-		final String type = schema.isType(parts[0]) ? schema.getTypeIds().get(parts[0]) : null;
-
-		return type != null ? map.getNode(type) : null;
-	}
-
-	private static void add(final ApplicationMap.MapNode node, final Stats stats) {
-
-		if (stats.getCount() > 0) {
-			node.addActivity(stats.getCount(), stats.getAverageValue(), stats.getMaxValue());
+		if (!schema.isType(parts[0])) {
+			return null;
 		}
+
+		final ApplicationMap.MapNode endpoint = map.getNode("api:" + parts[0]);
+
+		return endpoint != null ? endpoint : map.getNode(schema.getTypeIds().get(parts[0]));
 	}
 }

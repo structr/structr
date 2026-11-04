@@ -31,7 +31,7 @@
 class AppMapRenderer {
 
 	// every area has its own hue for its name: the interface violet, the data model green and so on
-	static AREA_HUE = { ui: 265, components: 295, logic: 190, security: 28, data: 135, builtin: 215, scheduled: 330, integration: 50 };
+	static AREA_HUE = { ui: 265, components: 295, logic: 190, security: 28, data: 135, builtin: 215, scheduled: 330, integration: 50, api: 90 };
 
 	// what an edge does to data shows in its colour: create, change, delete; reading stays neutral; [light, dark]
 	static OP_COLOR   = { creates: ['#2b8a3e', '#69db7c'], updates: ['#c77700', '#ffc94d'], deletes: ['#c92a5a', '#ff8fab'] };
@@ -63,12 +63,14 @@ class AppMapRenderer {
 	static ACCESS_COLOR = { pub: ['#e03131', '#ff6b6b'], auth: ['#1c7ed6', '#4dabf7'], none: ['#495057', '#adb5bd'] };
 
 	// the glow of the activity lens reaches this many pixels beyond an element, plus this many more for the hottest one, in
-	// a turquoise that no kind of element has; the strength is in size and opacity. Errors are a red ring around the element,
-	// as wide in pixels as these plus the share of the most failing one, so both show at once; [light, dark]
+	// an amber that reads as warmth and that no kind of element has; the strength is in size and opacity; [light, dark]
 	static HEAT_GLOW    = [4, 20];
-	static HEAT_COLOUR  = ['#12b886', '#38d9a9'];
-	static ERROR_RING   = [1, 2.5];
-	static ERROR_COLOUR = ['#e03131', '#ff6b6b'];
+	static HEAT_COLOUR  = ['#f08c00', '#ffa94d'];
+
+	// the hotspots of the activity: the map in grey, veiled with this much of the background, and the names of this many of
+	// the most used elements
+	static SPOTLIGHT_VEIL  = 0.55;
+	static SPOTLIGHT_NAMES = 12;
 
 	// the tags of a page below it: the start page green, the pages shown for errors red; [light, dark]
 	static ROUTING_COLOR = { start: ['#2f9e44', '#69db7c'], error: ['#e03131', '#ff6b6b'] };
@@ -111,6 +113,10 @@ class AppMapRenderer {
 
 	// a line fainter than this is not worth its rasterisation
 	static MIN_ALPHA = 0.012;
+
+	// the relations of the whole map are its most expensive layer, thousands of lines: while the view moves they come from the
+	// picture of the last frame that drew them, moved and scaled along, and are drawn anew this many milliseconds after it rests
+	static RELATIONS_REST = 150;
 
 	// labels: the size on screen, the cell size of the grid that keeps them apart, and how many a frame may try and place
 	static LABEL_SIZE   = 10.5;
@@ -230,7 +236,7 @@ class AppMapRenderer {
 		const ctx     = this.ctx;
 		const look    = view.look;
 		const k       = view.transform.k;
-		const focus   = view.focus;
+		const focus   = view.spotlight ? null : view.focus;
 		const lifted  = focus ? view.liftedTargets(focus) : [];
 		const shown   = focus ? this.focusLinks(focus) : [];
 		const cascade = focus?.k === 'type' ? AppMapAccess.cascadeOf(view.links, focus) : null;
@@ -254,7 +260,7 @@ class AppMapRenderer {
 		if (focus) {
 			this.drawTrace(k);
 		} else {
-			this.drawRelations(k, rect);
+			this.drawRelationsLayer(k, rect);
 		}
 
 		ctx.globalCompositeOperation = 'source-over';
@@ -270,11 +276,34 @@ class AppMapRenderer {
 			this.drawStrands(k, focus);
 		}
 
+		if (view.spotlight) {
+
+			// an open page stays, greyed out with everything else
+			this.drawGroupings(k, null, rect);
+			this.drawElements(k, null, null, null, rect);
+			view.panels.draw(this, k);
+
+			if (view.layout.areaPlaces.size) {
+				this.drawAreaNames(k);
+			}
+
+			this.greyOut();
+			this.drawHeat(k, rect);
+			this.drawSpotlightNames(k);
+
+			ctx.restore();
+
+			if (!view.nodes.length) {
+				this.drawEmpty();
+			}
+
+			return;
+		}
+
 		this.drawGroupings(k, focus, rect);
 		this.drawHeat(k, rect);
 		this.drawFound(k, rect);
 		this.drawElements(k, focus, near, around, rect);
-		this.drawErrors(k, rect);
 
 		if (view.access && !focus) {
 			this.drawLens(k, rect);
@@ -612,6 +641,85 @@ class AppMapRenderer {
 		});
 
 		ctx.restore();
+	}
+
+	// the relations from their picture, which is drawn anew when they change, when the elements move while the layout
+	// settles, when the canvas changes its size, or when the view has moved and come to rest
+	drawRelationsLayer(k, rect) {
+
+		const view  = this.view;
+		const ctx   = this.ctx;
+		const t     = view.transform;
+		const now   = performance.now();
+		const open  = [...view.panels.trees].filter(([, tree]) => tree.open).map(([page]) => page.id).join();
+		const key   = [view.generation, view.layout.version, view.look.bg, view.strands.bundled(), ctx.canvas.width, ctx.canvas.height, open].join('|');
+		const shot  = this.relationsShot;
+		const last  = this.lastView;
+
+		if (!last || last.x !== t.x || last.y !== t.y || last.k !== t.k) {
+
+			this.lastView = { x: t.x, y: t.y, k: t.k };
+			this.lastMove = now;
+		}
+
+		const moving  = now - this.lastMove < AppMapRenderer.RELATIONS_REST;
+		const current = shot && shot.key === key && shot.paths === view.strands.paths;
+		const exact   = current && shot.x === t.x && shot.y === t.y && shot.k === t.k;
+
+		if (!exact && !(current && moving)) {
+			this.shootRelations(k, rect, key);
+		}
+
+		// a picture of the map device pixel for device pixel, placed by the change of the view since it was taken
+		const matrix = ctx.getTransform();
+		const taken  = this.relationsShot.matrix;
+		const scale  = matrix.a / taken.a;
+
+		ctx.save();
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
+		ctx.drawImage(this.relationsShot.canvas, matrix.e - taken.e * scale, matrix.f - taken.f * scale, this.relationsShot.canvas.width * scale, this.relationsShot.canvas.height * scale);
+		ctx.restore();
+
+		// once the view rests, the relations are drawn sharp at their new place
+		if (moving) {
+
+			clearTimeout(this.restTimer);
+			this.restTimer = setTimeout(() => view.requestDraw(), AppMapRenderer.RELATIONS_REST + 10);
+		}
+	}
+
+	shootRelations(k, rect, key) {
+
+		const view   = this.view;
+		const main   = this.ctx;
+		const shot   = this.relationsShot ?? { canvas: document.createElement('canvas') };
+		const canvas = shot.canvas;
+
+		if (canvas.width !== main.canvas.width || canvas.height !== main.canvas.height) {
+
+			canvas.width  = main.canvas.width;
+			canvas.height = main.canvas.height;
+		}
+
+		const ctx = canvas.getContext('2d');
+
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.setTransform(main.getTransform());
+		ctx.globalCompositeOperation = view.look.blend;
+
+		// the relations draw on the picture as they would on the map
+		this.ctx = ctx;
+
+		try {
+			this.drawRelations(k, rect);
+		} finally {
+			this.ctx = main;
+		}
+
+		Object.assign(shot, { key, paths: view.strands.paths, matrix: main.getTransform(), x: view.transform.x, y: view.transform.y, k: view.transform.k });
+
+		this.relationsShot = shot;
 	}
 
 	// one line per pair of elements: all relations between two elements are summed into one stroke, thicker with their
@@ -973,7 +1081,7 @@ class AppMapRenderer {
 			ctx.strokeStyle = look.outline;
 			ctx.stroke();
 
-			// a type that resource access grants open to REST wears a ring in the colour of the integrations: solid when
+			// a type that resource access grants open to REST wears a ring in the colour of the REST API: solid when
 			// anonymous users may use it, dashed when only authenticated users may
 			if (n.rest) {
 
@@ -981,7 +1089,7 @@ class AppMapRenderer {
 				ctx.arc(n.x, n.y, r + 2.2 / k, 0, Math.PI * 2);
 				ctx.setLineDash(n.rest.pub ? [] : [2 / k, 1.6 / k]);
 				ctx.lineWidth   = 1 / k;
-				ctx.strokeStyle = this.areaColor('integration', 0.9);
+				ctx.strokeStyle = this.areaColor('api', 0.9);
 				ctx.stroke();
 				ctx.setLineDash([]);
 			}
@@ -1397,7 +1505,7 @@ class AppMapRenderer {
 	}
 
 	// what the global search found lies on a mark as from a highlighter, large enough to be seen from afar
-	// the activity lens: a glow behind every measured element, as wide and as strong as it is used, slow or failing; its size is in
+	// the activity lens: a glow behind every measured element, as wide and as strong as it is used or failing; its size is in
 	// pixels, so the heat shows in the overview as close up
 	drawHeat(k, rect) {
 
@@ -1407,6 +1515,8 @@ class AppMapRenderer {
 		if (!activity) {
 			return;
 		}
+
+		const colour = d3.color(AppMapRenderer.HEAT_COLOUR[this.view.look.dark ? 1 : 0]);
 
 		ctx.save();
 
@@ -1419,7 +1529,6 @@ class AppMapRenderer {
 				continue;
 			}
 
-			const colour   = d3.color(AppMapRenderer.HEAT_COLOUR[this.view.look.dark ? 1 : 0]);
 			const gradient = ctx.createRadialGradient(n.x, n.y, inner, n.x, n.y, r);
 
 			gradient.addColorStop(0, colour.copy({ opacity: 0.15 + 0.45 * heat }).formatRgb());
@@ -1434,9 +1543,77 @@ class AppMapRenderer {
 		ctx.restore();
 	}
 
+	// everything drawn so far loses its colour and steps back behind a veil of the background, in two passes over the canvas
+	greyOut() {
+
+		const ctx    = this.ctx;
+		const canvas = this.view.canvas;
+
+		ctx.save();
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
+		ctx.globalCompositeOperation = 'saturation';
+		ctx.fillStyle                = '#808080';
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		ctx.globalCompositeOperation = 'source-over';
+		ctx.globalAlpha              = AppMapRenderer.SPOTLIGHT_VEIL;
+		ctx.fillStyle                = this.view.look.bg;
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		ctx.restore();
+	}
+
+	// the names of the most used elements on screen, each with its number of requests or runs; a name that would cover one already
+	// placed gives way
+	drawSpotlightNames(k) {
+
+		const view   = this.view;
+		const ctx    = this.ctx;
+		const look   = view.look;
+		const t      = view.transform;
+		const size   = AppMapRenderer.LABEL_SIZE;
+		const placed = [];
+		const names  = view.activity ? [...view.activity.heat].filter(([n]) => this.onScreen(n, 0)).sort((a, b) => b[1] - a[1]).slice(0, AppMapRenderer.SPOTLIGHT_NAMES)
+			.map(([n]) => [n, AppMapView.describeUse(n)]) : [];
+
+		ctx.save();
+		ctx.textBaseline = 'middle';
+		ctx.textAlign    = 'left';
+		ctx.lineWidth    = 3 / k;
+
+		for (const [n, value] of names) {
+
+			const name   = String(n.n).length > 32 ? String(n.n).slice(0, 31) + '…' : String(n.n);
+			const offset = Math.max(view.shownRadius(n), 2 / k) * (AppMapRenderer.boxOf(n)?.[0] ?? 1) + 6 / k;
+			const sx     = t.applyX(n.x + offset);
+			const sy     = t.applyY(n.y);
+			const width  = this.textWidth(name, 650) + 6 + this.textWidth(value, 400);
+			const box    = [sx, sy - size * 0.7, sx + width, sy + size * 0.7];
+
+			if (placed.some(b => b[0] < box[2] && b[2] > box[0] && b[1] < box[3] && b[3] > box[1])) {
+				continue;
+			}
+
+			placed.push(box);
+
+			ctx.font        = this.font(650, size / k);
+			ctx.strokeStyle = look.halo;
+			ctx.strokeText(name, n.x + offset, n.y);
+			ctx.fillStyle   = look.labelFocus;
+			ctx.fillText(name, n.x + offset, n.y);
+
+			const after = n.x + offset + (this.textWidth(name, 650) + 6) / k;
+
+			ctx.font = this.font(400, size / k);
+			ctx.strokeText(value, after, n.y);
+			ctx.fillStyle = look.label;
+			ctx.fillText(value, after, n.y);
+		}
+
+		ctx.restore();
+	}
+
 	// how strongly an element shows: in focus the elements one step beyond the neighbours stay half visible and the rest
 	// steps back; so does what the global search did not find, what the role of the access lens does not reach, and what
-	// neither the activity nor the errors measured
+	// the activity lens did not measure
 	presence(n, focus, around) {
 
 		const view = this.view;
@@ -1453,42 +1630,11 @@ class AppMapRenderer {
 			return 0.15;
 		}
 
-		if ((view.activity || view.errors) && !view.activity?.heat.has(n) && !view.errors?.heat.has(n)) {
+		if (view.activity && !view.activity.heat.has(n)) {
 			return 0.55;
 		}
 
 		return 1;
-	}
-
-	// the scripting errors: a red ring around every element that had one, as wide as it fails often
-	drawErrors(k, rect) {
-
-		const errors = this.view.errors;
-		const ctx    = this.ctx;
-
-		if (!errors) {
-			return;
-		}
-
-		ctx.save();
-		ctx.strokeStyle = AppMapRenderer.ERROR_COLOUR[this.view.look.dark ? 1 : 0];
-
-		for (const [n, heat] of errors.heat) {
-
-			const r = Math.max(this.view.shownRadius(n) * (AppMapRenderer.boxOf(n)?.[0] ?? 1), 2 / k) + 3 / k;
-
-			if (n.x + r < rect[0] || n.x - r > rect[2] || n.y + r < rect[1] || n.y - r > rect[3]) {
-				continue;
-			}
-
-			ctx.globalAlpha = 0.6 + 0.4 * heat;
-			ctx.lineWidth   = (AppMapRenderer.ERROR_RING[0] + AppMapRenderer.ERROR_RING[1] * heat) / k;
-			ctx.beginPath();
-			ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
-			ctx.stroke();
-		}
-
-		ctx.restore();
 	}
 
 	drawFound(k, rect) {

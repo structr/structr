@@ -36,8 +36,10 @@ import java.util.regex.Pattern;
  * to the geocoding and translation services; queries to a foreign database (jdbc, mongodb,
  * remoteCypher); executes for a script configured for exec and execBinary; mails for sending
  * mail. An integration whose target the script names as a literal is one external service
- * per target, one whose target is computed one per kind of integration, marked dynamic, so
- * the dependency stays visible.
+ * per target, one whose target is computed one per kind of integration, so the dependency
+ * stays visible. An external service is named after what the application does with it and
+ * where: call structr.com, query db.example.com (JDBC), send e-mail via the configured
+ * SMTP server.
  */
 public class ScriptScanner {
 
@@ -91,7 +93,9 @@ public class ScriptScanner {
 
 		if (MAIL.matcher(source).find()) {
 
-			map.addNode(MAIL_ID, ApplicationMap.EXTERNAL, "Mail");
+			final String host = Settings.SmtpHost.getValue();
+
+			map.addNode(MAIL_ID, ApplicationMap.EXTERNAL, host == null || host.isBlank() ? "Send e-mail" : "Send e-mail via " + host);
 			map.addReference(origin, MAIL_ID, "mails", 1.0);
 		}
 	}
@@ -107,7 +111,7 @@ public class ScriptScanner {
 
 				if (url == null) {
 
-					connect(map, origin, "ext:http", "HTTP (dynamic)", "requests");
+					connect(map, origin, "ext:http", "Call computed URLs", "requests");
 
 				} else if (url.startsWith("http://") || url.startsWith("https://")) {
 
@@ -115,7 +119,7 @@ public class ScriptScanner {
 
 					// a host without a domain is the server itself or one in the same network, not an integration
 					if (host != null && host.contains(".")) {
-						connect(map, origin, "ext:" + host, host, "requests");
+						connect(map, origin, "ext:" + host, "Call " + host, "requests");
 					}
 				}
 
@@ -132,7 +136,7 @@ public class ScriptScanner {
 				final String provider = Settings.GeocodingProvider.getValue();
 				final String name     = provider.substring(provider.lastIndexOf('.') + 1).replace("GeoCodingProvider", "");
 
-				connect(map, origin, "ext:geocoding", name.isEmpty() ? "Geocoding" : "Geocoding (" + name + ")", "requests");
+				connect(map, origin, "ext:geocoding", name.isEmpty() ? "Geocode addresses" : "Geocode via " + name, "requests");
 			}
 
 			case "translate" -> {
@@ -142,13 +146,13 @@ public class ScriptScanner {
 
 				if (provider == null) {
 
-					connect(map, origin, "ext:translation", "Translation (dynamic)", "requests");
+					connect(map, origin, "ext:translation", "Translate via a computed provider", "requests");
 
 				} else {
 
 					final String key = provider.toLowerCase();
 
-					connect(map, origin, "ext:translation:" + key, "Translation (" + TRANSLATION_PROVIDERS.getOrDefault(key, provider) + ")", "requests");
+					connect(map, origin, "ext:translation:" + key, "Translate via " + TRANSLATION_PROVIDERS.getOrDefault(key, provider), "requests");
 				}
 			}
 
@@ -159,11 +163,11 @@ public class ScriptScanner {
 
 				if (key == null) {
 
-					connect(map, origin, "ext:exec", "exec (dynamic)", "executes");
+					connect(map, origin, "ext:exec", "Run computed scripts", "executes");
 
 				} else {
 
-					connect(map, origin, "ext:exec:" + key, key + " (exec)", "executes");
+					connect(map, origin, "ext:exec:" + key, "Run " + key, "executes");
 				}
 			}
 		}
@@ -174,7 +178,7 @@ public class ScriptScanner {
 
 		if (url == null) {
 
-			connect(map, origin, "ext:" + kind, label + " (dynamic)", "queries");
+			connect(map, origin, "ext:" + kind, "Query computed " + label + " databases", "queries");
 
 			return;
 		}
@@ -182,7 +186,7 @@ public class ScriptScanner {
 		final String host = url.contains("://") ? hostOf(url) : url;
 
 		if (host != null) {
-			connect(map, origin, "ext:" + kind + ":" + host, host + " (" + label + ")", "queries");
+			connect(map, origin, "ext:" + kind + ":" + host, "Query " + host + " (" + label + ")", "queries");
 		}
 	}
 

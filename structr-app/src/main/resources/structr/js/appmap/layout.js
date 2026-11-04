@@ -35,7 +35,7 @@ class AppMapLayout {
 	// the forces of the layout, as a remembered layout keeps them; spread scales the distances that the discs of the groupings
 	// are measured in
 	static FORCE_DEFAULTS = { charge: 4, length: 5, width: 3, step: 1.6, gap: 1, cohesion: 0.3 };
-	static VERSION        = 15;
+	static VERSION        = 17;
 
 	// how strongly a held element is pulled back to its remembered place while its new neighbours settle
 	static HOLD = 0.35;
@@ -154,9 +154,24 @@ class AppMapLayout {
 
 		const sectors   = Object.fromEntries(this.sectors);
 
+		this.forgetOtherLayouts();
 		this.view.storage.set(this.key(), { saved: Date.now(), forces: this.forces, groups, positions, sectors, field: this.areaField });
 		this.layoutSaved = new Date();
 		this.updateStatus();
+	}
+
+	// the layouts of earlier versions are never read again; the Admin UI sends everything it remembers to the server as one
+	// message, which has a limit of one megabyte, so they must not pile up; they go all at once, as every change may send
+	// everything, and before anything is added
+	forgetOtherLayouts() {
+
+		const current = this.key();
+		const earlier = new RegExp(`^structrAppMapLayout_v\\d+_.*_${location.port}$`);
+		const keys    = (this.view.storage.keys?.() ?? []).filter(key => key !== current && earlier.test(key));
+
+		if (keys.length) {
+			this.view.storage.remove(keys);
+		}
 	}
 
 	updateStatus() {
@@ -174,6 +189,12 @@ class AppMapLayout {
 		this.storedLayout = this.view.storage.get(this.key());
 		this.held         = new Map();
 
+		this.forgetOtherLayouts();
+
+		if (!this.fits(this.storedLayout)) {
+			this.storedLayout = null;
+		}
+
 		for (const key of Object.keys(this.forces)) {
 
 			if (typeof this.storedLayout?.forces?.[key] === 'number') {
@@ -183,6 +204,40 @@ class AppMapLayout {
 
 		this.createSimulation();
 		this.restore();
+	}
+
+	// a remembered layout was confined to its sectors when it was saved, so it fits as long as every element it knows still
+	// lies in the sector of its area; an element that has changed its area, or an area that is new, would otherwise be pushed
+	// against the border of a sector that was laid out for other contents, and the whole layout is laid out anew
+	fits(stored) {
+
+		if (!stored?.sectors) {
+			return true;
+		}
+
+		for (const n of this.nodes) {
+
+			const p      = stored.positions?.[n.id];
+			const sector = stored.sectors[n.c?.[0]];
+
+			if (!p) {
+				continue;
+			}
+
+			if (!sector) {
+				return false;
+			}
+
+			const [angle, distance] = AppMapLayout.polar(p[0], p[1]);
+
+			// the positions are rounded to a tenth when they are saved, which moves an element on the border of its sector by up
+			// to 0.07 across it, an angle that grows towards the centre
+			if (Math.abs(AppMapLayout.normalizeAngle(angle - sector.angle)) > sector.half * AppMapLayout.ELEMENT_SPAN + 0.1 / Math.max(distance, 1)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	// the remembered layout; what it does not know is placed and settled anew
