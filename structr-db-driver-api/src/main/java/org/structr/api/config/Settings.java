@@ -132,7 +132,7 @@ public class Settings {
 	public static final Setting<String> ApplicationTitle            = new StringSetting(generalGroup,          "Application", "application.title",                            "Structr", "The title of the application as shown in the log file. This entry exists for historical reasons and has no functional impact other than appearing in the log file.");
 	public static final Setting<String> InstanceName                = new StringSetting(generalGroup,          "Application", "application.instance.name",                    "", "The name of the Structr instance (displayed in the top right corner of structr-ui)");
 	public static final Setting<String> InstanceStage               = new ChoiceSetting(generalGroup,          "Application", "application.instance.stage",                   "", Settings.getInstanceStageOptions(), "The stage of the Structr instance (displayed in the top right corner of structr-ui). Naming the stage lets an operation that is dangerous on a live system, a data deployment for example, recognise where it is running.");
-	public static final Setting<Integer> CypherConsoleMaxResults    = new IntegerSetting(generalGroup,         "Application", "application.console.cypher.maxresults",        10, "The maximum number of results returned by a cypher query in the admin console. If a query yields more results, an error message is shown.");
+	public static final Setting<Integer> CypherConsoleMaxResults    = new IntegerSetting(generalGroup,         "Application", "application.console.cypher.maxresults",        10, "The maximum number of results returned by a cypher query in the admin console. If a query yields more results, an error message is shown, unless the query ends with LIMIT.");
 	public static final Setting<Boolean> EnforceRuntime             = new BooleanSetting(generalGroup,         "Application", "application.runtime.enforce.recommended",      false, "Enforces version check for Java runtime.");
 	public static final Setting<Boolean> DisableSendSystemInfo      = new BooleanSetting(generalGroup,         "Application", "application.systeminfo.disabled",              false, "Disables transmission of telemetry information. This information is used to improve the software and to better adapt to different hardware configurations.");
 	public static final Setting<Boolean> RequestParameterLegacyMode = new BooleanSetting(generalGroup,         "Application", "application.legacy.requestparameters.enabled", false, "Enables pre-4.0 request parameter names (sort, page, pageSize, etc. instead of _sort, _page, _pageSize, ...)");
@@ -182,7 +182,8 @@ public class Settings {
 	public static final Setting<String> LogLevel                       = new ChoiceSetting(generalGroup,             "Logging",     "log.level",                             "INFO", Settings.getAvailableLogLevels(), "Configures the default log level. Takes effect immediately.");
 	public static final Setting<Integer> QueryTimeLoggingThreshold     = new IntegerSetting(generalGroup,            "Logging",     "log.querytime.threshold",               3000, "Milliseconds after which a long-running query will be logged.");
 	public static final Setting<Integer> CallbackLoggingThreshold      = new IntegerSetting(generalGroup,            "Logging",     "log.callback.threshold",                50000, "Number of callbacks after which a transaction will be logged.");
-	public static final Setting<Boolean> RequestLogging                = new BooleanSetting(generalGroup,            "Logging",     "log.requests",                          false);
+	public static final Setting<Boolean> RequestLogging                = new BooleanSetting(generalGroup,            "Logging",     "log.requests",                          false, "Writes every HTTP request to the request log (logs/request.log by default), in the format set by log.requests.format.");
+	public static final Setting<String> RequestLogFormat               = new ChoiceSetting(generalGroup,             "Logging",     "log.requests.format",                   "ultimate", Settings.getRequestLogFormats(), "Format of the request log. The default can be read by log analysers like the Screaming Frog Log File Analyser. Takes effect on restart.");
 	public static final Setting<Boolean> LogFunctionsShortenStacktrace = new BooleanSetting(generalGroup,            "Logging",     "log.functions.shortenstacktrace",       true, "If true, a shortened stack trace will be logged for exceptions occurring during script evaluation. The stack trace is being cut off at the transition to the internals of GraalVM. If this is set to false, the full stacktrace is logged.");
 	public static final Setting<Integer> LogScriptProcessCommandLine   = new IntegerChoiceSetting(generalGroup,      "Logging",     "log.scriptprocess.commandline",         2, Settings.getScriptProcessLogCommandLineOptions(), "Configures the default logging behaviour for the command line generated for script processes. This applies to the exec()- and exec_binary() functions, as well as some processes handling media conversion or processing. For the exec() and exec_binary() function, this can be overridden for each call of the function.");
 	public static final Setting<Boolean> LogDirectoryWatchServiceQuiet = new BooleanSetting(generalGroup,            "Logging",     "log.directorywatchservice.scanquietly", false, "Prevents logging of each scan process for every sync root processed by the storage sync service (formerly the directory watch service, the setting key is kept for compatibility)");
@@ -1449,6 +1450,17 @@ public class Settings {
 		options.put("inline", "Inline");
 		options.put("sandbox", "Sandboxed");
 		options.put("attachment", "Download");
+
+		return options;
+	}
+
+	public static Map<String, String> getRequestLogFormats() {
+
+		final Map<String, String> options = new LinkedHashMap<>();
+
+		options.put("ultimate", "ultimate: Apache combined plus the time taken in microseconds (Screaming Frog \"ultimate\" format)");
+		options.put("apache",   "apache: Apache combined, as written by Apache and nginx");
+		options.put("legacy",   "legacy: the format of earlier Structr versions");
 
 		return options;
 	}

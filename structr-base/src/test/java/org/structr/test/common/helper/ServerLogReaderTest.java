@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -189,6 +190,31 @@ public class ServerLogReaderTest {
 		}
 
 		assertEquals(-1L, ServerLogReader.tailCompressed(gzipped, 50, null, null).offset());
+	}
+
+	@Test
+	public void testEveryLineOfTheRequestLogIsAnEntry() throws IOException {
+
+		final String[] lines = {
+			"66.249.66.1 - - [03/Nov/2026:11:00:56 +0000] \"GET / HTTP/1.1\" 200 4906 2183 \"-\" \"Googlebot\"",
+			"203.0.113.7 - - [03/Nov/2026:11:00:57 +0000] \"GET /contact.html HTTP/1.1\" 404 368 812 \"-\" \"Mozilla\"",
+			"66.249.66.1 - - [03/Nov/2026:11:00:58 +0000] \"GET /about.html HTTP/1.1\" 200 1024 950 \"-\" \"Googlebot\""
+		};
+
+		final Path file    = log(lines);
+		final Path gzipped = gzip(lines);
+		final Pattern each = ServerLogReader.ENTRY_PER_LINE;
+
+		// without a timestamp at the start, the server log mode would see one single entry
+		assertEquals(List.of(lines[2]), ServerLogReader.tail(file, 1, null, null, each).lines());
+		assertEquals(List.of(lines[1], lines[2]), ServerLogReader.tail(file, 2, null, null, each).lines());
+		assertEquals(List.of(lines[0], lines[2]), ServerLogReader.tail(file, 10, null, "Googlebot", each).lines());
+		assertEquals(List.of(lines[2]), ServerLogReader.tailCompressed(gzipped, 1, null, null, each).lines());
+
+		final Result first = ServerLogReader.since(file, 0, 1, null, null, each);
+
+		assertEquals(List.of(lines[0]), first.lines());
+		assertEquals(List.of(lines[1]), ServerLogReader.since(file, first.offset(), 1, null, null, each).lines());
 	}
 
 	@Test

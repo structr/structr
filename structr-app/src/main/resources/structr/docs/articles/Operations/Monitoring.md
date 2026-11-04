@@ -258,6 +258,29 @@ GET /structr/rest/_serverLog?since=48213377&level=ERROR&lines=500
 
 Each poll reads only the bytes logged since the previous one, so its cost does not depend on the size of the log, and a poll every few seconds is cheap. A line that is still being written is left for the next poll. Log in once and reuse the session or a token for the polls; sending the password with every request makes each one pay for the password hash.
 
+## Request Log Endpoint
+
+The request log endpoint returns the request log over HTTP, the file that Structr writes with `log.requests` enabled, one line per HTTP request. It works like the server log endpoint, with the same access rule: only admin users can read it.
+
+### Endpoint
+
+`GET /structr/rest/_requestLog`
+
+### Differences from the Server Log Endpoint
+
+- Every line is an entry of its own, so `lines` is exact and `filter` selects single lines.
+- The request log has no levels, so the `level` parameter is refused with 422.
+- `availableLogFiles` lists the request log and its rotated logs only.
+
+The parameters `lines`, `filter`, `since` and `logFile` and the fields of the response are the same as above. To follow the requests of an instance, keep the `offset` of a first request and poll with `since`:
+
+```
+GET /structr/rest/_requestLog?lines=1
+GET /structr/rest/_requestLog?since=1048576&filter=Googlebot&lines=500
+```
+
+If `log.requests` is disabled and no request log exists, `availableLogFiles` is empty and no lines are returned.
+
 ## Related Topics
 
 - Dashboard - Interactive monitoring in the Admin UI

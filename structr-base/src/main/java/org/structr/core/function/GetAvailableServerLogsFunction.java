@@ -79,7 +79,7 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 
-		return "The collection of available server logs files is identical to the list of available server log files in the dashboard area.";
+		return "Returns the current server log file and its rotated logs, sorted by name. The dashboard also lists the request log and its rotated logs.";
 	}
 
 	@Override
@@ -101,6 +101,68 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 	public static List<String> getListOfServerlogFileNames() {
 
 		return getListOfServerlogFileNames(false);
+	}
+
+	/**
+	 * The server log and the request log, each the current file first and its rotated logs newest first,
+	 * as the dashboard shows them.
+	 */
+	public static List<String> getListOfLogFileNames() {
+
+		final List<String> logFiles = new ArrayList<>(newestFirst(getListOfServerlogFileNames(false)));
+
+		logFiles.addAll(newestFirst(getListOfRequestLogFileNames(false)));
+
+		return logFiles;
+	}
+
+	/**
+	 * @param includeCompressed whether to list rotated logs that were compressed with gzip, which only
+	 *                          a reader that decompresses them can use
+	 */
+	public static List<String> getListOfRequestLogFileNames(final boolean includeCompressed) {
+
+		final String envLogFile = System.getenv("REQUEST_LOG_FILE");
+		final String basePath   = Settings.getBasePath();
+		final File logFile;
+
+		if (envLogFile != null) {
+
+			logFile = new File(envLogFile);
+
+		} else {
+
+			// logback.xml writes logs/request.log by default
+			logFile = new File(basePath.isEmpty() ? "logs" : basePath + File.separator + "logs", "request.log");
+		}
+
+		if (logFile.exists()) {
+
+			// relative like the server log paths, so both read the same in the dashboard
+			final String parent = logFile.getParent() != null ? logFile.getParent() : ".";
+
+			return getLogFilesInDirectory(parent + File.separator, logFile.getName(), includeCompressed);
+		}
+
+		return List.of();
+	}
+
+	/**
+	 * @param logFiles a log as listed here, the current file first and its rotated logs following, oldest first
+	 */
+	public static List<String> newestFirst(final List<String> logFiles) {
+
+		if (logFiles.size() < 2) {
+
+			return logFiles;
+		}
+
+		final List<String> sorted = new ArrayList<>(logFiles.subList(1, logFiles.size()));
+
+		Collections.reverse(sorted);
+		sorted.addFirst(logFiles.getFirst());
+
+		return sorted;
 	}
 
 	/**
@@ -145,12 +207,12 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 				return getLogFilesInDirectory(logPath, logFile.getName(), includeCompressed);
 			}
 
-			// third priority: deb installation / log files in /var/log/ (although ENV can also use this path)
-			logFile = new File("/var/log/structr.log");
+			// third priority: deb installation / log files in /var/log/structr/ (although ENV can also use this path)
+			logFile = new File("/var/log/structr/server.log");
 
 			if (logFile.exists()) {
 
-				return getLogFilesInDirectory("/var/log/", logFile.getName(), includeCompressed);
+				return getLogFilesInDirectory("/var/log/structr/", logFile.getName(), includeCompressed);
 			}
 
 			logger.warn("Could not locate logfile(s)");

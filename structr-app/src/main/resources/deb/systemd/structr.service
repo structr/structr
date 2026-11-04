@@ -22,7 +22,7 @@ LimitNOFILE=60000
 TimeoutSec=120
 
 # not necessary with Type=forking
-#StandardOutput=append:/var/log/structr.log
+#StandardOutput=append:/var/log/structr/server.log
 
 [Install]
 WantedBy=multi-user.target

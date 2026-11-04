@@ -50,7 +50,7 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("[ lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' (default different based on configuration) [, filter ] ] ] ]");
+		return Signature.forAllScriptingLanguages("[ lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr/server.log' (default different based on configuration) [, filter ] ] ] ]");
 	}
 
 	@Override
@@ -88,8 +88,8 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' [, filter ]]]])}. Example: ${serverlog(200, -1, '/var/log/structr.log')}"),
-			Usage.javaScript("Usage: ${{ $.serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' [, filter ]]]]); }}. Example: ${{ $.serverlog(200, -1, '/var/log/structr.log'); }}")
+			Usage.structrScript("Usage: ${serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr/server.log' [, filter ]]]])}. Example: ${serverlog(200, -1, '/var/log/structr/server.log')}"),
+			Usage.javaScript("Usage: ${{ $.serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr/server.log' [, filter ]]]]); }}. Example: ${{ $.serverlog(200, -1, '/var/log/structr/server.log'); }}")
 		);
 	}
 
@@ -138,11 +138,21 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 		return linkedConcepts;
 	}
 
+	/** Reads server log files only, the current one unless another one of them is requested. */
 	public static String getServerLog(final int numberOfLines, final Integer truncateLinesAfter, final String requestedLogfileName, final String filter) {
+
+		return getLog(numberOfLines, truncateLinesAfter, requestedLogfileName, filter, GetAvailableServerLogsFunction.getListOfServerlogFileNames());
+	}
+
+	/**
+	 * Reads one of the given log files, the first one unless another one of them is requested.
+	 *
+	 * @param logFileNames the files that may be read
+	 */
+	public static String getLog(final int numberOfLines, final Integer truncateLinesAfter, final String requestedLogfileName, final String filter, final List<String> logFileNames) {
 
 		final boolean filterEmpty = StringUtils.isBlank(filter);
 		int linesToGet = numberOfLines;
-		final List<String> logFileNames = GetAvailableServerLogsFunction.getListOfServerlogFileNames();
 
 		final File logFile;
 

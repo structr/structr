@@ -55,7 +55,12 @@ public final class ServerLogReader {
 	 */
 	public record Result(List<String> lines, long offset, boolean rotated) {}
 
-	private static final Pattern HEADER = Pattern.compile("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} ");
+	/** An entry of the server log starts with a timestamp, the lines after it belong to it. */
+	public static final Pattern SERVER_LOG_ENTRY = Pattern.compile("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} ");
+
+	/** Every line is an entry of its own, as in the request log. */
+	public static final Pattern ENTRY_PER_LINE = Pattern.compile("^");
+
 	private static final Pattern LEVEL  = Pattern.compile("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\[.*? (TRACE|DEBUG|INFO|WARN|ERROR) ");
 	private static final int CHUNK      = 8192;
 
@@ -78,6 +83,11 @@ public final class ServerLogReader {
 	 * from the end of the file.
 	 */
 	public static Result tail(final Path file, final int maxLines, final Level minLevel, final String filter) throws IOException {
+
+		return tail(file, maxLines, minLevel, filter, SERVER_LOG_ENTRY);
+	}
+
+	public static Result tail(final Path file, final int maxLines, final Level minLevel, final String filter, final Pattern entryStart) throws IOException {
 
 		try (final FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
 
@@ -103,7 +113,7 @@ public final class ServerLogReader {
 					// the newline that ends the region belongs to its last line
 					if (bytes[i] == '\n' && position + i != end - 1) {
 
-						count += collect(decodeReversed(line), pending, found, minLevel, filter);
+						count += collect(decodeReversed(line), pending, found, minLevel, filter, entryStart);
 						line.reset();
 
 					} else if (bytes[i] != '\n') {
@@ -116,7 +126,7 @@ public final class ServerLogReader {
 			// the first line of the file has no newline before it
 			if (position == 0 && count < maxLines && line.size() > 0) {
 
-				collect(decodeReversed(line), pending, found, minLevel, filter);
+				collect(decodeReversed(line), pending, found, minLevel, filter, entryStart);
 			}
 
 			// lines before the first timestamp of the file form an entry without a level
@@ -142,6 +152,11 @@ public final class ServerLogReader {
 	 */
 	public static Result tailCompressed(final Path file, final int maxLines, final Level minLevel, final String filter) throws IOException {
 
+		return tailCompressed(file, maxLines, minLevel, filter, SERVER_LOG_ENTRY);
+	}
+
+	public static Result tailCompressed(final Path file, final int maxLines, final Level minLevel, final String filter, final Pattern entryStart) throws IOException {
+
 		final Deque<List<String>> kept = new ArrayDeque<>();
 		List<String> entry             = new ArrayList<>();
 		int count                      = 0;
@@ -152,7 +167,7 @@ public final class ServerLogReader {
 
 			while ((line = reader.readLine()) != null) {
 
-				if (HEADER.matcher(line).find() && !entry.isEmpty()) {
+				if (entryStart.matcher(line).find() && !entry.isEmpty()) {
 
 					count = keep(entry, kept, count, maxLines, minLevel, filter);
 					entry = new ArrayList<>();
@@ -177,6 +192,11 @@ public final class ServerLogReader {
 	 */
 	public static Result since(final Path file, final long offset, final int maxLines, final Level minLevel, final String filter) throws IOException {
 
+		return since(file, offset, maxLines, minLevel, filter, SERVER_LOG_ENTRY);
+	}
+
+	public static Result since(final Path file, final long offset, final int maxLines, final Level minLevel, final String filter, final Pattern entryStart) throws IOException {
+
 		try (final FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
 
 			final long end         = endOfCompleteLines(channel, channel.size());
@@ -185,7 +205,7 @@ public final class ServerLogReader {
 			final List<String> out = new ArrayList<>();
 			final List<String> entry = new ArrayList<>();
 			final ByteArrayOutputStream line = new ByteArrayOutputStream();
-			long entryStart        = start;
+			long entryOffset       = start;
 			long position          = start;
 
 			while (position < end) {
@@ -210,7 +230,7 @@ public final class ServerLogReader {
 
 					line.reset();
 
-					if (HEADER.matcher(text).find() && !entry.isEmpty()) {
+					if (entryStart.matcher(text).find() && !entry.isEmpty()) {
 
 						if (matches(entry, minLevel, filter)) {
 
@@ -218,11 +238,11 @@ public final class ServerLogReader {
 						}
 
 						entry.clear();
-						entryStart = lineStart;
+						entryOffset = lineStart;
 
 						if (out.size() >= maxLines) {
 
-							return new Result(out, entryStart, rotated);
+							return new Result(out, entryOffset, rotated);
 						}
 					}
 
@@ -262,11 +282,11 @@ public final class ServerLogReader {
 		return total;
 	}
 
-	private static int collect(final String text, final List<String> pending, final List<List<String>> found, final Level minLevel, final String filter) {
+	private static int collect(final String text, final List<String> pending, final List<List<String>> found, final Level minLevel, final String filter, final Pattern entryStart) {
 
 		pending.add(text);
 
-		if (!HEADER.matcher(text).find()) {
+		if (!entryStart.matcher(text).find()) {
 
 			return 0;
 		}

@@ -28,6 +28,10 @@ Some settings display a small red button next to them. Clicking this button rese
 ## What You Can Configure
 Settings are organized into categories such as application settings, database configuration, HTTP server options, security settings, and more. Most changes take effect immediately, though some require a server restart.
 
+### Custom Settings
+
+Keys that Structr does not know, like your own settings for `$.config()` or the script keys for `exec()`, are listed under Miscellaneous. A key created in the Configuration Interface is available immediately. A key added to `structr.conf` by hand is not: Structr reads the file only at startup, so click the reload button or restart Structr before using it. Until then, `$.config()` returns the default value. The lookup is exact for keys with capital letters: `myKey` in `structr.conf` needs `$.config('myKey')`.
+
 Beyond simple configuration values, the Configuration Interface is currently the only place where you can define cron expressions for user-defined functions. This allows you to schedule functions to run at specific intervals without writing additional code.
 
 The Letsencrypt section of the security settings ends with a **Retrieve certificate** button. It obtains a TLS certificate from Let's Encrypt with the saved settings, from the production or the staging server, and can reload it in the running server. See SSL Configuration.

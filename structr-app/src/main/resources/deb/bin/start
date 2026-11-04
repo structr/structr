@@ -21,6 +21,46 @@ if [ ! -e "logs" ]; then
 
 fi
 
+# logs/ keeps the HTTP statistics only, the logs of earlier versions move to /var/log/structr
+mkdir -p /var/log/structr
+
+for file in logs/request.log* logs/server.log*; do
+
+	if [ -f "$file" ]; then
+
+		echo "Moving $file to /var/log/structr/"
+		mv -n "$file" /var/log/structr/
+
+	fi
+
+done
+
+# the server log of earlier versions was /var/log/structr.log, lines bin/config wrote to the new file already go after it
+if [ -f /var/log/structr.log ]; then
+
+	echo "Moving /var/log/structr.log to /var/log/structr/server.log"
+
+	if [ -f /var/log/structr/server.log ]; then
+
+		cat /var/log/structr/server.log >> /var/log/structr.log
+
+	fi
+
+	mv -f /var/log/structr.log /var/log/structr/server.log
+
+fi
+
+for file in /var/log/structr.log.* /var/log/structr.log-*; do
+
+	if [ -f "$file" ]; then
+
+		echo "Moving $file to /var/log/structr/"
+		mv -n "$file" "/var/log/structr/server.log${file#/var/log/structr.log}"
+
+	fi
+
+done
+
 # Static UI resources are served directly from the application jar (class path); no need to
 # unpack them. To customize them locally, create a 'structr' directory in the working directory -
 # it takes precedence over the bundled resources (see HttpService).

@@ -561,20 +561,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		// enable request logging
 		if (logRequests) {
 
-			final String logPath = basePath + "/logs";
-			final File logDir    = new File(logPath);
-
-			// Create logs directory if not existing
-			if (!logDir.exists()) {
-
-				logDir.mkdir();
-			}
-
-			Slf4jRequestLogWriter requestLogWriter = new Slf4jRequestLogWriter();
-			final String request_format = "%t \"%r\" %s %{ms}T";
-			final RequestLog requestLog = new CustomRequestLog(requestLogWriter, request_format);
-
-			server.setRequestLog(requestLog);
+			server.setRequestLog(RequestLogFormat.of(Settings.RequestLogFormat.getValue()).createRequestLog(new Slf4jRequestLogWriter()));
 		}
 
 		final Map<String, ServletHolder> servlets = collectServlets(licenseManager);

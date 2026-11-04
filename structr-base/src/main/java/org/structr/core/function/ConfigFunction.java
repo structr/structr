@@ -136,7 +136,11 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of("For security reasons, protected settings, like the superuser password and other passwords/encryption keys, can not be read with this function.");
+		return List.of(
+				"For security reasons, protected settings, like the superuser password and other passwords/encryption keys, can not be read with this function.",
+				"A key added to `structr.conf` by hand is only known after reloading the configuration file in the Configuration Interface, or after a restart; until then, the default value is returned.",
+				"Keys containing capital letters must be given exactly as they are written in `structr.conf`."
+		);
 	}
 
 	@Override

@@ -1429,10 +1429,8 @@ let _Dashboard = {
 
 				Command.getAvailableServerLogs().then(data => {
 
+					// the server log and the request log, each followed by its rotated logs, newest first
 					let logfiles = data.result;
-
-					// sort the rolled logs in descending order
-					logfiles.push(...logfiles.splice(1, logfiles.length).reverse());
 
 					let logFileSelect = _Dashboard.tabs.logs.getLogFileSelect();
 					for (let log of logfiles) {

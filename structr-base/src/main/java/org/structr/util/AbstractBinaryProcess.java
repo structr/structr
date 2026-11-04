@@ -24,9 +24,10 @@ import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
@@ -36,7 +37,8 @@ public abstract class AbstractBinaryProcess<T> implements Callable<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractBinaryProcess.class.getName());
 
-	private final AtomicBoolean running       = new AtomicBoolean(true);
+	private static final long STREAM_DRAIN_MILLIS = 10_000;
+
 	protected SecurityContext securityContext = null;
 	private CopyingStreamReader stdOut        = null;
 	private OutputStream out                  = null;
@@ -57,7 +59,31 @@ public abstract class AbstractBinaryProcess<T> implements Callable<T> {
 
 	public StringBuilder getLogLine() {
 
-		return getCommandLine();
+		final StringBuilder commandLine = getCommandLine();
+		if (commandLine != null) {
+
+			return commandLine;
+		}
+
+		final List<String> arguments = getCommandArguments();
+		if (arguments != null) {
+
+			return new StringBuilder(String.join(" ", arguments));
+		}
+
+		return new StringBuilder();
+	}
+
+	/** The command as a list of arguments, executed without a shell, or null to fall back to {@link #getCommandLine()}. */
+	public List<String> getCommandArguments() {
+
+		return null;
+	}
+
+	/** What the process reads from its standard input, or null for an empty one; never logged. */
+	public InputStream getInput() {
+
+		return null;
 	}
 
 	private boolean shouldLogCommandWhenExecuting() {
@@ -72,10 +98,14 @@ public abstract class AbstractBinaryProcess<T> implements Callable<T> {
 
 			preprocess();
 
-			final StringBuilder commandLine = getCommandLine();
-			if (commandLine != null) {
+			final List<String> arguments    = getCommandArguments();
+			final StringBuilder commandLine = arguments == null ? getCommandLine() : null;
 
-				String[] args = {"/bin/sh", "-c", commandLine.toString()};
+			if (arguments != null || commandLine != null) {
+
+				final String[] args = arguments != null
+					? arguments.toArray(new String[0])
+					: new String[] { "/bin/sh", "-c", commandLine.toString() };
 
 				if (shouldLogCommandWhenExecuting()) {
 
@@ -85,21 +115,27 @@ public abstract class AbstractBinaryProcess<T> implements Callable<T> {
 				Process proc = Runtime.getRuntime().exec(args);
 
 				// consume streams
-				stdOut = new CopyingStreamReader(proc.getInputStream(), out, running);
-				stdErr = new StreamReader(proc.getErrorStream(), running);
+				stdOut = new CopyingStreamReader(proc.getInputStream(), out);
+				stdErr = new StreamReader(proc.getErrorStream());
 
 				stdOut.start();
 				stdErr.start();
 
+				new StdinWriter(getInput(), proc.getOutputStream()).start();
+
 				setExitCode(proc.waitFor());
+
+				// the output may still be in the pipe when the process has exited; bounded, a background child can keep it open
+				final long drainUntil = System.currentTimeMillis() + STREAM_DRAIN_MILLIS;
+
+				stdOut.join(Math.max(1, drainUntil - System.currentTimeMillis()));
+				stdErr.join(Math.max(1, drainUntil - System.currentTimeMillis()));
 			}
 
 		} catch (IOException | InterruptedException ex) {
 
 			logger.warn("", ex);
 		}
-
-		running.set(false);
 
 		// debugging output
 		if (exitCode() != 0) {

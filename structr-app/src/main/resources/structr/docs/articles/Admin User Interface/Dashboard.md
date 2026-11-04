@@ -112,7 +112,7 @@ The log refreshes every second by default and scrolls to the end after each refr
 - Number of lines to display
 - Truncate lines at: cuts off long lines after the given number of characters
 - Filter: shows only lines containing the entered text
-- Log source selection (Structr supports multiple log files when rotation is enabled)
+- Log source selection: the server log and, with `log.requests` enabled, the request log, each followed by its rotated logs, newest first
 
 ### Log Format
 
@@ -124,6 +124,8 @@ For example:
 ```
 
 The log levels are INFO (normal operation), WARN (potential issues that do not prevent operation), and ERROR (problems that need attention).
+
+The request log has one line per HTTP request, in the format set by `log.requests.format`. See Request Log in the Logging & Debugging chapter.
 
 ## Event Log
 

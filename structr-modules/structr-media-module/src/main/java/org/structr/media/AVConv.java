@@ -24,9 +24,8 @@ import org.structr.common.SecurityContext;
 import org.structr.storage.providers.local.LocalFSHelper;
 import org.structr.web.entity.Image;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -135,20 +134,24 @@ public class AVConv implements VideoHelper {
 		return null;
 	}
 
+	// ffprobe is what getVideoInfo() runs; asked directly, since minimal images have no "which"
 	public static boolean isAVConvInstalled() {
-
-		final String[] args = {"/bin/sh", "-c", "which ffmpeg"};
 
 		try {
 
-			Process proc = Runtime.getRuntime().exec(args);
-			final String res = new BufferedReader(new InputStreamReader(proc.getInputStream())).readLine();
+			final Process proc = new ProcessBuilder("ffprobe", "-version").redirectErrorStream(true).start();
 
-			return ((res != null) && !("".equals(res.trim())));
+			proc.getInputStream().transferTo(OutputStream.nullOutputStream());
+
+			return proc.waitFor() == 0;
 
 		} catch (IOException ex) {
 
-			logger.warn("", ex);
+			return false;
+
+		} catch (InterruptedException ex) {
+
+			Thread.currentThread().interrupt();
 
 			return false;
 		}

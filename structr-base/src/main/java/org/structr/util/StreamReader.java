@@ -26,7 +26,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
@@ -38,14 +37,12 @@ public class StreamReader extends Thread {
 
 	private final Queue<String> queue = new ConcurrentLinkedQueue<>();
 	private BufferedReader reader     = null;
-	private AtomicBoolean running     = null;
 
-	public StreamReader(final InputStream is, final AtomicBoolean running) {
+	public StreamReader(final InputStream is) {
 
 		super("StreamReader");
 
-		this.reader  = new BufferedReader(new InputStreamReader(is));
-		this.running = running;
+		this.reader = new BufferedReader(new InputStreamReader(is));
 
 		this.setDaemon(true);
 	}
@@ -66,29 +63,19 @@ public class StreamReader extends Thread {
 	@Override
 	public void run() {
 
-		while (running.get()) {
+		// until the process closes the stream, so nothing it wrote before exiting is lost
+		try {
 
-			try {
+			String line = null;
 
-				String line = null;
+			while ((line = reader.readLine()) != null) {
 
-				do {
-
-					line = reader.readLine();
-
-					if (line != null) {
-
-						queue.add(line);
-					}
-
-				} while (line != null);
-
-				Thread.sleep(10);
-
-			} catch (Throwable t) {
-
-				logger.warn("", t);
+				queue.add(line);
 			}
+
+		} catch (Throwable t) {
+
+			logger.warn("", t);
 		}
 	}
 }

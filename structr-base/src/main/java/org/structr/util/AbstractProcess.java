@@ -25,8 +25,8 @@ import org.structr.common.SecurityContext;
 
 import java.util.List;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
@@ -36,7 +36,8 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractProcess.class.getName());
 
-	private final AtomicBoolean running       = new AtomicBoolean(true);
+	private static final long STREAM_DRAIN_MILLIS = 10_000;
+
 	protected SecurityContext securityContext = null;
 	private StreamReader stdOut               = null;
 	private StreamReader stdErr               = null;
@@ -75,6 +76,12 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 		return new StringBuilder();
 	}
 
+	/** What the process reads from its standard input, or null for an empty one; never logged. */
+	public InputStream getInput() {
+
+		return null;
+	}
+
 	private boolean shouldLogCommandWhenExecuting() {
 
 		return (getLogBehaviour() != Settings.SCRIPT_PROCESS_LOG_STYLE.NOTHING);
@@ -91,8 +98,7 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 	 * defence that holds until someone adds the next command; not having a shell is the kind that does
 	 * not need maintaining.
 	 *
-	 * <p>Deliberately an opt-in second path rather than a replacement: exec() and exec_binary() run a
-	 * command line an administrator configured, and pipes and redirections are the point there.
+	 * <p>exec() and execBinary() use it too: they only name a script file, so no shell is needed there either.
 	 */
 	public List<String> getCommandArguments() {
 
@@ -123,21 +129,27 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 				Process proc = Runtime.getRuntime().exec(args);
 
 				// consume streams
-				stdOut = new StreamReader(proc.getInputStream(), running);
-				stdErr = new StreamReader(proc.getErrorStream(), running);
+				stdOut = new StreamReader(proc.getInputStream());
+				stdErr = new StreamReader(proc.getErrorStream());
 
 				stdOut.start();
 				stdErr.start();
 
+				new StdinWriter(getInput(), proc.getOutputStream()).start();
+
 				setExitCode(proc.waitFor());
+
+				// the output may still be in the pipe when the process has exited; bounded, a background child can keep it open
+				final long drainUntil = System.currentTimeMillis() + STREAM_DRAIN_MILLIS;
+
+				stdOut.join(Math.max(1, drainUntil - System.currentTimeMillis()));
+				stdErr.join(Math.max(1, drainUntil - System.currentTimeMillis()));
 			}
 
 		} catch (IOException | InterruptedException ex) {
 
 			logger.warn("", ex);
 		}
-
-		running.set(false);
 
 		// debugging output
 		if (exitCode() != 0) {

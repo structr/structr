@@ -13,6 +13,9 @@ RUN microdnf install -y $TESSERACT_PACKAGES fontconfig dejavu-sans-fonts && \
     microdnf clean all
 
 COPY --from=build /root/structr-* /var/lib/structr
+
+# UTF-8 locale, so that the JVM passes non-ASCII process arguments unchanged
+ENV LANG=C.UTF-8
 WORKDIR /var/lib/structr
 EXPOSE 8082
 CMD bin/docker.sh
