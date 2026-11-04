@@ -979,13 +979,16 @@ let _Crud = {
 			let isEnum                     = _Crud.helpers.isEnum(key, type);
 			let isCypher                   = _Crud.helpers.isCypherProperty(key, type);
 			let relatedType                = _Crud.helpers.getRelatedTypeForAttribute(key, type);
-			let readOnly                   = _Crud.helpers.isReadOnly(key, type);
+			let isSystem                   = _Crud.helpers.isSystem(key, type);
 			let isCollectionIdProperty     = _Crud.helpers.isCollectionIdProperty(key, type);
 			let isCollectionNotionProperty = _Crud.helpers.isCollectionNotionProperty(key, type);
+			let isConstBoolProperty        = _Crud.helpers.isConstBoolProperty(key, type);
 			let isSourceOrTarget           = isRelType && (key === Structr.internalKeys.sourceId || key === Structr.internalKeys.targetId || key === Structr.internalKeys.sourceNode || key === Structr.internalKeys.targetNode);
 			let propertyType               = _Crud.types[type]?.views.all[key]?.type;
 
-			if (readOnly) {
+			let editForbidden = isSystem || isCypher || _Entities.protectedAttributes.includes(key) || isConstBoolProperty;
+
+			if (editForbidden) {
 				cell.addClass('readonly');
 			}
 
@@ -999,9 +1002,9 @@ let _Crud = {
 				if (propertyType === 'Boolean') {
 
 					cell.addClass('boolean-attr');
-					cell.append(`<input name="${key}" ${readOnly ? 'class="readonly" readonly disabled ' : ''}type="checkbox" ${value ? 'checked="checked"' : ''}>`);
+					cell.append(`<input name="${key}" ${editForbidden ? 'class="readonly" readonly disabled ' : ''}type="checkbox" ${value ? 'checked="checked"' : ''}>`);
 
-					if (!readOnly) {
+					if (!editForbidden) {
 						$('input', cell).on('change', function() {
 							if (id) {
 								let checked = $(this).prop('checked');
@@ -1022,7 +1025,7 @@ let _Crud = {
 
 					let cellContent = _Helpers.createSingleDOMElementFromHTML(`
 						<div class="flex items-center relative">
-							<input name="${key}" class="__value pl-9 mr-3 ${readOnly ? 'readonly' : ''}" type="text" size="26" autocomplete="one-time-code" ${readOnly ? 'readonly' : ''}>
+							<input name="${key}" class="__value pl-9 mr-3 ${editForbidden ? 'readonly' : ''}" type="text" size="26" autocomplete="one-time-code" ${editForbidden ? 'readonly disabled' : ''}>
 							${_Crud.helpers.getDateTimeIconHTML()}
 						</div>
 					`);
@@ -1031,7 +1034,7 @@ let _Crud = {
 					let input = cellContent.querySelector('input');
 					input.value = value ?? '';
 
-					if (!readOnly) {
+					if (!editForbidden) {
 
 						let oldValue = input.value;
 						let wasEmpty = (oldValue === '');
@@ -1058,7 +1061,7 @@ let _Crud = {
 
 					let cellContent = _Helpers.createSingleDOMElementFromHTML(`
 						<div class="flex items-center relative">
-							<input name="${key}" class="__value pl-9 mr-3" type="text" size="36" autocomplete="one-time-code">
+							<input name="${key}" class="__value pl-9 mr-3 ${editForbidden ? 'readonly' : ''}" type="text" size="36" autocomplete="one-time-code" ${editForbidden ? 'readonly disabled' : ''}>
 							${_Crud.helpers.getDateTimeIconHTML()}
 						</div>
 					`);
@@ -1067,7 +1070,7 @@ let _Crud = {
 					let input = cellContent.querySelector('input');
 					input.value = value ?? '';
 
-					if (!readOnly) {
+					if (!editForbidden) {
 
 						let oldValue = input.value;
 
@@ -1160,7 +1163,7 @@ let _Crud = {
 
 					let format = _Crud.helpers.getFormat(type, key);
 					cell.text(value ?? '');
-					if (!readOnly) {
+					if (!editForbidden) {
 						cell.on('click', function (event) {
 							event.preventDefault();
 							_Crud.objectList.appendEnumSelect(cell, id, key, format);
@@ -1226,7 +1229,7 @@ let _Crud = {
 
 					cell.text(value ?? '');
 
-					if (!readOnly) {
+					if (!editForbidden) {
 						cell.on('click', function(event) {
 							event.preventDefault();
 							var self = $(this);
@@ -1344,7 +1347,7 @@ let _Crud = {
 				}
 			}
 
-			if (id && !isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean') {
+			if (id && !isSourceOrTarget && !editForbidden && !relatedType && propertyType !== 'Boolean') {
 
 				cell.prepend(_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['crud-clear-value', 'icon-lightgrey', 'cursor-pointer'])));
 
@@ -2810,60 +2813,21 @@ let _Crud = {
 
 			return properties;
 		},
-		getFormat: (type, key) => {
-			return _Crud.types[type].views.all[key].format;
-		},
-		isRelType: (type) => {
-			return (_Crud.types[type]?.isRel === true);
-		},
-		/**
-		 * Return true if the combination of the given property key
-		 * and the given type is a collection
-		 */
-		isCollection: (key, type) => {
-			return (key && type && _Crud.types[type]?.views.all[key]?.isCollection === true);
-		},
-		isBaseProperty: (key, type) => {
-			return ('base' === _Crud.types[type]?.views.all[key]?.jsonName && 'GraphObject' === _Crud.types[type]?.views.all[key]?.declaringClass);
-		},
-		isHiddenProperty: (key, type) => {
-			return ('hidden' === _Crud.types[type]?.views.all[key]?.jsonName && 'NodeInterface' === _Crud.types[type]?.views.all[key]?.declaringClass);
-		},
-		isFunctionProperty: (key, type) => {
-			return ('org.structr.core.property.FunctionProperty' === _Crud.types[type]?.views.all[key]?.className);
-		},
-		isCypherProperty: (key, type) => {
-			return ('org.structr.core.property.CypherQueryProperty' === _Crud.types[type]?.views.all[key]?.className);
-		},
-		isEntityIdProperty: (key, type) => {
-			return ('org.structr.core.property.EntityIdProperty' === _Crud.types[type]?.views.all[key]?.className);
-		},
-		isMethodProperty: (key, type) => {
-			return ('org.structr.web.property.MethodProperty' === _Crud.types[type]?.views.all[key]?.className);
-		},
-		isCollectionIdProperty: (key, type) => {
-			return ('org.structr.core.property.CollectionIdProperty' === _Crud.types[type]?.views.all[key]?.className);
-		},
-		isCollectionNotionProperty: (key, type) => {
-			return ('org.structr.core.property.CollectionNotionProperty' === _Crud.types[type]?.views.all[key]?.className);
-		},
-		/**
-		 * Return true if the combination of the given property key
-		 * and the given type is an Enum
-		 */
-		isEnum: (key, type) => {
-			return (key && type && _Crud.types[type]?.views.all[key]?.className === 'org.structr.core.property.EnumProperty');
-		},
-		/**
-		 * Return true if the combination of the given property key
-		 * and the given type is a read-only property
-		 */
-		isReadOnly: (key, type) => {
-			return (key && type && (_Crud.types[type]?.views.all[key]?.readOnly === true || _Crud.helpers.isCypherProperty(key, type)));
-		},
-		isSerializationDisabled: (type, key) => {
-			return (key && type && _Crud.types[type]?.views.all[key]?.serializationDisabled === true);
-		},
+		getFormat: (type, key) => _Crud.types[type].views.all[key].format,
+		isRelType: (type) => (true === _Crud.types[type]?.isRel),
+		isCollection: (key, type) => (true === _Crud.types[type]?.views.all[key]?.isCollection),
+		isReadOnly: (key, type) => (true === _Crud.types[type]?.views.all[key]?.readOnly),
+		isSystem: (key, type) => (true === _Crud.types[type]?.views.all[key]?.system),
+		isSerializationDisabled: (type, key) => (true === _Crud.types[type]?.views.all[key]?.serializationDisabled),
+		isHiddenProperty: (key, type) => ('hidden' === _Crud.types[type]?.views.all[key]?.jsonName && 'NodeInterface' === _Crud.types[type]?.views.all[key]?.declaringClass),
+		isFunctionProperty: (key, type) => ('org.structr.core.property.FunctionProperty' === _Crud.types[type]?.views.all[key]?.className),
+		isCypherProperty: (key, type) => ('org.structr.core.property.CypherQueryProperty' === _Crud.types[type]?.views.all[key]?.className),
+		isEntityIdProperty: (key, type) => ('org.structr.core.property.EntityIdProperty' === _Crud.types[type]?.views.all[key]?.className),
+		isMethodProperty: (key, type) => ('org.structr.web.property.MethodProperty' === _Crud.types[type]?.views.all[key]?.className),
+		isCollectionIdProperty: (key, type) => ('org.structr.core.property.CollectionIdProperty' === _Crud.types[type]?.views.all[key]?.className),
+		isCollectionNotionProperty: (key, type) => ('org.structr.core.property.CollectionNotionProperty' === _Crud.types[type]?.views.all[key]?.className),
+		isConstBoolProperty: (key, type) => ('org.structr.core.property.ConstantBooleanProperty' === _Crud.types[type]?.views.all[key]?.className),
+		isEnum: (key, type) => ('org.structr.core.property.EnumProperty' === _Crud.types[type]?.views.all[key]?.className),
 		/**
 		 * Return the related type of the given property key of the given type (or a comma-separated list of possible related types)
 		 */
@@ -3189,7 +3153,6 @@ let _Crud = {
 
 				for (let key of bucket) {
 
-					let isBuiltinBaseProperty              = _Crud.helpers.isBaseProperty(key, type);
 					let isBuiltinHiddenProperty            = _Crud.helpers.isHiddenProperty(key, type);
 					let readOnly                           = _Crud.helpers.isReadOnly(key, type);
 					let isEntityIdProperty                 = _Crud.helpers.isEntityIdProperty(key, type);
@@ -3200,7 +3163,7 @@ let _Crud = {
 					let isVisibilityFlagOnRelationship     = isRelType && (key === Structr.internalKeys.visibleToPublicUsers || key === Structr.internalKeys.visibleToAuthenticatedUsers);
 					let relatedType                        = _Crud.helpers.getRelatedTypeForAttribute(key, type);
 
-					if (!readOnly && !relatedType && !isBuiltinHiddenProperty && !isBuiltinBaseProperty && !isInternalTimestamp && !isVisibilityFlagOnRelationship && !isSourceOrTargetNode && !isEntityIdProperty && !isCollectionIdProperty && !isCollectionNotionProperty) {
+					if (!readOnly && !relatedType && !isBuiltinHiddenProperty && !isInternalTimestamp && !isVisibilityFlagOnRelationship && !isSourceOrTargetNode && !isEntityIdProperty && !isCollectionIdProperty && !isCollectionNotionProperty) {
 
 						let row = _Helpers.createSingleDOMElementFromHTML(`
 							<tr>

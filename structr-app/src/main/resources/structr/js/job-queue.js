@@ -1707,7 +1707,7 @@ let _JobQueue = {
 					<input size="12" type="text" id="cancel-all-queued-after-queue" title="Leave empty to use the queue the job itself is in" placeholder="the job's queue">
 
 					<button id="cancel-all-queued-after" class="inline-flex items-center ml-2 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-2', 'icon-red']))} Cancel Job
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, _Icons.getSvgIconClassesForColoredIcon(['mr-2', 'icon-red']))} Cancel Job
 					</button>
 
 				</div>
@@ -1824,13 +1824,20 @@ let _JobQueue = {
 		`,
 		snippetTypeContainer: config => `
 			<div class="type-mapping" id="type-mapping-${config.id}">
-				<span class="pull-right"><i class="fa fa-remove" title="Remove this mapping" id="remove-button-${config.id}"></i></span>
-				<h3>${config.type}</h3>
+				<div class="flex justify-between items-center">
+					<h3 class="truncate">${config.type}</h3>
+					${_Icons.getSvgIconWithID(`remove-button-${config.id}`, _Icons.iconCrossIcon, 14, 14, _Icons.getSvgIconClassesForColoredIcon(['flex-shrink-none', 'icon-red']), 'Remove this mapping')}
+				</div>
+
 				<p class="divider">Mapped properties</p>
+
 				<div id="matching-properties-${config.type}"></div>
+
 				<p class="divider">Relationships</p>
+
 				<div id="relationships-${config.type}">
 				</div>
+
 				<div id="add-relationship-${config.type}">
 				</div>
 			</div>
