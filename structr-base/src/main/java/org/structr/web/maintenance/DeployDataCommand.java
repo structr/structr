@@ -62,7 +62,6 @@ public class DeployDataCommand extends DeployCommand {
 
 	private Set<String> exportTypes;
 	private Set<String> exportFileAndFolderTypes;
-	private Set<String> missingTypesForExport;
 	private Set<String> missingTypeNamesForExport;
 	private Set<String> exportedFoldersAsParents;
 	private Set<String> seenRelTypes;
@@ -338,17 +337,16 @@ public class DeployDataCommand extends DeployCommand {
 			final long startTime = System.currentTimeMillis();
 			customHeaders.put("start", new Date(startTime).toString());
 
-			final Map<String, Object> broadcastData = new HashMap();
+			final Map<String, Object> broadcastData = new HashMap<>();
 			broadcastData.put("start",  startTime);
 			broadcastData.put("target", target.toString());
 			publishBeginMessage(DEPLOYMENT_DATA_EXPORT_STATUS, broadcastData);
 
-			exportTypes                  = new HashSet();
-			missingTypeNamesForExport    = new HashSet();
-			missingTypesForExport        = new HashSet();
-			alreadyExportedRelationships = new HashSet();
-			exportedFoldersAsParents     = new HashSet();
-			seenRelTypes                 = new HashSet();
+			exportTypes                  = new HashSet<>();
+			missingTypeNamesForExport    = new HashSet<>();
+			alreadyExportedRelationships = new HashSet<>();
+			exportedFoldersAsParents     = new HashSet<>();
+			seenRelTypes                 = new HashSet<>();
 
 			Files.createDirectories(target);
 
@@ -1127,12 +1125,12 @@ public class DeployDataCommand extends DeployCommand {
 
 					final Map<String, Object> entry = new TreeMap<>();
 
-					if (!missingTypesForExport.contains(sourceNodeClass) && !isTypeInExportedTypes(sourceNodeClass)) {
+					if (!isTypeInExportedTypes(sourceNodeClass)) {
 
 						missingTypeNamesForExport.add(sourceNodeClass);
 					}
 
-					if (!missingTypesForExport.contains(targetNodeClass) && !isTypeInExportedTypes(targetNodeClass)) {
+					if (!isTypeInExportedTypes(targetNodeClass)) {
 
 						missingTypeNamesForExport.add(targetNodeClass);
 					}
