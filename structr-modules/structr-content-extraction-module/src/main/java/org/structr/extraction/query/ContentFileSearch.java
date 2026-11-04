@@ -41,10 +41,10 @@ import java.util.Map;
  */
 public final class ContentFileSearch {
 
-	public static final int DEFAULT_LIMIT  = 50;
-	public static final int MAX_LIMIT      = 200;
-	public static final int SNIPPETS       = 5;
-	public static final int CONTEXT_CHARS  = 120;
+	public static final int DEFAULT_LIMIT    = 50;
+	public static final int MAX_LIMIT        = 200;
+	public static final int DEFAULT_SNIPPETS = 5;
+	public static final int CONTEXT_CHARS    = 120;
 
 	private ContentFileSearch() {
 	}
@@ -57,7 +57,7 @@ public final class ContentFileSearch {
 	 * @param folderArgument a Folder or its UUID to search below; null for all files
 	 * @param limitArgument  maximum number of files; null for the default
 	 */
-	public static Object search(final SecurityContext securityContext, final Object queryArgument, final Object folderArgument, final Object limitArgument) throws FrameworkException {
+	public static Object search(final SecurityContext securityContext, final Object queryArgument, final Object folderArgument, final Object limitArgument, final Object maxSnippets) throws FrameworkException {
 
 		if (!(queryArgument instanceof String query)) {
 
@@ -65,7 +65,7 @@ public final class ContentFileSearch {
 		}
 
 		final ContentSearchOptions options = new ContentSearchOptions(limit(limitArgument), 0.0, null, folder(securityContext, folderArgument), 0, ContentSearchMode.SIMPLE);
-		final List<FileSearchHit> hits     = ContentKeywordSearch.searchFiles(securityContext, query, options, SNIPPETS, CONTEXT_CHARS);
+		final List<FileSearchHit> hits     = ContentKeywordSearch.searchFiles(securityContext, query, options, maxSnippets(maxSnippets), CONTEXT_CHARS);
 
 		return hits.stream().map(hit -> ResultMaps.toGraphObjectMap(toMap(hit))).toList();
 	}
@@ -102,6 +102,21 @@ public final class ContentFileSearch {
 		}
 
 		throw new FrameworkException(422, "Expected a positive number as limit.");
+	}
+
+	private static int maxSnippets(final Object argument) throws FrameworkException {
+
+		if (argument == null) {
+
+			return DEFAULT_SNIPPETS;
+		}
+
+		if (argument instanceof Number number && number.intValue() > 0) {
+
+			return number.intValue();
+		}
+
+		throw new FrameworkException(422, "Expected a positive number as maxSnippets.");
 	}
 
 	private static Folder folder(final SecurityContext securityContext, final Object argument) throws FrameworkException {

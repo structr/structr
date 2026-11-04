@@ -3923,6 +3923,37 @@ let UISettings = {
 					}
 				}
 			}
+		},
+		files: {
+			title: 'Files',
+			settings: {
+				maxSearchResultSnippets: {
+					text: 'Maximum number of search result snippets',
+					// infoText: 'By default, 5 snippets are loaded',
+					storageKey: 'filesSearchMaxSnippets_' + location.port,
+					defaultValue: 5,
+					type: 'input',
+					inputType: 'number',
+					inputCssClass: 'w-12',
+					onUpdate: () => {
+						if (Structr.isModuleActive(_Files)) {
+						}
+					},
+					isValid: (value) => (typeof value === 'number'),
+					fixValue: (input, value) => {
+
+						let fixedValue = parseInt(value);
+
+						if (isNaN(fixedValue)) {
+							fixedValue = 0;
+						}
+
+						input.value = fixedValue;
+
+						return fixedValue;
+					}
+				}
+			}
 		}
 	}
 };

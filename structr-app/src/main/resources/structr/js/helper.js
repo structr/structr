@@ -136,13 +136,9 @@ let _Helpers = {
 	isUUID: (str) => _Helpers.uuidRegexp.test(str),
 	formatValueInputField: (key, obj, propertyInfo) => {
 
-		let isPassword  = (propertyInfo?.className === 'org.structr.core.property.PasswordProperty');
-		let isReadOnly  = _Entities.readOnlyAttrs.includes(key) || (propertyInfo?.readOnly ?? false);
-		let isMultiline = (propertyInfo?.format === 'multi-line');
-
 		if (obj === undefined || obj === null) {
 
-			return _Helpers.formatRegularValueField(key, '', isMultiline, isReadOnly, isPassword);
+			return _Helpers.formatRegularValueField(key, '', propertyInfo);
 
 		} else if (obj.constructor === Object) {
 
@@ -154,30 +150,30 @@ let _Helpers = {
 
 		} else {
 
-			return _Helpers.formatRegularValueField(key, _Helpers.escapeForHtmlAttributes(obj), isMultiline, isReadOnly, isPassword);
+			return _Helpers.formatRegularValueField(key, _Helpers.escapeForHtmlAttributes(obj), propertyInfo);
 		}
 	},
 	formatArrayValueField: (key, values, propertyInfo) => {
 
 		let isPassword  = (propertyInfo.className === 'org.structr.core.property.PasswordProperty');
-		let isReadOnly  = _Entities.readOnlyAttrs.includes(key) || (propertyInfo.readOnly);
+		let isCypher    = (propertyInfo.className === 'org.structr.core.property.CypherQueryProperty');
+		let isReadOnly  = (propertyInfo.readOnly);
+		let isSystem    = (propertyInfo?.system ?? false) || _Entities.protectedAttributes.includes(key);
 		let isMultiline = (propertyInfo.format === 'multi-line');
 		let isBoolean   = (propertyInfo.type === 'Boolean[]');
 		let isDate      = (propertyInfo.type === 'Date[]');
 
 		let html           = '';
-		let readonlyHTML   = (isReadOnly ? 'readonly' : '');
+		let editForbidden  = isSystem || _Entities.protectedAttributes.includes(key) || isCypher;
+		let readonlyHTML   = (editForbidden ? 'readonly disabled' : '');
 		let inputTypeHTML  = (isPassword ? 'password' : (isBoolean ? 'checkbox' : 'text'));
-		let removeIconHTML = _Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey']), 'Remove single value');
+		let removeIconHTML = editForbidden ? '' : _Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey']), 'Remove single value');
+
 
 		let classes = [];
-
-		if (isReadOnly) {
-			classes.push('readonly');
-		}
-		if (isDate) {
-			classes.push('input-datetime', 'pl-9');
-		}
+		if (editForbidden) classes.push('system-attribute');
+		if (isReadOnly) classes.push('readonly');
+		if (isDate) classes.push('input-datetime', 'pl-9');
 
 		for (let value of values) {
 
@@ -224,15 +220,26 @@ let _Helpers = {
 
 		return html;
 	},
-	formatRegularValueField: (key, escapedValue, isMultiline, isReadOnly, isPassword) => {
+	formatRegularValueField: (key, escapedValue, propertyInfo) => {
+
+		let isPassword    = (propertyInfo?.className === 'org.structr.core.property.PasswordProperty');
+		let isReadOnly    = (propertyInfo?.readOnly ?? false);
+		let isSystem      = (propertyInfo?.system ?? false) || _Entities.protectedAttributes.includes(key);
+		let isMultiline   = (propertyInfo?.format === 'multi-line');
+		let editForbidden = isSystem || _Entities.protectedAttributes.includes(key);
+
+		let classes = [];
+		if (isSystem || editForbidden) classes.push('system-attribute');
+		if (isReadOnly) classes.push('readonly');
+
 
 		if (isMultiline) {
 
-			return `<textarea rows="4" name="${key}"${isReadOnly ? ' readonly class="readonly"' : ''} autocomplete="one-time-code">${escapedValue}</textarea>`;
+			return `<textarea rows="4" name="${key}"${editForbidden ? ' readonly disabled' : ''} class="${classes.join(' ')}" autocomplete="one-time-code">${escapedValue}</textarea>`;
 
 		} else {
 
-			return `<input name="${key}" type="${isPassword ? 'password' : 'text'}" value="${escapedValue}"${isReadOnly ? 'readonly class="readonly"' : ''} autocomplete="one-time-code">`;
+			return `<input name="${key}" type="${isPassword ? 'password' : 'text'}" value="${escapedValue}"${editForbidden ? ' readonly disabled' : ''} class="${classes.join(' ')}" autocomplete="one-time-code">`;
 		}
 	},
 	getHTMLTreeEscapedElementDisplayName: (entity) => {

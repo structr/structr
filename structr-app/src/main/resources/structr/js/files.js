@@ -97,7 +97,7 @@ let _Files = {
 
 			Structr.setFunctionBarHTML(_Files.templates.functions({ fileTypes: fileTypes, folderTypes: folderTypes }));
 
-			// UISettings.showSettingsForCurrentModule();
+			UISettings.showSettingsForCurrentModule();
 			_Files.updateFunctionBarStatus();
 
 			let fileTypeSelect   = Structr.functionBar.querySelector('select#file-type');
@@ -2454,16 +2454,17 @@ let _Files = {
 				return;
 			}
 
-			let maxHClassname = 'max-h-24';
+			let maxHClassname = 'max-h-32';
 			let numCols       = searchResultRow.querySelectorAll('td').length;
 			let snippetsRow   = _Helpers.createSingleDOMElementFromHTML(`<div id="${snippetsRowId}" style="display: table-row;"></div>`);
 			let snippetsCell  = _Helpers.createSingleDOMElementFromHTML(`
 				<td colspan="${numCols}">
-					<div class="flex items-start gap-2 p-4 mb-2 bg-gray ${maxHClassname} overflow-y-auto">
-						<div class="flex-shrink-0">
-							<i class="toggle-height fa fa-expand cursor-pointer"></i>
+					<div class="group flex items-start gap-2 p-4 mb-2 bg-gray ${maxHClassname} overflow-y-auto">
+						<div class="flex-shrink-0 toggle-height">
+							${_Icons.getSvgIcon(_Icons.iconExpandArrows, 16, 16, ['cursor-pointer', 'opacity-80', 'hover:opacity-100', 'cursor-pointer', 'group-[.is-expanded]:hidden'])}
+							${_Icons.getSvgIcon(_Icons.iconShrinkArrows, 16, 16, ['cursor-pointer', 'opacity-80', 'hover:opacity-100', 'cursor-pointer', 'hidden', 'group-[.is-expanded]:block'])}
 						</div>
-						<div context-container class="grid grid-cols-3 gap-8 items-start"></div>
+						<div data-context-container class="grid grid-cols-3 gap-8 items-start"></div>
 					</div>
 				</td>
 			`);
@@ -2472,8 +2473,7 @@ let _Files = {
 
 			snippetsCell.querySelector('.toggle-height').addEventListener('click', e => {
 				snippetsCell.firstElementChild.classList.toggle(maxHClassname);
-				e.target.classList.toggle('fa-expand');
-				e.target.classList.toggle('fa-compress');
+				snippetsCell.firstElementChild.classList.toggle('is-expanded');
 			});
 
 			let escape = _Helpers.escapeTags;
@@ -2483,7 +2483,7 @@ let _Files = {
 				</div>
 			`);
 
-			snippetsCell.querySelector('[context-container]').insertAdjacentHTML('beforeend', html.join(''));
+			snippetsCell.querySelector('[data-context-container]').insertAdjacentHTML('beforeend', html.join(''));
 		},
 		clearSearch: () => {
 
