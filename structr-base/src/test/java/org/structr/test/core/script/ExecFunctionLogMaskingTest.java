@@ -45,6 +45,21 @@ public class ExecFunctionLogMaskingTest {
 		}
 	}
 
+	@Test
+	public void testInputIsNeverLogged() {
+
+		assertEquals("[my.script, [plain], 0, ***]", new ExecProbe().log(new Object[] { "my.script", List.of("plain"), 0, SECRET }));
+		assertEquals("[out, my.script, [plain], 0, ***]", new ExecBinaryProbe().log(new Object[] { "out", "my.script", List.of("plain"), 0, SECRET }));
+	}
+
+	@Test
+	public void testParametersAsArgumentsOfTheirOwnHaveNoInput() {
+
+		// without a collection, the fourth argument is a parameter like the others, masked only on request
+		assertEquals("[my.script, a, b, c, ***]", new ExecProbe().log(new Object[] { "my.script", "a", "b", "c", Map.of("value", SECRET, "mask", true) }));
+		assertEquals("[my.script, a, b, visible]", new ExecProbe().log(new Object[] { "my.script", "a", "b", "visible" }));
+	}
+
 	private static class ExecProbe extends ExecFunction {
 
 		String log(final Object[] sources) {

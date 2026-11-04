@@ -44,6 +44,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.mail.MailSettings;
 import org.structr.mail.entity.Mailbox;
@@ -55,7 +56,10 @@ import javax.activation.DataSource;
 import javax.mail.*;
 import javax.mail.internet.MimeUtility;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.structr.mail.entity.traits.definitions.MailboxTraitDefinition;
@@ -91,6 +95,9 @@ public class MailService implements RunnableService, MailServiceInterface {
 
 	// uuid of each mailbox being fetched, with the time its fetch was requested
 	private final Map<String, Long> processingMailboxes     = new ConcurrentHashMap<>();
+
+	// mailboxes whose retry waits for the running fetch, also the lock for handing a mailbox on to it
+	private final Set<String> pendingRetries                = new HashSet<>();
 
 	// low-hanging status figures since the service started, for the report in every fetch log line
 	private final AtomicLong requested                      = new AtomicLong();
@@ -129,9 +136,31 @@ public class MailService implements RunnableService, MailServiceInterface {
 	 */
 	public void fetchMails(final Mailbox mb) {
 
+		fetchMails(mb, false);
+	}
+
+	/**
+	 * Fetches the given mailbox like fetchMails(), but first tries the messages that failed before again.
+	 */
+	public void fetchMails(final Mailbox mb, final boolean retryFailed) {
+
 		requested.incrementAndGet();
 
-		final Long since = processingMailboxes.putIfAbsent(mb.getUuid(), System.currentTimeMillis());
+		final Long since;
+
+		synchronized (pendingRetries) {
+
+			since = processingMailboxes.putIfAbsent(mb.getUuid(), System.currentTimeMillis());
+			if (since != null && retryFailed) {
+
+				pendingRetries.add(mb.getUuid());
+
+				logger.info("Retry of mailbox [{}] runs when the fetch that is running for {} s ends | {}", mb.getUuid(), (System.currentTimeMillis() - since) / 1000, statusReport());
+
+				return;
+			}
+		}
+
 		if (since != null) {
 
 			alreadyRunning.incrementAndGet();
@@ -143,7 +172,7 @@ public class MailService implements RunnableService, MailServiceInterface {
 
 		logger.info("Fetch of mailbox [{}] on {} requested | {}", mb.getUuid(), mb.getHost(), statusReport());
 
-		threadExecutor.submit(new MailFetchTask(mb));
+		threadExecutor.submit(new MailFetchTask(mb, retryFailed));
 	}
 
 	/**
@@ -400,7 +429,7 @@ public class MailService implements RunnableService, MailServiceInterface {
 	}
 
 	// Returns attachment UUID to append to the mail to be created
-	private NodeInterface extractFileAttachment(final Mailbox mb, final Message m, final Part p) {
+	private NodeInterface extractFileAttachment(final Mailbox mb, final Message m, final String messageUuid, final Part p) {
 
 		NodeInterface file = null;
 
@@ -411,7 +440,7 @@ public class MailService implements RunnableService, MailServiceInterface {
 
 			try (final Tx tx = app.tx()) {
 
-				NodeInterface fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), getStoragePath(mb.getUuid(), m.getReceivedDate()));
+				NodeInterface fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), getStoragePath(mb.getUuid() + "/" + messageUuid, m.getReceivedDate()));
 
 				final String fileName = attachmentFileName(p.getFileName());
 
@@ -445,74 +474,92 @@ public class MailService implements RunnableService, MailServiceInterface {
 		return name.isEmpty() ? NodeServiceCommand.getNextUuid() : name;
 	}
 
-	private Map<String,String> handleMultipart(final Mailbox mb, final Message message, final Multipart p, final List<NodeInterface> attachments) {
+	// a part that cannot be read fails the whole message, so the fetch keeps it for a retry
+	private Map<String,String> handleMultipart(final Mailbox mb, final Message message, final String messageUuid, final Multipart p, final List<NodeInterface> attachments) throws MessagingException, IOException {
 
 		final Map<String,String> result = new HashMap<>();
 
-		try {
+		for (int i = 0, len = p.getCount(); i < len; i++) {
 
-			for (int i = 0, len = p.getCount(); i < len; i++) {
+			final String htmlContent = result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) != null ? result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) : "";
+			final String content     = result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) != null ? result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) : "";
+			final BodyPart part      = p.getBodyPart(i);
+			final Object partContent = content(part);
 
-				final String htmlContent = result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) != null ? result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) : "";
-				final String content     = result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) != null ? result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) : "";
-				BodyPart part = (BodyPart) p.getBodyPart(i);
+			if (partContent instanceof Multipart multipart) {
 
-				if (part.getContent() instanceof Multipart) {
+				final Map<String,String> subResult = handleMultipart(mb, message, messageUuid, multipart, attachments);
+				if (subResult.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) != null) {
 
-					final Map<String,String> subResult = handleMultipart(mb, message, (Multipart)part.getContent(), attachments);
-					if (subResult.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) != null) {
+					result.put(EMailMessageTraitDefinition.CONTENT_PROPERTY, content.concat(subResult.get(EMailMessageTraitDefinition.CONTENT_PROPERTY)));
+				}
 
-						result.put(EMailMessageTraitDefinition.CONTENT_PROPERTY, content.concat(subResult.get(EMailMessageTraitDefinition.CONTENT_PROPERTY)));
-					}
+				if (subResult.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) != null) {
 
-					if (subResult.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) != null) {
+					result.put(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY, htmlContent.concat(subResult.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY)));
+				}
 
-						result.put(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY, htmlContent.concat(subResult.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY)));
-					}
+			} else if (part.isMimeType("message/delivery-status")) {
 
-				} else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()) || (part.getContentType().toLowerCase().contains("image/") && Part.INLINE.equalsIgnoreCase(part.getDisposition())) || part.getContentType().toLowerCase().contains("application/pdf")) {
+				continue;
 
-					final NodeInterface file = extractFileAttachment(mb, message, part);
-					if (file != null) {
+			} else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()) || !(part.isMimeType("text/html") || part.isMimeType("text/plain"))) {
 
-						attachments.add(file);
-					}
+				// many clients send attachments without a Content-Disposition, so every part that is not body text is one
+				final NodeInterface file = extractFileAttachment(mb, message, messageUuid, part);
+				if (file != null) {
+
+					attachments.add(file);
 
 				} else {
 
-					if (part.isMimeType("text/html")) {
-
-						result.put(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY, htmlContent.concat(getText(part)));
-
-					} else if (part.isMimeType("text/plain")) {
-
-						result.put(EMailMessageTraitDefinition.CONTENT_PROPERTY, content.concat(getText(part)));
-
-					} else if (!part.isMimeType("message/delivery-status")){
-
-						logger.warn("Cannot handle content type given by email part. Given metadata is either faulty or specific implementation is missing. Type: {}, Mailbox: {}, Content: {}, Subject; {}", part.getContentType(), mb.getUuid(), part.getContent().toString(), message.getSubject());
-					}
+					logger.warn("Attachment of type {} in message \"{}\" of mailbox [{}] could not be stored", part.getContentType(), message.getSubject(), mb.getUuid());
 				}
+
+			} else if (part.isMimeType("text/html")) {
+
+				result.put(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY, htmlContent.concat(getText(part)));
+
+			} else {
+
+				result.put(EMailMessageTraitDefinition.CONTENT_PROPERTY, content.concat(getText(part)));
 			}
-
-			return result;
-
-		} catch (MessagingException | IOException ex) {
-
-			logger.error("Error while handling multipart message: ", ex);
 		}
 
-		return null;
+		return result;
+	}
+
+	// an empty or unknown charset in the header must not cost the message, the text is read as UTF-8 then
+	private static Object content(final Part part) throws MessagingException, IOException {
+
+		try {
+
+			return part.getContent();
+
+		} catch (UnsupportedEncodingException ex) {
+
+			if (!part.isMimeType("text/*")) {
+
+				throw ex;
+			}
+
+			logger.warn("Unknown charset in {}, reading the text as UTF-8", part.getContentType());
+
+			try (final InputStream in = part.getInputStream()) {
+
+				return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+			}
+		}
 	}
 
 	private String getText(Part p) throws MessagingException, IOException {
 
 		if (p.isMimeType("text/plain") || p.isMimeType("text/html")) {
 
-			final Object content = p.getContent();
+			final Object content = content(p);
 			if (!(content instanceof BASE64DecoderStream)) {
 
-				return (String)p.getContent();
+				return (String)content;
 
 			} else if("base64".equals(p.getContentType())) {
 
@@ -690,14 +737,22 @@ public class MailService implements RunnableService, MailServiceInterface {
 	}
 
 	/**
-	 * Per IMAP folder, its UIDVALIDITY and the highest UID fetched so far, stored as JSON on the mailbox.
+	 * Per IMAP folder, its UIDVALIDITY, the highest UID fetched so far and the messages that failed, stored as JSON on the mailbox.
 	 */
 	static final class FetchState {
+
+		static final class Failure {
+
+			String error;
+			int attempts;
+			String since;
+		}
 
 		static final class Folder {
 
 			long uidValidity;
 			long lastUid;
+			final Map<Long, Failure> failed = new LinkedHashMap<>();
 		}
 
 		private final Map<String, Folder> folders = new LinkedHashMap<>();
@@ -718,6 +773,21 @@ public class MailService implements RunnableService, MailServiceInterface {
 
 						folder.uidValidity = stored.get("uidValidity").getAsLong();
 						folder.lastUid     = stored.get("lastUid").getAsLong();
+
+						if (stored.has("failed")) {
+
+							for (final Map.Entry<String, JsonElement> failedEntry : stored.getAsJsonObject("failed").entrySet()) {
+
+								final JsonObject storedFailure = failedEntry.getValue().getAsJsonObject();
+								final Failure failure          = new Failure();
+
+								failure.error    = storedFailure.has("error") ? storedFailure.get("error").getAsString() : null;
+								failure.attempts = storedFailure.has("attempts") ? storedFailure.get("attempts").getAsInt() : 1;
+								failure.since    = storedFailure.has("since") ? storedFailure.get("since").getAsString() : null;
+
+								folder.failed.put(Long.parseLong(failedEntry.getKey()), failure);
+							}
+						}
 
 						state.folders.put(entry.getKey(), folder);
 					}
@@ -741,14 +811,55 @@ public class MailService implements RunnableService, MailServiceInterface {
 
 		void advance(final String folder, final long uidValidity, final long uid) {
 
+			final Folder f = folder(folder, uidValidity);
+
+			f.lastUid = Math.max(f.lastUid, uid);
+		}
+
+		/** records a message that could not be imported, so that retryFailedMessages() can try it again */
+		void fail(final String folder, final long uidValidity, final long uid, final String error) {
+
+			final Folder f        = folder(folder, uidValidity);
+			final Failure failure = f.failed.computeIfAbsent(uid, k -> new Failure());
+
+			failure.error = error;
+			failure.attempts++;
+
+			if (failure.since == null) {
+
+				failure.since = Instant.now().toString();
+			}
+		}
+
+		void clearFailure(final String folder, final long uid) {
+
+			final Folder f = folders.get(folder);
+			if (f != null) {
+
+				f.failed.remove(uid);
+			}
+		}
+
+		/** the UIDs that failed before, empty if the folder is new or its UIDs were reassigned */
+		long[] failedUids(final String folder, final long uidValidity) {
+
+			final Folder f = folders.get(folder);
+
+			return f != null && f.uidValidity == uidValidity ? f.failed.keySet().stream().mapToLong(Long::longValue).toArray() : new long[0];
+		}
+
+		private Folder folder(final String folder, final long uidValidity) {
+
 			final Folder f = folders.computeIfAbsent(folder, k -> new Folder());
 			if (f.uidValidity != uidValidity) {
 
+				// reassigned UIDs: the old mark and the old failures point at other messages now
 				f.uidValidity = uidValidity;
 				f.lastUid     = 0;
+				f.failed.clear();
 			}
 
-			f.lastUid = Math.max(f.lastUid, uid);
+			return f;
 		}
 
 		String toJson() {
@@ -762,6 +873,24 @@ public class MailService implements RunnableService, MailServiceInterface {
 				folder.addProperty("uidValidity", entry.getValue().uidValidity);
 				folder.addProperty("lastUid",     entry.getValue().lastUid);
 
+				if (!entry.getValue().failed.isEmpty()) {
+
+					final JsonObject failed = new JsonObject();
+
+					for (final Map.Entry<Long, Failure> failedEntry : entry.getValue().failed.entrySet()) {
+
+						final JsonObject failure = new JsonObject();
+
+						failure.addProperty("error",    failedEntry.getValue().error);
+						failure.addProperty("attempts", failedEntry.getValue().attempts);
+						failure.addProperty("since",    failedEntry.getValue().since);
+
+						failed.add(String.valueOf(failedEntry.getKey()), failure);
+					}
+
+					folder.add("failed", failed);
+				}
+
 				json.add(entry.getKey(), folder);
 			}
 
@@ -774,14 +903,21 @@ public class MailService implements RunnableService, MailServiceInterface {
 		// the uuid, not the node: this runs on another thread, in transactions of its own
 		private final String mailboxUuid;
 		private final String host;
+		private final boolean retryFailed;
 		private int created = 0;
 		private int skipped = 0;
 		private String error = null;
 
-		public MailFetchTask(final Mailbox mailbox) {
+		public MailFetchTask(final Mailbox mailbox, final boolean retryFailed) {
 
-			this.mailboxUuid = mailbox.getUuid();
-			this.host        = mailbox.getHost();
+			this(mailbox.getUuid(), mailbox.getHost(), retryFailed);
+		}
+
+		private MailFetchTask(final String mailboxUuid, final String host, final boolean retryFailed) {
+
+			this.mailboxUuid = mailboxUuid;
+			this.host        = host;
+			this.retryFailed = retryFailed;
 		}
 
 		@Override
@@ -866,7 +1002,18 @@ public class MailService implements RunnableService, MailServiceInterface {
 				logger.info("Fetch of mailbox [{}] {} after {} ms, {} new message(s) | {}", mailboxUuid, outcome, System.currentTimeMillis() - start, created, statusReport());
 
 				// last, so that whoever waits for the fetch to end finds its outcome already recorded on the mailbox
-				processingMailboxes.remove(mailboxUuid);
+				synchronized (pendingRetries) {
+
+					if (pendingRetries.remove(mailboxUuid)) {
+
+						processingMailboxes.put(mailboxUuid, System.currentTimeMillis());
+						threadExecutor.submit(new MailFetchTask(mailboxUuid, host, true));
+
+					} else {
+
+						processingMailboxes.remove(mailboxUuid);
+					}
+				}
 			}
 		}
 
@@ -936,6 +1083,11 @@ public class MailService implements RunnableService, MailServiceInterface {
 				final UIDFolder uids  = folder instanceof UIDFolder u ? u : null;
 				final long validity   = uids != null ? uids.getUIDValidity() : -1;
 
+				if (retryFailed && uids != null && !retryFailedMessages(folder, uids, name, validity, state, gson)) {
+
+					return;
+				}
+
 				final List<Message> batch;
 
 				if (uids != null && state.lastUid(name, validity) >= 0) {
@@ -962,51 +1114,9 @@ public class MailService implements RunnableService, MailServiceInterface {
 
 				for (final Message message : batch) {
 
-					final long uid = uids != null ? uids.getUID(message) : -1;
+					if (!importOne(folder, uids, name, validity, message, state, gson)) {
 
-					try (final Tx tx = StructrApp.getInstance().tx()) {
-
-						final Mailbox mailbox = loadMailbox();
-						if (importMessage(StructrApp.getInstance(), gson, mailbox, message)) {
-
-							created++;
-						}
-
-						// committed together with the message, so a crash between the two cannot lose or duplicate it
-						if (uids != null) {
-
-							state.advance(name, validity, uid);
-							writeStatus(mailbox, Map.of(MailboxTraitDefinition.FETCH_STATE_PROPERTY, state.toJson()));
-						}
-
-						tx.success();
-
-					} catch (Exception | LinkageError ex) {
-
-						final String what = "message " + (uid >= 0 ? "UID " + uid : "#" + message.getMessageNumber()) + " in " + name;
-
-						// a lost connection fails every message after it: stop without moving the mark, the next fetch resumes here
-						if (!folder.isOpen() || ex instanceof FolderClosedException || ex instanceof StoreClosedException) {
-
-							error = "connection lost at " + what + ": " + rootMessage(ex);
-							logger.warn("Connection to mailbox [{}] lost at {}, the next fetch resumes there: {}", mailboxUuid, what, rootMessage(ex));
-
-							break;
-						}
-
-						skipped++;
-						messagesSkipped.incrementAndGet();
-
-						error = what + ": " + ex;
-
-						logger.warn("Skipping {} of mailbox [{}]: {}", what, mailboxUuid, ex.toString());
-						logger.debug("Details for the skipped message", ex);
-
-						// moved past in a transaction of its own, so that one unreadable message cannot block the folder
-						if (uids != null) {
-
-							advancePast(name, validity, uid, state);
-						}
+						break;
 					}
 				}
 
@@ -1021,20 +1131,122 @@ public class MailService implements RunnableService, MailServiceInterface {
 			}
 		}
 
-		private void advancePast(final String folder, final long validity, final long uid, final FetchState state) {
+		/** imports one message in a transaction of its own; false if the connection is lost and the folder has to stop */
+		private boolean importOne(final Folder folder, final UIDFolder uids, final String name, final long validity, final Message message, final FetchState state, final Gson gson) throws MessagingException {
+
+			final long uid = uids != null ? uids.getUID(message) : -1;
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				final Mailbox mailbox = loadMailbox();
+				if (importMessage(StructrApp.getInstance(), gson, mailbox, message)) {
+
+					created++;
+				}
+
+				// committed together with the message, so a crash between the two cannot lose or duplicate it
+				if (uids != null) {
+
+					state.advance(name, validity, uid);
+					state.clearFailure(name, uid);
+					writeStatus(mailbox, Map.of(MailboxTraitDefinition.FETCH_STATE_PROPERTY, state.toJson()));
+				}
+
+				tx.success();
+
+				return true;
+
+			} catch (Exception | LinkageError ex) {
+
+				final String what = "message " + (uid >= 0 ? "UID " + uid : "#" + message.getMessageNumber()) + " in " + name;
+
+				// a lost connection fails every message after it: stop without moving the mark, the next fetch resumes here
+				if (!folder.isOpen() || ex instanceof FolderClosedException || ex instanceof StoreClosedException) {
+
+					error = "connection lost at " + what + ": " + rootMessage(ex);
+					logger.warn("Connection to mailbox [{}] lost at {}, the next fetch resumes there: {}", mailboxUuid, what, rootMessage(ex));
+
+					return false;
+				}
+
+				skipped++;
+				messagesSkipped.incrementAndGet();
+
+				error = what + ": " + ex;
+
+				logger.warn("Skipping {} of mailbox [{}]: {}", what, mailboxUuid, ex.toString());
+				logger.debug("Details for the skipped message", ex);
+
+				// moved past in a transaction of its own, so that one unreadable message cannot block the folder
+				if (uids != null) {
+
+					recordFailure(name, validity, uid, ex.toString(), state);
+				}
+
+				return true;
+			}
+		}
+
+		/** tries the messages that failed before again; false if the connection is lost */
+		private boolean retryFailedMessages(final Folder folder, final UIDFolder uids, final String name, final long validity, final FetchState state, final Gson gson) throws MessagingException {
+
+			final long[] failedUids = state.failedUids(name, validity);
+			if (failedUids.length == 0) {
+
+				return true;
+			}
+
+			logger.info("Retrying {} failed message(s) in {} of mailbox [{}]", failedUids.length, name, mailboxUuid);
+
+			final Message[] messages = uids.getMessagesByUID(failedUids);
+
+			for (int i = 0; i < failedUids.length; i++) {
+
+				if (messages[i] == null) {
+
+					forgetFailure(name, failedUids[i], state);
+
+				} else if (!importOne(folder, uids, name, validity, messages[i], state, gson)) {
+
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		private void recordFailure(final String folder, final long validity, final long uid, final String failure, final FetchState state) {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
 				state.advance(folder, validity, uid);
+				state.fail(folder, validity, uid, failure);
 				writeStatus(loadMailbox(), Map.of(MailboxTraitDefinition.FETCH_STATE_PROPERTY, state.toJson()));
 
 				tx.success();
 
-				logger.info("Moved past UID {} in {} of mailbox [{}], it is not fetched again", uid, folder, mailboxUuid);
+				logger.info("Moved past UID {} in {} of mailbox [{}], retryFailedMessages() tries it again", uid, folder, mailboxUuid);
 
 			} catch (Throwable t) {
 
 				logger.warn("Unable to store the fetch state of mailbox [{}], UID {} in {} is fetched again next time: {}", mailboxUuid, uid, folder, t.toString());
+			}
+		}
+
+		private void forgetFailure(final String folder, final long uid, final FetchState state) {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				state.clearFailure(folder, uid);
+				writeStatus(loadMailbox(), Map.of(MailboxTraitDefinition.FETCH_STATE_PROPERTY, state.toJson()));
+
+				tx.success();
+
+				logger.info("Failed UID {} in {} of mailbox [{}] is no longer on the server, dropped from the retry list", uid, folder, mailboxUuid);
+
+			} catch (Throwable t) {
+
+				logger.warn("Unable to store the fetch state of mailbox [{}]: {}", mailboxUuid, t.toString());
 			}
 		}
 
@@ -1164,12 +1376,16 @@ public class MailService implements RunnableService, MailServiceInterface {
 				// Handle content extraction
 				String content = null;
 				String htmlContent = null;
-				final Object contentObj = message.getContent();
+				final Object contentObj = content(message);
 				final List<NodeInterface> attachments = new ArrayList<>();
+
+				// attachments go into a folder named after the message, so equal names in different messages do not collide
+				final String messageUuid = NodeServiceCommand.getNextUuid();
+				pm.put(traits.key(GraphObjectTraitDefinition.ID_PROPERTY), messageUuid);
 
 				if (message.getContentType().contains("multipart")) {
 
-					final Map<String, String> result = handleMultipart(mailbox, message, (Multipart)contentObj, attachments);
+					final Map<String, String> result = handleMultipart(mailbox, message, messageUuid, (Multipart)contentObj, attachments);
 					content = result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY);
 					htmlContent = result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY);
 

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<included>
+
+	<!-- an outside rotator like logrotate rotates the logs, it must truncate them in place (copytruncate) -->
+	<appender name="SERVERLOG" class="ch.qos.logback.core.FileAppender">
+		<file>${LOG_FILE:-logs/server.log}</file>
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread]%X{structrScratchMDC}%X{test} %-5level %logger{36} - %msg%n%prefixedEx{structrScratchMDC}</pattern>
+		</encoder>
+	</appender>
+	<appender name="REQUESTLOG" class="ch.qos.logback.core.FileAppender">
+		<file>${REQUEST_LOG_FILE:-logs/request.log}</file>
+		<encoder>
+			<charset>UTF-8</charset>
+			<pattern>%msg%n</pattern>
+		</encoder>
+	</appender>
+
+</included>

@@ -56,7 +56,7 @@ Execute Cypher queries directly against the Neo4j database. This mode is useful 
 MATCH (n:Project)-[:HAS_TASK]->(t:Task) RETURN n.name, count(t)
 ```
 
-By default, the output is limited to 10 results to prevent overwhelming the display with large result sets. If your query returns more objects, Structr displays an error message asking you to use `LIMIT` in your query. You can change this limit through the `application.console.cypher.maxresults` setting in the Configuration Interface.
+By default, the output is limited to 10 results to prevent overwhelming the display with large result sets. If your query returns more objects, Structr displays an error message asking you to use `LIMIT` in your query. A query that ends with `LIMIT`, or a `UNION` whose parts all do, prints its whole result, whatever the number. You can change this limit through the `application.console.cypher.maxresults` setting in the Configuration Interface.
 
 ### Admin Shell Mode
 

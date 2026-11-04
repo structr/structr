@@ -1,4 +1,4 @@
-/var/log/structr.log {
+/var/log/structr/*.log {
   su root adm
   copytruncate
   daily
@@ -8,4 +8,5 @@
   size 10M
   compress
   delaycompress
+  missingok
 }

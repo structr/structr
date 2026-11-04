@@ -219,6 +219,39 @@ names, orders and objects. Two calls behave differently than before:
 When sorting nodes, a value after a name that is neither an order nor a known key, like
 `'descending'`, raises an error instead of being ignored.
 
+### Script Parameters Are No Longer Interpreted by a Shell
+
+`exec()` and `execBinary()` start the registered script directly and pass every parameter as one
+argument, exactly as given. Before, Structr built a command line and ran it with `/bin/sh -c`, so
+`$(...)`, backticks and `$VARIABLES` in a parameter value were expanded and executed. A value taken from
+user data could run any command on the host.
+
+Scripts that only use their parameters need no change. A script that relied on the shell expanding a
+parameter has to do the expansion itself. A script without a shebang line is still run with `/bin/sh`.
+
+Both functions also gained an optional input argument, which is written to the script's standard
+input: use it for passwords and other secrets, which as parameters are visible in the process list of the
+host. A script that reads its standard input no longer waits forever when no input is given. See Host
+Script Execution in the APIs & Integrations chapter.
+
+### New Default Format of the Request Log
+
+The request log (`log.requests`) is now written in the Apache combined format plus the time taken to
+serve the request, which log analysers like the Screaming Frog Log File Analyser read directly. It
+contains the client address, user agent, referer and response size, which the old format lacked. To keep
+the old format, set `log.requests.format = legacy`. See Request Log in the Logging & Debugging chapter.
+
+### Logs of the Debian Package Move to /var/log/structr
+
+The Debian package now writes all logs to the new folder `/var/log/structr`: the server log to
+`/var/log/structr/server.log` instead of `/var/log/structr.log`, and the request log to
+`/var/log/structr/request.log` instead of `logs/request.log` in the installation directory. Both are rotated by
+logrotate only; the server log was previously rotated twice, by Structr and by logrotate. Update scripts or
+monitoring that read the old paths. On its first start, Structr moves the existing logs: the request logs from
+`logs/` to `/var/log/structr`, and `/var/log/structr.log` with its rotated files to `/var/log/structr/server.log`
+and `server.log.<suffix>`. In the other installation types, Structr still rotates both logs itself and now
+compresses the rotated files.
+
 ## Migrating to Structr 6.x
 
 Version 6 introduces several breaking changes that require manual migration from 5.x.

@@ -755,6 +755,16 @@
 								</data>
 
 								<data>
+									<type>template</type>
+									<paths>
+										<path>/var/log/structr</path>
+									</paths>
+									<mapper>
+										<type>perm</type>
+									</mapper>
+								</data>
+
+								<data>
 									<src>${basedir}/src/main/resources/deb/logrotate.d</src>
 									<type>directory</type>
 									<mapper>

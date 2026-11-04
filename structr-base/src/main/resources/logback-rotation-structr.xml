@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<included>
+
+	<!-- Structr rotates the logs: daily, gzip-compressed, 30 days and at most 1 GB per log -->
+	<appender name="SERVERLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOG_FILE:-logs/server.log}</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_FILE:-logs/server.log}.%d.gz</fileNamePattern>
+			<maxHistory>30</maxHistory>
+			<totalSizeCap>1GB</totalSizeCap>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread]%X{structrScratchMDC}%X{test} %-5level %logger{36} - %msg%n%prefixedEx{structrScratchMDC}</pattern>
+		</encoder>
+	</appender>
+	<appender name="REQUESTLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${REQUEST_LOG_FILE:-logs/request.log}</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${REQUEST_LOG_FILE:-logs/request.log}.%d.gz</fileNamePattern>
+			<maxHistory>30</maxHistory>
+			<totalSizeCap>1GB</totalSizeCap>
+		</rollingPolicy>
+		<encoder>
+			<charset>UTF-8</charset>
+			<pattern>%msg%n</pattern>
+		</encoder>
+	</appender>
+
+</included>

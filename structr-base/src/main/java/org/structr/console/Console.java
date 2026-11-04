@@ -48,11 +48,15 @@ import org.structr.util.Writable;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 @Documentation(name="Admin Console")
 public class Console {
 
 	private static Logger logger = LoggerFactory.getLogger(Console.class);
+
+	private static final Pattern TOP_LEVEL_UNION = Pattern.compile("(?i)\\bUNION\\b(\\s+ALL\\b)?");
+	private static final Pattern TRAILING_LIMIT  = Pattern.compile("(?i)\\bLIMIT\\s+(\\d+|\\$\\w+)\\s*$");
 
 	public enum ConsoleMode {
 
@@ -243,6 +247,73 @@ public class Console {
 		return actionContext.retrieve(key);
 	}
 
+	/** Whether a trailing LIMIT bounds the rows returned, by the query or by each part of a UNION; one in a subquery, string or comment does not. */
+	public static boolean isLimited(final String query) {
+
+		if (query == null) {
+
+			return false;
+		}
+
+		final StringBuilder topLevel = new StringBuilder();
+		final int length             = query.length();
+		int depth                    = 0;
+
+		for (int i = 0; i < length; i++) {
+
+			final char c = query.charAt(i);
+
+			if (c == '\'' || c == '"' || c == '`') {
+
+				// skip the literal, backslash escapes included
+				int j = i + 1;
+				while (j < length && query.charAt(j) != c) {
+
+					j += query.charAt(j) == '\\' ? 2 : 1;
+				}
+
+				i = j;
+				topLevel.append(' ');
+
+			} else if (c == '/' && i + 1 < length && query.charAt(i + 1) == '/') {
+
+				final int end = query.indexOf('\n', i);
+				i = end < 0 ? length : end;
+				topLevel.append(' ');
+
+			} else if (c == '/' && i + 1 < length && query.charAt(i + 1) == '*') {
+
+				final int end = query.indexOf("*/", i + 2);
+				i = end < 0 ? length : end + 1;
+				topLevel.append(' ');
+
+			} else if (c == '(' || c == '[' || c == '{') {
+
+				depth++;
+				topLevel.append(' ');
+
+			} else if (c == ')' || c == ']' || c == '}') {
+
+				depth--;
+				topLevel.append(' ');
+
+			} else {
+
+				topLevel.append(depth > 0 ? ' ' : c);
+			}
+		}
+
+		for (final String part : TOP_LEVEL_UNION.split(topLevel.toString().trim().replaceAll(";\\s*$", ""))) {
+
+			if (!TRAILING_LIMIT.matcher(part).find()) {
+
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	// ----- private methods -----
 	private void runCypher(final String line, final Writable writable) throws FrameworkException, IOException {
 
@@ -264,7 +335,7 @@ public class Console {
 			writable.println();
 			writable.println();
 
-			if (size <= maxResults) {
+			if (size <= maxResults || isLimited(line)) {
 
 				writable.print(Functions.get("toJson").apply(actionContext, null, new Object[] { result } ));
 

@@ -43,7 +43,7 @@ public class GetAvailableLogFilesCommand extends AbstractCommand {
 		try {
 
 			final GraphObjectMap result = new GraphObjectMap();
-			result.setProperty(new ArrayProperty<>("result", String.class), GetAvailableServerLogsFunction.getListOfServerlogFileNames().toArray());
+			result.setProperty(new ArrayProperty<>("result", String.class), GetAvailableServerLogsFunction.getListOfLogFileNames().toArray());
 
 			webSocketData.setResult(List.of(result));
 
