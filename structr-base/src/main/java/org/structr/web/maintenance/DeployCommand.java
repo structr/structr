@@ -68,6 +68,7 @@ import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.entity.path.PagePath;
 import org.structr.web.entity.path.PagePathParameter;
 import org.structr.web.maintenance.deploy.*;
+import org.structr.web.servlet.DeploymentServlet;
 import org.structr.web.traits.definitions.*;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
@@ -135,8 +136,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String DEPLOYMENT_CONF_FILE_PATH                             = "deployment.conf";
 	private final static String PRE_DEPLOY_CONF_FILE_PATH                             = "pre-deploy.conf";
 	private final static String POST_DEPLOY_CONF_FILE_PATH                            = "post-deploy.conf";
-	private final static String PRE_DEPLOY_CONF_ACDN_TYPE                             = "pre-deploy-conf";
-	private final static String POST_DEPLOY_CONF_ACDN_TYPE                            = "post-deploy-conf";
 	private final static String SCHEMA_GRANTS_FILE_PATH                               = "security/schema-grants.json";
 	private final static String GRANTS_FILE_PATH                                      = "security/grants.json";
 	private final static String CORS_SETTINGS_FILE_PATH                               = "security/cors-settings.json";
@@ -169,22 +168,29 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private final static String GENERIC_FILENAME_KEY = "filename";
 
+	private final static String PRE_DEPLOY_CONF_ACDN_TYPE                             = "pre-deploy-conf";
+	private final static String POST_DEPLOY_CONF_ACDN_TYPE                            = "post-deploy-conf";
+	private final static String LAST_DEPLOYMENT_INFO_ACDN_TYPE                        = "last-deploy-info";
+
+	public static final String QUIET_PARAMETER = "quiet";
+	public static final String MIGRATE_PARAMETER = "migrate";
+
 	@Override
 	public void execute(final Map<String, Object> parameters) throws FrameworkException {
 
 		final String mode = (String) parameters.get("mode");
 
-		if (Boolean.FALSE.equals(isDeploymentActive())) {
+		if (!isDeploymentActive()) {
 
 			// allow users to prevent notifications (for widget import etc.)
-			final Object quiet = parameters.get("quiet");
+			final Object quiet = parameters.get(QUIET_PARAMETER);
 			if (quiet != null && "true".equalsIgnoreCase(quiet.toString())) {
 
 				this.isQuiet = true;
 			}
 
 			// allow users to prevent running of migration handlers
-			final Object migrate = parameters.get("migrate");
+			final Object migrate = parameters.get(MIGRATE_PARAMETER);
 			if (migrate != null && "false".equalsIgnoreCase(migrate.toString())) {
 
 				this.doMigration = false;
@@ -197,10 +203,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				if ("export".equals(mode)) {
 
 					doExport(parameters);
+					writeLastDeploymentAction(parameters);
 
 				} else if ("import".equals(mode)) {
 
 					doImport(parameters);
+					writeLastDeploymentAction(parameters);
 
 				} else {
 
@@ -235,6 +243,38 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	public boolean isQuietMode() {
 
 		return isQuiet;
+	}
+
+	private void writeLastDeploymentAction(final Map<String, Object> parameters) throws FrameworkException {
+
+		final App app                           = StructrApp.getInstance();
+		final Traits traits                     = Traits.of(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE);
+		final PropertyKey<String> configTypeKey = traits.key(ApplicationConfigurationDataNodeTraitDefinition.CONFIG_TYPE_PROPERTY);
+		final PropertyKey<String> contentKey    = traits.key(ApplicationConfigurationDataNodeTraitDefinition.CONTENT_PROPERTY);
+
+		// for deployments via DeploymentServlet, we remove the temporary folder in source/target because we have an actual filename/URL
+		if (parameters.containsKey(DeploymentServlet.FILENAME)) {
+
+			parameters.remove("source");
+			parameters.remove("target");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface obj = app.nodeQuery(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE).key(configTypeKey, LAST_DEPLOYMENT_INFO_ACDN_TYPE).getFirst();
+			if (obj != null) {
+
+				app.delete(obj);
+			}
+
+			app.create(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE,
+					new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), LAST_DEPLOYMENT_INFO_ACDN_TYPE),
+					new NodeAttribute<>(configTypeKey,                                          LAST_DEPLOYMENT_INFO_ACDN_TYPE),
+					new NodeAttribute<>(contentKey,                                             getGson().toJson(parameters))
+			);
+
+			tx.success();
+		}
 	}
 
 	public Map<String, Object> readMetadataFileIntoMap(final Path metadataFile) {
@@ -2035,6 +2075,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 																			  .not().or()
 																			  .key(configTypeKey, PRE_DEPLOY_CONF_ACDN_TYPE)
 																			  .key(configTypeKey, POST_DEPLOY_CONF_ACDN_TYPE)
+																			  .key(configTypeKey, LAST_DEPLOYMENT_INFO_ACDN_TYPE)
 																			  .sort(configTypeKey).getAsList();
 
 			for (final NodeInterface node : acdnsWithoutDeploymentScripts) {

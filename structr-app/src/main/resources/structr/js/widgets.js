@@ -127,6 +127,7 @@ let _Widgets = {
 		let formData = new FormData();
 		formData.append('downloadUrl', 'https://gitlab.structr.com/structr/widgets/-/archive/0.1.4/widgets-0.1.4.zip');
 		formData.append('mode', 'app'); // mode "app" implies "quiet mode", i.e. no notifications
+		formData.append('quiet', 'true');
 
 		let response = await fetch(`${Structr.deployRoot}`, {
 			method: 'POST',
