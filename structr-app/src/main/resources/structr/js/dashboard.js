@@ -228,8 +228,6 @@ let _Dashboard = {
 				drawStatistics(60000);
 			}
 
-			// UISettings.showSettingsForCurrentModule();
-
 			if (dashboardUiConfig.envInfo.databaseService === 'MemoryDatabaseService') {
 				Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));
 			}
@@ -356,7 +354,10 @@ let _Dashboard = {
 			init: () => {}
 		},
 		about: {
-			onShow: async () => {},
+			onShow: async () => {
+
+				_Dashboard.tabs.about.updateLastKnownDeploymentInfo();
+			},
 			onHide: async () => {},
 			init: (dashboardUiConfig) => {
 				_Dashboard.tabs.about.gatherVersionUpdateInfo(dashboardUiConfig.envInfo);
@@ -439,7 +440,39 @@ let _Dashboard = {
 					}
 				}
 			},
+			updateLastKnownDeploymentInfo: () => {
 
+				Command.queryPromise('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: 'last-deploy-info' }, true, null, null).then(data => {
+
+					let container = document.querySelector('[data-last-deploy-info-container]');
+					_Helpers.fastRemoveAllChildren(container);
+
+					if (data.length > 0) {
+
+						for (let info of data) {
+
+							let elem = _Helpers.createSingleDOMElementFromHTML(`
+								<div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+									<div class="font-semibold">Timestamp:</div>
+									<div data-deploy-info-timestamp class=""></div>
+
+									<div class="font-semibold">Parameters:</div>
+									<pre data-deploy-info-parameters class="m-0"></pre>
+								</div>
+							`);
+
+							elem.querySelector('[data-deploy-info-timestamp]').textContent = info.createdDate;
+							elem.querySelector('[data-deploy-info-parameters]').textContent = info.content;
+
+							container.appendChild(elem);
+						}
+
+					} else {
+
+						container.textContent = 'No deployment action on record';
+					}
+				});
+			},
 		},
 		deployment: {
 			deploymentHistoryKey: 'deploymentHistory_' + location.port,
@@ -1997,6 +2030,10 @@ let _Dashboard = {
 					<tr>
 						<td class="key">UUID Format</td>
 						<td><div class="allowed-uuid-format flex items-center"></div></td>
+					</tr>
+					<tr>
+						<td class="key">Last Deployment Action</td>
+						<td><div data-last-deploy-info-container></div></td>
 					</tr>
 					<tr>
 						<td class="key">Runtime Info</td>

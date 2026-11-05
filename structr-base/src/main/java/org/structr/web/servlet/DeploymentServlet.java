@@ -80,13 +80,17 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	private static final String MODE_PARAMETER                = "mode";
 	private static final String TYPES_PARAMETER               = "types";
 
+	public static final String FILENAME = "filename";
+
 	/** Passed straight through to the command: without these the modes it understands have no caller. */
 	private static final String[] FORWARDED_PARAMETERS        = {
 		DeployDataCommand.IMPORT_MODE_PARAMETER_NAME,
 		DeployDataCommand.DO_CASCADING_DELETE_PARAMETER_NAME,
 		DeployDataCommand.DO_INNER_CALLBACKS_PARAMETER_NAME,
 		DeployDataCommand.DO_OUTER_CALLBACKS_PARAMETER_NAME,
-		DeployDataCommand.FORCE_PARAMETER_NAME
+		DeployDataCommand.FORCE_PARAMETER_NAME,
+		DeployCommand.QUIET_PARAMETER,
+		DeployCommand.MIGRATE_PARAMETER
 	};
 	private static final int MEGABYTE                         = 1024 * 1024;
 	private static final int MEMORY_THRESHOLD                 = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
@@ -212,9 +216,9 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 			} else if ("data".equals(mode)) {
 
-				final DeployDataCommand deployCommand = StructrApp.getInstance(securityContext).command(DeployDataCommand.class);
-
 				logger.info("Preparing data deployment export for download as zip");
+
+				final DeployDataCommand deployCommand = StructrApp.getInstance(securityContext).command(DeployDataCommand.class);
 
 				final String types = request.getParameter(TYPES_PARAMETER);
 				handleDownloadAsZipUsingCommand(response, name, types, deployCommand);
@@ -309,7 +313,8 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			String downloadUrl           = null;
 			String mode                  = null;
 			String zipContentPath        = null;
-			final Map<String, Object> forwarded = new LinkedHashMap<>();
+			String originalFilename      = null;
+			final Map<String, Object> forwardedParameters = new LinkedHashMap<>();
 
 			for (final Part p : request.getParts()) {
 
@@ -334,9 +339,11 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 				} else if (isForwarded(fieldName)) {
 
-					forwarded.put(fieldName, fieldValue);
+					forwardedParameters.put(fieldName, fieldValue);
 
 				} else if (FILE_PARAMETER.equals(fieldName)) {
+
+					originalFilename = p.getSubmittedFileName();
 
 					try (final InputStream is = p.getInputStream()) {
 
@@ -350,6 +357,8 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				try {
 
 					HttpHelper.streamURLToFile(downloadUrl, file);
+
+					originalFilename = downloadUrl;
 
 				} catch (final Throwable t) {
 
@@ -370,17 +379,19 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				}
 			}
 
+			forwardedParameters.put(FILENAME, originalFilename);
+
 			if (file.exists() && file.length() > 0L) {
 
 				try {
 
 					if ("app".equals(mode)) {
 
-						deployFileUsingCommand(response, file, directoryPath, zipContentPath, forwarded, StructrApp.getInstance(securityContext).command(DeployCommand.class), false);
+						deployFileUsingCommand(response, file, directoryPath, zipContentPath, forwardedParameters, StructrApp.getInstance(securityContext).command(DeployCommand.class));
 
 					} else if ("data".equals(mode)) {
 
-						deployFileUsingCommand(response, file, directoryPath, zipContentPath, forwarded, StructrApp.getInstance(securityContext).command(DeployDataCommand.class), false);
+						deployFileUsingCommand(response, file, directoryPath, zipContentPath, forwardedParameters, StructrApp.getInstance(securityContext).command(DeployDataCommand.class));
 
 					} else {
 
@@ -463,6 +474,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			final Map<String, Object> attributes = new HashMap<>();
 			attributes.put("mode", "export");
 			attributes.put("target", exportTargetFolder);
+			attributes.put(FILENAME, name + ".zip");
 
 			if (types != null) {
 
@@ -512,7 +524,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		return false;
 	}
 
-	private void deployFileUsingCommand(final HttpServletResponse response, final File file, final String directoryPath, final String zipContentPath, final Map<String, Object> forwarded, final DeployCommand deployCommand, final boolean doMigration) throws FrameworkException, IOException {
+	private void deployFileUsingCommand(final HttpServletResponse response, final File file, final String directoryPath, final String zipContentPath, final Map<String, Object> forwarded, final DeployCommand deployCommand) throws FrameworkException, IOException {
 
 		try {
 
@@ -562,8 +574,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 			parameters.put("mode", "import");
 			parameters.put("source", deploymentFolderSourcePath);
-			parameters.put("quiet", true);
-			parameters.put("migrate", doMigration);
 
 			deployCommand.execute(parameters);
 
