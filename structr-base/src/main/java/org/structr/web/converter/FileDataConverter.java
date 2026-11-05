@@ -98,7 +98,14 @@ public class FileDataConverter extends PropertyConverter {
 
 				try {
 
-					FileHelper.setFileData(currentFile, uriData.getBinaryData(), uriData.getContentType());
+					final byte[] binaryData = uriData.getBinaryData();
+
+					if (binaryData == null) {
+
+						throw new FrameworkException(422, "Cannot set File.base64Data: Unable to base64 decode \"" + sourceString.substring(0, 32) + "...\" (Length: " + sourceString.length() + ")");
+					}
+
+					FileHelper.setFileData(currentFile, binaryData, uriData.getContentType());
 
 				} catch (IOException ioex) {
 
