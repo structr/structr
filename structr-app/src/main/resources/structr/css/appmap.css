@@ -178,6 +178,241 @@
 	font-weight: 600;
 }
 
+/* ----- the controls of an HTML element opened on the map, see _AppMap.elementEditor; sizes in em follow the zoom ----- */
+.appmap-el {
+	--page: #5b2fe0;
+	--action: #e8590c;
+	position: absolute;
+	z-index: 1;
+	display: grid;
+	/* minmax(0, …): the code editor keeps the width it was laid out in, which must not widen its column */
+	grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+	grid-template-rows: minmax(0, 1fr) auto;
+	gap: .5em .8em;
+	box-sizing: border-box;
+	color: var(--body-text);
+}
+
+.appmap-el[hidden] {
+	display: none;
+}
+
+.appmap-el-single {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+.appmap-el-sheet {
+	grid-template-columns: minmax(0, 1fr);
+	grid-template-rows: minmax(0, 1fr) auto auto;
+}
+
+.appmap-el-main,
+.appmap-el-side {
+	display: flex;
+	flex-direction: column;
+	gap: .45em;
+	min-width: 0;
+	min-height: 0;
+}
+
+.appmap-el-side {
+	overflow-y: auto;
+}
+
+.appmap-el-bar {
+	grid-column: 1 / -1;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: .5em;
+	font-size: .8em;
+	color: var(--gray-888);
+}
+
+.appmap-el button,
+.appmap-el input,
+.appmap-el select,
+.appmap-el textarea {
+	font: inherit;
+	color: inherit;
+}
+
+.appmap-el input,
+.appmap-el select,
+.appmap-el textarea {
+	box-sizing: border-box;
+	min-width: 0;
+	padding: .3em .5em;
+	background-color: var(--solid-white);
+	border: 1px solid var(--input-field-border);
+	border-radius: .2em;
+}
+
+.appmap-el input:focus,
+.appmap-el select:focus,
+.appmap-el textarea:focus {
+	outline: none;
+	border-color: var(--page);
+	box-shadow: 0 0 0 .15em color-mix(in srgb, var(--page) 20%, transparent);
+}
+
+.appmap-el-mono {
+	font-family: var(--font-monospace) !important;
+}
+
+/* the main field: a query, a text or the content of a template, filling the room the column leaves */
+.appmap-el-field {
+	flex: 1;
+	min-width: 0;
+	min-height: 2.5em;
+	resize: none;
+	font-family: var(--font-monospace) !important;
+	font-size: .92em !important;
+	line-height: 1.4;
+	background-color: color-mix(in srgb, var(--body-text) 4%, var(--solid-white)) !important;
+	border: 1px solid var(--input-field-border);
+	border-radius: .2em;
+	overflow: hidden;
+}
+
+textarea.appmap-el-field {
+	overflow: auto;
+}
+
+/* the source of a repeater as a segmented control, the one in use raised */
+.appmap-el-tabs {
+	display: flex;
+	gap: .2em;
+	padding: .2em;
+	background-color: color-mix(in srgb, var(--body-text) 6%, transparent);
+	border-radius: .2em;
+}
+
+.appmap-el-tabs button {
+	flex: 1;
+	padding: .2em .5em;
+	color: var(--gray-888);
+	font-weight: 500;
+	background: none;
+	border: 1px solid transparent;
+	border-radius: .2em;
+	cursor: pointer;
+}
+
+.appmap-el-tabs button[aria-pressed="true"] {
+	color: var(--page);
+	font-weight: 650;
+	background-color: var(--solid-white);
+	border-color: color-mix(in srgb, var(--page) 80%, transparent);
+}
+
+.appmap-el-tabs button:disabled {
+	cursor: default;
+}
+
+.appmap-el-note {
+	color: var(--gray-888);
+}
+
+/* a setting with its name in small capitals in front */
+.appmap-el-row {
+	display: flex;
+	align-items: center;
+	gap: .5em;
+}
+
+.appmap-el-row span {
+	flex: none;
+	width: 5.6em;
+	white-space: nowrap;
+	color: var(--gray-888);
+	font-size: .72em;
+	font-weight: 650;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+}
+
+.appmap-el-row input {
+	flex: 1;
+}
+
+/* an action mapping: its event outlined in the colour of actions, what follows from it beside it */
+.appmap-el-action {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .35em;
+}
+
+.appmap-el-event {
+	color: var(--action) !important;
+	font-weight: 600;
+	border-color: var(--action) !important;
+	border-radius: .2em !important;
+}
+
+.appmap-el-verb {
+	flex: 1;
+	font-weight: 600;
+	background-color: color-mix(in srgb, var(--action) 10%, var(--solid-white)) !important;
+}
+
+.appmap-el-method {
+	flex-basis: 100%;
+}
+
+.appmap-el-arrow {
+	color: var(--gray-888);
+}
+
+.appmap-el-buttons {
+	display: flex;
+	gap: .5em;
+}
+
+.appmap-el-pages {
+	padding: .25em .9em;
+	color: var(--page) !important;
+	font-weight: 600;
+	background-color: transparent;
+	border: 1px solid color-mix(in srgb, var(--page) 45%, transparent);
+	border-radius: .2em;
+	cursor: pointer;
+}
+
+.appmap-el-pages:hover {
+	background-color: color-mix(in srgb, var(--page) 10%, transparent);
+}
+
+.appmap-el-save {
+	padding: .25em .9em;
+	color: #fff !important;
+	font-weight: 600;
+	background-color: var(--page);
+	border: none;
+	border-radius: .2em;
+	cursor: pointer;
+}
+
+.appmap-el-save:disabled {
+	opacity: .35;
+	cursor: default;
+}
+
+/* on the dark look of the map, in the colours of its cards */
+.appmap-el-dark {
+	--page: #a78bfa;
+	--action: #ff922b;
+	--solid-white: #161b22;
+	--body-text: #dfe4e9;
+	--gray-888: #aab3bd;
+	--input-field-border: rgba(255, 255, 255, .15);
+}
+
+.appmap-el-dark .appmap-el-save {
+	color: #0b0e12 !important;
+}
+
 /* ----- the way exploring took, above the map ----- */
 .appmap-trail {
 	position: absolute;

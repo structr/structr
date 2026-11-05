@@ -72,8 +72,15 @@ class AppMapView {
 	static SMALL       = 12;
 	static TYPE_MARGIN = 0.6;
 
-	// how far out the map can be zoomed, as a share of the zoom at which it fits the screen
-	static ZOOM_OUT = 0.25;
+	// how far out the map can be zoomed, as a share of the zoom at which it fits the screen; how far in at least, and further
+	// for the pages with the largest trees, until the boxes of their HTML elements are ZOOM_IN_BOX pixels high, so that
+	// every HTML element can open with its controls (see AppMapPanels.elementPanel)
+	static ZOOM_OUT    = 0.25;
+	static ZOOM_IN     = 150;
+	static ZOOM_IN_BOX = 480;
+
+	// a double click on an HTML element glides so close that its controls stand at this share of their size
+	static ELEMENT_FILL = 1.15;
 
 	// the wheel does not jump from notch to notch: each notch moves a target, and the map approaches it continuously, by about
 	// two thirds of the remaining way in this many milliseconds, independent of how long a frame takes to draw
@@ -88,10 +95,19 @@ class AppMapView {
 	// a double click glides to the inner structure of an element in this many milliseconds; a page or shared component
 	// then fills this share of the screen, with its tree open, a grouping its outline
 	static GLIDE_MS   = 900;
+	// the shorter way into place when an editor opens, see settleOn
+	static SETTLE_MS  = 350;
 
 	// the most important pages are named in bold, as many as there are hotspots (see AppMapModel.importance)
 	static KEY_PAGES = AppMapModel.HOTSPOTS;
 	static GLIDE_FILL = 0.86;
+
+	// the editor of code, of a method or a template, stands only in an element that fills the screen, as after a click or a
+	// double-click on it: it opens when the element takes this share of the screen, and closes again below the second
+	static MAXIMIZED = [0.7, 0.55];
+
+	// the size of the text in every editor that stands in an element filling the screen, in pixels
+	static EDITOR_FONT = 13;
 
 	// exploring an element without inner structure ends at most so close that it takes this share of the screen, so its
 	// relations and neighbours stay in view
@@ -181,6 +197,10 @@ class AppMapView {
 		this.editing = null;
 		this.ending  = false;
 
+		// the controls of an HTML element opened inside its box, which follow the open element nearest the middle of the
+		// screen (see followElement)
+		this.domEditor = options.domEditor ?? null;
+
 		this.fonts = {
 			main: style.getPropertyValue('--font-main').trim() || 'Inter, sans-serif',
 			mono: style.getPropertyValue('--font-monospace').trim() || 'monospace'
@@ -232,6 +252,7 @@ class AppMapView {
 		document.removeEventListener('keydown', this.onKey);
 		document.removeEventListener('keyup', this.onKey);
 		this.editor?.dispose();
+		this.domEditor?.dispose();
 
 		d3.select(this.canvas).on('.zoom', null).on('mousemove', null).on('mouseleave', null).on('click', null).on('dblclick', null);
 		this.canvas.remove();
@@ -542,6 +563,8 @@ class AppMapView {
 	draw() {
 
 		this.renderer.draw();
+		this.followElement();
+		this.followCode();
 		this.placeEditor();
 		this.updateHint();
 	}
@@ -558,7 +581,7 @@ class AppMapView {
 	// ----- exploring: a click holds the focus, the names at the ends of its relations lead on -----
 	// a click on an element holds its focus, on a jump marker leads to the element it names, on the empty map ends exploring;
 	// inside an open page or a readable method the click belongs to what is shown there
-	onClick(e) {
+	async onClick(e) {
 
 		const [px, py] = d3.pointer(e, this.canvas);
 		const [wx, wy] = this.transform.invert([px, py]);
@@ -566,14 +589,28 @@ class AppMapView {
 		const dom      = this.panels.findDom(wx, wy);
 		const code     = this.editor && this.panels.codeAt(wx, wy, this.transform.k);
 
-		// readable code is edited where it stands; a click beside the editor ends editing first
+		// a click on readable code or on a template fills the screen with it, and there its editor opens (see followCode and
+		// followElement); a click beside the editor of code ends editing first. The controls of other HTML elements come and
+		// go with the zoom
 		if (code && !marker) {
 
-			this.edit(code);
+			// unsaved changes in another editor are kept or discarded first
+			if (this.editing && this.editing !== code && !(await this.endEdit())) {
+				return;
+			}
+
+			this.glideInto(code);
 			return;
 		}
 
-		if (this.editing) {
+		if (dom && AppMapPanels.isSheet(dom) && this.domEditor && !marker) {
+
+			this.pinDom(dom);
+			this.glideIntoElement(dom);
+			return;
+		}
+
+		if (this.editing && !this.editing.page) {
 
 			this.endEdit();
 			return;
@@ -606,16 +643,151 @@ class AppMapView {
 		}
 	}
 
-	// ----- editing: the code of a method or the text of a template, in the editor of the Admin UI above its field -----
-	async edit(n) {
+	// ----- editing: the code of a method or the text of a template, in the editor of the Admin UI above its field, and the
+	// settings of an HTML element in it when it is open -----
+	// an HTML element of a page has its own editor
+	editorOf(n) {
 
-		if (this.editing === n || !(await this.endEdit())) {
+		return n.page ? this.domEditor : this.editor;
+	}
+
+	// the controls of an HTML element stand in the open element nearest the middle of the screen: they follow it as the map
+	// moves, stay with an element whose changes are not saved, and give way to the editor of code
+	followElement() {
+
+		const editing = this.editing;
+
+		if (!this.domEditor || this.spotlight || (editing && !editing.page)) {
 			return;
 		}
 
-		this.editing = n;
-		this.editor.open(n);
-		this.requestDraw();
+		// a template has its controls, with the editor of its content, only while it fills the screen
+		const open = this.panels.openElements().filter(d => !AppMapPanels.isSheet(d) || this.fills(d, d === editing));
+		const next = open[0] ?? null;
+
+		// the controls stay with their element while it is open and about as near the middle as the nearest one, so that
+		// they do not jump between two elements at the same distance; unsaved changes keep them where they are
+		if (editing && this.domEditor.isDirty()) {
+			return;
+		}
+
+		if (editing && open.includes(editing) && (editing === next || this.panels.fromCentre(editing) < this.panels.fromCentre(next) * 1.3 + 40)) {
+			return;
+		}
+
+		if (editing) {
+
+			this.domEditor.dispose();
+			this.editing = null;
+		}
+
+		if (next) {
+
+			this.editing = next;
+			this.domEditor.open(next);
+
+			// the editor of a template stands in the middle of the screen
+			if (AppMapPanels.isSheet(next)) {
+				this.settleOn(next);
+			}
+		}
+	}
+
+	// the editor of code opens on the readable code that fills the screen, and closes when it no longer does; code whose
+	// editor was closed by hand gets it again only after it has left the screen. Unsaved changes keep it where it is
+	followCode() {
+
+		const editing = this.editing;
+
+		if (!this.editor || this.spotlight || editing?.page) {
+			return;
+		}
+
+		if (this.dismissed && !(this.panels.reading.has(this.dismissed) && this.fills(this.dismissed, true))) {
+			this.dismissed = null;
+		}
+
+		if (editing && (this.editor.isDirty() || (this.panels.reading.has(editing) && this.fills(editing, true)))) {
+			return;
+		}
+
+		const next = [...this.panels.reading].find(n => n !== this.dismissed && this.fills(n, false)) ?? null;
+
+		if (next === editing) {
+			return;
+		}
+
+		if (editing) {
+
+			this.editor.dispose();
+			this.editing = null;
+		}
+
+		if (next) {
+
+			this.tip.hidden = true;
+			this.editing    = next;
+			this.editor.open(next);
+			this.settleOn(next);
+		}
+	}
+
+	// when an editor opens, its element glides to the middle of the screen and to the zoom at which it fills it, unless a
+	// glide is already under way, which leads there itself
+	settleOn(n) {
+
+		if (d3.active(this.canvas)) {
+			return;
+		}
+
+		if (n.page) {
+			this.glideIntoElement(n, AppMapView.SETTLE_MS);
+		} else {
+			this.glideInto(n, AppMapView.SETTLE_MS);
+		}
+	}
+
+	// the zoom at which a method, a page of a single template or a template in a page fills GLIDE_FILL of the screen, with
+	// its longer side
+	fillZoom(n) {
+
+		const size   = n.page ? k => (p => [p.width, p.height])(this.panels.elementPanel(n, k)) : k => AppMapRenderer.boxOf(n).map(v => 2 * v * this.drawnRadiusAt(n, k));
+		const across = this.zoomWhere(k => size(k)[0] * k, AppMapView.GLIDE_FILL * this.width);
+		const down   = this.zoomWhere(k => size(k)[1] * k, AppMapView.GLIDE_FILL * this.height);
+
+		return Math.min(across, down);
+	}
+
+	// the element with an editor near the middle of the screen whose filling zoom lies between the zoom now and the given
+	// one: zooming in stops there, so that it does not pass the element whose editor would open (see onWheel)
+	fillStop(target) {
+
+		const k       = this.transform.k;
+		const near    = n => Math.abs(this.transform.applyX(n.x ?? 0) - this.width / 2) < this.width / 4;
+		const sheets  = this.panels.openElements().filter(d => AppMapPanels.isSheet(d) && this.panels.fromCentre(d) < Math.min(this.width, this.height) / 4);
+		const methods = [...this.panels.reading].filter(n => near(n) && Math.abs(this.transform.applyY(n.y) - this.height / 2) < this.height / 4);
+		const stops   = [...sheets, ...methods].map(n => this.fillZoom(n)).filter(f => f > k * 1.001 && f < target);
+
+		return stops.length ? Math.min(...stops) : target;
+	}
+
+	// whether a method, a page of a single template or a template in a page fills the screen, see MAXIMIZED: to open its
+	// editor, or, when it has one already, to keep it
+	fills(n, keep) {
+
+		const t       = this.transform;
+		const [w, h]  = n.page ? (p => [p.width, p.height])(this.panels.elementPanel(n, t.k)) : (([bw, bh]) => [2 * bw * this.shownRadius(n), 2 * bh * this.shownRadius(n)])(AppMapRenderer.boxOf(n));
+		const [x, y]  = n.page ? (p => [p.x + p.width / 2, p.y + p.height / 2])(this.panels.elementPanel(n, t.k)) : [n.x, n.y];
+		const share   = Math.max(w * t.k / this.width, h * t.k / this.height);
+		const centred = Math.abs(t.applyX(x) - this.width / 2) < this.width / 4 && Math.abs(t.applyY(y) - this.height / 2) < this.height / 4;
+
+		return centred && share >= AppMapView.MAXIMIZED[keep ? 1 : 0];
+	}
+
+	// whether the controls of an HTML element stand in it, so its sketch makes way
+	showsControls(d) {
+
+		return this.editing === d && !!this.domEditor?.ready();
 	}
 
 	// ends editing, unless there are unsaved changes the user keeps; says whether it ended. While the question about them is
@@ -636,7 +808,7 @@ class AppMapView {
 
 		try {
 
-			if (!(await this.editor.close())) {
+			if (!(await this.editorOf(editing).close())) {
 				return false;
 			}
 
@@ -647,6 +819,11 @@ class AppMapView {
 
 		if (this.editing === editing) {
 			this.editing = null;
+		}
+
+		// code closed by hand stays closed until it leaves the screen, see followCode
+		if (!editing.page) {
+			this.dismissed = editing;
 		}
 
 		this.requestDraw();
@@ -660,7 +837,26 @@ class AppMapView {
 
 		const n = this.editing;
 
-		if (!n || !this.editor) {
+		if (!n || !this.editorOf(n)) {
+			return;
+		}
+
+		// the settings of an HTML element stand where it shows them, while its page is open
+		if (n.page) {
+
+			if (this.spotlight || !n.opened) {
+
+				this.domEditor.hide();
+				return;
+			}
+
+			const t    = this.transform;
+			const area = n.opened.area;
+
+			const tone = this.panels.toneOf(n);
+
+			this.domEditor.place({ left: t.applyX(area.x), top: t.applyY(area.y), width: area.width * t.k, height: area.height * t.k }, n.opened.fit, this.look.dark, tone === this.look.trace ? this.look.kinds.dom : tone, Math.min(1, (n.opened.change - 0.5) * 2));
+
 			return;
 		}
 
@@ -674,7 +870,7 @@ class AppMapView {
 		const panel            = this.panels.codePanel(n, t.k);
 		const [fx, fy, fw, fh] = AppMapPanels.codeField(panel);
 
-		this.editor.place({ left: t.applyX(fx), top: t.applyY(fy), width: fw * t.k, height: fh * t.k }, panel.font * t.k);
+		this.editor.place({ left: t.applyX(fx), top: t.applyY(fy), width: fw * t.k, height: fh * t.k });
 	}
 
 	// the data of the map loaded anew, after a change to the application: the elements keep their places, the view, the
@@ -683,7 +879,12 @@ class AppMapView {
 
 		const trail   = this.trail.map(n => n.id);
 		const pinned  = this.pinned?.id;
-		const editing = this.editing?.id;
+		const editing = this.editing?.page ? null : this.editing?.id;
+
+		// the controls of an HTML element belong to the old trees; they open anew with the new data, see followElement
+		if (this.editing?.page) {
+			this.domEditor.dispose();
+		}
 
 		this.layout.stop();
 		this.strands.cancel();
@@ -702,6 +903,7 @@ class AppMapView {
 		this.trail          = trail.map(id => this.byId.get(id)).filter(n => n);
 		this.pinned         = this.byId.get(pinned) ?? null;
 		this.editing        = this.byId.get(editing) ?? null;
+		this.dismissed      = this.dismissed ? this.byId.get(this.dismissed.id) ?? null : null;
 		this.found          = null;
 		this.foundFor       = new Map();
 
@@ -716,6 +918,7 @@ class AppMapView {
 		this.strands = new AppMapStrands(this);
 		this.panels  = new AppMapPanels(this);
 
+		this.zoom.scaleExtent([this.zoom.scaleExtent()[0], this.deepestZoom()]);
 		this.renderer.recolor();
 		this.setLens(this.accessRole ?? null);
 		this.measure();
@@ -1075,6 +1278,8 @@ class AppMapView {
 			: this.activity && !this.pinned ? this.describeActivity()
 			: this.found ? `${this.found.elements.size ? this.found.elements.size : 'No'} ${this.found.elements.size === 1 ? 'element matches' : 'elements match'} “${this.found.text}” · click a result of the search to go there`
 			: this.pinned ? 'Click a name at the end of a relation to go there · Esc or a click on the empty map ends exploring'
+			: this.editing?.page ? 'Ctrl+S saves the element · zoom out to leave it'
+			: open && this.domEditor ? 'Zoom into an element or double-click it to change it, click code or a template to edit it · double-click the empty map to see the whole map again'
 			: open ? 'Double-click the empty map to see the whole map again'
 			: this.zoomTier() === 0 ? 'Hover an element to see what it connects to · click it to explore from there'
 			: 'Double-click a page or method to open it · drag to pan, the wheel zooms';
@@ -1089,7 +1294,7 @@ class AppMapView {
 	// ----- interaction: the map reacts to panning, zooming and hovering -----
 	bindEvents() {
 
-		this.zoom = d3.zoom().scaleExtent([0.1, 150]).on('zoom', e => {
+		this.zoom = d3.zoom().scaleExtent([0.1, this.deepestZoom()]).on('zoom', e => {
 
 			// only a gesture of the user counts, not fitting the map to the screen
 			if (e.sourceEvent) {
@@ -1127,9 +1332,10 @@ class AppMapView {
 			.on('mousemove', e => this.onPointerMove(e))
 			.on('mouseleave', () => this.onPointerLeave());
 
-		// Escape ends editing, then exploring; an Escape the editor used itself, to close its suggestions, ends nothing, and
-		// the editor stops it on its way, so only one that arrives here unused counts. Editing ends when the key is released:
-		// the question about unsaved changes takes the focus, and a release in it would answer it at once
+		// Escape ends editing code, then exploring; the controls of an open HTML element stay as long as it is open. An
+		// Escape the editor used itself, to close its suggestions, ends nothing, and the editor stops it on its way, so only
+		// one that arrives here unused counts. Editing ends when the key is released: the question about unsaved changes
+		// takes the focus, and a release in it would answer it at once
 		this.onKey = e => {
 
 			if (e.key !== 'Escape') {
@@ -1140,7 +1346,7 @@ class AppMapView {
 
 				this.escapeFree = !e.defaultPrevented;
 
-				if (!this.editing && this.escapeFree && this.pinned) {
+				if ((!this.editing || this.editing.page) && this.escapeFree && this.pinned) {
 					this.unpin();
 				}
 
@@ -1150,7 +1356,7 @@ class AppMapView {
 				const free      = this.escapeFree;
 				this.escapeFree = false;
 
-				if (this.editing && free) {
+				if (this.editing && !this.editing.page && free) {
 					this.endEdit();
 				}
 			}
@@ -1182,7 +1388,18 @@ class AppMapView {
 		const delta    = -e.deltaY * (e.deltaMode === 1 ? 0.05 : e.deltaMode ? 1 : 0.002) * (e.ctrlKey ? 10 : 1);
 		const [lo, hi] = this.zoom.scaleExtent();
 
-		this.wheelK     = Math.min(hi, Math.max(lo, (this.wheelK ?? this.transform.k) * Math.pow(2, delta)));
+		// while the editor of code or of a template stands in its element, the map only zooms out, to leave it
+		const editor = this.editing && (!this.editing.page || AppMapPanels.isSheet(this.editing));
+		const top    = editor ? Math.min(hi, this.transform.k) : hi;
+
+		if (editor && delta > 0) {
+			return;
+		}
+
+		// zooming in stops where an element with an editor fills the screen, and goes on past it only with the next turn
+		const target = Math.min(top, Math.max(lo, (this.wheelK ?? this.transform.k) * Math.pow(2, delta)));
+
+		this.wheelK     = delta > 0 ? this.fillStop(target) : target;
 		this.wheelAt    = d3.pointer(e, this.canvas);
 		this.userZoomed = true;
 
@@ -1218,6 +1435,16 @@ class AppMapView {
 		}
 	}
 
+	// the closest zoom: ZOOM_IN, or where the boxes of the HTML elements of the page with the smallest ones are ZOOM_IN_BOX
+	// pixels high; close up the elements have the size of the layout, so the scale of a tree no longer changes there
+	deepestZoom() {
+
+		const scales = [...this.panels.trees].map(([page, tree]) => this.panels.pagePanel(page, tree, 1, this.radiusOf(page)).scale);
+		const finest = d3.min(scales.filter(s => s > 0)) ?? 0;
+
+		return Math.max(AppMapView.ZOOM_IN, finest ? AppMapView.ZOOM_IN_BOX / (AppMapPanels.BOX * finest) : 0);
+	}
+
 	// how much larger than in the layout the elements are drawn at a zoom, see SIZE_ZOOM
 	growthAt(k) {
 
@@ -1239,9 +1466,12 @@ class AppMapView {
 
 		e.preventDefault();
 
-		// its first click opened the editor on readable code, and the view stays where it is; while the code loads, the editor
-		// is not shown yet, so the second click lands on the map
-		if (this.editor && this.panels.codeAt(wx, wy, this.transform.k)) {
+		// readable code glides to its element, as a click on it does
+		const code = this.editor && this.panels.codeAt(wx, wy, this.transform.k);
+
+		if (code) {
+
+			this.glideInto(code);
 			return;
 		}
 
@@ -1252,26 +1482,46 @@ class AppMapView {
 			this.pin(n);
 		}
 
-		if (n) {
+		// an HTML element opens with its controls, as a page opens with its tree
+		if (dom && this.domEditor) {
+			this.glideIntoElement(dom);
+		} else if (n) {
 			this.glideInto(n);
 		} else {
 			this.glide(...this.fitTransform());
 		}
 	}
 
+	// glides so close to an HTML element that it opens with its controls at ELEMENT_FILL of their size, with the controls in
+	// the middle of the screen; a long box may then reach beyond it
+	glideIntoElement(d, ms = AppMapView.GLIDE_MS) {
+
+		// a template fills the screen with its sheet, as a method does with its box
+		if (AppMapPanels.isSheet(d)) {
+
+			const k     = this.fillZoom(d);
+			const sheet = this.panels.elementPanel(d, k);
+
+			this.glide(sheet.x + sheet.width / 2, sheet.y + sheet.height / 2, k, ms);
+
+			return;
+		}
+
+		const k    = this.zoomWhere(k => this.panels.elementPanel(d, k).fit, AppMapView.ELEMENT_FILL);
+		const area = this.panels.elementPanel(d, k).area;
+
+		this.glide(area.x + area.width / 2, area.y + area.height / 2, k, ms);
+	}
+
 	// glides so close to an element that it shows what it holds: the code of a method, the tree of a page, the elements of
 	// a grouping
-	glideInto(n) {
+	glideInto(n, ms = AppMapView.GLIDE_MS) {
 
 		// a method, or a page of a single template: its box fills the screen and shows its code
 		if (AppMapPanels.hasCode(n)) {
 
-			const [w, h] = AppMapRenderer.boxOf(n);
-			const across = this.zoomWhere(k => 2 * w * this.drawnRadiusAt(n, k) * k, AppMapView.GLIDE_FILL * this.width);
-			const down   = this.zoomWhere(k => 2 * h * this.drawnRadiusAt(n, k) * k, AppMapView.GLIDE_FILL * this.height);
-
 			this.panels.requestCode(n);
-			this.glide(n.x, n.y, Math.min(across, down));
+			this.glide(n.x, n.y, this.fillZoom(n), ms);
 
 			return;
 		}
@@ -1381,7 +1631,7 @@ class AppMapView {
 	}
 
 	// a smooth flight to the given point of the map at the given zoom (van Wijk and Nuij, as d3 interpolates zoom transitions)
-	glide(x, y, k) {
+	glide(x, y, k, ms = AppMapView.GLIDE_MS) {
 
 		const [lo, hi] = this.zoom.scaleExtent();
 		const scale    = Math.min(hi, Math.max(lo, k));
@@ -1394,7 +1644,7 @@ class AppMapView {
 		d3.select(this.canvas)
 			.interrupt()
 			.transition()
-			.duration(AppMapView.GLIDE_MS)
+			.duration(ms)
 			.call(this.zoom.transform, d3.zoomIdentity.translate(this.width / 2, this.height / 2).scale(scale).translate(-x, -y));
 	}
 
@@ -1424,7 +1674,7 @@ class AppMapView {
 
 		this.baseK  = k;
 		this.wheelK = null;
-		this.zoom.scaleExtent([k * AppMapView.ZOOM_OUT, 150]);
+		this.zoom.scaleExtent([k * AppMapView.ZOOM_OUT, this.deepestZoom()]);
 
 		d3.select(this.canvas).interrupt().call(this.zoom.transform, d3.zoomIdentity.translate(this.width / 2, this.height / 2).scale(k).translate(-x, -y));
 	}
@@ -1980,9 +2230,13 @@ class AppMapView {
 
 		if (dom) {
 
-			this.showTip(e, `<${dom.data.tag}> in ${dom.page.n}`, this.describeDom(dom), 420);
+			// an open element shows itself; an HTML element with relations can be clicked to explore from it
+			if (dom.opened) {
+				this.tip.hidden = true;
+			} else {
+				this.showTip(e, `<${dom.data.tag}> in ${dom.page.n}`, this.describeDom(dom), 420);
+			}
 
-			// an HTML element with relations can be clicked to explore from it
 			this.canvas.style.cursor = this.panels.boxTargets(dom).length ? 'pointer' : '';
 
 			if (this.hovered || this.hoveredStrand) {

@@ -62,10 +62,12 @@ class AppMapRenderer {
 	// [light, dark]
 	static ACCESS_COLOR = { pub: ['#e03131', '#ff6b6b'], auth: ['#1c7ed6', '#4dabf7'], none: ['#495057', '#adb5bd'] };
 
-	// the glow of the activity lens reaches this many pixels beyond an element, plus this many more for the hottest one, in
-	// an amber that reads as warmth and that no kind of element has; the strength is in size and opacity; [light, dark]
-	static HEAT_GLOW    = [4, 20];
-	static HEAT_COLOUR  = ['#f08c00', '#ffa94d'];
+	// the glow of the activity lens reaches this many pixels beyond an element, plus this many more for the hottest one; its
+	// colour runs like a heat map from yellow through orange to red, warm colours no kind of element has, so the colour tells
+	// the heat and the opacity, from the first to the second value, stays light; [light, dark]
+	static HEAT_GLOW    = [4, 18];
+	static HEAT_OPACITY = [0.3, 0.45];
+	static HEAT_COLOURS = [['#fab005', '#fd7e14', '#e8590c', '#e03131'], ['#ffd43b', '#ff922b', '#ff6b6b']];
 
 	// the hotspots of the activity: the map in grey, veiled with this much of the background, and the names of this many of
 	// the most used elements
@@ -743,8 +745,9 @@ class AppMapRenderer {
 				continue;
 			}
 
-			// a page that is open draws the relations of its repeaters and action mappings from their boxes itself
-			if (p.links.every(x => this.view.panels.leavesFromBox(x))) {
+			// a page that is open draws the relations of its repeaters and action mappings from their boxes itself, and those
+			// of the page as a whole rest meanwhile
+			if (p.links.every(x => this.view.panels.withinOpenPage(x))) {
 				continue;
 			}
 
@@ -1505,7 +1508,7 @@ class AppMapRenderer {
 	}
 
 	// what the global search found lies on a mark as from a highlighter, large enough to be seen from afar
-	// the activity lens: a glow behind every measured element, as wide and as strong as it is used or failing; its size is in
+	// the activity lens: a glow behind every measured element, as wide, as strong and as hot in colour as it is used; its size is in
 	// pixels, so the heat shows in the overview as close up
 	drawHeat(k, rect) {
 
@@ -1516,7 +1519,8 @@ class AppMapRenderer {
 			return;
 		}
 
-		const colour = d3.color(AppMapRenderer.HEAT_COLOUR[this.view.look.dark ? 1 : 0]);
+		const ramp          = d3.interpolateRgbBasis(AppMapRenderer.HEAT_COLOURS[this.view.look.dark ? 1 : 0]);
+		const [least, most] = AppMapRenderer.HEAT_OPACITY;
 
 		ctx.save();
 
@@ -1529,9 +1533,13 @@ class AppMapRenderer {
 				continue;
 			}
 
+			const colour   = d3.color(ramp(heat));
+			const opacity  = least + (most - least) * heat;
 			const gradient = ctx.createRadialGradient(n.x, n.y, inner, n.x, n.y, r);
 
-			gradient.addColorStop(0, colour.copy({ opacity: 0.15 + 0.45 * heat }).formatRgb());
+			// a soft falloff: half the strength is gone at about a third of the way out
+			gradient.addColorStop(0, colour.copy({ opacity }).formatRgb());
+			gradient.addColorStop(0.35, colour.copy({ opacity: opacity * 0.5 }).formatRgb());
 			gradient.addColorStop(1, colour.copy({ opacity: 0 }).formatRgb());
 
 			ctx.fillStyle = gradient;

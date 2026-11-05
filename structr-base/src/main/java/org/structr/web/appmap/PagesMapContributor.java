@@ -333,12 +333,13 @@ public class PagesMapContributor implements ApplicationMapContributor {
 	}
 
 	/**
-	 * A compact outline: [tag, flags, children, ids, expressions], children only when there are
-	 * any or something follows, ids only when there are any or expressions follow, expressions
-	 * only when there are any; the flags are 1 (the element does something), 2 (it triggers an
-	 * action mapping) and 4 (it repeats), the ids are those of the repeater and action mapping
-	 * nodes that live on the element, the expressions those that its text shows, see
-	 * expressionsOf. Text nodes and the head are left out.
+	 * An outline: [tag, flags, children, ids, expressions, data key, element id]; the flags are
+	 * 1 (the element does something), 2 (it triggers an action mapping), 4 (it repeats), 8 (it
+	 * holds a text of its own) and 16 (it has show or hide conditions), the ids are those of the
+	 * repeater and action mapping nodes that live on the element, the expressions those that its
+	 * text shows, see expressionsOf. The element id is the UUID of the HTML element itself, so
+	 * that a client can show and change its settings and content. Text nodes and the head are
+	 * left out.
 	 */
 	private List<Object> outlineOf(final HtmlNode html, final int depth) {
 
@@ -352,7 +353,8 @@ public class PagesMapContributor implements ApplicationMapContributor {
 			return null;
 		}
 
-		final int flags             = (html.isActive ? 1 : 0) | (html.actions.isEmpty() ? 0 : 2) | (StringUtils.isNotEmpty(html.functionQuery) || StringUtils.isNotEmpty(html.dataKey) ? 4 : 0);
+		final int flags             = (html.isActive ? 1 : 0) | (html.actions.isEmpty() ? 0 : 2) | (StringUtils.isNotEmpty(html.functionQuery) || StringUtils.isNotEmpty(html.dataKey) ? 4 : 0)
+			| (hasText(html) ? 8 : 0) | (StringUtils.isNotBlank(html.node.getShowConditions()) || StringUtils.isNotBlank(html.node.getHideConditions()) ? 16 : 0);
 		final List<Object> item     = new LinkedList<>(List.of(tag, flags));
 		final List<Object> children = new LinkedList<>();
 		final List<String> ids      = new LinkedList<>(html.mapIds);
@@ -372,26 +374,33 @@ public class PagesMapContributor implements ApplicationMapContributor {
 			}
 		}
 
-		final String expressions = expressionsOf(html);
-		final String dataKey     = StringUtils.trimToNull(html.dataKey);
-
-		if (!children.isEmpty() || !ids.isEmpty() || expressions != null || dataKey != null) {
-			item.add(children);
-		}
-
-		if (!ids.isEmpty() || expressions != null || dataKey != null) {
-			item.add(ids);
-		}
-
-		if (expressions != null || dataKey != null) {
-			item.add(StringUtils.defaultString(expressions));
-		}
-
-		if (dataKey != null) {
-			item.add(dataKey);
-		}
+		item.add(children);
+		item.add(ids);
+		item.add(StringUtils.defaultString(expressionsOf(html)));
+		item.add(StringUtils.trimToNull(html.dataKey));
+		item.add(html.id);
 
 		return item;
+	}
+
+	/**
+	 * Whether an element holds a text of its own: a template its content, any other element a
+	 * text node among its children that is not empty.
+	 */
+	private boolean hasText(final HtmlNode html) {
+
+		if (!html.isElement) {
+			return StringUtils.isNotBlank(html.content);
+		}
+
+		for (final HtmlNode child : html.children) {
+
+			if (!child.isElement && !child.node.is(StructrTraits.TEMPLATE) && !child.node.is(StructrTraits.COMMENT) && StringUtils.isNotBlank(child.content)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

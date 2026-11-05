@@ -21,8 +21,9 @@ import {expect, test} from '@playwright/test';
 import {goToModule, initialize} from './helpers/init';
 import {login} from './helpers/auth';
 
-// The editor of the application map: readable code of a method answers a click with the editor of the Code area on its
-// field. The map is a canvas, so the test asks the map where a method lies and clicks there with the mouse.
+// The editor of the application map: a click on readable code of a method glides so close that the method fills the
+// screen, and there the editor of the Code area opens on its field. The map is a canvas, so the test asks the map where a
+// method lies and clicks there with the mouse.
 
 const ARCHIVE = '{\n\t$.this.archived = true;\n}';
 const RESTORE = '{\n\t$.this.archived = false;\n}';
@@ -221,17 +222,37 @@ test('a click into the open editor keeps it open', async ({page}) => {
 	expect(await editing(page)).toBe('Item.archive');
 });
 
-test('a double click on readable code opens the editor and leaves the view where it is', async ({page}) => {
+test('a double click on readable code glides there, and the editor opens where the method fills the screen', async ({page}) => {
 
 	const places    = await showCode(page, 'Item.archive');
 	const transform = await page.evaluate(() => _AppMap.view.transform.toString());
 
 	await page.mouse.dblclick(places.code.x, places.code.y);
-	await page.waitForTimeout(500);
 
 	await expect(editor(page)).toBeVisible();
 	expect(await editing(page)).toBe('Item.archive');
-	expect(await page.evaluate(() => _AppMap.view.transform.toString())).toBe(transform);
+	expect(await page.evaluate(() => _AppMap.view.transform.toString())).not.toBe(transform);
+	await expect.poll(() => page.evaluate(() => _AppMap.view.fills(_AppMap.view.nodes.find(n => n.n === 'Item.archive'), false))).toBe(true);
+});
+
+test('while the editor is open, the wheel only zooms out', async ({page}) => {
+
+	await openEditorFor(page, 'Item.archive');
+
+	// the glide into place ends first
+	await page.waitForTimeout(1000);
+
+	const k      = await page.evaluate(() => _AppMap.view.transform.k);
+	const middle = await page.evaluate(() => { const box = _AppMap.view.canvas.getBoundingClientRect(); return { x: box.left + 8, y: box.top + box.height / 2 }; });
+
+	await page.mouse.move(middle.x, middle.y);
+	await page.mouse.wheel(0, -400);
+	await page.waitForTimeout(500);
+
+	expect(await page.evaluate(() => _AppMap.view.transform.k)).toBeCloseTo(k, 6);
+
+	await page.mouse.wheel(0, 200);
+	await expect.poll(() => page.evaluate(() => _AppMap.view.transform.k)).toBeLessThan(k);
 });
 
 test('a click beside the editor closes it, and the element held stays held', async ({page}) => {

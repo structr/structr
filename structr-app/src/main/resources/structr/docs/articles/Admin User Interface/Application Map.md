@@ -57,9 +57,11 @@ A click holds the focus on an element. At the ends of its relations, labels appe
 
 Use the mouse wheel to zoom and drag the map to move it. The closer you get, the more names the map shows. When you come close to a page or shared component, its card opens and shows its HTML structure, with the relations of its repeaters and event action mappings leaving from their elements. A method shows its code when you come close.
 
-A double-click on a page or method glides to it and opens it, a double-click on the empty map brings back the whole map. Zooming and gliding never change the positions of the elements: the map keeps its layout, so you find everything where you left it.
+A double-click on a page or method glides to it and opens it, a double-click on an element inside an open page opens it with its controls (see below), and a double-click on the empty map brings back the whole map. Zooming and gliding never change the positions of the elements: the map keeps its layout, so you find everything where you left it.
 
 ![An open page](/structr/docs/appmap_page.png)
+
+The relations of an open page leave its sheet bundled. All relations toward one side of the sheet swing from their elements to a common point on that edge and leave the sheet there together; outside, one line leads on to each element they reach, the stronger the more relations it carries. The relations of the page as a whole, such as links to other pages or the shared components it uses, are hidden while the page is open, so that only those of its elements remain.
 
 ### Search
 
@@ -67,11 +69,19 @@ The global search in the header also works on the map. The elements that match y
 
 ## Editing Code
 
-When the code of a method or the content of a template is readable on the map, click into it to edit it. The editor is the same as in the Code area, with syntax highlighting and autocompletion. It stays on the card of the element while you zoom and move the map.
+To edit the code of a method, the content of a template or the code of a script or style element, click or double-click it. The map glides so close that the element fills the screen, and the editor opens there. The editor only appears while the element fills the screen: it also opens when you zoom in that far, and it closes again when you zoom out, unless there are unsaved changes. Smaller on the map, the code stays readable but cannot be edited. In the editor, the text has the same size in every element. The editor is the same as in the Code area, with syntax highlighting and autocompletion. It stays on the card of the element while you zoom and move the map.
 
 ![Editing a method](/structr/docs/appmap_editor.png)
 
-Press Ctrl+S to save. After saving, the map loads its data again, because a change of code can change relations, for example when a method now creates objects of another type. The positions of the elements and the editor stay where they are. Press Esc or click beside the editor to close it. If there are unsaved changes, Structr asks whether you want to discard them. To change the name or the other settings of a method, use the Code area.
+Press Ctrl+S to save. After saving, the map loads its data again, because a change of code can change relations, for example when a method now creates objects of another type. The positions of the elements and the editor stay where they are. Press Esc or click beside the editor to close it; it opens again once the element has left the screen and fills it anew. If there are unsaved changes, Structr asks whether you want to discard them. To change the name or the other settings of a method, use the Code area.
+
+## Changing Elements of a Page
+
+Inside an open page you can keep zooming. Every HTML element opens inside its own box, just as a page opens inside its sheet, and shows its settings as controls you can change in place. A small magnifier marks the elements that already have something to show, such as a repeater, an event action mapping, a text or a condition.
+
+An open element shows the source of its repeater (function query or Cypher query), the query and the data key, its show and hide conditions, the event and action of each event action mapping, and the text it holds. The content of a template opens in the same editor as in the Code area. A template, and a script or style element that contains code, stands upright like the sheet of a page, so that more of its content fits when it opens; its code is edited like the content of a template. This lets you check and adjust how a page gets its data and what its elements do without leaving the map.
+
+The controls belong to the open element nearest the middle of the screen and move with the map. Press Ctrl+S or click Save to save; the map then loads its data again, because a new query can show another type. Unsaved changes stay with their element until you save them. A repeater that takes its data from a flow shows the flow, but you change it in the Pages area, which also offers all other settings of an element. Click Open in Pages Area to switch there with the element selected in the tree of its page.
 
 ## Lenses
 

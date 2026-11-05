@@ -159,6 +159,8 @@ public class ApplicationMapTest extends StructrUiTest {
 		collectOutlineIds(outline, found);
 
 		assertTrue("The outline must name a repeater at its element", found.contains(ids.get("itemRepeater")));
+		assertTrue("The outline must give the id of an element, so that its settings can be changed", collectOutlineElements(outline, new HashSet<>()).contains(ids.get("itemRepeater")));
+		assertTrue("The outline must mark the elements that hold a text of their own", collectOutlineFlags(outline, new HashSet<>()).stream().anyMatch(flags -> (flags & 8) != 0));
 
 		for (final String action : List.of("archiveAction", "updateAction", "createAction", "deleteAction", "callAction")) {
 			assertTrue("The outline must name every action mapping of the page at its trigger element, missing " + action, found.contains(ids.get(action)));
@@ -1102,6 +1104,40 @@ public class ApplicationMapTest extends StructrUiTest {
 				}
 			}
 		}
+	}
+
+	private Set<String> collectOutlineElements(final List<?> items, final Set<String> found) {
+
+		for (final Object entry : items) {
+
+			final List<?> item = (List<?>) entry;
+
+			if (item.size() > 2) {
+				collectOutlineElements((List<?>) item.get(2), found);
+			}
+
+			if (item.size() > 6) {
+				found.add(item.get(6).toString());
+			}
+		}
+
+		return found;
+	}
+
+	private Set<Integer> collectOutlineFlags(final List<?> items, final Set<Integer> found) {
+
+		for (final Object entry : items) {
+
+			final List<?> item = (List<?>) entry;
+
+			found.add(((Number) item.get(1)).intValue());
+
+			if (item.size() > 2) {
+				collectOutlineFlags((List<?>) item.get(2), found);
+			}
+		}
+
+		return found;
 	}
 
 	private JsonPath fetchMap() {
