@@ -876,6 +876,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				logger.info("Exporting data for custom relationships on builtin types");
 
 				writeJsonToFile(customRelDataConf, builtinTypeCustomRelationships);
+
+			} else {
+
+				Files.deleteIfExists(customRelDataConf);
 			}
 
 			// set group grants for created files
