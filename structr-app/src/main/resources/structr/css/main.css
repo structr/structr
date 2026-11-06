@@ -744,11 +744,6 @@ img.disabled {
 	cursor: default;
 }
 
-.props td.key .hint {
-	position: absolute;
-	right: 2px;
-}
-
 .props tr td.value input,
 .props tr td.value textarea {
 	width: calc(100% - 1rem);

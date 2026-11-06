@@ -414,16 +414,6 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	SortType getSortType();
 
 	/**
-	 * Returns the hint for the property (if any)
-	 *
-	 * @return property hint
-	 */
-	default String hint() {
-
-		return null;
-	}
-
-	/**
 	 * Returns the category for the property (if any)
 	 *
 	 * @return property category

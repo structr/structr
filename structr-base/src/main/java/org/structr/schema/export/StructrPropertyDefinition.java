@@ -57,7 +57,6 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	protected String format                 = null;
 	protected String name                   = null;
 	protected String defaultValue           = null;
-	protected String hint                   = null;
 	protected String category               = null;
 	protected boolean isAbstract            = false;
 	protected boolean required              = false;
@@ -137,12 +136,6 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	@Override
-	public String getHint() {
-
-		return hint;
-	}
-
-	@Override
 	public String getCategory() {
 
 		return category;
@@ -212,14 +205,6 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	public Set<String> getTransformators() {
 
 		return transformers;
-	}
-
-	@Override
-	public JsonProperty setHint(final String hint) {
-
-		this.hint = hint;
-
-		return this;
 	}
 
 	@Override
@@ -371,7 +356,6 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.IS_ABSTRACT_PROPERTY),               isAbstract());
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.IS_SERIALIZATION_DISABLED_PROPERTY), isSerializationDisabled());
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY),                    getFormat());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.HINT_PROPERTY),                      getHint());
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.CATEGORY_PROPERTY),                  getCategory());
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.VALIDATORS_PROPERTY),                listToArray(validators));
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.TRANSFORMERS_PROPERTY),              listToArray(transformers));
@@ -445,12 +429,6 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			this.format = _format.toString();
 		}
 
-		final Object _hint = source.get(JsonSchema.KEY_HINT);
-		if (_hint != null) {
-
-			this.hint = _hint.toString();
-		}
-
 		final Object _category = source.get(JsonSchema.KEY_CATEGORY);
 		if (_category != null) {
 
@@ -489,7 +467,6 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		setAbstract(property.isAbstract());
 		setSerializationDisabled(property.isSerializationDisabled());
 
-		setHint(property.getHint());
 		setCategory(property.getCategory());
 
 		final String[] _validators = property.getValidators();
@@ -555,11 +532,6 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		if (format != null) {
 
 			map.put(JsonSchema.KEY_FORMAT, format);
-		}
-
-		if (hint != null) {
-
-			map.put(JsonSchema.KEY_HINT, hint);
 		}
 
 		if (category != null) {

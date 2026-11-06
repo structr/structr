@@ -1111,16 +1111,6 @@ let _Entities = {
 				}
 			}
 
-			// let hintText = typeInfo[key]?.hint;
-			//
-			// if (hintText) {
-			// 	_Helpers.appendInfoTextToElement({
-			// 		element: $('.key:last', propsTable),
-			// 		text: hintText,
-			// 		class: 'hint'
-			// 	});
-			// }
-
 			let nullIcon = container[0].querySelector(`#${_Entities.null_prefix}${key}`);
 
 			if (editForbidden || isBoolean) {
@@ -3920,7 +3910,7 @@ let _Entities = {
 			`,
 			sharedComponentConfigurationPartial: config => `
 				<div id="shared-component-configuration-editor" class="${_Entities.generalTab.templates.colspan2Classes(config)} hidden">
-					<label class="block mb-2" for="shared-component-configuration-input" ${_Helpers.getDataCommentAttributeForPropertyFromSchemaInfoHint('sharedComponentConfiguration', config.typeInfo)}>Shared Component Configuration</label>
+					<label class="block mb-2" for="shared-component-configuration-input">Shared Component Configuration</label>
 					${Structr.templates.autoScriptTextArea({ wrapperId: 'shared-component-configuration-editor', wrapperClassString: _Entities.generalTab.templates.colspan2Classes(config), textareaId: 'shared-component-configuration-input', textareaAttributeString: 'name="sharedComponentConfiguration"' })}
 				</div>
 			`,

@@ -83,7 +83,6 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	protected String readFunction               = null;
 	protected String writeFunction              = null;
 	protected String openAPIReturnType          = null;
-	protected String hint                       = null;
 	protected String category                   = null;
 	protected String sourceUuid                 = null;
 	protected String description                = null;
@@ -284,19 +283,6 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 		this.vectorChecked = true;
 
 		return this;
-	}
-
-	public Property<T> hint(final String hint) {
-
-		this.hint = hint;
-
-		return this;
-	}
-
-	@Override
-	public String hint() {
-
-		return hint;
 	}
 
 	public Property<T> category(final String category) {

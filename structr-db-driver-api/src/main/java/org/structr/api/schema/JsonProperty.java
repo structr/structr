@@ -34,7 +34,6 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 	String getName();
 	String getType();
 	String getFormat();
-	String getHint();
 	String getCategory();
 
 	String getDefaultValue();
@@ -50,7 +49,6 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 	Set<String> getTransformators();
 	Set<String> getValidators();
 
-	JsonProperty setHint(final String hint);
 	JsonProperty setCategory(final String category);
 	JsonProperty setFormat(final String format);
 	JsonProperty setName(final String name);
