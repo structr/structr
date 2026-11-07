@@ -3798,7 +3798,7 @@ let UISettings = {
 				enablePreviewEditKey: {
 					text: 'Enable edit features in page preview',
 					storageKey: 'enablePagePreviewEdit_' + location.port,
-					defaultValue: false,
+					defaultValue: true,
 					type: 'checkbox',
 					onUpdate: () => {
 						_Pages.previews.updatePreviewSlideout();

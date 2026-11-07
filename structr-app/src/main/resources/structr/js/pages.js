@@ -3638,9 +3638,8 @@ let _Pages = {
 		},
 		previewIframeLoaded: (iframe, highlightElementId) => {
 
-			if (!_Pages.previews.isEnableEditFeatures()) {
-				return;
-			}
+			// the setting switches off editing only, highlighting and click navigation stay
+			const editEnabled = _Pages.previews.isEnableEditFeatures();
 
 			let doc = $(iframe.contentDocument || iframe.contentWindow.document);
 
@@ -3656,6 +3655,8 @@ let _Pages = {
 						+ '.structr-element-container-selected:hover { -moz-box-shadow: 0 0 10px #750; -webkit-box-shadow: 0 0 10px #750; box-shadow: 0 0 10px #750; }\n'
 						+ '.structr-editable-area { background-color: #ffe; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
 						+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; }\n'
+						// the page's text styling must not alter the source while it is edited
+						+ '.structr-editable-area-active, .structr-editable-area-active * { text-transform: none ! important; font-variant: normal ! important; font-style: normal ! important; font-weight: normal ! important; letter-spacing: normal ! important; word-spacing: normal ! important; text-shadow: none ! important; white-space: pre-wrap ! important; }\n'
 						+ '.link-hover { border: 1px solid #00c; }\n'
 						/**
 						 * Fix for bug in Chrome preventing the modal dialog background
@@ -3677,7 +3678,7 @@ let _Pages = {
 
 						var offsetTop = -30;
 						var offsetLeft = 0;
-						el.on({
+						const handlers = {
 							contextmenu: (e) => {
 								e.stopPropagation();
 
@@ -3733,13 +3734,19 @@ let _Pages = {
 								header.remove();
 								_Pages.unhighlight(structrId);
 							}
-						});
+						};
+
+						if (!editEnabled) {
+							delete handlers.contextmenu;
+						}
+
+						el.on(handlers);
 					}
 				});
 
 			} catch (e) { console.log('Error:', e)}
 
-			_Pages.previews.activateComments(doc);
+			_Pages.previews.activateComments(doc, undefined, editEnabled);
 		},
 		getComments: (el) => {
 
@@ -3780,7 +3787,14 @@ let _Pages = {
 				sibling = sibling.nextSibling;
 			}
 		},
-		activateComments: function(doc, callback) {
+		activateComments: function(doc, callback, editEnabled = true) {
+
+			// leaving an edit without Enter discards it: restore the rendered content, save nothing
+			let discardEdit = (self) => {
+				self.html(self.data('htmlBeforeEditing'));
+				self.removeClass('structr-editable-area-active').prop('contenteditable', false);
+				_Pages.contentSourceId = null;
+			};
 
 			doc.find('*').each(function(i, element) {
 
@@ -3812,6 +3826,11 @@ let _Pages = {
 							e.preventDefault();
 							let self = $(this);
 
+							if (!editEnabled) {
+								_Pages.openAndSelectTreeObjectById(self.attr('data-structr-id'));
+								return false;
+							}
+
 							if (_Pages.contentSourceId) {
 								// click on same element again?
 								if (self.attr('data-structr-id') === _Pages.contentSourceId) {
@@ -3823,6 +3842,7 @@ let _Pages = {
 							if (self.hasClass('structr-editable-area-active')) {
 								return false;
 							}
+							self.data('htmlBeforeEditing', self.html());
 							self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true).focus();
 
 							// Store old text in global var and attribute
@@ -3838,9 +3858,33 @@ let _Pages = {
 							_Pages.expandTreeNode(_Pages.contentSourceId);
 							return false;
 						},
+						keydown: function(e) {
+							let self = $(this);
+							if (!self.hasClass('structr-editable-area-active')) {
+								return;
+							}
+
+							// Enter saves, Shift+Enter inserts a line break, Esc discards
+							if (e.key === 'Enter' && !e.shiftKey) {
+								e.preventDefault();
+								e.stopPropagation();
+								self.removeClass('structr-editable-area-active').prop('contenteditable', false);
+								_Pages.previews.saveInlineElement(this, callback);
+							} else if (e.key === 'Escape') {
+								e.preventDefault();
+								e.stopPropagation();
+								discardEdit(self);
+								this.blur();
+							}
+						},
 						blur: function(e) {
 							e.stopPropagation();
-							_Pages.previews.saveInlineElement(this, callback);
+							let self = $(this);
+							if (!self.hasClass('structr-editable-area-active')) {
+								return;
+							}
+
+							discardEdit(self);
 						}
 					});
 				});
@@ -3852,12 +3896,17 @@ let _Pages = {
 
 			let text = _Helpers.unescapeTags(_Helpers.cleanText(self.html()));
 
-			Command.setProperty(_Pages.contentSourceId, 'content', text, false, (obj) => {
-				if (_Pages.contentSourceId === obj.id) {
+			const id = _Pages.contentSourceId;
+
+			Command.setProperty(id, 'content', text, false, (obj) => {
+
+				// the update has already started a preview reload, the saved text blinks green in the reloaded preview
+				_Pages.previews.blinkAfterLoadId = id;
+
+				if (id === obj?.id) {
 					callback?.();
 				}
 			});
-			_Pages.previews.reloadPreviewInIframe();
 			_Pages.contentSourceId = null;
 		},
 		isPreviewActive: () => {
@@ -3948,6 +3997,11 @@ let _Pages = {
 						}
 
 						previewEl?.classList.add('structr-element-container-selected');
+
+						if (_Pages.previews.blinkAfterLoadId) {
+							_Helpers.blinkGreen(doc.querySelector('[data-structr-id="' + _Pages.previews.blinkAfterLoadId + '"]'));
+							_Pages.previews.blinkAfterLoadId = null;
+						}
 
 						doc.addEventListener('click', () => { _Elements.contextMenu.remove(); });
 					};
