@@ -30,7 +30,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.docs.Example;
@@ -57,7 +56,7 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 
 		if (sources == null || sources != null && sources.length != 3) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
@@ -101,18 +100,12 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${template(name, locale, source)}."), Usage.javaScript("Usage: ${{ $.template(name, locale, source)}}."));
 	}
 
 	@Override

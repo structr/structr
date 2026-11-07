@@ -29,7 +29,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
@@ -61,7 +60,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 		if (sources == null || sources.length < 1 || sources[0] == null || sources[1] == null || !(sources[1] instanceof NodeInterface || sources[1] instanceof Collection)) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
@@ -77,7 +76,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 		} else {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
@@ -135,7 +134,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 				final List<GraphObject> filesOrFolders = Iterables.toList((Iterable) sources[1]);
 				if (filesOrFolders.isEmpty()) {
 
-					logParameterError(caller, sources, "Collection in parameter 1 is empty - unable to create empty zip file.", ctx.isJavaScriptContext());
+					logParameterError(caller, sources, getDisplayName(false) + ": Collection in parameter 1 is empty - unable to create empty zip file.");
 
 					return null;
 
@@ -158,7 +157,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 						} else {
 
-							logParameterError(caller, sources, ctx.isJavaScriptContext());
+							logParameterError(caller, sources);
 
 							return null;
 						}
@@ -167,7 +166,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 			} else {
 
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
+				logParameterError(caller, sources);
 
 				return null;
 			}
@@ -259,15 +258,6 @@ public class CreateZipFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of("If the `archiveFileName` parameter does not end with '.zip', the ending is automatically appended");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${createZip(archiveFileName, filesOrFolders [, password [, encryptionMethod ] ])}"),
-			Usage.javaScript("Usage: ${{ $.createZip(archiveFileName, filesOrFolders [, password [, encryptionMethod ] ]); }}")
-		);
 	}
 
 	@Override

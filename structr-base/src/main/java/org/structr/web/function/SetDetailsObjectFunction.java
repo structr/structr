@@ -20,7 +20,6 @@ package org.structr.web.function;
 
 import org.structr.core.GraphObject;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
@@ -68,16 +67,10 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 
 		} else {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${setDetailsObject(obj)}."), Usage.javaScript("Usage: ${{$.setDetailsObject(obj)}}."));
 	}
 
 	@Override

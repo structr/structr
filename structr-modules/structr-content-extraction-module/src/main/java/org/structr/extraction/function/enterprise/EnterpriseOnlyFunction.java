@@ -20,7 +20,6 @@ package org.structr.extraction.function.enterprise;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.extraction.function.ContentExtractionFunction;
 import org.structr.schema.action.ActionContext;
 
@@ -82,15 +81,6 @@ public class EnterpriseOnlyFunction extends ContentExtractionFunction {
 
 		throw new FrameworkException(422, getName() + "() needs Structr Enterprise with the AI module. In the Community Edition, extracted content is searched by words with "
 			+ NAMESPACE + ".fulltextSearch(). See the documentation: APIs & Integrations > Content Extraction > Embeddings and Semantic Search.");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{ $." + getName() + "(" + signature + ") }} (Structr Enterprise)"),
-			Usage.structrScript("Usage: ${ " + getName() + "(" + signature + ") } (Structr Enterprise)")
-		);
 	}
 
 	@Override

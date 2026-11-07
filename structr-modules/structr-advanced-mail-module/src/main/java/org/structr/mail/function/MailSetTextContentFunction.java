@@ -18,10 +18,11 @@
  */
 package org.structr.mail.function;
 
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
@@ -57,16 +58,10 @@ public class MailSetTextContentFunction extends AdvancedMailModuleFunction {
 
 			return null;
 
-		} catch (IllegalArgumentException e) {
+		} catch (final ArgumentCountException | ArgumentNullException e) {
 
-			throw new FrameworkException(422, getName() + "(): " + e.getMessage() + " - Parameters: " + getParametersAsString(sources) + " " + usage(ctx.isJavaScriptContext()));
+			throw new FrameworkException(422, getDisplayName(false) + ": " + e.getMessage());
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${mailSetTextContent(textContent)}"), Usage.javaScript("Usage: ${{ $.mailSetTextContent(textContent) }}"));
 	}
 
 	@Override

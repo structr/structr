@@ -28,11 +28,9 @@ import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,15 +85,6 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNSUPPORTED_ARGUMENT_COUNT_ERROR_MESSAGE.formatted(getName(), sources.length));
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${functionInfo([type, name])}. Example ${functionInfo()}"),
-			Usage.javaScript("Usage: ${{ $.functionInfo([type, name]) }}. Example ${{ $.functionInfo() }}")
-		);
 	}
 
 	@Override

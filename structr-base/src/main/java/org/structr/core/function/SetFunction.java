@@ -30,7 +30,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
@@ -92,7 +91,7 @@ public class SetFunction extends CoreFunction {
 				final int parameterCount = sources.length;
 				if (parameterCount % 2 == 0) {
 
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+					throw new FrameworkException(400, getDisplayName(false) + ": Invalid number of parameters: " + parameterCount + ". Should be uneven. " + usage());
 				}
 
 				for (int c = 1; c < parameterCount; c += 2) {
@@ -116,13 +115,13 @@ public class SetFunction extends CoreFunction {
 
 						// strict mode (allowunknownkeys=false) and key does not exist: raise explicitly.
 						// Formerly enforced implicitly by Traits.key() throwing; key() is now null-safe, so keep this.
-						throw new FrameworkException(422, "Cannot set value for unknown key '" + keyName + "' on type '" + type.getName() + "' (unknown keys are not allowed)");
+						throw new FrameworkException(422, getDisplayName(false) + ": Cannot set value for unknown key '" + keyName + "' on type '" + type.getName() + "' (unknown keys are not allowed)");
 					}
 				}
 
 			} else {
 
-				throw new FrameworkException(422, "Invalid use of builtin method set, usage: set(entity, params..) or set(entity, map)");
+				throw new FrameworkException(422, getDisplayName(false) + ": Invalid use of builtin method set, usage: set(entity, params..) or set(entity, map)");
 			}
 
 			if (propertyMap != null) {
@@ -132,25 +131,16 @@ public class SetFunction extends CoreFunction {
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${set(entity, propertyKey1, value1, ...)} or ${set(entity, propertyMap)}."),
-			Usage.javaScript("Usage: ${{ $.set(entity, propertyMap) }} or ${{ $.set(entity, propertyKey1, value1, ...)}}.")
-		);
 	}
 
 	@Override

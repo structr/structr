@@ -32,7 +32,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
@@ -110,19 +109,10 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 		} catch (ArgumentNullException | ArgumentCountException ex) {
 
-			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ex.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.sendHtmlMail(fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files]) }}."),
-			Usage.structrScript("Usage: ${sendHtmlMail(fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files])}.")
-		);
 	}
 
 	@Override

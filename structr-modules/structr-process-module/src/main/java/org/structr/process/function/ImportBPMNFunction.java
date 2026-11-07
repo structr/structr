@@ -23,11 +23,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
-import org.structr.docs.ontology.FunctionCategory;
 import org.structr.process.bpmn.BpmnImporter;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 import java.util.List;
 
@@ -56,7 +53,7 @@ public class ImportBPMNFunction extends ProcessModuleFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 		}
 
 		return null;
@@ -66,12 +63,6 @@ public class ImportBPMNFunction extends ProcessModuleFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("bpmnXml");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${import_bpmn(xml)}"), Usage.javaScript("Usage: ${{$.importBpmn(xml)}}"));
 	}
 
 	@Override

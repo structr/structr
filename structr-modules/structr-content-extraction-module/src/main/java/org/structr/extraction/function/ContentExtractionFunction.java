@@ -95,7 +95,7 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 
 		if (sources == null || sources.length <= index || sources[index] == null) {
 
-			throw new FrameworkException(422, getName() + "(): expected a File as argument " + (index + 1) + ".");
+			throw new FrameworkException(422, getDisplayName(false) + ": expected a File as argument " + (index + 1) + ".");
 		}
 
 		if (sources[index] instanceof NodeInterface node && node.is(StructrTraits.FILE)) {
@@ -103,7 +103,7 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 			return node.as(File.class);
 		}
 
-		throw new FrameworkException(422, getName() + "(): expected a File as argument " + (index + 1) + ", got " + describe(sources[index]) + ".");
+		throw new FrameworkException(422, getDisplayName(false) + ": expected a File as argument " + (index + 1) + ", got " + describe(sources[index]) + ".");
 	}
 
 	/**
@@ -119,14 +119,14 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 
 		if (!(sources[index] instanceof Map<?, ?> map)) {
 
-			throw new FrameworkException(422, getName() + "(): expected an options object as argument " + (index + 1) + ", got " + describe(sources[index]) + ".");
+			throw new FrameworkException(422, getDisplayName(false) + ": expected an options object as argument " + (index + 1) + ", got " + describe(sources[index]) + ".");
 		}
 
 		for (final Object key : map.keySet()) {
 
 			if (!accepted.contains(String.valueOf(key))) {
 
-				throw new FrameworkException(422, getName() + "(): unknown option '" + key + "'. " + getName() + " accepts " + String.join(", ", new TreeSet<>(accepted)) + ".");
+				throw new FrameworkException(422, getDisplayName(false) + ": unknown option '" + key + "'. " + getName() + " accepts " + String.join(", ", new TreeSet<>(accepted)) + ".");
 			}
 		}
 
@@ -148,7 +148,7 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 
 			} catch (final IllegalArgumentException ex) {
 
-				throw new FrameworkException(422, getName() + "(): " + ex.getMessage());
+				throw new FrameworkException(422, getDisplayName(false) + ": " + ex.getMessage());
 			}
 		}
 
@@ -201,7 +201,7 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 
 		} catch (final IllegalArgumentException ex) {
 
-			throw new FrameworkException(422, getName() + "(): " + ex.getMessage());
+			throw new FrameworkException(422, getDisplayName(false) + ": " + ex.getMessage());
 		}
 
 		if (options.containsKey(OPTION_CHUNK_SIZE)) {
@@ -235,7 +235,7 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 
 		} catch (final IllegalArgumentException ex) {
 
-			throw new FrameworkException(422, getName() + "(): " + ex.getMessage());
+			throw new FrameworkException(422, getDisplayName(false) + ": " + ex.getMessage());
 		}
 	}
 
@@ -246,7 +246,7 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 
 		if (sources == null || sources.length <= index || sources[index] == null) {
 
-			throw new FrameworkException(422, getName() + "(): expected a text as argument " + (index + 1) + ".");
+			throw new FrameworkException(422, getDisplayName(false) + ": expected a text as argument " + (index + 1) + ".");
 		}
 
 		if (sources[index] instanceof String text) {
@@ -254,7 +254,7 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 			return text;
 		}
 
-		throw new FrameworkException(422, getName() + "(): expected a text as argument " + (index + 1) + ", got " + describe(sources[index]) + ".");
+		throw new FrameworkException(422, getDisplayName(false) + ": expected a text as argument " + (index + 1) + ", got " + describe(sources[index]) + ".");
 	}
 
 	protected int nonNegativeIntOption(final Map<String, Object> options, final String key) throws FrameworkException {
@@ -265,7 +265,7 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 			return number.intValue();
 		}
 
-		throw new FrameworkException(422, getName() + "(): option '" + key + "' must be a whole number of 0 or more, got " + describe(value) + ".");
+		throw new FrameworkException(422, getDisplayName(false) + ": option '" + key + "' must be a whole number of 0 or more, got " + describe(value) + ".");
 	}
 
 	protected List<String> stringListOption(final Map<String, Object> options, final String key) throws FrameworkException {
@@ -276,7 +276,7 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 			return collection.stream().map(String.class::cast).toList();
 		}
 
-		throw new FrameworkException(422, getName() + "(): option '" + key + "' must be a non-empty list of texts, got " + describe(value) + ".");
+		throw new FrameworkException(422, getDisplayName(false) + ": option '" + key + "' must be a non-empty list of texts, got " + describe(value) + ".");
 	}
 
 	protected String stringOption(final Map<String, Object> options, final String key) throws FrameworkException {
@@ -284,7 +284,7 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 		final Object value = options.get(key);
 		if (value == null || value.toString().isBlank()) {
 
-			throw new FrameworkException(422, getName() + "(): option '" + key + "' must not be empty.");
+			throw new FrameworkException(422, getDisplayName(false) + ": option '" + key + "' must not be empty.");
 		}
 
 		return value.toString().trim();
@@ -298,7 +298,7 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 			return number.intValue();
 		}
 
-		throw new FrameworkException(422, getName() + "(): option '" + key + "' must be a positive whole number, got " + describe(value) + ".");
+		throw new FrameworkException(422, getDisplayName(false) + ": option '" + key + "' must be a positive whole number, got " + describe(value) + ".");
 	}
 
 	protected boolean booleanOption(final Map<String, Object> options, final String key, final boolean defaultValue) throws FrameworkException {
@@ -314,12 +314,12 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 			return bool;
 		}
 
-		throw new FrameworkException(422, getName() + "(): option '" + key + "' must be true or false, got " + describe(value) + ".");
+		throw new FrameworkException(422, getDisplayName(false) + ": option '" + key + "' must be true or false, got " + describe(value) + ".");
 	}
 
 	protected FrameworkException extractionFailed(final ContentExtractionException ex) {
 
-		return new FrameworkException(422, getName() + "(): " + ex.getMessage());
+		return new FrameworkException(422, getDisplayName(false) + ": " + ex.getMessage());
 	}
 
 	protected static List<GraphObjectMap> toGraphObjectMaps(final Collection<Map<String, Object>> maps) {

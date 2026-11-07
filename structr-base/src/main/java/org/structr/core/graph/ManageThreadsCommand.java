@@ -337,10 +337,4 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 
 		return List.of();
 	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
 }

@@ -20,7 +20,6 @@ package org.structr.web.function;
 
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -50,15 +49,6 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
         ctx.setValidateCertificates(validate);
 
         return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${ validateCertificates(boolean) }. Example: ${ validateCertificates(false) }"),
-			Usage.javaScript("Usage: ${{ $.validateCertificates(boolean) }}. Example: ${{ $.validateCertificates(false) }}")
-		);
 	}
 
 	@Override

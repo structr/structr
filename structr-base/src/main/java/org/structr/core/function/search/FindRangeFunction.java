@@ -23,7 +23,6 @@ import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -64,7 +63,7 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 			if (hasKey) {
 
 				if (sources[0] == null) {
-					throw new FrameworkException(422, getName() + "(): key must not be null");
+					throw new FrameworkException(422, getDisplayName(false) + ": key must not be null");
 				}
 
 				final String key   = sources[0].toString();
@@ -77,7 +76,7 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 
 		} catch (final IllegalArgumentException e) {
 
-			throw new FrameworkException(422, getName() + "(): " + e.getMessage());
+			throw new FrameworkException(422, getDisplayName(false) + ": " + e.getMessage());
 		}
 	}
 
@@ -98,15 +97,6 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 		}
 
 		return new RangePredicate(rangeStart, rangeEnd, includeStart, includeEnd);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.range([ key, ] start, end [, includeStart, includeEnd ]) }}"),
-			Usage.structrScript("Usage: ${range([ key, ] start, end [, includeStart, includeEnd ])}")
-		);
 	}
 
 	@Override

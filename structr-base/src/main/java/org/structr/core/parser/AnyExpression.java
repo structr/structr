@@ -185,12 +185,6 @@ public class AnyExpression extends Expression {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${any(list, expression)}. Example: ${any(user.groups, is_allowed(data, current, 'read'))}"));
-	}
-
-	@Override
 	public FunctionCategory getCategory() {
 
 		return FunctionCategory.Collection;

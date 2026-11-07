@@ -25,7 +25,6 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -74,19 +73,10 @@ public class GetRequestHeaderFunction extends UiAdvancedFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${getRequestHeader(name)}. Example: ${getRequestHeader('User-Agent')}"),
-			Usage.javaScript("Usage: ${{ $.getRequestHeader(name) }}. Example: ${{ $.getRequestHeader('User-Agent')}}")
-		);
 	}
 
 	@Override

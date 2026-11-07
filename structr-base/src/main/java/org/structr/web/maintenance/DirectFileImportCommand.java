@@ -445,10 +445,4 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 		return List.of();
 	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
 }

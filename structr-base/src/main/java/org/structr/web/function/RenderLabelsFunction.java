@@ -26,7 +26,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.ComponentConfiguration;
@@ -76,7 +75,7 @@ public class RenderLabelsFunction extends ApplyTemplatesFunction {
 
 			} else {
 
-				logger.warn(getName() + "(): Can only be used in a rendering context.");
+				logger.warn(getDisplayName(false) + ": Can only be used in a rendering context.");
 			}
 
 			return null;
@@ -89,19 +88,10 @@ public class RenderLabelsFunction extends ApplyTemplatesFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${renderLabels(tag, slot)}. Example: ${renderLabels('li', 'label')}"),
-			Usage.javaScript("Usage: ${{ $.renderLabels(tag, slot)}}. Example: ${{ $.renderLabels('li', 'label')}}")
-		);
 	}
 
 	@Override

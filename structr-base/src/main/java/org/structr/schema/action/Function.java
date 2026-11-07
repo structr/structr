@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Base class for built-in functions.
@@ -180,14 +181,6 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return Language.scriptingLanguages();
 	}
 
-	@Override
-	public List<Usage> getUsages() {
-
-		// override this method to modify default behaviour
-
-		return null;
-	}
-
 	public int hashCode() {
 
 		return getName().hashCode();
@@ -203,36 +196,14 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return false;
 	}
 
-	public final String usage(boolean inJavaScriptContext) {
+	public final String usage() {
 
-		Usage first = null;
+		final Set<String> uniqueSignatures = getSignatures().stream().map(Signature::getSignature).collect(Collectors.toSet());
+		final int numSignatures = uniqueSignatures.size();
 
-		for (final Usage usage : getUsages()) {
+		final String alternateInfo = (numSignatures > 1 ? " (" + (numSignatures - 1) + " alternative signatures)" : "");
 
-			// store first to return it later
-			if (first == null) {
-
-				first = usage;
-			}
-
-			if (usage.isJavaScript() && inJavaScriptContext) {
-
-				return usage.getUsage();
-			}
-
-			if (usage.isStructrScript() && !inJavaScriptContext) {
-
-				return usage.getUsage();
-			}
-		}
-
-		if (first != null) {
-
-			return first.getUsage();
-		}
-
-		// there should always be at least one Usage object...
-		throw new RuntimeException("No Usage defined in function " + getName());
+		return "Usage: " + getDisplayName(true) + alternateInfo;
 	}
 
 	/**
@@ -240,11 +211,10 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 *
 	 * @param caller The element that caused the error
 	 * @param parameters The function parameters
-	 * @param inJavaScriptContext Has the function been called from a JavaScript context?
 	 */
-	protected void logParameterError(final Object caller, final Object[] parameters, final boolean inJavaScriptContext) {
+	protected void logParameterError(final Object caller, final Object[] parameters) {
 
-		logParameterError(caller, parameters, "Unsupported parameter combination/count in", inJavaScriptContext);
+		logParameterError(caller, parameters, getDisplayName(false) + ": Unsupported parameter combination/count.");
 	}
 
 	/**
@@ -253,11 +223,10 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 * @param caller The element that caused the error
 	 * @param parameters The function parameters
 	 * @param message The message to be printed
-	 * @param inJavaScriptContext Has the function been called from a JavaScript context?
 	 */
-	protected void logParameterError(final Object caller, final Object[] parameters, final String message, final boolean inJavaScriptContext) {
+	protected void logParameterError(final Object caller, final Object[] parameters, final String message) {
 
-		logger.error("{}: {} '{}'. Parameters: {}. {}", getDisplayName(false), message, caller, parametersForLog(parameters), usage(inJavaScriptContext));
+		logger.error("{} (Caller: '{}'). Parameters: {}. {}", message, caller, parametersForLog(parameters), usage());
 	}
 
 	/**

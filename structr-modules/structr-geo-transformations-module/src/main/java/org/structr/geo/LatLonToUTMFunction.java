@@ -29,7 +29,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -120,19 +119,12 @@ public class LatLonToUTMFunction extends GeoFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
-			logParameterError(caller, sources, e.getMessage(), isJs);
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${latLonToUtm(latitude, longitude)}. Example: ${latLonToUtm(41.3445, 7.35)}"));
 	}
 
 	@Override

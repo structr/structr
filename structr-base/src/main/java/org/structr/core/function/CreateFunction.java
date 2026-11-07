@@ -88,7 +88,7 @@ public class CreateFunction extends CoreFunction {
 			final int parameterCount = sources.length;
 			if (parameterCount % 2 == 0) {
 
-				throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+				throw new FrameworkException(400, getDisplayName(false) + ": Invalid number of parameters: " + parameterCount + ". Should be uneven. " + usage());
 			}
 
 			for (int c = 1; c < parameterCount; c += 2) {
@@ -116,12 +116,6 @@ public class CreateFunction extends CoreFunction {
 	public List<Documentable> getContextHints(final String lastToken) {
 
 		return getContextHintsForTypes(lastToken);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${create(type, key, value)}"), Usage.javaScript("Usage: ${{ $.create(type, { key: value }) }}"));
 	}
 
 	@Override

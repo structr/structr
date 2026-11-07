@@ -21,7 +21,6 @@ package org.structr.core.function;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
@@ -84,16 +83,10 @@ public class StartsWithFunction extends CoreFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.javaScript("Usage: ${{ $.startsWith(string, prefix) }}."), Usage.structrScript("Usage: ${startsWith(string, prefix)}."));
 	}
 
 	@Override

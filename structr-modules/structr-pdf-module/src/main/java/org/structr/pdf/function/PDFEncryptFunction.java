@@ -31,7 +31,6 @@ import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
@@ -67,14 +66,14 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 
 				if (!(sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE))) {
 
-					logParameterError(caller, sources, "First parameter is not a file object.", ctx.isJavaScriptContext());
+					logParameterError(caller, sources, getDisplayName(false) + ": First parameter is not a file object.");
 
 					return null;
 				}
 
 				if (!(sources[1] instanceof String)) {
 
-					logParameterError(caller, sources, "Second parameter is not a string.", ctx.isJavaScriptContext());
+					logParameterError(caller, sources, getDisplayName(false) + ": Second parameter is not a string.");
 
 					return null;
 				}
@@ -106,25 +105,16 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 
 		} catch (final ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 		} catch (final ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${pdfEncrypt(file, password)}. Example: ${pdfEncrypt(first(find('File', 'name', 'document.pdf')), 'mypassword')}"),
-			Usage.javaScript("Usage: ${{ $.pdfEncrypt(file, password) }}. Example: ${{ $.pdfEncrypt(first(find('File', 'name', 'document.pdf')), 'mypassword') }}")
-		);
 	}
 
 	@Override

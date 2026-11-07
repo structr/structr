@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
@@ -81,12 +80,6 @@ public class UnwindFunction extends CoreFunction {
 		}
 
 		return list;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.javaScript("Usage: ${{ $.unwind(list1, ...) }}."), Usage.structrScript("Usage: ${unwind(list1, ...)}."));
 	}
 
 	@Override

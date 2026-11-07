@@ -27,7 +27,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -85,25 +84,16 @@ public class OutgoingFunction extends CoreFunction {
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}"),
-			Usage.javaScript("Usage: ${{ $.outgoing(entity [, relType]) }}. Example: ${{outgoing($.this, 'PARENT_OF')}}")
-		);
 	}
 
 	@Override

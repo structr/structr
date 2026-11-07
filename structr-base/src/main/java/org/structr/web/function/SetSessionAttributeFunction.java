@@ -26,7 +26,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
@@ -91,16 +90,10 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${setSessionAttribute(key, value)}. Example: "), Usage.javaScript("Usage: ${{$.setSessionAttribute(key, value)}}. Example: "));
 	}
 
 	@Override

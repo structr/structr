@@ -25,7 +25,6 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -56,7 +55,7 @@ public class AssertFunction extends AdvancedScriptingFunction {
 		// only the Boolean true passes, so a broken call fails closed instead of skipping the check
 		if (sources.length != 3 || !(status instanceof Number) || message == null) {
 
-			logger.warn("{}: called with {} instead of a condition, a status code and a message in '{}'. {}", getDisplayName(false), describeArguments(sources), caller, usage(ctx.isJavaScriptContext()));
+			logger.warn("{}: called with {} instead of a condition, a status code and a message in '{}'. {}", getDisplayName(false), describeArguments(sources), caller, usage());
 		}
 
 		if (!(condition instanceof Boolean)) {
@@ -70,15 +69,6 @@ public class AssertFunction extends AdvancedScriptingFunction {
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${assert(condition, statusCode, message)}. Example: ${assert(empty(str), 422, 'str must be empty!')}"),
-			Usage.javaScript("Usage: ${{ $.assert(condition, statusCode, message) }}. Example: ${{ $.assert($.me != null, 401, 'Please sign in.') }}")
-		);
 	}
 
 	@Override

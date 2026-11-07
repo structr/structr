@@ -158,12 +158,6 @@ public class IsExpression extends Expression {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${is(condition, trueExpression)}. Example: ${is(me.isAdmin, 'background-color-red')}"));
-	}
-
-	@Override
 	public FunctionCategory getCategory() {
 
 		return FunctionCategory.Logic;

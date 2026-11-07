@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.extraction.ContentExtractionSettings;
 import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.function.ContentExtractionFunction;
@@ -52,7 +51,7 @@ public class TruncateTokensFunction extends ContentExtractionFunction {
 
 		if (sources.length < 2 || !(sources[1] instanceof Number number) || number.doubleValue() < 0 || number.doubleValue() != Math.floor(number.doubleValue())) {
 
-			throw new FrameworkException(422, getName() + "(): expected the maximum number of tokens, a whole number of 0 or more, as argument 2.");
+			throw new FrameworkException(422, getDisplayName(false) + ": expected the maximum number of tokens, a whole number of 0 or more, as argument 2.");
 		}
 
 		try {
@@ -61,14 +60,8 @@ public class TruncateTokensFunction extends ContentExtractionFunction {
 
 		} catch (final IllegalArgumentException ex) {
 
-			throw new FrameworkException(422, getName() + "(): " + ex.getMessage());
+			throw new FrameworkException(422, getDisplayName(false) + ": " + ex.getMessage());
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ documents.truncateTokens(text, maxTokens [, encoding ]) }"), Usage.javaScript("Usage: ${{ $.documents.truncateTokens(text, maxTokens [, encoding ]); }}"));
 	}
 
 	@Override

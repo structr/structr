@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.api.options.NormalizeOptions;
 import org.structr.extraction.function.ContentExtractionFunction;
@@ -65,12 +64,6 @@ public class NormalizeTextFunction extends ContentExtractionFunction {
 			.setWhitespace(booleanOption(options, WHITESPACE, true));
 
 		return ContentExtraction.normalize(text, normalize);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ documents.normalizeText(text [, options ]) }"), Usage.javaScript("Usage: ${{ $.documents.normalizeText(text [, options ]); }}"));
 	}
 
 	@Override

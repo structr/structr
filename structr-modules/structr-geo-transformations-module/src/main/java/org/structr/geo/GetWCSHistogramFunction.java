@@ -30,7 +30,6 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import javax.media.jai.Histogram;
@@ -145,22 +144,16 @@ public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 
 		} catch (ArgumentTypeException te) {
 
-			logParameterError(caller, sources, te.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, te.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: getWcsHistogram(baseUrl, coverageId, boundingBox, [numBins, lowValue])"));
 	}
 
 	@Override

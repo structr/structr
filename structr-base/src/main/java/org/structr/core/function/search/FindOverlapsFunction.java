@@ -23,7 +23,6 @@ import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -64,7 +63,7 @@ public class FindOverlapsFunction extends AdvancedScriptingFunction {
 			assertArrayHasMinLengthAndMaxLength(sources, 4, 6);
 
 			if (sources[0] == null || sources[1] == null) {
-				throw new FrameworkException(422, getName() + "(): startKey and endKey must not be null");
+				throw new FrameworkException(422, getDisplayName(false) + ": startKey and endKey must not be null");
 			}
 
 			switch (sources.length) {
@@ -108,17 +107,8 @@ public class FindOverlapsFunction extends AdvancedScriptingFunction {
 
 		} catch (final IllegalArgumentException e) {
 
-			throw new FrameworkException(422, getName() + "(): " + e.getMessage());
+			throw new FrameworkException(422, getDisplayName(false) + ": " + e.getMessage());
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.overlaps(startKey, endKey, start, end [, includeStart, includeEnd ]) }}"),
-			Usage.structrScript("Usage: ${overlaps(startKey, endKey, start, end [, includeStart, includeEnd ])}")
-		);
 	}
 
 	@Override

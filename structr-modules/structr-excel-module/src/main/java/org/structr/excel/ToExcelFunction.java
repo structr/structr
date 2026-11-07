@@ -38,7 +38,6 @@ import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -77,12 +76,12 @@ public class ToExcelFunction extends Function<Object, Object> {
 			final int parameterCount = sources.length;
 			if (parameterCount < 2) {
 
-				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): Expected at least 2 parameters, got "  + parameterCount);
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getDisplayName(false) + ": Expected at least 2 parameters, got "  + parameterCount);
 			}
 
 			if (parameterCount % 2 != 0) {
 
-				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): Expected argument count to be even, got " + parameterCount);
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getDisplayName(false) + ": Expected argument count to be even, got " + parameterCount);
 			}
 
 			try (final Workbook workbook = new XSSFWorkbook()) {
@@ -102,7 +101,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 					} else {
 
-						return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): Parameter " + (c+1) + " must be a collection!");
+						return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getDisplayName(false) + ": Parameter " + (c+1) + " must be a collection!");
 					}
 				}
 
@@ -125,15 +124,6 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, e.getMessage(), e);
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-				Usage.structrScript("Usage: ${toExcel(data_1, config_1, data_2, config_2, ...)}"),
-				Usage.javaScript("Usage: ${{ $.toExcel(data_1, config_1, data_2, config_2, ...); }}")
-		);
 	}
 
 	@Override

@@ -21,7 +21,6 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -38,13 +37,7 @@ public class RollbackTransactionFunction extends CoreFunction {
                 return null;
         }
 
-        @Override
-        public List<Usage> getUsages() {
-
-		return List.of(Usage.javaScript("Usage: ${{ $.rollbackTransaction(); }}"), Usage.structrScript("Usage: ${rollbackTransaction()}"));
-        }
-
-        @Override
+	@Override
         public String getShortDescription() {
 
                 return "Marks the current transaction as failed and prevents all objects from being persisted in the database.";

@@ -25,7 +25,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -63,7 +62,7 @@ public class SearchVectorFunction extends CoreFunction implements QueryFunction 
 
 		if (sources == null || sources.length < 2 || sources.length > 3 || !(sources[0] instanceof String indexName) || StringUtils.isBlank(indexName)) {
 
-			throw new FrameworkException(422, getName() + "(): expected an index name, a vector and optionally a limit.");
+			throw new FrameworkException(422, getDisplayName(false) + ": expected an index name, a vector and optionally a limit.");
 		}
 
 		final double[] vector = vector(sources[1]);
@@ -73,7 +72,7 @@ public class SearchVectorFunction extends CoreFunction implements QueryFunction 
 
 			if (!(sources[2] instanceof Number number) || number.intValue() < 1) {
 
-				throw new FrameworkException(422, getName() + "(): limit must be a positive number.");
+				throw new FrameworkException(422, getDisplayName(false) + ": limit must be a positive number.");
 			}
 
 			limit = Math.min(MAX_LIMIT, number.intValue());
@@ -88,15 +87,6 @@ public class SearchVectorFunction extends CoreFunction implements QueryFunction 
 		}
 
 		return list;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${searchVector(indexName, vector [, limit ])}."),
-			Usage.javaScript("Usage: ${{ $.searchVector(indexName, vector [, limit ]) }}.")
-		);
 	}
 
 	@Override
@@ -183,7 +173,7 @@ public class SearchVectorFunction extends CoreFunction implements QueryFunction 
 
 				if (!(element instanceof Number number)) {
 
-					throw new FrameworkException(422, getName() + "(): the vector must be a list of numbers.");
+					throw new FrameworkException(422, getDisplayName(false) + ": the vector must be a list of numbers.");
 				}
 
 				values.add(number.doubleValue());
@@ -195,6 +185,6 @@ public class SearchVectorFunction extends CoreFunction implements QueryFunction 
 			}
 		}
 
-		throw new FrameworkException(422, getName() + "(): the vector must be a non-empty list of numbers.");
+		throw new FrameworkException(422, getDisplayName(false) + ": the vector must be a non-empty list of numbers.");
 	}
 }

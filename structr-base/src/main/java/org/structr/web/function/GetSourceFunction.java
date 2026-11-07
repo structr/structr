@@ -24,7 +24,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
@@ -69,21 +68,12 @@ public class GetSourceFunction extends UiAdvancedFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${getSource(element, editMode)}. Example: ${getSource(this, 1)}"),
-			Usage.javaScript("Usage: ${{ $.getSource(element, editMode) }}. Example: ${{ $.getSource(this, 1)}}")
-		);
 	}
 
 	@Override

@@ -166,10 +166,4 @@ public class UpdateLicenseKeyCommand extends Command implements MaintenanceComma
 
 		return List.of();
 	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
 }

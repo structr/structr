@@ -67,16 +67,10 @@ public class NumFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${num(object)}"), Usage.javaScript("Usage: ${{ $.num(object) }}"));
 	}
 
 	@Override

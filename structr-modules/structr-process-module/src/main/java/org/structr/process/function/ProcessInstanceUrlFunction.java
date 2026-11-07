@@ -29,12 +29,9 @@ import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
-import org.structr.docs.ontology.FunctionCategory;
 import org.structr.process.traits.definitions.BpmnProcessTraitDefinition;
 import org.structr.process.traits.definitions.ProcessInstanceTraitDefinition;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 import java.util.List;
 
@@ -134,7 +131,7 @@ public class ProcessInstanceUrlFunction extends ProcessModuleFunction {
 
 		} catch (ArgumentNullException | ArgumentCountException ex) {
 
-			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ex.getMessage());
 
 			return null;
 		}
@@ -191,12 +188,6 @@ public class ProcessInstanceUrlFunction extends ProcessModuleFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("instance [, token]");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${processInstanceUrl(instance [, token])}"), Usage.javaScript("Usage: ${{$.processInstanceUrl(instance [, token])}}"));
 	}
 
 	@Override

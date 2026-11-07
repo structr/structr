@@ -22,7 +22,6 @@ import org.apache.commons.mail.EmailException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
@@ -76,12 +75,6 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${mailSend()}"), Usage.javaScript("Usage: ${{ $.mailSend() }}"));
 	}
 
 	@Override

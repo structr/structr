@@ -82,11 +82,6 @@ public class FunctionExpression extends Expression {
 			results.add(result);
 		}
 
-		if (results.isEmpty() && expressions.size() > 0) {
-
-			return function.usage(ctx.isJavaScriptContext());
-		}
-
 		// tell the function where it was written, so it can name its own origin in a log line
 		ctx.setScriptLocation(row, column);
 
@@ -194,12 +189,6 @@ public class FunctionExpression extends Expression {
 
 	@Override
 	public List<Language> getLanguages() {
-
-		return List.of();
-	}
-
-	@Override
-	public List<Usage> getUsages() {
 
 		return List.of();
 	}

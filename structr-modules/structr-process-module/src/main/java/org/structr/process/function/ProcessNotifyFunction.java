@@ -36,7 +36,6 @@ import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.resource.ResetPasswordResource;
 
@@ -118,7 +117,7 @@ public class ProcessNotifyFunction extends ProcessModuleFunction {
 
 		} catch (ArgumentNullException | ArgumentCountException ex) {
 
-			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ex.getMessage());
 
 			return null;
 		}
@@ -192,12 +191,6 @@ public class ProcessNotifyFunction extends ProcessModuleFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("channel, recipient, subject, message");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${processNotify(channel, recipient, subject, message)}"), Usage.javaScript("Usage: ${{$.processNotify(channel, recipient, subject, message)}}"));
 	}
 
 	@Override

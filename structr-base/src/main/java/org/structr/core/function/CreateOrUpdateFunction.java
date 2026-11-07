@@ -30,7 +30,6 @@ import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
@@ -99,7 +98,7 @@ public class CreateOrUpdateFunction extends CoreFunction {
 				final int parameterCount = sources.length;
 				if (parameterCount % 2 == 0) {
 
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+					throw new FrameworkException(400, getDisplayName(false) + ": Invalid number of parameters: " + parameterCount + ". Should be uneven. " + usage());
 				}
 
 				for (int c = 1; c < parameterCount; c += 2) {
@@ -153,19 +152,10 @@ public class CreateOrUpdateFunction extends CoreFunction {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{$.createOrUpdate(type, properties)}}. Example: ${{$.createOrUpdate('User', 'email', 'tester@test.com')}}"),
-			Usage.structrScript("Usage: ${createOrUpdate(type, properties)}. Example: ${createOrUpdate('User', 'email', 'tester@test.com')}")
-		);
 	}
 
 	@Override

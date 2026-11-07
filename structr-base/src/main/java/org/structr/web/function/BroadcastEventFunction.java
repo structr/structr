@@ -21,7 +21,6 @@ package org.structr.web.function;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.servlet.EventSourceServlet;
@@ -52,7 +51,7 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 		}
 
 		return null;
@@ -95,15 +94,6 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]]");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${broadcastEvent(eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]] )}. Example: ${broadcastEvent(\"message\", \"Welcome!\", true, false)}"),
-			Usage.javaScript("Usage: ${{ $.broadcastEvent(eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]] )}}. Example: ${{ $.broadcastEvent(\"message\", \"Welcome!\", true, false)}}")
-		);
 	}
 
 	@Override

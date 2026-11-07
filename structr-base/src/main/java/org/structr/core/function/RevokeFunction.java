@@ -31,7 +31,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -62,19 +61,19 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 			if (!(sources[0] instanceof NodeInterface n && n.is(StructrTraits.PRINCIPAL))) {
 
-				logParameterError(caller, sources, "Expected node of type Principal as first argument!", ctx.isJavaScriptContext());
+				logParameterError(caller, sources, getDisplayName(false) + ": Expected node of type Principal as first argument!");
 
 			} else if (sources[0] instanceof SuperUser) {
 
-				logParameterError(caller, sources, "Expected node of type Principal as first argument - unable to revoke rights for the SuperUser!", ctx.isJavaScriptContext());
+				logParameterError(caller, sources, getDisplayName(false) + ": Expected node of type Principal as first argument - unable to revoke rights for the SuperUser!");
 
 			} else if (!(sources[1] instanceof NodeInterface)) {
 
-				logParameterError(caller, sources, "Expected node as second argument!", ctx.isJavaScriptContext());
+				logParameterError(caller, sources, getDisplayName(false) + ": Expected node as second argument!");
 
 			} else if (!(sources[2] instanceof String)) {
 
-				logParameterError(caller, sources, "Expected string as third argument!", ctx.isJavaScriptContext());
+				logParameterError(caller, sources, getDisplayName(false) + ": Expected string as third argument!");
 
 			} else {
 
@@ -95,7 +94,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 						} else {
 
-							logParameterError(caller, sources, "Unknown permission \"" + trimmedPart + "\"!", ctx.isJavaScriptContext());
+							logParameterError(caller, sources, getDisplayName(false) + ": Unknown permission \"" + trimmedPart + "\"!");
 
 							return null;
 						}
@@ -114,16 +113,10 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${revoke(principal, node, permissions)}"), Usage.javaScript("Usage: ${{ $.revoke(principal, node, permissions) }}"));
 	}
 
 	@Override

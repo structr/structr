@@ -27,7 +27,6 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.PropertyKey;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
@@ -64,9 +63,9 @@ public class ToCsvFunction extends CsvFunction {
 
 			if ( !(sources[0] instanceof Iterable) ) {
 
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
+				logParameterError(caller, sources);
 
-				return "ERROR: First parameter must be a collection!".concat(usage(ctx.isJavaScriptContext()));
+				return "ERROR: First parameter must be a collection!".concat(usage());
 			}
 
 			final List<GraphObject> nodes           = Iterables.toList((Iterable)sources[0]);
@@ -96,7 +95,7 @@ public class ToCsvFunction extends CsvFunction {
 
 						properties = (List)sources[1];
 
-						if (properties.size() == 0) {
+						if (properties.isEmpty()) {
 
 							logger.info("toCsv(): Unable to create CSV if list of properties is empty - returning empty CSV");
 
@@ -105,15 +104,15 @@ public class ToCsvFunction extends CsvFunction {
 
 					} else {
 
-						logParameterError(caller, sources, ctx.isJavaScriptContext());
+						logParameterError(caller, sources);
 
-						return "ERROR: Second parameter must be a collection of property names or a single property view!".concat(usage(ctx.isJavaScriptContext()));
+						return "ERROR: Second parameter must be a collection of property names or a single property view!".concat(usage());
 					}
 				}
 			}
 
 			// if we are using a propertyView, we need extract the property names from the first object which can not work without objects
-			if (nodes.size() == 0 && propertyView != null) {
+			if (nodes.isEmpty() && propertyView != null) {
 
 				logger.info("toCsv(): Can not create CSV if no nodes are given - returning empty CSV");
 
@@ -121,7 +120,7 @@ public class ToCsvFunction extends CsvFunction {
 			}
 
 			// validate/fix quoteChar parameter
-			if (quoteChar.length() == 0) {
+			if (quoteChar.isEmpty()) {
 
 				throw new IllegalArgumentException("quoteChar is empty - unable to create CSV");
 
@@ -131,7 +130,7 @@ public class ToCsvFunction extends CsvFunction {
 			}
 
 			// validate/fix delimiterChar parameter
-			if (delimiterChar.length() == 0) {
+			if (delimiterChar.isEmpty()) {
 
 				throw new IllegalArgumentException("delimiterChar is empty - unable to create CSV");
 
@@ -157,19 +156,10 @@ public class ToCsvFunction extends CsvFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${toCsv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}"),
-			Usage.javaScript("Usage: ${{ $.toCsv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]]) }}")
-		);
 	}
 
 	@Override

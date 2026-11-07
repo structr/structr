@@ -30,7 +30,6 @@ import org.structr.core.property.StringProperty;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
@@ -176,25 +175,16 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
 
 		return resultSet;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${getRelationshipTypes(node, [ lookupType [, direction ]])}. Example: ${getRelationshipTypes(me, 'existing', 'both')}"),
-			Usage.javaScript("Usage: ${{$.getRelationshipTypes(node, [ lookupType [, direction ]])}}. Example: ${{$.getRelationshipTypes(me, 'existing', 'both')}}")
-		);
 	}
 
 	@Override

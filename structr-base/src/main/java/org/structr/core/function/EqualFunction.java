@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -69,15 +68,6 @@ public class EqualFunction extends CoreFunction {
 		}
 
 		return valueEquals(sources[0], sources[1]);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${$.equal(value1, value2)}. Example: ${$.equal($.this.children.size, 0)}"),
-			Usage.structrScript("Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}")
-		);
 	}
 
 	@Override

@@ -22,7 +22,6 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -74,20 +73,11 @@ public class FromXmlFunction extends UiAdvancedFunction {
 
 		} else {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${fromXml(source)}. Example: ${fromXml('<entry>0</entry>')}"),
-			Usage.javaScript("Usage: ${{ $.fromXml(src) }}. Example: ${{ $.fromXml('<entry>0</entry>') }}")
-		);
 	}
 
 	@Override

@@ -21,7 +21,6 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -72,17 +71,8 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 
 		} catch (final IllegalArgumentException e) {
 
-			throw new FrameworkException(422, getName() + "(): " + e.getMessage());
+			throw new FrameworkException(422, getDisplayName(false) + ": " + e.getMessage());
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.page(page, pageSize) }}. Example: ${{ $.find('Group', $.predicate.page(1, 10)) }}"),
-			Usage.structrScript("Usage: ${page(page, pageSize). Example: ${find('Group', page(1, 10))}")
-		);
 	}
 
 	@Override

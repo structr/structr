@@ -24,7 +24,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
@@ -93,17 +92,8 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			throw new FrameworkException(422, getName() + "(): " + e.getMessage() + " - Parameters: " + getParametersAsString(sources));
+			throw new FrameworkException(422, getDisplayName(false) + ": " + e.getMessage() + " - Parameters: " + getParametersAsString(sources));
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${mailBegin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]])}"),
-			Usage.javaScript("Usage: ${{ $.mailBegin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]]) }}")
-		);
 	}
 
 	@Override

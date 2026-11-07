@@ -24,7 +24,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -97,36 +96,30 @@ public class HMACFunction extends CoreFunction {
 
 		} catch (UnsupportedEncodingException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 		} catch (NoSuchAlgorithmException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 		} catch (InvalidKeyException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${hmac(value, secret [, hashAlgorithm ])}"), Usage.javaScript("Usage: ${{ $.hmac(value, secret [, hashAlgorithm ]) }}"));
 	}
 
 	@Override

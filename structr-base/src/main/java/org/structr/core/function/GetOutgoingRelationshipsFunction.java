@@ -26,7 +26,6 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -107,22 +106,16 @@ public class GetOutgoingRelationshipsFunction extends CoreFunction {
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
 
 		return list;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${getOutgoingRelationships(from, to [, relType])}"), Usage.javaScript("Usage: ${{$.getOutgoingRelationships(from, to [, relType])}}"));
 	}
 
 	@Override

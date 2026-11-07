@@ -23,7 +23,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -74,19 +73,10 @@ public class SearchRelationshipsFulltextFunction extends CoreFunction implements
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${searchRelationshipsFulltext(indexName, searchString)}. Example: ${searchRelationshipsFulltext(\"UserName\", \"abc\")}"),
-			Usage.javaScript("Usage: ${{ $.searchRelationshipsFulltext(indexName, value) }}. Example: ${{ $.searchRelationshipsFulltext(\"UserName\", \"abc\") }}")
-		);
 	}
 
 	@Override

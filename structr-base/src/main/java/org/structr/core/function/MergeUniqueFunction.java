@@ -70,12 +70,6 @@ public class MergeUniqueFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${mergeUnique(list1, list2, list3...)}"), Usage.javaScript("Usage: ${{ $.mergeUnique(list1, list2, list3...) }}"));
-	}
-
-	@Override
 	public String getShortDescription() {
 
 		return "Merges collections and objects into a single collection, removing duplicates.";

@@ -20,10 +20,8 @@ package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.docs.Language;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -49,15 +47,6 @@ public class ApplicationStoreGetKeysFunction extends UiAdvancedFunction {
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		return Services.getInstance().getApplicationStore().keySet();
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${applicationStoreGetKeys()}. Example: ${applicationStoreGetKeys()}"),
-			Usage.javaScript("Usage: ${{ $.applicationStoreGetKeys(); }}. Example: ${{ $.applicationStoreGetKeys(); }}")
-		);
 	}
 
 	@Override

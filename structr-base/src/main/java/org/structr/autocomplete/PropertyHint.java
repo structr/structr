@@ -82,12 +82,6 @@ public class PropertyHint extends AbstractHint {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
-
-	@Override
 	public DocumentableType getDocumentableType() {
 
 		return DocumentableType.Property;

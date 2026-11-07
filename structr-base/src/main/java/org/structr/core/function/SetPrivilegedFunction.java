@@ -21,7 +21,6 @@ package org.structr.core.function;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
@@ -66,12 +65,6 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${setPrivileged(entity, propertyKey, value)}."), Usage.javaScript("Usage: ${{$.setPrivileged(entity, propertyKey, value)}}."));
 	}
 
 	@Override

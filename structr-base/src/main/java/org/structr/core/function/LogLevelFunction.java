@@ -25,7 +25,6 @@ import org.structr.core.script.Scripting;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
@@ -76,7 +75,7 @@ public abstract class LogLevelFunction extends CoreFunction {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
@@ -122,15 +121,6 @@ public abstract class LogLevelFunction extends CoreFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("objects...");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${$.log." + getLevel() + "(objects...)}. Example: ${$.log." + getLevel() + "('import finished, ', count, ' rows')}"),
-			Usage.structrScript("Usage: ${log." + getLevel() + "(objects...)}. Example: ${log." + getLevel() + "('import finished, ', count, ' rows')}")
-		);
 	}
 
 	@Override

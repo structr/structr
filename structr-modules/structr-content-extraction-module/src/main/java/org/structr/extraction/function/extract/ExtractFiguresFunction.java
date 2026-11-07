@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.api.ContentExtractionException;
 import org.structr.extraction.api.document.ExtractedFigureData;
@@ -78,12 +77,6 @@ public class ExtractFiguresFunction extends ContentExtractionFunction {
 
 			throw extractionFailed(ex);
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ documents.extractFigures(file [, options ]) }"), Usage.javaScript("Usage: ${{ $.documents.extractFigures(file [, options ]); }}"));
 	}
 
 	@Override
@@ -174,7 +167,7 @@ public class ExtractFiguresFunction extends ContentExtractionFunction {
 			final int dpi = positiveIntOption(options, OPTION_DPI);
 			if (dpi < 36 || dpi > MAX_DPI) {
 
-				throw new FrameworkException(422, getName() + "(): option '" + OPTION_DPI + "' must be between 36 and " + MAX_DPI + ", got " + dpi + ".");
+				throw new FrameworkException(422, getDisplayName(false) + ": option '" + OPTION_DPI + "' must be between 36 and " + MAX_DPI + ", got " + dpi + ".");
 			}
 
 			result.setDpi(dpi);

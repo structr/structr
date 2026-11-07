@@ -24,12 +24,10 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.api.search.ContentSearchHit;
 import org.structr.extraction.api.search.ContentSearchMode;
 import org.structr.extraction.api.search.ContentSearchOptions;
-import org.structr.extraction.entity.ExtractedContentNode;
 import org.structr.extraction.function.ContentExtractionFunction;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.Folder;
@@ -76,12 +74,6 @@ public class DocumentsFulltextSearchFunction extends ContentExtractionFunction {
 		final List<ContentSearchHit> hits = ContentExtraction.search(ctx.getSecurityContext(), query, new ContentSearchOptions(limit, minScore, files, folder, contextChunks, mode));
 
 		return toGraphObjectMaps(hits.stream().map(ContentSearchHit::toMap).toList());
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ documents.fulltextSearch(query [, options ]) }"), Usage.javaScript("Usage: ${{ $.documents.fulltextSearch(query [, options ]); }}"));
 	}
 
 	@Override
@@ -152,7 +144,7 @@ public class DocumentsFulltextSearchFunction extends ContentExtractionFunction {
 			return number.doubleValue();
 		}
 
-		throw new FrameworkException(422, getName() + "(): option 'minScore' must be a number.");
+		throw new FrameworkException(422, getDisplayName(false) + ": option 'minScore' must be a number.");
 	}
 
 	private Set<String> files(final Map<String, Object> options) throws FrameworkException {
@@ -175,14 +167,14 @@ public class DocumentsFulltextSearchFunction extends ContentExtractionFunction {
 
 				} else {
 
-					throw new FrameworkException(422, getName() + "(): option 'files' must be a list of Files.");
+					throw new FrameworkException(422, getDisplayName(false) + ": option 'files' must be a list of Files.");
 				}
 			}
 
 			return uuids;
 		}
 
-		throw new FrameworkException(422, getName() + "(): option 'files' must be a list of Files.");
+		throw new FrameworkException(422, getDisplayName(false) + ": option 'files' must be a list of Files.");
 	}
 
 	private ContentSearchMode mode(final Map<String, Object> options) throws FrameworkException {
@@ -198,7 +190,7 @@ public class DocumentsFulltextSearchFunction extends ContentExtractionFunction {
 
 		} catch (final IllegalArgumentException ex) {
 
-			throw new FrameworkException(422, getName() + "(): option 'mode': " + ex.getMessage());
+			throw new FrameworkException(422, getDisplayName(false) + ": option 'mode': " + ex.getMessage());
 		}
 	}
 
@@ -215,6 +207,6 @@ public class DocumentsFulltextSearchFunction extends ContentExtractionFunction {
 			return node.as(Folder.class);
 		}
 
-		throw new FrameworkException(422, getName() + "(): option 'folder' must be a Folder.");
+		throw new FrameworkException(422, getDisplayName(false) + ": option 'folder' must be a Folder.");
 	}
 }

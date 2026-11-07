@@ -23,7 +23,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
@@ -71,16 +70,10 @@ public class CreateFolderPathFunction extends UiAdvancedFunction {
 
 		} else {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${createFolderPath(path)}"), Usage.javaScript("Usage: ${{ $.createFolderPath({ path: value }) }}"));
 	}
 
 	@Override

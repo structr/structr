@@ -23,7 +23,6 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -49,7 +48,7 @@ public class SetLocaleFunction extends CoreFunction {
 
 		if (sources == null || sources.length != 1 || sources[0] == null) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
@@ -68,21 +67,12 @@ public class SetLocaleFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${setLocale(locale)}. Example: ${setLocale('de_DE')}"),
-			Usage.javaScript("Usage: ${{ $.setLocale(locale); }}. Example: ${{ $.setLocale('de_DE'); }}")
-		);
 	}
 
 	@Override

@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.api.ContentExtractionException;
 import org.structr.extraction.function.ContentExtractionFunction;
@@ -53,7 +52,7 @@ public class ExtractMetadataFunction extends ContentExtractionFunction {
 
 		if (sources.length > 1) {
 
-			throw new FrameworkException(422, getName() + "(): expects exactly one argument, the File.");
+			throw new FrameworkException(422, getDisplayName(false) + ": expects exactly one argument, the File.");
 		}
 
 		try {
@@ -64,12 +63,6 @@ public class ExtractMetadataFunction extends ContentExtractionFunction {
 
 			throw extractionFailed(ex);
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ documents.extractMetadata(file) }"), Usage.javaScript("Usage: ${{ $.documents.extractMetadata(file); }}"));
 	}
 
 	@Override

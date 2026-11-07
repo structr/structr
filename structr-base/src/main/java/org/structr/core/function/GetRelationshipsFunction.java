@@ -26,7 +26,6 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -110,25 +109,16 @@ public class GetRelationshipsFunction extends CoreFunction {
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
 
 		return list;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${getRelationships(entity1, entity2 [, relType])}. Example: ${getRelationships(me, user, 'FOLLOWS')}  (ignores direction of the relationship)"),
-			Usage.javaScript("Usage: ${{$.getRelationships(entity1, entity2 [, relType])}}. Example: ${{$.getRelationships($.get('me'), user, 'FOLLOWS')}}  (ignores direction of the relationship)")
-		);
 	}
 
 	@Override

@@ -25,7 +25,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -83,7 +82,7 @@ public class CleanFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
@@ -93,15 +92,6 @@ public class CleanFunction extends CoreFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("string");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{$.clean(string)}}. Example: ${{$.clean($.this.stringWithNonWordChars)}}"),
-			Usage.structrScript("Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}")
-		);
 	}
 
 	@Override

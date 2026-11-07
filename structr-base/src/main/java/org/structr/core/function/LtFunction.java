@@ -46,12 +46,6 @@ public class LtFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${lt(value1, value2)}"), Usage.javaScript("Usage: ${{ $.lt(value1, value2) }}"));
-	}
-
-	@Override
 	public String getShortDescription() {
 
 		return "Returns true if the first argument is less than the second argument.";

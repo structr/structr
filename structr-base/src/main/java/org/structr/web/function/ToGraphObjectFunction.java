@@ -22,7 +22,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
@@ -81,16 +80,10 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 
 		} else {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${toGraphObject(obj)}"), Usage.javaScript("Usage: ${{ $.toGraphObject(obj) }}"));
 	}
 
 	@Override

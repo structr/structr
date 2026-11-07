@@ -24,7 +24,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeFactory;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -66,19 +65,10 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.instantiate(node); }}. Example: ${{ $.instantiate(result.node); }}"),
-			Usage.structrScript("Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}")
-		);
 	}
 
 	@Override

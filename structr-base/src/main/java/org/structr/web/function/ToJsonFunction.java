@@ -31,7 +31,6 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
@@ -146,15 +145,6 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, "%s: %s".formatted(getName(), t.getMessage()), t);
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-				Usage.structrScript("Usage: ${toJson(obj [, view [, depth = 3 [, serializeNulls = true ]]])}."),
-				Usage.javaScript("Usage: ${{ $.toJson(obj [, view [, depth = 3 [, serializeNulls = true ]]]) }}.")
-		);
 	}
 
 	@Override

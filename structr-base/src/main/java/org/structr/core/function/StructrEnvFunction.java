@@ -32,7 +32,6 @@ import org.structr.core.auth.DefaultCredentialsCheck;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.maintenance.DeployCommand;
@@ -59,12 +58,6 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		return getStructrEnv();
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${structrEnv()}. Example ${structrEnv()}"), Usage.javaScript("Usage: ${{ $.structrEnv()}. Example ${{ $.structrEnv()}"));
 	}
 
 	@Override

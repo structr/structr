@@ -139,12 +139,6 @@ public class DoPrivilegedFunction extends BuiltinFunctionHint implements ProxyEx
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.javaScript("Usage: ${{ $.doPrivileged(function) }}. Example: ${{ $.doPrivileged(() => log($.me))}"));
-	}
-
-	@Override
 	public List<Signature> getSignatures() {
 
 		return List.of(Signature.of("function", Language.values()));

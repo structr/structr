@@ -70,12 +70,6 @@ public class OrFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${or(b1, b2, ...)}"), Usage.javaScript("Usage: ${{ $.or(b1, b2, ...) }}"));
-	}
-
-	@Override
 	public List<Parameter> getParameters() {
 
 		return List.of(Parameter.mandatory("expressions...", "list of expressions to evaluate"));

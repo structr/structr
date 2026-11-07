@@ -20,10 +20,8 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
-import org.structr.core.function.SearchFunction;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -64,22 +62,13 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 
 			} else {
 
-				throw new FrameworkException(422, getName() + "(): first parameter must be a collection");
+				throw new FrameworkException(422, getDisplayName(false) + ": first parameter must be a collection");
 			}
 
 		} catch (final IllegalArgumentException e) {
 
-			throw new FrameworkException(422, getName() + "(): " + e.getMessage());
+			throw new FrameworkException(422, getDisplayName(false) + ": " + e.getMessage());
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.any(collection)"),
-			Usage.structrScript("Usage: ${any(collection)")
-		);
 	}
 
 	@Override

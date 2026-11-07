@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.function.ContentExtractionFunction;
 import org.structr.schema.action.ActionContext;
@@ -51,12 +50,6 @@ public class StopWordsFunction extends ContentExtractionFunction {
 		final Set<String> words = ContentExtraction.stopWords(textArgument(sources, 0));
 
 		return List.copyOf(words);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ documents.stopWords(language) }"), Usage.javaScript("Usage: ${{ $.documents.stopWords(language); }}"));
 	}
 
 	@Override

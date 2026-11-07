@@ -21,14 +21,11 @@ package org.structr.core.function;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
-import org.structr.common.error.ArgumentNullException;
-import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -60,7 +57,7 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 			if (sources[0] == null) {
 
 				// null config keys can not exist, return default value but log a warning
-				logParameterError(caller, sources, "null configuration keys can not exist, returning defaultValue parameter.", ctx.isJavaScriptContext());
+				logParameterError(caller, sources, getDisplayName(false) + ": null configuration keys can not exist, returning defaultValue parameter.");
 
 				return defaultValue;
 			}
@@ -91,19 +88,10 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-				Usage.structrScript("Usage: ${config(key [, defaultValue = null ])}. Example: ${config(\"base.path\")}"),
-				Usage.javaScript("Usage: ${{ $.config(key [, defaultValue = null ]) }}. Example: ${{ $.config(\"base.path\") }}")
-		);
 	}
 
 	@Override

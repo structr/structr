@@ -185,12 +185,6 @@ public class AllExpression extends Expression {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${all(list, expression)}. Example: ${all(user.groups, is_allowed(data, current, 'read'))}"));
-	}
-
-	@Override
 	public FunctionCategory getCategory() {
 
 		return FunctionCategory.Collection;

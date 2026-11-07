@@ -20,7 +20,6 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
@@ -51,12 +50,6 @@ public class MailClearMimePartsFunction extends AdvancedMailModuleFunction {
 		ctx.getAdvancedMailContainer().clearMimeParts();
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${mailClearMimeParts()}"), Usage.javaScript("Usage: ${{ $.mailClearMimeParts() }}"));
 	}
 
 	@Override

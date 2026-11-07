@@ -54,12 +54,6 @@ public class UnlicensedFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
-
-	@Override
 	public String getShortDescription() {
 
 		return "Placeholder for unlicensed functions.";

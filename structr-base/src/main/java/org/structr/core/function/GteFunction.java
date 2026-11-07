@@ -46,12 +46,6 @@ public class GteFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${gte(value1, value2)}"), Usage.javaScript("Usage: ${{ $.gte(value1, value2) }}"));
-	}
-
-	@Override
 	public String getShortDescription() {
 
 		return "Returns true if the first argument is greater than or equal to the second argument.";

@@ -21,7 +21,6 @@ package org.structr.mail.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
@@ -108,17 +107,8 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			throw new FrameworkException(422, getName() + "(): " + e.getMessage() + " - Parameters: " + getParametersAsString(sources));
+			throw new FrameworkException(422, getDisplayName(false) + ": " + e.getMessage() + " - Parameters: " + getParametersAsString(sources));
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${ mailSetManualConfig([smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpTLSEnabled = true [, smtpTLSRequired = true ]]]]]]) }"),
-			Usage.javaScript("Usage: ${{ $.mailSetManualConfig([smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpTLSEnabled = true [, smtpTLSRequired = true ]]]]]]) }}")
-		);
 	}
 
 	@Override

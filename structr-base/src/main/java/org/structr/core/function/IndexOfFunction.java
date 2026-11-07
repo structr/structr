@@ -61,16 +61,10 @@ public class IndexOfFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${indexOf(string, word)}"), Usage.javaScript("Usage: ${{ $.indexOf(string, word) }}"));
 	}
 
 	@Override

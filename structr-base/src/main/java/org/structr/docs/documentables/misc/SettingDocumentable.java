@@ -99,12 +99,6 @@ public class SettingDocumentable implements Documentable {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return null;
-	}
-
-	@Override
 	public List<ConceptReference> getParentConcepts() {
 
 		final List<ConceptReference> list = Documentable.super.getParentConcepts();

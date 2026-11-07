@@ -29,7 +29,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -155,25 +154,16 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${exec(scriptConfigKey [, parameters [, logBehaviour [, input ] ] ])}. Example: ${exec('my-script', merge('param1', 'param2'), 1)}"),
-			Usage.javaScript("Usage: ${{ $.exec(scriptConfigKey [, parameters [, logBehaviour [, input ] ] ]); }}. Example: ${{ $.exec('my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
-		);
 	}
 
 	@Override

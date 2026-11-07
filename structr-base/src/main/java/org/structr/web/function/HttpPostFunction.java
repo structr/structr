@@ -18,26 +18,19 @@
  */
 package org.structr.web.function;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.ParseException;
-import org.apache.http.entity.ContentType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.property.ByteArrayProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
 import org.structr.common.error.ArgumentTypeException;
 import java.io.InputStream;
 import org.structr.schema.action.ActionContext;
 
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.List;
 import java.util.Map;
 
@@ -105,7 +98,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
@@ -189,15 +182,6 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			Parameter.mandatory("body", "request body"),
 			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
 			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `async` to start the request on a worker thread and answer an awaitable result (JavaScript only), `parseResponse` to parse the response body as JSON, and `binaryResponse` to return the response body as a stream. To SEND binary data, pass a File as the body instead")
-		);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${POST(url, body [, contentType [, options ]])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json; charset=UTF-8')}"),
-			Usage.javaScript("Usage: ${{ $.POST(url, body [, contentType [, options ]]) }}. Example: ${{ $.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json; charset=UTF-8') }}")
 		);
 	}
 

@@ -26,7 +26,6 @@ import org.structr.core.property.ZonedDateTimeProperty;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -36,7 +35,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class DateFormatFunction extends CoreFunction {
 
@@ -120,15 +118,6 @@ public class DateFormatFunction extends CoreFunction {
 
 			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, "%s: %s: %s".formatted(getDisplayName(), t.getMessage(), getParametersAsString(sources)), t);
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript(ERROR_MESSAGE_DATE_FORMAT),
-			Usage.javaScript("Usage: ${{ $.dateFormat(value, pattern); }}. Example: ${{ $.dateFormat($.this.createdDate, \"yyyy-MM-dd'T'HH:mm:ssZ\"); }}")
-		);
 	}
 
 	@Override

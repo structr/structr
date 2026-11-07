@@ -24,12 +24,10 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.api.ContentExtractionException;
 import org.structr.extraction.api.chunk.Chunk;
 import org.structr.extraction.api.options.SplitOptions;
-import org.structr.extraction.chunking.ContentChunker;
 import org.structr.extraction.function.ContentExtractionFunction;
 import org.structr.schema.action.ActionContext;
 
@@ -80,14 +78,8 @@ public class SplitContentFunction extends ContentExtractionFunction {
 
 		} catch (final IllegalArgumentException ex) {
 
-			throw new FrameworkException(422, getName() + "(): " + ex.getMessage());
+			throw new FrameworkException(422, getDisplayName(false) + ": " + ex.getMessage());
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ documents.splitContent(textOrFile [, options ]) }"), Usage.javaScript("Usage: ${{ $.documents.splitContent(textOrFile [, options ]); }}"));
 	}
 
 	@Override

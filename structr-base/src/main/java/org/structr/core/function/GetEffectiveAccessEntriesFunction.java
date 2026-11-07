@@ -27,7 +27,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -57,7 +56,7 @@ public class GetEffectiveAccessEntriesFunction extends AdvancedScriptingFunction
 
 			if (!(sources[0] instanceof NodeInterface)) {
 
-				logParameterError(caller, sources, "Expected node as first argument!", ctx.isJavaScriptContext());
+				logParameterError(caller, sources, getDisplayName(false) + ": Expected node as first argument!");
 
 				return Collections.emptyList();
 			}
@@ -73,19 +72,10 @@ public class GetEffectiveAccessEntriesFunction extends AdvancedScriptingFunction
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 		}
 
 		return Collections.emptyList();
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${getEffectiveAccessEntries(node)}. Example: ${getEffectiveAccessEntries(this)}"),
-			Usage.javaScript("Usage: ${{ $.getEffectiveAccessEntries(node) }}. Example: ${{ $.getEffectiveAccessEntries($.this) }}")
-		);
 	}
 
 	@Override

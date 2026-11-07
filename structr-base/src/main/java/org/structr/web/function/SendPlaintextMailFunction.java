@@ -26,7 +26,6 @@ import org.structr.common.helper.MailHelper;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -71,19 +70,10 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 
 		} catch (ArgumentNullException | ArgumentCountException ex) {
 
-			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ex.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.sendPlaintextMail(fromAddress, fromName, toAddress, toName, subject, content) }}."),
-			Usage.structrScript("Usage: ${sendPlaintextMail(fromAddress, fromName, toAddress, toName, subject, content)}.")
-		);
 	}
 
 	@Override

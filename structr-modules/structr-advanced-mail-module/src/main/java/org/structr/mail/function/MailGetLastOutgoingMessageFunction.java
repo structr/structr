@@ -20,7 +20,6 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
@@ -50,12 +49,6 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 
 		return ctx.getAdvancedMailContainer().getLastOutgoingMessage();
 
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${mailGetLastOutgoingMessage()}"), Usage.javaScript("Usage: ${{ $.mailGetLastOutgoingMessage() }}"));
 	}
 
 	@Override

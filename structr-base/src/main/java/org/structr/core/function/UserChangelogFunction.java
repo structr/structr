@@ -21,7 +21,6 @@ package org.structr.core.function;
 import org.structr.api.config.Settings;
 import org.structr.core.GraphObject;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
@@ -41,15 +40,6 @@ public class UserChangelogFunction extends ChangelogFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("user [, resolve=false [, filterKey, filterValue ]... ]");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${userChangelog(user[, resolve=false[, filterKey, filterValue...]])}. Example: "),
-			Usage.javaScript("Usage: ${{$.userChangelog(user[, resolve=false[, filterObject]])}}. Example: ")
-		);
 	}
 
 	@Override

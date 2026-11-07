@@ -74,12 +74,6 @@ public class AddFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${add(values...)}"), Usage.javaScript("Usage: ${{ $.add(values...) }}"));
-	}
-
-	@Override
 	public String getShortDescription() {
 
 		return "Returns the sum of the given arguments.";

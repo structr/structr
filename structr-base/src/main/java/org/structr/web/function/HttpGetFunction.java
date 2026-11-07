@@ -18,9 +18,6 @@
  */
 package org.structr.web.function;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.ParseException;
-import org.apache.http.entity.ContentType;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -33,14 +30,11 @@ import org.structr.core.property.StringProperty;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
 import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -145,14 +139,14 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 			} catch (IllegalArgumentException e) {
 
-				logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+				logParameterError(caller, sources, e.getMessage());
 
 				return null;
 			}
 			
 		} else {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 		}
 
 		return null;
@@ -207,15 +201,6 @@ public class HttpGetFunction extends UiAdvancedFunction {
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.optional("contentType", "content type of the request; `text/html` parses the response with jsoup, see the `selector` option"),
 			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `async` to start the request on a worker thread and answer an awaitable result (JavaScript only), `parseResponse` to parse the response body as JSON, `selector` for a CSS selector applied to a `text/html` response, and `binaryResponse` to return the response body as a byte array")
-		);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${GET(url [, contentType [, options ]])}. Example: ${GET('http://structr.org', 'text/html', { selector: 'div.content' })}"),
-			Usage.javaScript("Usage: ${{ $.GET(url [, contentType [, options ]]) }}. Example: ${{ $.GET('http://structr.org', 'text/html', { selector: 'div.content' }) }}")
 		);
 	}
 

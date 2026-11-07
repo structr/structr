@@ -162,12 +162,6 @@ public class MapExpression extends Expression {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${map(list, transformationExpression)}. Example: ${map(user.groups, data.name)}"));
-	}
-
-	@Override
 	public FunctionCategory getCategory() {
 
 		return FunctionCategory.Collection;

@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMElement;
@@ -75,15 +74,6 @@ public class ImportHtmlFunction extends UiAdvancedFunction {
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${importHtml(parent, html)}. Example: ${importHtml(this, '<div></div>')}"),
-			Usage.javaScript("Usage: ${{ $.importHtml(parent, html) }}. Example: ${{ $.importHtml(this, '<div></div>') }}")
-		);
 	}
 
 	@Override

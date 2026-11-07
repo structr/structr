@@ -22,10 +22,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.docs.Language;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -64,19 +62,10 @@ public class ApplicationStoreDeleteFunction extends UiAdvancedFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${applicationStoreDelete(key)}. Example: ${applicationStoreDelete('doNoTrack')}"),
-			Usage.javaScript("Usage: ${{ $.applicationStoreDelete(key)}}. Example: ${{ $.applicationStoreDelete('doNotTrack')}}")
-		);
 	}
 
 	@Override

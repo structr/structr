@@ -23,9 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.extraction.api.ContentExtraction;
-import org.structr.extraction.entity.ExtractedContentNode;
 import org.structr.extraction.function.ContentExtractionFunction;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
@@ -52,18 +50,12 @@ public class DeleteExtractedContentFunction extends ContentExtractionFunction {
 		final File file = fileArgument(sources, 0);
 		if (!file.isGranted(Permission.write, ctx.getSecurityContext())) {
 
-			throw new FrameworkException(403, getName() + "(): deleting the content of " + file.getPath() + " requires write permission on the file.");
+			throw new FrameworkException(403, getDisplayName(false) + ": deleting the content of " + file.getPath() + " requires write permission on the file.");
 		}
 
 		ContentExtraction.deleteExtractedContent(file);
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ documents.deleteExtractedContent(file) }"), Usage.javaScript("Usage: ${{ $.documents.deleteExtractedContent(file); }}"));
 	}
 
 	@Override

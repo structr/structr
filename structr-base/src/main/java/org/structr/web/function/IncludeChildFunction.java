@@ -29,7 +29,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
@@ -104,12 +103,12 @@ public class IncludeChildFunction extends IncludeFunction {
 				} else if (childrenWithNameCount > 1) {
 
 					// More than one child node found => error
-					logger.warn(getName() + "(): Ambiguous child node name '" + sources[0] + "' (" + StringUtils.join(childrenWithName, ", ") + ")");
+					logger.warn(getDisplayName(false) + ": Ambiguous child node name '" + sources[0] + "' (" + StringUtils.join(childrenWithName, ", ") + ")");
 				}
 
 			} else {
 
-				logger.warn(getName() + "(): Can only be used in a template context.");
+				logger.warn(getDisplayName(false) + ": Can only be used in a template context.");
 			}
 
 			return null;
@@ -122,16 +121,10 @@ public class IncludeChildFunction extends IncludeFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${includeChild(name)}"), Usage.javaScript("Usage: ${{ $.includeChild(name) }}"));
 	}
 
 	@Override

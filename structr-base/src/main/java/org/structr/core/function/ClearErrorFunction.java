@@ -22,7 +22,6 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -44,7 +43,7 @@ public class ClearErrorFunction extends CoreFunction {
 
 		} else {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 		}
 
 		return null;
@@ -72,15 +71,6 @@ public class ClearErrorFunction extends CoreFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("errorToken");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{$.clearError(errorToken)}}. Example: ${{$.clearError(errorToken)}}"),
-			Usage.structrScript("Usage: ${clearError(errorToken)}. Example: ${clearError(errorToken)}")
-		);
 	}
 
 	@Override

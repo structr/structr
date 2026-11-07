@@ -23,7 +23,6 @@ import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -69,23 +68,14 @@ public class FindGtFunction extends AdvancedScriptingFunction {
 				return new RangePredicate(sources[0], null, false, false);
 			}
 
-			throw new FrameworkException(422, getName() + "(): Unsupported number of arguments.");
+			throw new FrameworkException(422, getDisplayName(false) + ": Unsupported number of arguments.");
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
-			throw new FrameworkException(422, getName() + "(): " + e.getMessage());
+			throw new FrameworkException(422, getDisplayName(false) + ": " + e.getMessage());
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.gt([ key, ] value) }}"),
-			Usage.structrScript("Usage: ${gt([ key, ] value)}")
-		);
 	}
 
 	@Override

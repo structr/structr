@@ -29,7 +29,6 @@ import org.structr.core.graph.Tx;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -69,12 +68,6 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.javaScript("Usage: ${{$.delete(objectOrList)}}. Example: ${{$.delete(this)}}"), Usage.structrScript("Usage: ${delete(objectOrList)}. Example: ${delete(this)}"));
 	}
 
 	@Override

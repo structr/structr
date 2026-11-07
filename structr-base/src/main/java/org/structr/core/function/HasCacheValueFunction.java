@@ -25,7 +25,6 @@ import org.structr.core.parser.CacheExpression;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -60,16 +59,10 @@ public class HasCacheValueFunction extends CoreFunction {
 
 		} catch (ArgumentNullException | ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return false;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${hasCacheValue(cacheKey)}."), Usage.javaScript("Usage: ${{ $.hasCacheValue(cacheKey); }}."));
 	}
 
 	@Override

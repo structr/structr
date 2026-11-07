@@ -156,12 +156,6 @@ public class FilterExpression extends Expression {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${filter(list, filterExpression)}. Example: ${filter(find('User'), data.isAdmin)}"));
-	}
-
-	@Override
 	public FunctionCategory getCategory() {
 
 		return FunctionCategory.Collection;

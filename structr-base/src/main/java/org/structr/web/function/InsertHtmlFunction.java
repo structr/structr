@@ -22,7 +22,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -54,15 +53,6 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 		final String html          = (String) sources[1];
 
 		return InsertHtmlFunction.apply(ctx.getSecurityContext(), parent, html);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${insertHtml(parent, html)}. Example: ${insertHtml(this, html)}"),
-			Usage.javaScript("Usage: ${{ $.insertHtml(parent, html) }}. Example: ${{ $.insertHtml(this, html) }}")
-		);
 	}
 
 	@Override

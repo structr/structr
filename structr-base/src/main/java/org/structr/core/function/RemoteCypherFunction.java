@@ -34,7 +34,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -100,19 +99,10 @@ public class RemoteCypherFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${remoteCypher(url, username, password, query)}. Example ${remoteCypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n')}"),
-			Usage.javaScript("Usage: ${{ $.remoteCypher(url, username, password query) }}. Example ${{ $.remoteCypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n') }}")
-		);
 	}
 
 	@Override

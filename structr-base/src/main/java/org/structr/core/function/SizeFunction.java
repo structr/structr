@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
@@ -78,12 +77,6 @@ public class SizeFunction extends CoreFunction {
 		}
 
 		return 0;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${size(collection)}"), Usage.javaScript("Usage: ${{ $.size(collection) }}"));
 	}
 
 	@Override

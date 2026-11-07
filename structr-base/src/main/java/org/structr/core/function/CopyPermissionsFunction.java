@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -62,26 +61,17 @@ public class CopyPermissionsFunction extends CoreFunction {
 
 			} else {
 
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
+				logParameterError(caller, sources);
 			}
 
 			return null;
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${copyPermissions(sourceNode, targetNode [, syncPermissions = false ])}. Example: ${copyPermissions(this, this.child)}"),
-			Usage.javaScript("Usage: ${{ $.copyPermissions(sourceNode, targetNode [, syncPermissions = false ]); }}. Example: ${{ $.copyPermissions($.this, $.this.child); }}")
-		);
 	}
 
 	@Override

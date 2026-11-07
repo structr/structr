@@ -26,7 +26,6 @@ import org.structr.core.api.NamedArguments;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
@@ -69,7 +68,7 @@ public class CallFunction extends AdvancedScriptingFunction {
 					final int parameterCount = sources.length;
 					if (parameterCount % 2 == 0) {
 
-						throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+						throw new FrameworkException(400, getDisplayName(false) + ": Invalid number of parameters: " + parameterCount + ". Should be uneven. " + usage());
 					}
 
 					final Map<String, Object> newMap = new LinkedHashMap<>();
@@ -90,7 +89,7 @@ public class CallFunction extends AdvancedScriptingFunction {
 
 		} else {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 		}
 
 		return null;
@@ -102,16 +101,6 @@ public class CallFunction extends AdvancedScriptingFunction {
 	public SecurityContext getSecurityContext(final ActionContext ctx) {
 
 		return ctx.getSecurityContext();
-	}
-
-	// ----- documentation -----
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${call(key [, key, value]}. Example ${call('myEvent', 'key1', 'value1', 'key2', 'value2')}"),
-			Usage.javaScript("Usage: ${{ $.call(key [, parameterMap]) }}. Example ${{ $.call('myEvent', { key1: 'value1', key2: 'value2' }) }}")
-		);
 	}
 
 	@Override

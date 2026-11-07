@@ -4297,12 +4297,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return List.of();
 	}
 
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
-
 	// ----- nested helper classes -----
 	protected static class IdFirstComparator implements Comparator<String> {
 

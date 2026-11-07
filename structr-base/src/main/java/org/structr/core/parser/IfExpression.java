@@ -178,12 +178,6 @@ public class IfExpression extends Expression {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${if(condition, trueExpression, falseExpression)}. Example: ${if(me.isAdmin, 'background-color-red', 'background-color-white')}"));
-	}
-
-	@Override
 	public FunctionCategory getCategory() {
 
 		return FunctionCategory.Logic;

@@ -21,7 +21,6 @@ package org.structr.core.function;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
@@ -54,7 +53,7 @@ public class TitleizeFunction extends CoreFunction {
 
 		if (sources.length > 2) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
@@ -71,12 +70,6 @@ public class TitleizeFunction extends CoreFunction {
 		}
 
 		return TitleizeFunction.titleize(sources[0].toString(), separator);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.javaScript("Usage: ${{ $.titleize(string, separator) }}"), Usage.structrScript("Usage: ${titleize(string, separator)}"));
 	}
 
 	@Override

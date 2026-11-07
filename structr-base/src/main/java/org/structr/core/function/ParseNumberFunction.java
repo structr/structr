@@ -23,7 +23,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -51,7 +50,7 @@ public class ParseNumberFunction extends CoreFunction {
 
 		if (sources == null || (sources.length == 2 && sources[1] == null) || sources.length > 2) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
@@ -86,19 +85,13 @@ public class ParseNumberFunction extends CoreFunction {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${parseNumber(value, locale)}."), Usage.javaScript("Usage: ${{ $.parseNumber(value, locale) }}."));
 	}
 
 	@Override

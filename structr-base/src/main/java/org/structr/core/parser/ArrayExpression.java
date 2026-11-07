@@ -192,12 +192,6 @@ public class ArrayExpression extends Expression {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
-
-	@Override
 	public FunctionCategory getCategory() {
 
 		return null;

@@ -28,7 +28,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
@@ -97,22 +96,13 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 			} catch (final Exception e) {
 
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
+				logParameterError(caller, sources);
 
 				return null;
 			}
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${importCss(file)}. Example: ${importCss(cssFile)}"),
-			Usage.javaScript("Usage: ${{ $.importCss(file) }}. Example: ${{ $.importCss(cssFile) }}")
-		);
 	}
 
 	@Override

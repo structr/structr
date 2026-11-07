@@ -32,12 +32,11 @@ public class ArgumentCountException extends IllegalArgumentException {
 
 	public static ArgumentCountException notEqual(final Integer actualLength, final Integer expectedLength){
 
-		return new ArgumentCountException("Expected exactly " + expectedLength + " arguments but got " + actualLength);
+		return new ArgumentCountException("Expected exactly " + expectedLength + " argument" + (expectedLength > 1 ? "s" : "") + " but got " + actualLength);
 	}
 
 	public static ArgumentCountException tooFew(final Integer actualLength, final Integer expectedMinLength){
 
-		return new ArgumentCountException("Expected at least " + expectedMinLength + " arguments but got " + actualLength);
+		return new ArgumentCountException("Expected at least " + expectedMinLength + " argument" + (expectedMinLength > 1 ? "s" : "") + " but got " + actualLength);
 	}
-
 }

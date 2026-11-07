@@ -223,12 +223,6 @@ public class EachExpression extends Expression {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${each(list, expression)}. Example: ${each(user.groups, print(data.name))}"));
-	}
-
-	@Override
 	public FunctionCategory getCategory() {
 
 		return FunctionCategory.Collection;

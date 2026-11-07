@@ -804,12 +804,6 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 		return List.of();
 	}
 
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
-
 	static class HierarchyComparator implements Comparator<TypeInfo> {
 
 		private boolean reverse = false;

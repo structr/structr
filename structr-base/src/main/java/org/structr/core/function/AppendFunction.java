@@ -23,7 +23,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -70,7 +69,7 @@ public class AppendFunction extends AdvancedScriptingFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
@@ -125,15 +124,6 @@ public class AppendFunction extends AdvancedScriptingFunction {
 			"Allowed 'sub/dir/file.txt'",
 			"Forbidden '../../../../etc/passwd'",
 			"Forbidden '/etc/passwd'"
-		);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${append(filename, text)}. Example: ${append('test.txt', this.name)}"),
-			Usage.javaScript("Usage: ${{ $.append(filename, text); }}. Example: ${{ $.append('test.txt', $.this.name); }}")
 		);
 	}
 

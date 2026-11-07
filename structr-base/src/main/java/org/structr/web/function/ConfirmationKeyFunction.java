@@ -19,7 +19,6 @@
 package org.structr.web.function;
 
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.action.ActionContext;
@@ -46,15 +45,6 @@ public class ConfirmationKeyFunction extends UiCommunityFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		return AuthHelper.getConfirmationKey();
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${confirmationKey()}. Example: ${confirmationKey()}"),
-			Usage.javaScript("Usage: ${{ $.confirmationKey() }}. Example: ${{ $.confirmationKey() }}")
-		);
 	}
 
 	@Override

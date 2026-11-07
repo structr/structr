@@ -27,7 +27,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
@@ -103,21 +102,21 @@ public class AppendContentFunction extends UiAdvancedFunction {
 
 				} else {
 
-					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): Content must be of type String, byte[] or InputStream. Found: " + sources[1].getClass().getSimpleName());
+					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getDisplayName(false) + ": Content must be of type String, byte[] or InputStream. Found: " + sources[1].getClass().getSimpleName());
 				}
 
 			} else {
 
-				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): First parameter must be a File. Found: " + sources[0]);
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getDisplayName(false) + ": First parameter must be a File. Found: " + sources[0]);
 			}
 
 		} catch (ArgumentNullException ane) {
 
-			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): " + ane.getMessage() + " - Parameters: " + getParametersAsString(sources));
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getDisplayName(false) + ": " + ane.getMessage() + " - Parameters: " + getParametersAsString(sources));
 
 		} catch (ArgumentCountException ace) {
 
-			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): " + ace.getMessage() + " - Parameters: " + getParametersAsString(sources));
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getDisplayName(false) + ": " + ace.getMessage() + " - Parameters: " + getParametersAsString(sources));
 		}
 
 		return null;
@@ -139,12 +138,6 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("file, content [, encoding ]");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${appendContent(file, content[, encoding ])}"), Usage.javaScript("Usage: ${{ $.appendContent(file, content[, encoding ]) }}"));
 	}
 
 	@Override

@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.docs.Experimental;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -68,15 +67,6 @@ public class PrefetchFunction extends CoreFunction {
 		TransactionCommand.getCurrentTransaction().prefetch(query, keys);
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-				Usage.javaScript("Usage: ${{ $.prefetch(query, listOfKeys); }}. Example: ${{ $.prefetch('(:Customer)-[]->(:Task)', ['', '']) }}"),
-				Usage.structrScript("Usage: ${prefetch(query, listOfKeys)}. Example: ${prefetch('(:Customer)-[]->(:Task)', merge('', ''))}")
-		);
 	}
 
 	@Override

@@ -22,7 +22,6 @@ import org.structr.core.scheduler.JobQueueManager;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -69,16 +68,10 @@ public class JobInfoFunction extends UiAdvancedFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${jobInfo(jobId)}"), Usage.javaScript("Usage: ${{ $.jobInfo(jobId) }}"));
 	}
 
 	@Override

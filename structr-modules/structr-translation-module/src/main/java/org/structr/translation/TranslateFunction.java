@@ -30,7 +30,6 @@ import com.google.gson.JsonParser;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
@@ -162,19 +161,10 @@ public class TranslateFunction extends UiFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${translate(text, sourceLanguage, targetLanguage[, translationProvider])}"),
-			Usage.javaScript("Usage: ${{ $.translate(text, sourceLanguage, targetLanguage[, translationProvider]) }}")
-		);
 	}
 
 	@Override

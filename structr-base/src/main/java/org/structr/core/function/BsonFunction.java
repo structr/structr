@@ -24,7 +24,6 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.script.polyglot.wrappers.NonWrappableObject;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -62,19 +61,10 @@ public class BsonFunction extends AdvancedScriptingFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.bson(data) }}. Example: ${{ $.bson({ name: 'Test' }) }}"),
-			Usage.structrScript("Usage: ${bson(data)}. Example: ${bson({ name: 'Test' })}")
-		);
 	}
 
 	@Override

@@ -58,16 +58,10 @@ public class LowerFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${lower(string)}"), Usage.javaScript("Usage: ${{ $.lower(string) }}"));
 	}
 
 	@Override

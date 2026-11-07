@@ -19,13 +19,8 @@
 package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObjectMap;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.StringProperty;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
 import org.structr.common.error.ArgumentTypeException;
@@ -77,7 +72,7 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
@@ -133,15 +128,6 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 			Parameter.mandatory("body", "request body"),
 			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
 			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `async` to start the request on a worker thread and answer an awaitable result (JavaScript only), `parseResponse` to parse the response body as JSON")
-		);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${PATCH(url, body [, contentType [, options ]])}. Example: ${PATCH('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json')}"),
-			Usage.javaScript("Usage: ${{ $.PATCH(url, body [, contentType [, options ]]) }}. Example: ${{ $.PATCH('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json') }}")
 		);
 	}
 

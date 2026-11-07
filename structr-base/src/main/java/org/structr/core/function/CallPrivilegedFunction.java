@@ -22,7 +22,6 @@ import org.structr.common.SecurityContext;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -48,15 +47,6 @@ public class CallPrivilegedFunction extends CallFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("functionName [, parameterMap ]");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${callPrivileged(key [, key, value]}. Example ${callPrivileged('myEvent', 'key1', 'value1', 'key2', 'value2')}"),
-			Usage.javaScript("Usage: ${{ $.callPrivileged(key [, parameterMap]}}. Example ${{ $.callPrivileged('myEvent', {key1: 'value1', key2: 'value2'})}}")
-		);
 	}
 
 	@Override

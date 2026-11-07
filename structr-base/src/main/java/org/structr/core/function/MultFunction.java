@@ -68,18 +68,12 @@ public class MultFunction extends CoreFunction {
 
 		} else {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
 
 		return result;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${mult(value1, value2, ...)}"), Usage.javaScript("Usage: ${{ $.mult(value1, value2, ...) }}"));
 	}
 
 	@Override

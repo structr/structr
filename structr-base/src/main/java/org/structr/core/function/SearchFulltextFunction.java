@@ -25,7 +25,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -87,19 +86,10 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${searchFulltext(indexName, searchString)}. Example: ${searchFulltext(\"index_name\", \"abc\")}"),
-			Usage.javaScript("Usage: ${{$.searchFulltext(indexName, searchString)}}. Example: ${{$.searchFulltext(\"index_name\", \"abc\")}}")
-		);
 	}
 
 	@Override

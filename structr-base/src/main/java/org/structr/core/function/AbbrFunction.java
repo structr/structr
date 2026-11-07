@@ -23,7 +23,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -44,7 +43,7 @@ public class AbbrFunction extends CoreFunction {
 
 			if (sources == null || sources.length < 2 || sources[1] == null) {
 
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
+				logParameterError(caller, sources);
 
 				return null;
 			}
@@ -74,7 +73,7 @@ public class AbbrFunction extends CoreFunction {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
@@ -93,15 +92,6 @@ public class AbbrFunction extends CoreFunction {
 			Parameter.mandatory("string", "string to abbreviate"),
 			Parameter.optional("maxLength", "length after which abbreviation is performed"),
 			Parameter.optional("abbr", "last character(s) of the returned string after abbreviation. Default: '…'")
-		);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${abbr(string, maxLength[, abbr = '…'])}. Example: ${abbr(this.title, 20)}"),
-			Usage.javaScript("Usage: ${{ $.abbr(string, maxLength[, abbr = '…']) }}. Example: ${{ $.abbr(this.title, 20) }}")
 		);
 	}
 

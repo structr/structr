@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -88,15 +87,6 @@ public class ComplementFunction extends CoreFunction {
 		}
 
 		return resultingList;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{$.complement(sourceList, objects...)}}. Example: ${{$.complement(allUsers, $.me)}} => List of all users except myself"),
-			Usage.structrScript("Usage: ${complement(sourceList, objects...)}. Example: ${complement(allUsers, me)} => List of all users except myself")
-		);
 	}
 
 	@Override

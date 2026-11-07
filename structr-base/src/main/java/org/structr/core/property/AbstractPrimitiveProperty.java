@@ -379,12 +379,6 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return null;
-	}
-
-	@Override
 	public List<DocumentedProperty> getDocumentedProperties() {
 
 		return null;
