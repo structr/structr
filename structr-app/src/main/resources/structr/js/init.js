@@ -105,62 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	document.body.addEventListener('keydown', (event) => {
 
-		let keyCode = event.keyCode;
-		let code    = event.code;
-
-		// ctrl-s / cmd-s
-		if ((code === 'KeyS' || keyCode === 83) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
-			event.preventDefault();
-			_Dialogs.custom.clickSaveButton();
-		}
-
-		// Ctrl-Alt-c
-		if ((code === 'KeyC' || keyCode === 67) && event.altKey && event.ctrlKey) {
-			event.preventDefault();
-			_Console.toggleConsole();
-		}
-
-		// Ctrl-Alt-f
-		if ((code === 'KeyF' || keyCode === 70) && event.altKey && event.ctrlKey) {
-			event.preventDefault();
-			_Favorites.showFavorites();
-		}
-
-		// Ctrl-Alt-p
-		if ((code === 'KeyP' || keyCode === 80) && event.altKey && event.ctrlKey) {
-			event.preventDefault();
-
-			Structr.openPropertiesDialogForUserProvidedUUID();
-		}
-
-		// Ctrl-Alt-o
-		if ((code === 'KeyO' || keyCode === 79) && event.altKey && event.ctrlKey) {
-			event.preventDefault();
-
-			Structr.navigateToDOMElementDialogForUserProvidedUUID();
-		}
-
-		// Ctrl-Alt-m
-		if ((code === 'KeyM' || keyCode === 77) && event.altKey && event.ctrlKey) {
-			event.preventDefault();
-
-			Structr.openEditorDialogForUserProvidedUUID();
-		}
-
-		// Ctrl-Alt-e
-		if ((code === 'KeyE' || keyCode === 69) && event.altKey && event.ctrlKey) {
-			event.preventDefault();
-			if (!_Dialogs.custom.isDialogOpen()) {
-				let { dialogText } = _Dialogs.custom.openDialog('Bulk Editing Helper');
-				new RefactoringHelper(dialogText).show();
-			}
-		}
-
-		// ctrl-alt-a
-		if ((code === 'KeyA' || keyCode === 65) && event.altKey && event.ctrlKey) {
-			event.preventDefault();
-			_Icons.showAllAvailableSymbols();
-		}
+		Structr.globalKeydownHandlers.checkKeydownEvent(event);
 
 	}, { capture: true });
 
@@ -170,7 +115,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	Structr.changeSystemMainFont();
 	Structr.changeSystemMonoFont();
-
 });
 
 let Structr = {
@@ -287,6 +231,8 @@ let Structr = {
 	},
 	init: () => {
 		_Helpers.fastRemoveAllChildren(document.querySelector('#errorText'));
+		
+		Structr.globalKeydownHandlers.init();
 	},
 	clearMain: () => {
 
@@ -2413,6 +2359,114 @@ let Structr = {
 		targetNode: 'targetNode',
 		internalTimestamp: 'internalTimestamp',
 	},
+	
+	globalKeydownHandlers: {
+		init: () => {
+			Structr.globalKeydownHandlers.populateShortcutMenu();
+		},
+		handlers: [
+			{ // ctrl-s / cmd-s
+				applies: (event) => (event.code === 'KeyS' || event.keyCode === 83) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey)),
+				action: (event) => {
+					event.preventDefault();
+					_Dialogs.custom.clickSaveButton();
+				}
+			},
+			{
+				displayName: 'Toggle Console',
+				shortcut: 'Ctrl-Alt-C',
+				applies: (event) => (event.code === 'KeyC' || event.keyCode === 67) && event.altKey && event.ctrlKey,
+				action: (event) => {
+					event.preventDefault();
+					_Console.toggleConsole();
+				}
+			},
+			{
+				displayName: 'Show Favorites',
+				shortcut: 'Ctrl-Alt-F',
+				applies: (event) => (event.code === 'KeyF' || event.keyCode === 70) && event.altKey && event.ctrlKey,
+				action: (event) => {
+					event.preventDefault();
+					_Favorites.showFavorites();
+				}
+			},
+			{
+				displayName: 'Open Properties Dialog for arbitrary node',
+				shortcut: 'Ctrl-Alt-P',
+				applies: (event) => (event.code === 'KeyP' || event.keyCode === 80) && event.altKey && event.ctrlKey,
+				action: (event) => {
+					event.preventDefault();
+					Structr.openPropertiesDialogForUserProvidedUUID();
+				}
+			},
+			{
+				displayName: 'Navigate to arbitrary DOM element',
+				shortcut: 'Ctrl-Alt-O',
+				applies: (event) => ((event.code === 'KeyO' || event.keyCode === 79) && event.altKey && event.ctrlKey),
+				action: (event) => {
+					event.preventDefault();
+					Structr.navigateToDOMElementDialogForUserProvidedUUID();
+				}
+			},
+			{
+				displayName: 'Open Editor for arbitrary Template',
+				shortcut: 'Ctrl-Alt-M',
+				applies: (event) => ((event.code === 'KeyM' || event.keyCode === 77) && event.altKey && event.ctrlKey),
+				action: (event) => {
+					event.preventDefault();
+					Structr.openEditorDialogForUserProvidedUUID();
+				}
+			},
+			{ // Ctrl-Alt-e
+				displayName: 'Open Bulk Editing Helper',
+				shortcut: 'Ctrl-Alt-E',
+				applies: (event) => ((event.code === 'KeyE' || event.keyCode === 69) && event.altKey && event.ctrlKey),
+				action: (event) => {
+					event.preventDefault();
+					if (!_Dialogs.custom.isDialogOpen()) {
+						let { dialogText } = _Dialogs.custom.openDialog('Bulk Editing Helper');
+						new RefactoringHelper(dialogText).show();
+					}
+				}
+			},
+			{ // ctrl-alt-a (structr developer-only)
+				applies: (event) => ((event.code === 'KeyA' || event.keyCode === 65) && event.altKey && event.ctrlKey),
+				action: (event) => {
+					event.preventDefault();
+					_Icons.showAllAvailableSymbols();
+				}
+			}
+		],
+		checkKeydownEvent: (event) => {
+
+			for (let handler of Structr.globalKeydownHandlers.handlers) {
+				if (handler.applies(event)) {
+					handler.action(event);
+				}
+			}
+		},
+		populateShortcutMenu: () => {
+
+			let target = document.querySelector('#keyboard-shortcuts-menu');
+
+			for (let handler of Structr.globalKeydownHandlers.handlers) {
+
+				if (handler.displayName) {
+
+					let el = _Helpers.createSingleDOMElementFromHTML(`
+						<div class="flex items-center justify-between gap-4 p-1 hover-bg-green:hover cursor-pointer">
+							<div class="whitespace-nowrap">${handler.displayName}</div>
+							<div class="font-mono text-sm whitespace-nowrap">${handler.shortcut}</div>
+						</div>
+					`);
+
+					el.addEventListener('click', handler.action);
+
+					target.insertAdjacentElement('beforeend', el);
+				}
+			}
+		}
+	},
 
 	templates: {
 		mainBody: config => `
@@ -2423,7 +2477,7 @@ let Structr = {
 				<div id="close-all-button" class="mt-4 mb-2 mx-2 text-right">
 					<button class="confirm hover:border-gray-666 bg-white mr-0">Close All</button>
 				</div>
-				<div id="messages" class="py-1"></div>
+				<div id="messages" class="py-1 empty:hidden"></div>
 			</div>
 
 			<div id="header" class="flex gap-x-4 items-center">
@@ -2476,6 +2530,17 @@ let Structr = {
 						</button>
 
 						${Structr.globalSearch.templates.popover(config)}
+					</div>
+					
+					<div class="group relative">
+
+						${_Icons.getSvgIcon(_Icons.iconKeyboardShortcuts, 24, 24, _Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Keyboard Shortcuts')}
+
+						<div class="absolute group-hover:block hidden pt-4" style="z-index: 1002; right: -2rem;">
+							<div id="keyboard-shortcuts-menu" class="bg-canvas border border-gray-ddd mt px-3 py-2 rounded-b-xl">
+							</div>
+						</div>
+						
 					</div>
 
 					<div>

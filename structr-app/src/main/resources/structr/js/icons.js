@@ -189,6 +189,7 @@ let _Icons = {
 	iconHistory:             'history',
 	iconWrench:              'wrench',
 	iconDocumentation:       'documentation-icon',
+	iconKeyboardShortcuts:   'keyboard-icon',
 
 	iconLogoAuth0:           'logo-auth0',
 	iconLogoMicrosoft:       'logo-microsoft',

@@ -923,8 +923,8 @@ let _Entities = {
 			let isReadOnly   = (typeInfo[key]?.readOnly ?? false);
 			let isSystem     = (typeInfo[key]?.system ?? false);
 			let isBoolean    = (typeInfo[key]?.type === 'Boolean');
-			let isConstBool  = (typeInfo[key].className === 'org.structr.core.property.ConstantBooleanProperty');
-			let isCypher     = (typeInfo[key].className === 'org.structr.core.property.CypherQueryProperty');
+			let isConstBool  = (typeInfo[key]?.className === 'org.structr.core.property.ConstantBooleanProperty');
+			let isCypher     = (typeInfo[key]?.className === 'org.structr.core.property.CypherQueryProperty');
 			let isDate       = (typeInfo[key]?.type === 'Date');
 			let isRelated    = (typeInfo[key]?.relatedType !== undefined);
 			let isCollection = (typeInfo[key]?.isCollection ?? false);

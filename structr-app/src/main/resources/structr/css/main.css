@@ -354,8 +354,12 @@ input[type="checkbox"].mr-0 {
 
 #header {
 	height: var(--header-height);
-	font-size: 1.25em;
 	background: var(--header-bg-dark);
+}
+
+#header #menu,
+#header .structr-instance-info {
+	font-size: 1.25em;
 }
 
 #header .logo {
@@ -5119,6 +5123,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 }
 .hover\:bg-transparent:hover:not([disabled]) {
 	background-color: transparent;
+}
+.hover-bg-green\:hover:hover {
+	background-color: var(--structr-green);
 }
 .focus\:border-gray-666:focus {
 	border: 1px solid var(--gray-666);
