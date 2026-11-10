@@ -2454,6 +2454,8 @@ let Structr = {
 
 			let target = document.querySelector('#keyboard-shortcuts-menu');
 
+			_Helpers.fastRemoveAllChildren(target);
+
 			for (let handler of Structr.globalKeydownHandlers.handlers) {
 
 				if (handler.displayName) {
