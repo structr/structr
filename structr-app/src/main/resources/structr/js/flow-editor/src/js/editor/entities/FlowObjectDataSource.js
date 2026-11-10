@@ -18,6 +18,7 @@ export class FlowObjectDataSource extends FlowNode {
                 let keyValueSources = new D3NE.Input('KeyValueSources', socket.getSocket('keyValueSources'), true);
                 let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
 
+                node.data.id = scopedDbNode.id;
                 node.data.dbNode = scopedDbNode;
 
                 return node
@@ -31,7 +32,7 @@ export class FlowObjectDataSource extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

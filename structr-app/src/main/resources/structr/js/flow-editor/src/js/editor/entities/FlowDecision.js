@@ -26,10 +26,10 @@ export class FlowDecision extends FlowNode {
                 let prev = new D3NE.Input('Prev', socket.getSocket('prev'), true);
                 let condition = new D3NE.Input('Condition', socket.getSocket('condition_Condition'));
 
-
                 let nextTrue = new D3NE.Output('Next If True', socket.getSocket('nextIfTrue'));
                 let nextFalse = new D3NE.Output('Next If False', socket.getSocket('nextIfFalse'));
 
+				node.data.id = scopedDbNode.id;
                 node.data.dbNode = scopedDbNode;
 
                 return node
@@ -45,7 +45,7 @@ export class FlowDecision extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

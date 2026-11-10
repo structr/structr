@@ -19,6 +19,7 @@ export class FlowGetProperty extends FlowNode {
                 let nodeSource = new D3NE.Input('NodeSource', socket.getSocket('nodeSource'));
                 let propertyNameSource = new D3NE.Input('PropertyNameSource', socket.getSocket('propertyNameSource'));
 
+                node.data.id = scopedDbNode.id;
                 node.data.dbNode = scopedDbNode;
 
                 let propertyName = new D3NE.Control('<input type="text" value="" class="control-text">', (element, control) =>{
@@ -54,7 +55,7 @@ export class FlowGetProperty extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

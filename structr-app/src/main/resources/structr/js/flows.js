@@ -439,6 +439,10 @@ let _Flows = {
 			handleParentChange();
 		});
 
+		$(flowsTree).on('ready.jstree', () => {
+			_Helpers.setModuleReadyIndicator(_Flows, document.querySelector("#flows-main"));
+		});
+
 		document.addEventListener("floweditor.nodescriptclick", event => {
 			_Flows.openEditor(event.detail);
 		});
@@ -749,6 +753,62 @@ let _Flows = {
 		});
 	},
 
+	search: {
+
+		// search from global search widget
+		goToResult: (result, key, searchData) => {
+
+			_Helpers.ensureDesiredModuleIsActive(_Flows).then(() => Command.getPromise(result.id)).then(node => {
+
+				if (node.type === 'FlowContainerPackage') {
+
+					let effectiveName = '/' + node.effectiveName.replaceAll('.', '/');
+
+					let treeElement = document.getElementById(`${effectiveName}_anchor`);
+
+					treeElement?.click();
+
+				} else if (node.type === 'FlowContainer') {
+
+					let treeElement = document.getElementById(`${node.id}_anchor`);
+
+					treeElement?.click();
+
+				} else {
+
+					let flowContainerId = node?.flowContainer?.id;
+
+					let treeElement = document.getElementById(`${flowContainerId}_anchor`);
+
+					if (treeElement) {
+
+						treeElement.click();
+
+						_Flows.search.highlightNode(node.id);
+
+					} else if (flowContainerId) {
+
+						_Flows.initFlow(flowContainerId);
+
+						_Flows.search.highlightNode(node.id);
+
+					} else {
+
+						new InfoMessage().title("Unattached flow element").text("Unable to show flow for flow element not connected to a flow container").show();
+					}
+				}
+			});
+		},
+		highlightNode: (nodeId) => {
+			_Helpers.waitForElement(`[data-node-id="${nodeId}"]`).then(el => {
+
+				let node = el.closest('.node');
+				node?.classList.add('selected');
+
+				node.querySelector('textarea')?.focus();
+			});
+		}
+	},
 	templates: {
 		main: config => `
 			<style>

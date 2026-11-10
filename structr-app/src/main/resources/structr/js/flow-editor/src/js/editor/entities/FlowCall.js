@@ -31,6 +31,8 @@ export class FlowCall extends FlowNode {
                     node.isStartNode = false;
                 }
 
+                node.data.id = scopedDbNode.id;
+
                 // Add select box and render all FlowContainer as Call options
                 let call = new D3NE.Control('<select class="control-select"><option disabled selected>None</option></select>', (element, control) =>{
 
@@ -84,7 +86,7 @@ export class FlowCall extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

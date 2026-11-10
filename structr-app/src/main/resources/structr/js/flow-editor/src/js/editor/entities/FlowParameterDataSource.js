@@ -17,6 +17,8 @@ export class FlowParameterDataSource extends FlowNode {
                 let socket = FlowSockets.getInst();
                 let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'));
 
+				node.data.id = scopedDbNode.id;
+
                 let key = new D3NE.Control('<input type="text" value="" class="control-text">', (element, control) =>{
 
                     if(scopedDbNode !== undefined && scopedDbNode.key !== undefined && scopedDbNode.key !== null) {
@@ -50,7 +52,7 @@ export class FlowParameterDataSource extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

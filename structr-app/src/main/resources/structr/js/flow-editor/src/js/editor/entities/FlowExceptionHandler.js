@@ -19,6 +19,7 @@ export class FlowExceptionHandler extends FlowNode {
                 let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
                 let handledNodes = new D3NE.Input('HandledNodes', socket.getSocket('handledNodes'), true);
 
+                node.data.id = scopedDbNode.id;
                 node.data.dbNode = scopedDbNode;
 
                 return node
@@ -31,7 +32,7 @@ export class FlowExceptionHandler extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

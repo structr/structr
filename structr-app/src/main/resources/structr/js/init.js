@@ -2184,6 +2184,11 @@ let Structr = {
 
 				_Code.search.goToResult(result, key, searchData);
 
+			} else if (result.isFlowNode) {
+
+				let _Flows = Structr.modules.flows;
+				_Flows.search.goToResult(result, key, searchData);
+
 			} else {
 
 				console.log('not yet implemented to jump to: ', result);
@@ -2289,10 +2294,10 @@ let Structr = {
 										</div>
 										<div class="absolute group-hover:block hidden bg-canvas box-border border border-gray-ddd px-4 px-6 px-x py-4 rounded-b-xl">
 											<div class="flex flex-col gap-2">
-												<label class="flex items-center"><input type="checkbox" checked="" data-is-search-context="true" name="dom">Page Elements</label>
-												<label class="flex items-center"><input type="checkbox" checked="" data-is-search-context="true" name="schema">Schema/Code</label>
+												<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="dom">Page Elements</label>
+												<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="schema">Schema/Code</label>
 												<div class="flex items-center gap-4">
-													<label class="flex items-center"><input type="checkbox" checked="" data-is-search-context="true" name="files">Files/Folders</label>
+													<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="files">Files/Folders</label>
 													<label class="flex hidden gap-2">
 														<span>(</span>
 														<input type="checkbox" class="mr-0" name="searchFuzzy">
@@ -2305,10 +2310,10 @@ let Structr = {
 														<span>)</span>
 													</label>
 												</div>
-												<label class="flex items-center"><input type="checkbox" checked="" data-is-search-context="true" name="localizations">Localizations</label>
-												<label class="flex items-center"><input type="checkbox" checked="" data-is-search-context="true" name="mail-templates">Mail Templates</label>
-												<label class="flex items-center"><input type="checkbox" checked="" data-is-search-context="true" name="deploy-scripts">Deployment Scripts</label>
-												<!--	<label class="flex items-center"><input type="checkbox" checked name="flows">Flow Nodes</label>-->
+												<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="localizations">Localizations</label>
+												<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="mail-templates">Mail Templates</label>
+												<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="deploy-scripts">Deployment Scripts</label>
+												<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="flows">Flow Nodes</label>
 											</div>
 										</div>
 									</div>

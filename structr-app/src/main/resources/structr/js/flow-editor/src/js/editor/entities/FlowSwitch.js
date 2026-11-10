@@ -20,6 +20,7 @@ export class FlowSwitch extends FlowNode {
                 let switch_cases = new D3NE.Output('Cases', socket.getSocket('cases'), true);
                 let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
 
+                node.data.id = scopedDbNode.id;
                 node.data.dbNode = scopedDbNode;
 
                 if (scopedDbNode !== undefined && scopedDbNode.isStartNodeOfContainer !== undefined && scopedDbNode.isStartNodeOfContainer !== null) {
@@ -42,7 +43,7 @@ export class FlowSwitch extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

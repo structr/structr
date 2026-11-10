@@ -16,6 +16,7 @@ export class FlowNode {
         return new D3NE.Component('Node', {
             template: FlowNode._nodeTemplate(),
             builder(node) {
+                node.data.id = scopedDbNode.id;
                 node.data.dbNode = scopedDbNode;
                 return node;
             },
@@ -26,7 +27,7 @@ export class FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title">{{node.data.dbNode.type || node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title">{{node.data.dbNode.type || node.title}}</div>
                 <content>
                     <column>
                         <div class="control">
