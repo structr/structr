@@ -442,6 +442,16 @@ let StructrModel = {
 
 			_Entities.updateNewAccessControlIconInElement(obj, element);
 
+			if (Structr.isModuleActive(_Pages) && (element.hasClass('element') || element.hasClass('content'))) {
+
+				// a changed data key also changes the result for the descendants, the server
+				// acknowledges the scripting errors of an element when it is modified, and a
+				// moved element can belong to another page now
+				_Pages.problems.erroneousNodes.delete(obj.id);
+				_Pages.problems.updateIndicatorsForSubtree(element[0]);
+				_Pages.problems.scheduleRuntimeErrorReload();
+			}
+
 			let escapedDisplayName = _Helpers.getHTMLTreeEscapedElementDisplayName(obj);
 
 			if (obj.hasOwnProperty('name')) {

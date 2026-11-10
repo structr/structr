@@ -20,13 +20,17 @@ package org.structr.test.core.script;
 
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEvent;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.schema.action.Actions;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
 
 import java.util.Collections;
+import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
@@ -390,6 +394,45 @@ public class AsyncScriptingTest extends StructrTest {
 
 				Settings.WrapJSInMainFunction.setValue(wrapWasOn);
 			}
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	// ----- reporting -----
+
+	@Test
+	public void testRejectedPromiseIsReportedAtItsSource() {
+
+		// a wrapped snippet is an async arrow, so every error in it, also one before the first await,
+		// rejects its promise instead of raising a PolyglotException
+		try (final Tx tx = app.tx()) {
+
+			final String codeSource = app.create(StructrTraits.GROUP, "codeSource").getUuid();
+
+			try {
+
+				final Object result = Actions.execute(securityContext, null, "${{ await Promise.resolve(); return missingVariable; }}", Collections.EMPTY_MAP, "rejectingMethod", codeSource, ScriptConfig.builder().wrapJsInMain(true).build());
+				fail("A script that reads an undefined variable must fail, but answered " + result);
+
+			} catch (final FrameworkException expected) {
+				// the failure itself is covered above; what matters here is that it was reported
+			}
+
+			final List<RuntimeEvent> events = RuntimeEventLog.getEvents(e -> "Scripting".equals(e.getType()) && codeSource.equals(e.getData().get(RuntimeEvent.ID_PROPERTY)));
+
+			assertEquals("A rejected promise must be reported once in the runtime event log, as a failing synchronous script is, at the node whose code failed", 1, events.size());
+
+			final RuntimeEvent event = events.get(0);
+
+			assertTrue("The report must carry the error the promise was rejected with; got: " + event.getData().get("message"), String.valueOf(event.getData().get("message")).contains("missingVariable"));
+			assertEquals("The report must name the method whose code failed", "rejectingMethod", event.getData().get("name"));
+			assertTrue("The report must locate the error in the code, not at its start", ((Number) event.getData().get("column")).intValue() > 1);
 
 			tx.success();
 

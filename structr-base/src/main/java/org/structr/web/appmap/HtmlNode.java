@@ -54,6 +54,8 @@ class HtmlNode {
 	final String functionQuery;
 	final String cypherQuery;
 	final String content;
+	final boolean hasFlow;
+	final boolean isComponent;
 	final boolean isElement;
 	final boolean isActive;
 
@@ -71,6 +73,8 @@ class HtmlNode {
 		this.functionQuery = node.getFunctionQuery();
 		this.cypherQuery   = node.getCypherQuery();
 		this.content       = node.is(StructrTraits.CONTENT) ? node.as(Content.class).getContent() : null;
+		this.hasFlow       = attribute("flow") != null;
+		this.isComponent   = node.getComponentConfiguration() != null;
 		this.isActive      = isActive(node);
 	}
 
@@ -88,6 +92,28 @@ class HtmlNode {
 		final Object value = node.getProperty(traits.key(key));
 
 		return value != null ? value.toString() : null;
+	}
+
+	/**
+	 * The data sources of a repeater that are set, by the names of their properties.
+	 */
+	List<String> sources() {
+
+		final List<String> sources = new LinkedList<>();
+
+		if (StringUtils.isNotBlank(functionQuery)) {
+			sources.add("functionQuery");
+		}
+
+		if (StringUtils.isNotBlank(cypherQuery)) {
+			sources.add("cypherQuery");
+		}
+
+		if (hasFlow) {
+			sources.add("flow");
+		}
+
+		return sources;
 	}
 
 	/**

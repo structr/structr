@@ -182,6 +182,8 @@
 .appmap-el {
 	--page: #5b2fe0;
 	--action: #e8590c;
+	--error: #e03131;
+	--warning: #e8a400;
 	position: absolute;
 	z-index: 1;
 	display: grid;
@@ -314,11 +316,41 @@ textarea.appmap-el-field {
 	color: var(--gray-888);
 }
 
+/* what is wrong with the element, in the colours of its mark on the map (see AppMapPanels.drawProblemMark) */
+.appmap-el-problems {
+	margin: 0;
+	padding-left: 1.1em;
+	font-size: .8em;
+	line-height: 1.35;
+}
+
+.appmap-el-problems li + li {
+	margin-top: .3em;
+}
+
+.appmap-el-error::marker {
+	color: var(--error);
+}
+
+.appmap-el-warning::marker {
+	color: var(--warning);
+}
+
 /* a setting with its name in small capitals in front */
 .appmap-el-row {
 	display: flex;
 	align-items: center;
 	gap: .5em;
+}
+
+/* the heading of a field on the left, as the labels of the settings on the right */
+.appmap-el-heading {
+	color: var(--gray-888);
+	font-size: .72em;
+	font-weight: 650;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	margin-bottom: -.2em;
 }
 
 .appmap-el-row span {
@@ -403,6 +435,8 @@ textarea.appmap-el-field {
 .appmap-el-dark {
 	--page: #a78bfa;
 	--action: #ff922b;
+	--error: #ff6b6b;
+	--warning: #ffc233;
 	--solid-white: #161b22;
 	--body-text: #dfe4e9;
 	--gray-888: #aab3bd;
@@ -411,6 +445,36 @@ textarea.appmap-el-field {
 
 .appmap-el-dark .appmap-el-save {
 	color: #0b0e12 !important;
+}
+
+/* the way into the Code area at the foot of an open type, method or property, as the way into the Pages area of an
+   HTML element (see .appmap-el-pages); the map places it, see AppMapView.placeOpenButton */
+.appmap-open {
+	--page: #5b2fe0;
+	position: absolute;
+	z-index: 1;
+	transform: translate(-100%, -50%);
+	padding: .25em .9em;
+	font: inherit;
+	font-weight: 600;
+	white-space: nowrap;
+	color: var(--page);
+	background-color: #ffffff;
+	border: 1px solid color-mix(in srgb, var(--page) 45%, transparent);
+	border-radius: .2em;
+	cursor: pointer;
+}
+
+.appmap-open:hover {
+	background-color: color-mix(in srgb, var(--page) 10%, #ffffff);
+}
+
+.appmap-open-dark {
+	background-color: #161b22;
+}
+
+.appmap-open-dark:hover {
+	background-color: color-mix(in srgb, var(--page) 15%, #161b22);
 }
 
 /* ----- the way exploring took, above the map ----- */

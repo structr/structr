@@ -90,6 +90,17 @@ Example: `/structr/rest/stats?interval=3600000&max=24` returns the requests per 
 
 Admin users can always read the endpoint. Other users need a resource permission for `stats` with GET, which lets a monitoring account poll the statistics without admin rights. The endpoint only returns request counts, no paths, addresses or users.
 
+### Usage of Grants and Pages
+
+Besides the requests per method, Structr counts how often each resource access grant and each page is used, per day:
+
+- Grants – Every request that is checked against a signature for which grants exist, by method, by kind of user (authenticated or public) and by outcome (allowed or denied). Requests of administrators are not counted, because they bypass the grants. Requests to signatures without any grant are not counted either, so made-up URLs cannot fill the statistics.
+- Pages – Every delivered page, including answers from the browser cache (304 Not Modified) and error pages. Previews in the Admin UI, partial reloads and files are not counted.
+
+The Application Map shows these numbers on the cards of the REST endpoints and in the tooltips of the pages. They are kept for `application.stats.retention.days` days like the HTTP access statistics, and saved to `logs/usage-statistics.json` in the same way.
+
+`GET /structr/rest/stats?usage=grants` and `GET /structr/rest/stats?usage=pages` return them as JSON: `days`, the number of days they go back, and under `usage` one object per source with the total in that time, the time of the last use and the uses per day, keyed by the start of the day in UTC in milliseconds since the epoch. The sources of the grants are named after the signature, the permission flag and the outcome, for example `User AUTH_USER_GET allowed`; those of the pages are the page UUIDs. Because they name signatures and pages, only administrators can read them; a `stats` grant is not enough.
+
 ### Configuration
 
 Configure these settings in `structr.conf` or through the Configuration Interface:
@@ -97,7 +108,7 @@ Configure these settings in `structr.conf` or through the Configuration Interfac
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `application.stats.aggregation.interval` | 60000 | Aggregation interval in milliseconds. Statistics are grouped into buckets of this size. |
-| `application.stats.retention.days` | 30 | How many days of statistics are kept, in memory and in `logs/http-access-statistics.json`. |
+| `application.stats.retention.days` | 30 | How many days of statistics are kept, in memory and in `logs/http-access-statistics.json` and `logs/usage-statistics.json`. |
 
 ## Health Check Endpoint
 

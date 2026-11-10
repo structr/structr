@@ -28,10 +28,17 @@
  */
 class AppMapPanels {
 
-	// the panel tree: one column per depth, one row per leaf, boxes this high, in units of the map
-	static COLUMN = 11;
+	// the panel tree from top to bottom, in units of the map: boxes BOX high, ROW the measure of how large the tree is on
+	// screen (see OPEN_ROW); GAP across between the boxes of siblings, twice that between cousins, LEVEL down between the
+	// levels of the tree, each as high as its highest box; the document at the root is ROOT wide and high
 	static ROW    = 2.6;
 	static BOX    = 1.8;
+	static GAP    = 1.2;
+	static LEVEL  = 2.6;
+	static ROOT   = [3.8, 4.8];
+
+	// siblings without children stand one below the other from this many in a row on, see layoutOf
+	static STACK  = 3;
 
 	// an HTML element that triggers an event action mapping is marked in this colour
 	static ACTION_COLOR = '#e8590c';
@@ -71,23 +78,116 @@ class AppMapPanels {
 	static CODE_SKETCH  = 1.5;
 	static CODE_READ    = 7;
 
-	// the advance of a character of code type as a share of its size
-	static CODE_ADVANCE = 0.6;
+	// a type opens to a card in place of its circle, its rows at most this many radii across and down from its middle
+	// (see insidePanel): its properties as rows, TILE in units of the size of their text across and down, TILE_GAP apart
+	// across and down, in at most TILE_COLUMNS columns, below a heading per group TILE_HEADING high and TILE_PAD from the
+	// sides. The box of a row, the square before its name, opens in itself from TILE_SKETCH to TILE_OPEN pixels across,
+	// see drawBox
+	static INSIDE_CARD     = [1.15, 1.6];
 
-	// an open page is a card with a header (see header): its padding as a share of its shorter side, the line of its kind
-	// and its name as shares of its height
+	// the methods of HTTP a REST endpoint answers, as the bits of the flags of a resource access permission for signed in
+	// and for public users, and their colours as the documentation of APIs shows them, [light, dark]
+	static VERBS       = [['GET', 1, 16], ['POST', 4, 64], ['PUT', 2, 32], ['PATCH', 4096, 8192], ['DELETE', 8, 128]];
+	static VERB_COLOR  = { GET: ['#2f9e44', '#69db7c'], POST: ['#1c7ed6', '#74c0fc'], PUT: ['#e67700', '#ffa94d'], PATCH: ['#ae3ec9', '#e599f7'], DELETE: ['#e03131', '#ff8787'] };
+
+	// the lines of the matrix of a permission stand this much closer than the settings of a box, see drawMatrix
+	static ACCESS_LINE = 0.72;
+
+	// the chart of the requests per day in the box of a permission is this many of its lines high, see drawMatrix
+	static CHART_LINES = 4;
+
+	// the states of a cell of the matrix of a permission (see matrixOf) as their meaning and their colours [light, dark]: yes
+	// allowed, some allowed only for the users and groups with rights on the permission, none set but without effect, implied
+	// allowed for a user or group as for every signed-in user, no not allowed
+	static ACCESS_CELL = {
+		yes:     ['Allowed', '#2f9e44', '#69db7c'],
+		some:    ['Only the users and groups below', '#1c7ed6', '#74c0fc'],
+		none:    ['Set, but without effect – click to fix', '#e67700', '#ffa94d'],
+		implied: ['Allowed for every signed-in user', '#adb5bd', '#6c757d'],
+		no:      ['Not allowed', '#adb5bd', '#6c757d']
+	};
+
+	// the least height of such a card as a share of its width
+	static INSIDE_LOW = 0.62;
+
+	// the kinds of elements that open to such a card
+	static INSIDE_KINDS = new Set(['type', 'api', 'group', 'external']);
+	static TILE          = [12, 1.9];
+	static TILE_GAP      = [1.6, 0.12];
+	static TILE_COLUMNS  = 4;
+	static TILE_HEADING  = 1.8;
+	static TILE_PAD      = 1.2;
+
+	// the box of a row carries the sign that it opens (see drawOpenSign) once it is this many pixels high on the screen
+	static OPEN_SIGN     = 14;
+
+	// the columns of a section of a card, unless it says otherwise, and the least width of the rows of a card in units of
+	// TILE, see insidePanel
+	static TILE_ACROSS   = 2;
+	static TILE_WIDE     = 3;
+
+	// the badge of the method of a request, and the box of a permission, is this many times as wide as the square of other rows
+	static BADGE         = 2.4;
+	static TILE_SKETCH   = 110;
+	static TILE_OPEN     = 200;
+
+	// the signs of the types of fields, see drawTypeSign
+	static TYPE_SIGNS = {
+		String: 'Aa', Encrypted: 'Aa', Thumbnail: 'Aa', Join: 'Aa',
+		Integer: '#', Long: '#', Double: '#', Count: '#',
+		Boolean: '✓',
+		Date: 'date', ZonedDateTime: 'date',
+		Function: 'ƒ', Cypher: 'ƒ', Custom: 'ƒ',
+		Enum: '≡'
+	};
+
+	// the text in an open tile is no larger than this many pixels on the screen, a little smaller than the name in its
+	// header; the headings of the groups no larger than the kind in a header
+	static TILE_TEXT     = 15;
+
+	// the content of an open HTML element is this many pixels high when its box has the size of ELEMENT_SIZE, and the
+	// advance of a character of code type as a share of its size
+	static CONTENT_TEXT  = 13;
+	static CODE_ADVANCE  = 0.6;
+
+	// the code on an open sheet is as small as this many characters fill its width
+	static SHEET_COLUMNS = 44;
+
+	// an open page is a card with a header (see header): its padding as a share of its shorter side
 	static CARD_PAD  = 0.05;
-	static CARD_KIND = 0.022;
-	static CARD_NAME = 0.045;
+
+	// the header of every card has the same size on the screen, in pixels: the height of its band, the size of the name
+	// and of the kind, and how far they stand from the sides; the foot with the way into the Code area is as high as foot; a card smaller on the screen than HEAD_FULL (across, down)
+	// has a header that much smaller, so it never fills the card
+	static HEAD      = { band: 46, name: 17, kind: 10.5, inset: 18, foot: 46 };
+	static HEAD_FULL = [240, 160];
+
+	// the corners of every card are rounded by this many pixels on the screen, or less on a small card
+	static CORNER = 12;
 
 	constructor(view) {
 
 		this.view  = view;
 		this.trees = new Map();
 		this.code  = new Map();
+		this.insides = new Map();
+
+		// the texts of HTML elements by their id, read when they open, see requestContent
+		this.contents = new Map();
 
 		// the methods whose code was readable in the last frame: they carry their name inside, not beside them
 		this.reading = new Set();
+
+		// the types whose rows were readable in the last frame
+		this.inspecting = new Set();
+
+		// the properties shown as tiles in the last frame, and the cards open in it that lead into the Code area, see
+		// AppMapView.placeOpenButton
+		this.tiles = [];
+		this.cards = [];
+
+		// the boxes of settings that can be switched in the last frame, see toggleAt
+		this.toggles = [];
 
 		this.buildTrees();
 	}
@@ -102,82 +202,110 @@ class AppMapPanels {
 		const inner  = this.view.model.inner;
 		const byId   = this.view.byId;
 		const toTree = item => ({
-			tag:      item[0],
-			active:   !!(item[1] & 1),
-			action:   !!(item[1] & 2),
-			repeater: !!(item[1] & 4),
-			children: (item[2] ?? []).map(toTree),
-			inner:    (item[3] ?? []).map(id => byId.get(id)).filter(n => n && inner.has(n)),
-			shows:    item[4] || null,
-			key:      item[5] ?? null,
-			id:       item[6] ?? null,
-			text:     !!(item[1] & 8),
-			when:     !!(item[1] & 16)
+			tag:       item[0],
+			active:    !!(item[1] & 1),
+			action:    !!(item[1] & 2),
+			repeater:  !!(item[1] & 4),
+			children:  (item[2] ?? []).map(toTree),
+			inner:     (item[3] ?? []).map(id => byId.get(id)).filter(n => n && inner.has(n)),
+			shows:     item[4] || null,
+			key:       item[5] ?? null,
+			id:        item[6] ?? null,
+			text:      !!(item[1] & 8),
+			when:      !!(item[1] & 16),
+			component: !!(item[1] & 32),
+			sources:   item[7] ?? []
 		});
 
 		for (const page of this.view.nodes.filter(n => (n.k === 'page' || n.k === 'component') && n.d?.length && !n.tpl)) {
 
 			const root = d3.hierarchy({ tag: page.n, children: page.d.map(toTree) });
 
-			// a template takes the rows its height needs
-			const rows = d => Math.max(1, (AppMapPanels.boxHeight(d) + AppMapPanels.ROW - AppMapPanels.BOX) / AppMapPanels.ROW);
-
-			d3.tree().nodeSize([AppMapPanels.ROW, AppMapPanels.COLUMN]).separation((a, b) => (a.parent === b.parent ? 1 : 1.25) + (rows(a) + rows(b)) / 2 - 1)(root);
-
+			// the boxes of one level stand side by side, as far apart as their widths need; a run of leaves stands as a stack
+			// (see layoutOf), which the layout takes for a chain, one leaf below the other
 			const all    = root.descendants();
-			const top    = d3.min(all, d => d.x - Math.max(AppMapPanels.ROW, AppMapPanels.boxHeight(d) / 2 + 0.8));
-			const bottom = d3.max(all, d => d.x + Math.max(AppMapPanels.ROW, AppMapPanels.boxHeight(d) / 2 + 0.8));
+			const layout = AppMapPanels.layoutOf(root);
+			const width  = d => d.stack ? d3.max(d.stack, AppMapPanels.width) : AppMapPanels.width(d);
 
+			d3.tree().nodeSize([1, 1]).separation((a, b) => (width(a.data) + width(b.data)) / 2 + AppMapPanels.GAP * (a.parent === b.parent ? 1 : 2))(layout);
+
+			const levels = [];
+
+			for (const l of layout.descendants()) {
+
+				l.data.x     = l.x;
+				l.data.level = l.depth;
+				levels[l.depth] = Math.max(levels[l.depth] ?? 0, AppMapPanels.sizeOf(l.data)[1]);
+			}
+
+			// the middle of each level, below the one above it
+			const middle = [];
+
+			levels.reduce((y, height, depth) => (middle[depth] = y + height / 2, y + height + AppMapPanels.LEVEL), 0);
+
+			const left = d3.min(all, d => d.x - width(d) / 2);
+
+			// the place of a box is its left end and its middle, as box gives it; the leaves of a stack align on the left
 			for (const d of all) {
 
-				d.lx   = d.y;
-				d.ly   = d.x;
+				d.lx   = d.x - width(d) / 2 - left + AppMapPanels.GAP;
+				d.ly   = middle[d.level];
 				d.page = page;
 			}
 
-			// how far an element without children may show its expressions: up to the next box to its right at its height,
-			// else to the edge
-			for (const d of all) {
+			const top    = -AppMapPanels.GAP;
+			const bottom = d3.sum(levels) + AppMapPanels.LEVEL * (levels.length - 1) + AppMapPanels.GAP;
 
-				if (d.data.shows && !d.children) {
-					d.room = d3.min(all, o => o.lx > d.lx && Math.abs(o.ly - d.ly) < (AppMapPanels.BOX + AppMapPanels.boxHeight(o)) / 2 ? o.lx - d.lx : Infinity);
-				}
+			// a repeater that cannot work, judged as the page tree of the Pages area judges it (outside the admin UI, as in
+			// the preview, there is no judge); the page itself (the root) is no element, and a shared component is no page,
+			// so its context is not known
+			for (const d of all.slice(1)) {
+
+				const ancestors = d.ancestors().slice(1, -1).map(a => ({ dataKey: a.data.key, component: a.data.component }));
+
+				d.warnings = typeof _Pages === 'undefined' ? [] : _Pages.problems.checkRepeater({ dataKey: d.data.key, component: d.data.component, sources: d.data.sources }, { ancestors, inPage: page.k === 'page' });
 			}
 
 			const boxOf = new Map(all.flatMap(d => (d.data.inner ?? []).map(n => [n, d])));
 
-			this.trees.set(page, { root, list: all.slice(1), boxOf, open: false, frame: null, panel: { width: d3.max(all, d => d.y) + AppMapPanels.COLUMN, top, height: bottom - top } });
+			this.trees.set(page, { root, list: all.slice(1), boxOf, open: false, frame: null, panel: { width: d3.max(all, d => d.lx + AppMapPanels.sizeOf(d)[0]) + AppMapPanels.GAP, top, height: bottom - top } });
 		}
 	}
 
 	// the place of the tree in the sheet of a page, with the height of a row on screen: the sheet becomes a card with a
-	// header for the kind and the name, and the tree fills the room below it
+	// header for the kind and the name, and the tree fills the room below it, at its top and in the middle across
 	pagePanel(page, tree, k, radius = this.view.shownRadius(page)) {
 
 		// the sheet exactly as the element is drawn, at the current zoom or, for a glide, at the one it heads for
 		const r      = Math.max(radius, 2 / k);
 		const hw     = r * AppMapRenderer.PAGE_BOX[0];
 		const hh     = r * AppMapRenderer.PAGE_BOX[1];
-		const head   = AppMapPanels.header(page.x - hw, page.y - hh, 2 * hw, 2 * hh);
+		const head   = AppMapPanels.header(page.x - hw, page.y - hh, 2 * hw, 2 * hh, k);
 		const room   = [2 * hw - 2 * head.pad, page.y + hh - head.bottom - head.pad];
 		const scale  = Math.min(room[0] / tree.panel.width, room[1] / tree.panel.height);
 		const width  = tree.panel.width * scale;
 		const height = tree.panel.height * scale;
 
-		return { x0: page.x - width / 2, y0: head.bottom + (room[1] - height) / 2, width, height, scale, top: tree.panel.top, hw, hh, head, row: scale * AppMapPanels.ROW * k };
+		return { x0: page.x - width / 2, y0: head.bottom, width, height, scale, top: tree.panel.top, hw, hh, head, row: scale * AppMapPanels.ROW * k };
 	}
 
-	// the header of a card at the given place and size: a small line for the kind, the name below it and a divider, with
-	// the padding of the card; the name gets its size from the height of the card and shrinks to fit its width (see
-	// drawHeader). Bottom is where the content below the divider begins
-	static header(x0, y0, width, height) {
+	// the sizes of the header of a card of the given size at a zoom, in map units, see HEAD
+	static headSize(width, height, k) {
+
+		const unit = Math.min(1, width * k / AppMapPanels.HEAD_FULL[0], height * k / AppMapPanels.HEAD_FULL[1]) / k;
+
+		return { depth: AppMapPanels.HEAD.band * unit, name: AppMapPanels.HEAD.name * unit, kind: AppMapPanels.HEAD.kind * unit, inset: AppMapPanels.HEAD.inset * unit, foot: AppMapPanels.HEAD.foot * unit };
+	}
+
+	// the header of a card at the given place and size at a zoom: the band of drawHeader with the name and the kind in one
+	// line, with the padding of the card. Line is where the band ends, bottom where the content below it begins
+	static header(x0, y0, width, height, k) {
 
 		const pad  = Math.min(width, height) * AppMapPanels.CARD_PAD;
-		const kind = height * AppMapPanels.CARD_KIND;
-		const name = height * AppMapPanels.CARD_NAME;
-		const line = y0 + pad + kind * 1.6 + name * 1.4;
+		const size = AppMapPanels.headSize(width, height, k);
+		const line = y0 + size.depth;
 
-		return { x0, y0, width, height, pad, kind, name, kindY: y0 + pad + kind * 0.5, nameY: y0 + pad + kind * 1.6 + name * 0.7, line, bottom: line + pad * 0.8 };
+		return { x0, y0, width, height, pad, ...size, line, bottom: line + pad * 0.8 };
 	}
 
 	// the frame is the element itself: its sheet, open, as a card on the map, white with a soft shadow, rounded, and a fine
@@ -187,7 +315,7 @@ class AppMapPanels {
 		this.drawCard(ctx, page.x - panel.hw, page.y - panel.hh, 2 * panel.hw, 2 * panel.hh, colour, k, cover);
 	}
 
-	drawCard(ctx, x, y, width, height, colour, k, cover, radius = Math.min(width, height) * 0.035) {
+	drawCard(ctx, x, y, width, height, colour, k, cover, radius = AppMapPanels.corner(width, height, k)) {
 
 		const look   = this.view.look;
 
@@ -214,37 +342,62 @@ class AppMapPanels {
 		ctx.restore();
 	}
 
-	// the header of a card: the kind in small capitals with a dot in the colour of the element, the name below it as large
-	// as the header allows and no wider than the card, cut with an ellipsis only where even half that size is too wide
+	// the header of a card, the same on every card, as the tables of a diagram of a database have it: a band in the colour
+	// of the element across the top of the card, its name on the left, in the size of HEAD and no wider than the band
+	// leaves beside the kind, which stands in small capitals on the right. The band reaches down to head.line and
+	// across the card (head.band: x, width and the outline of the card it is cut to, else rounded at the top as cards are);
+	// on a sheet the kind keeps clear of its folded corner (head.band.fold)
 	drawHeader(renderer, head, kind, name, colour, k) {
 
-		const ctx   = renderer.ctx;
-		const look  = this.view.look;
-		const left  = head.x0 + head.pad;
-		const room  = head.width - 2 * head.pad;
-		const fit   = AppMapPanels.fitText(renderer, name, 600, head.name, room);
-		const caps  = kind.toUpperCase();
+		const ctx    = renderer.ctx;
+		const look   = this.view.look;
+		const band   = head.band ?? { x: head.x0, width: head.width, outline: null };
+		const bottom = head.line;
+		const left   = band.x + head.inset;
+		const right  = band.x + band.width - head.inset - (band.fold ?? 0);
+		const caps   = kind.toUpperCase();
+		const small  = head.kind;
+		const beside = renderer.textWidth(caps, 600) / AppMapRenderer.LABEL_SIZE * small + head.inset;
+		const fit    = AppMapPanels.fitText(renderer, name, 650, head.name, right - left - beside);
+		const middle = (head.y0 + bottom) / 2;
+
+		ctx.save();
+		ctx.fillStyle = colour;
+
+		if (band.outline) {
+
+			ctx.clip(band.outline);
+			ctx.fillRect(band.x, head.y0, band.width, bottom - head.y0);
+
+		} else {
+
+			this.drawBand(ctx, head, colour);
+		}
+
+		// on the dark look the colours of the elements are light, and the text on them dark
+		ctx.fillStyle = look.dark ? '#0b0e12' : '#ffffff';
+		renderer.screenText(fit.text, left, middle, 650, fit.size, false, 'left');
+
+		ctx.globalAlpha *= 0.75;
+		renderer.screenText(caps, right, middle, 600, small, false, 'right');
+		ctx.restore();
+	}
+
+	// the radius of the corners of a card of the given size at a zoom, see CORNER
+	static corner(width, height, k) {
+
+		return Math.min(AppMapPanels.CORNER / k, Math.min(width, height) * 0.035);
+	}
+
+	// the band of a header alone, rounded at the top as the card is; a card that is still a sketch shows it without text
+	drawBand(ctx, head, colour) {
+
+		const radius = AppMapPanels.corner(head.width, head.height, this.view.transform.k);
 
 		ctx.fillStyle = colour;
 		ctx.beginPath();
-		ctx.arc(left + head.kind * 0.35, head.kindY, head.kind * 0.35, 0, Math.PI * 2);
+		ctx.roundRect(head.x0, head.y0, head.width, head.line - head.y0, [radius, radius, 0, 0]);
 		ctx.fill();
-
-		renderer.screenText(caps, left + head.kind * 1.1, head.kindY, 600, head.kind * 0.85, false, 'left');
-
-		ctx.fillStyle = look.labelFocus;
-		renderer.screenText(fit.text, left, head.nameY, 600, fit.size, false, 'left');
-
-		if (head.line == null) {
-			return;
-		}
-
-		ctx.strokeStyle = look.dark ? 'rgba(255, 255, 255, 0.10)' : 'rgba(16, 24, 40, 0.08)';
-		ctx.lineWidth   = 1 / k;
-		ctx.beginPath();
-		ctx.moveTo(head.x0, head.line);
-		ctx.lineTo(head.x0 + head.width, head.line);
-		ctx.stroke();
 	}
 
 	// a text at the given size, made smaller to fit the width, down to half of it, and cut with an ellipsis below that
@@ -270,9 +423,26 @@ class AppMapPanels {
 		return { text: cut + '…', size: small };
 	}
 
-	// branches from the right end of a parent to the left end of each child, as the tidy trees of d3 draw them: each an
-	// S-curve that leaves the parent and reaches the child level, so the children of one parent fan out from it; all in
-	// one path
+	// a text at the given size, cut with an ellipsis where it is wider than the width
+	static cutText(renderer, text, weight, size, width) {
+
+		const per = t => renderer.textWidth(t, weight) / AppMapRenderer.LABEL_SIZE * size;
+		let cut   = text;
+
+		if (per(cut) <= width) {
+			return text;
+		}
+
+		while (cut.length > 1 && per(cut + '…') > width) {
+			cut = cut.slice(0, -1);
+		}
+
+		return cut + '…';
+	}
+
+	// branches from the bottom of a parent to the top of each child, as the tidy trees of d3 draw them: each an S-curve
+	// that leaves the parent and reaches the level of the child, so the children of one parent fan out from it; all in one
+	// path
 	static branches(tree, panel) {
 
 		const s    = panel.scale;
@@ -282,14 +452,106 @@ class AppMapPanels {
 
 			const [px, py] = AppMapPanels.box(d.parent, panel);
 			const [cx, cy] = AppMapPanels.box(d, panel);
-			const start    = px + (d.parent === tree.root ? 4 * s : AppMapPanels.boxWidth(d.parent, s));
-			const middle   = (start + cx) / 2;
+			const [pw, ph] = AppMapPanels.sizeOf(d.parent);
+			const [cw, ch] = AppMapPanels.sizeOf(d);
+			const start    = [px + pw * s / 2, py + ph * s / 2];
 
-			path.moveTo(start, py);
-			path.bezierCurveTo(middle, py, middle, cy, cx, cy);
+			// a stack hangs from a rail on its left, which the branch reaches above its first leaf; each leaf on a short
+			// line from the rail
+			if (d.stack) {
+
+				if (d === d.stack[0]) {
+
+					const rail = cx - AppMapPanels.GAP * s * 0.6;
+					const last = AppMapPanels.box(d.stack[d.stack.length - 1], panel)[1];
+					const top  = cy - ch * s / 2;
+					const bend = (start[1] + top) / 2;
+
+					path.moveTo(start[0], start[1]);
+					path.bezierCurveTo(start[0], bend, rail, bend, rail, top);
+					path.lineTo(rail, last);
+
+					for (const leaf of d.stack) {
+
+						const [lx, ly] = AppMapPanels.box(leaf, panel);
+
+						path.moveTo(rail, ly);
+						path.lineTo(lx, ly);
+					}
+				}
+
+				continue;
+			}
+
+			const end      = [cx + cw * s / 2, cy - ch * s / 2];
+			const middle   = (start[1] + end[1]) / 2;
+
+			path.moveTo(start[0], start[1]);
+			path.bezierCurveTo(start[0], middle, end[0], middle, end[0], end[1]);
 		}
 
 		return path;
+	}
+
+	// the tree as the layout takes it, as a hierarchy of the nodes of the tree: a run of at least STACK siblings without
+	// children, and no sheets, stands as a stack, each of them the only child of the one before it, so that the layout puts
+	// them one below the other at the place of the run; they keep the stack they belong to in stack
+	static layoutOf(root) {
+
+		const children = d => {
+
+			const list = [];
+			let   run  = [];
+
+			const close = () => {
+
+				if (run.length >= AppMapPanels.STACK) {
+
+					run.forEach(leaf => leaf.stack = run);
+					list.push(run);
+
+				} else {
+
+					list.push(...run);
+				}
+
+				run = [];
+			};
+
+			for (const child of d.children ?? []) {
+
+				child.stack = null;
+
+				if (!child.children && !AppMapPanels.isSheet(child)) {
+
+					run.push(child);
+
+				} else {
+
+					close();
+					list.push(child);
+				}
+			}
+
+			close();
+
+			// a stack is a chain: its first leaf with the next as its only child, and so on
+			return list.map(item => Array.isArray(item) ? item.reduceRight((below, leaf) => ({ node: leaf, children: below ? [below] : [] }), null) : { node: item, children: children(item) });
+		};
+
+		return d3.hierarchy({ node: root, children: children(root) }).each(l => l.data = l.data.node);
+	}
+
+	static width(d) {
+
+		return AppMapPanels.sizeOf(d)[0];
+	}
+
+	// the width and the height of the box of an HTML element in the tree, before the scale of the panel; the document at
+	// the root has its own size
+	static sizeOf(d) {
+
+		return d.parent ? [AppMapPanels.boxWidth(d, 1), AppMapPanels.boxHeight(d)] : AppMapPanels.ROOT;
 	}
 
 	// the width of the box of an HTML element: its tag and the sign of what it does, at the scale of the panel; the data key
@@ -309,11 +571,18 @@ class AppMapPanels {
 		return AppMapPanels.isSheet(d) ? AppMapPanels.TEMPLATE_BOX[1] : AppMapPanels.BOX;
 	}
 
-	// whether an HTML element stands upright as a sheet: a template, or a script or a style with code in it; the document
-	// at the root never is
+	// whether an HTML element stands upright as a sheet: a template, a text node with a script block (the outline calls it
+	// content), or a script or a style with code in it; the document at the root never is
 	static isSheet(d) {
 
-		return !!d.parent && (d.data.tag === 'template' || (!!AppMapPanels.SCRIPTS[d.data.tag] && d.data.text));
+		return !!d.parent && (d.data.tag === 'template' || d.data.tag === 'content' || (!!AppMapPanels.SCRIPTS[d.data.tag] && d.data.text));
+	}
+
+	// the name of an HTML element as the map writes it: its tag in angle brackets, a text node with a script block as the
+	// Pages area calls it
+	static nameOf(d) {
+
+		return d.data.tag === 'content' ? 'Content' : `<${d.data.tag}>`;
 	}
 
 	// the outline of the box of an HTML element: a rectangle with small corners, a template a sheet with a folded corner
@@ -351,7 +620,7 @@ class AppMapPanels {
 
 		const data = d.data;
 
-		return !!(data.repeater || data.action || data.text || data.when || data.tag === 'template');
+		return !!(data.repeater || data.action || data.text || data.when || data.tag === 'template' || data.tag === 'content');
 	}
 
 	// how an HTML element opens inside its box at the given zoom: the box as a card, its header, and the room below the
@@ -369,16 +638,15 @@ class AppMapPanels {
 		const unit   = sheet ? width * 0.6 : AppMapPanels.BOX * s;
 		const top    = y - height / 2;
 		const pad    = unit * 0.08;
-		const kind   = unit * 0.05;
-		const name   = unit * 0.085;
-		const bottom = top + pad + kind * 1.6 + name * 1.4 + pad * 0.6;
+		const size   = AppMapPanels.headSize(width, height, k);
+		const bottom = top + size.depth + pad * 0.6;
 		// the controls keep this far from the sides of the box, clear of the bar on its left
 		const inset  = unit * 0.14;
 		const room   = [width - 2 * inset, top + height - pad - bottom];
 		const [W, H] = sheet ? AppMapPanels.SHEET_SIZE : AppMapPanels.ELEMENT_SIZE;
 		const fit    = Math.min(room[0] * k / W, room[1] * k / H);
 		const area   = { x: x + inset, y: bottom, width: room[0], height: room[1] };
-		const head   = { x0: x + inset - pad, y0: top, width: width - 2 * (inset - pad), height, pad, kind, name, kindY: top + pad + kind * 0.5, nameY: top + pad + kind * 1.6 + name * 0.7, line: null, bottom };
+		const head   = { x0: x, y0: top, width, height, pad, ...size, line: top + size.depth, bottom, band: { x, width, outline: AppMapPanels.outline(d, x, top, width, height, s), fold: sheet ? AppMapPanels.foldOf(width) : 0 } };
 
 		return { x, y: top, width, height, head, area, fit, px: unit * k, scale: s };
 	}
@@ -438,6 +706,15 @@ class AppMapPanels {
 			}
 		}
 
+		for (const n of this.inspecting) {
+
+			const p = this.insidePanel(n, this.view.transform.k);
+
+			if (x >= p.x0 && x <= p.x0 + p.width && y >= p.y0 && y <= p.y0 + p.height) {
+				return n;
+			}
+		}
+
 		return null;
 	}
 
@@ -446,10 +723,11 @@ class AppMapPanels {
 		return !!this.openAt(x, y);
 	}
 
-	// whether an element shows its inner structure: an open page or shared component, a method whose code can be read
+	// whether an element shows its inner structure: an open page or shared component, a method whose code can be read, a
+	// type whose properties can be read
 	isOpen(n) {
 
-		return !!this.trees.get(n)?.open || this.reading.has(n);
+		return !!this.trees.get(n)?.open || this.reading.has(n) || this.inspecting.has(n);
 	}
 
 	// the HTML element under the pointer: only an open panel shows them, and there the whole box answers
@@ -513,25 +791,38 @@ class AppMapPanels {
 		const w        = radius * bw;
 		const h        = radius * bh;
 		const pad      = h * 0.08;
-		const title    = h * 0.2;
+		const head     = AppMapPanels.headSize(2 * w, 2 * h, k);
+		const title    = head.depth - pad * 0.5;
 		const lines    = this.code.get(n)?.lines ?? [];
 		const columns  = Math.min(AppMapPanels.CODE_COLUMNS, Math.max(40, d3.max(lines, l => l.length) ?? 0));
-		const inner    = [2 * w - 2 * pad, 2 * h - 2 * pad - title];
+		const inner    = [2 * w - 2 * pad, 2 * h - 2 * pad - title - head.foot];
 
 		// a box higher than wide, as the sheet of a page, holds more than CODE_LINES at the font its width allows
 		const fit      = Math.floor(inner[1] / (inner[0] / (columns * 0.6) * 1.3));
 		const rows     = Math.min(Math.max(AppMapPanels.CODE_LINES[1], fit), Math.max(AppMapPanels.CODE_LINES[0], lines.length));
 		const font     = Math.min(inner[0] / (columns * 0.6), inner[1] / (rows * 1.3));
 
-		return { x0: n.x - w, y0: n.y - h, w, h, pad, title, font, line: font * 1.3, rows, px: font * 1.3 * k };
+		return { x0: n.x - w, y0: n.y - h, w, h, pad, title, head, font, line: font * 1.3, rows, px: font * 1.3 * k };
 	}
 
-	// the field of a code panel the code stands on, below the header, as x, y, width and height on the map
+	// the field of a code panel the code stands on, between the header and the foot, as x, y, width and height on the map
 	static codeField(panel) {
 
 		const top = panel.y0 + panel.pad + panel.title;
 
-		return [panel.x0 + panel.pad * 0.6, top - panel.pad * 0.3, 2 * panel.w - panel.pad * 1.2, panel.y0 + 2 * panel.h - top - panel.pad * 0.3];
+		return [panel.x0 + panel.pad * 0.6, top - panel.pad * 0.3, 2 * panel.w - panel.pad * 1.2, panel.y0 + 2 * panel.h - top - panel.pad * 0.3 - panel.head.foot];
+	}
+
+	// the property tile a point on the map lies on, or null
+	tileAt(x, y) {
+
+		return this.tiles.find(t => x >= t.x && x <= t.x + t.width && y >= t.y && y <= t.y + t.height) ?? null;
+	}
+
+	// the box of a setting that can be switched a point on the map lies on, with the row and the setting, or null
+	toggleAt(x, y) {
+
+		return this.toggles.find(({ rect: [tx, ty, tw, th] }) => x >= tx && x <= tx + tw && y >= ty && y <= ty + th) ?? null;
 	}
 
 	// the readable code a point on the map lies on, or null
@@ -590,15 +881,20 @@ class AppMapPanels {
 			this.drawCard(ctx, panel.x0, panel.y0, 2 * panel.w, 2 * panel.h, colour, k, 0.35 + 0.65 * strong);
 
 			ctx.beginPath();
-			ctx.roundRect(panel.x0, panel.y0, 2 * panel.w, 2 * panel.h, Math.min(panel.w, panel.h) * 0.07);
+			ctx.roundRect(panel.x0, panel.y0, 2 * panel.w, 2 * panel.h, AppMapPanels.corner(2 * panel.w, 2 * panel.h, k));
 			ctx.clip();
 
 			if (panel.px >= AppMapPanels.CODE_READ) {
 
-				// the header of a page card in the title band, and the code on a field of its own below it
-				const head = { x0: panel.x0, y0: panel.y0, width: 2 * panel.w, height: 2 * panel.h, pad: panel.pad, kind: panel.title * 0.22, name: panel.title * 0.4, kindY: panel.y0 + panel.pad + panel.title * 0.11, nameY: panel.y0 + panel.pad + panel.title * 0.58, line: null };
+				// the header of every card in the title band, and the code on a field of its own below it
+				const head = { x0: panel.x0, y0: panel.y0, width: 2 * panel.w, height: 2 * panel.h, ...panel.head, line: panel.y0 + panel.head.depth };
 
 				this.reading.add(n);
+
+				// a method has its way into the Code area at its foot, see AppMapView.placeOpenButton
+				if (n.k === 'method') {
+					this.cards.push({ n, open: { area: 'code', kind: 'method', node: n }, rect: [panel.x0, panel.y0, 2 * panel.w, 2 * panel.h], foot: panel.head.foot, opacity: 1 });
+				}
 				this.drawHeader(renderer, head, AppMapModel.KIND_LABEL[n.k], n.n, colour, k);
 
 				const [fx, fy, fw, fh] = AppMapPanels.codeField(panel);
@@ -639,7 +935,11 @@ class AppMapPanels {
 
 			} else {
 
-				// from afar the code is a sketch: a grey bar per line, as long and as far indented as the line
+				// from afar the code is a sketch: the band of the header without its text, a grey bar per line, as long and as far
+				// indented as the line
+				ctx.globalAlpha = 0.35 + 0.65 * strong;
+				this.drawBand(ctx, { x0: panel.x0, y0: panel.y0, width: 2 * panel.w, height: 2 * panel.h, line: panel.y0 + panel.head.depth }, colour);
+
 				ctx.fillStyle   = look.trace;
 				ctx.globalAlpha = 0.25 + 0.35 * strong;
 				ctx.beginPath();
@@ -661,13 +961,1535 @@ class AppMapPanels {
 		}
 	}
 
+	// ----- the inside of a type, a REST endpoint, a group and an external service -----
+	// reads what an element holds once, when it first comes close enough to show it (see insideOf); the promise it returns
+	// settles once it is there
+	requestInside(n) {
+
+		if (this.insides.has(n)) {
+			return this.insides.get(n).loaded;
+		}
+
+		const loaded = Promise.resolve(this.insideOf(n)).then(data => {
+
+			this.insides.set(n, { ...(data ?? { failed: true }), layouts: new Map(), loaded });
+			this.view.requestDraw();
+
+		}).catch(error => {
+
+			console.warn(`Application map: what ${n.n} holds could not be read`, error);
+
+			this.insides.set(n, { failed: true, layouts: new Map(), loaded });
+			this.view.requestDraw();
+		});
+
+		this.insides.set(n, { loading: true, loaded });
+
+		return loaded;
+	}
+
+	// what the card of an element shows, as sections of rows: the properties of a type from its schema, the grants of a
+	// REST endpoint, the grants, members and parents of a group, the elements that use an external service; with the way
+	// out of the map at the foot of the card (open), and what the card calls the element, where that is not its kind
+	async insideOf(n) {
+
+		if (n.k === 'type') {
+
+			const schema = this.view.loadType ? await this.view.loadType(n) : null;
+
+			return schema ? { sections: this.typeRows(n, schema), kindLabel: schema.isServiceClass ? 'Service class' : null, open: { area: 'code', kind: 'type', node: n } } : null;
+		}
+
+		if (n.k === 'api') {
+
+			const [grants, usage] = await Promise.all([this.view.loadGrants ? this.view.loadGrants() : null, this.view.usageOf('grants')]);
+
+			return grants ? { sections: this.endpointRows(n, grants, usage), usage, open: { area: 'security', tab: 'resource-access', filter: n.n.replace(/^\//, '') } } : null;
+		}
+
+		if (n.k === 'group') {
+
+			const members = this.view.loadMembers ? await this.view.loadMembers(n) : null;
+
+			return { sections: this.groupRows(n, members ?? []), open: { area: 'security', tab: 'users-and-groups', group: true, filter: n.n } };
+		}
+
+		return { sections: this.externalRows(n), lead: AppMapPanels.leadOf(n, this.view.links.filter(l => l.target === n)) };
+	}
+
+	// the settings of the box of a row that leads to another element of the map: what it is, and the way to it
+	static leadTo(node) {
+
+		return node.k === 'method' ? { area: 'code', kind: 'method', node } : (node.k === 'type' ? { area: 'code', kind: 'type', node } : null);
+	}
+
+	// the properties of a type, from its schema (see SchemaHelper.getSchemaTypeInfo): its relationships, its fields and, per
+	// type of the application it extends, those it inherits; the properties of the framework every type has, like id and
+	// createdDate, are left out, and so are its methods, which stand beside it on the map
+	typeRows(n, schema) {
+
+		const types  = new Map(this.view.nodes.filter(m => m.k === 'type').map(m => [m.n, m]));
+		const all    = Object.values(schema.views?.all ?? {}).filter(p => types.has(p.declaringClass));
+		const byName = (a, b) => a.name.localeCompare(b.name);
+
+		const item = p => {
+
+			const target = p.relatedType ? types.get(p.relatedType) ?? null : null;
+			const type   = p.relatedType ?? p.type ?? '';
+			const owner  = types.get(p.declaringClass) ?? n;
+			// the settings of a field can be switched where its schema property is, not those of a relationship, and not of a
+			// field that cannot be changed
+			const editable = !target && !p.readOnly;
+
+			return {
+				name:     p.jsonName,
+				kind:     target ? 'Relationship' : 'Property',
+				sign:     type,
+				arrow:    !!target,
+				tint:     target,
+				chip:     target ? type : null,
+				many:     !!p.isCollection,
+				dot:      !!p.notNull,
+				owner,
+				target,
+				settings: [
+					['Type', (target ? '→ ' : '') + type + (p.isCollection ? '[]' : ''), target],
+					target && p.relationshipType && ['Relationship', p.relationshipType],
+					['Required', !!p.notNull, null, editable && 'notNull'],
+					['Unique', !!p.unique, null, editable && 'unique'],
+					['Indexed', !!p.indexed, null, editable && 'indexed'],
+					p.readOnly && ['Read-only', true],
+					p.defaultValue != null && p.defaultValue !== '' && ['Default', String(p.defaultValue)],
+					p.format && ['Format', String(p.format)],
+					owner !== n && ['From', owner.n]
+				].filter(Boolean),
+				open:     { area: 'code', kind: 'property', node: owner, name: p.jsonName },
+				edit:     editable ? { kind: 'property', owner, name: p.jsonName } : null
+			};
+		};
+
+		const own       = all.filter(p => p.declaringClass === n.n).map(item);
+		const relations = own.filter(i => i.target).sort(byName);
+		const fields    = own.filter(i => !i.target).sort(byName);
+
+		return [
+			{ heading: `Relationships · ${relations.length}`, items: relations },
+			{ heading: `Fields · ${fields.length}`, items: fields },
+			...d3.groups(all.filter(p => p.declaringClass !== n.n), p => p.declaringClass).map(([parent, list]) => ({ heading: `From ${parent} · ${list.length}`, items: list.map(item).sort(byName), faded: true }))
+		];
+	}
+
+	// the requests a REST endpoint answers: a row per path, as there is a resource access permission per signature, with the
+	// methods it allows as coloured badges and who may send them; its box opens to the whole permission (see drawMatrix).
+	// From the permissions whose signature the endpoint stands for, that of a type with those of its views (Item, Item/_Ui);
+	// without any, only admins may use it. Below them, what it gives access to, a type or a method. With the usage of the
+	// grants (see AppMapView.usageOf), each row also says how often its permission decided a request
+	endpointRows(n, grants, usage) {
+
+		const base   = n.n.replace(/^\//, '');
+		const own    = new Set(this.view.nodes.filter(m => m.k === 'api').map(m => m.n.replace(/^\//, '')));
+		const mine   = grants.filter(g => g.signature === base || (g.signature?.startsWith(base + '/') && !own.has(g.signature)));
+		const opens  = this.view.links.filter(l => l.kind === 'endpoint' && l.source === n).map(l => l.target);
+		AppMapPanels.annotateUsage(mine, usage);
+
+		const rows   = mine.sort((a, b) => a.signature.localeCompare(b.signature)).map(AppMapPanels.requestRow);
+
+		return [
+			{ heading: `Requests · ${rows.length}`, items: rows, columns: 1, empty: 'No grants – only admins may use it' },
+			{ heading: 'Gives access to', items: opens.map(node => this.leadRow(node)), columns: 1 }
+		];
+	}
+
+	// how often a permission decided a request in the last days, from the usage of the grants (see UsageStatistics), as
+	// { days, flags, allowed, denied, last }, flags the requests per flag of the permission (AUTH_USER_GET and so on) as
+	// { allowed, denied }; null without the usage. The usage is counted per signature, so permissions for the same
+	// signature share it
+	static usageOfGrant(g, data) {
+
+		if (!data?.usage) {
+			return null;
+		}
+
+		const day    = 24 * 60 * 60 * 1000;
+		const first  = Date.now() - (Date.now() % day) - (data.days - 1) * day;
+		const use    = { days: data.days, flags: {}, allowed: 0, denied: 0, last: 0, peak: 0 };
+
+		// the requests per day, the oldest first, the days start at midnight UTC as the server counts them
+		use.series = Array.from({ length: data.days }, (_, i) => ({ day: first + i * day, allowed: 0, denied: 0 }));
+
+		// the sources are "<signature> <flag> <outcome>", and the signature itself may contain spaces
+		for (const [source, { total, lastUsed, days }] of Object.entries(data.usage)) {
+
+			const parts   = source.split(' ');
+			const outcome = parts.pop();
+			const flag    = parts.pop();
+
+			if (parts.join(' ') !== g.signature || (outcome !== 'allowed' && outcome !== 'denied')) {
+				continue;
+			}
+
+			use.flags[flag]          = use.flags[flag] ?? { allowed: 0, denied: 0 };
+			use.flags[flag][outcome] += total;
+			use[outcome]             += total;
+			use.last                  = Math.max(use.last, lastUsed);
+
+			for (const [start, count] of Object.entries(days ?? {})) {
+
+				const i = Math.round((Number(start) - first) / day);
+
+				if (i >= 0 && i < use.series.length) {
+					use.series[i][outcome] += count;
+				}
+			}
+		}
+
+		return use;
+	}
+
+	// the usage of the permissions on the card of a REST endpoint (see usageOfGrant), on one scale: the busiest day of any
+	// of them is the full height of the bars, so the rows can be compared
+	static annotateUsage(grants, data) {
+
+		grants.forEach(g => g.usage = AppMapPanels.usageOfGrant(g, data));
+
+		const peak = d3.max(grants, g => d3.max(g.usage?.series ?? [], d => d.allowed + d.denied)) ?? 0;
+
+		grants.forEach(g => {
+
+			if (g.usage) {
+				g.usage.peak = peak;
+			}
+		});
+	}
+
+	// the requests per day as bars from left to right, the oldest day first: the allowed ones in the ink, the denied ones
+	// in red on top, a thin line along the bottom so that a quiet time still shows as such
+	static drawSeries(ctx, use, x, y, width, height, ink, red, k) {
+
+		const across = width / use.series.length;
+
+		ctx.save();
+		ctx.fillStyle = d3.color(ink).copy({ opacity: 0.35 }).formatRgb();
+		ctx.fillRect(x, y + height - 1 / k, width, 1 / k);
+
+		use.series.forEach((d, i) => {
+
+			const scale   = use.peak ? height / use.peak : 0;
+			const allowed = d.allowed ? Math.max(1.5 / k, d.allowed * scale) : 0;
+			const denied  = d.denied ? Math.max(1.5 / k, d.denied * scale) : 0;
+			const left    = x + i * across + across * 0.12;
+			const wide    = across * 0.76;
+
+			ctx.fillStyle = d3.color(ink).copy({ opacity: 0.6 }).formatRgb();
+			ctx.fillRect(left, y + height - allowed, wide, allowed);
+			ctx.fillStyle = red;
+			ctx.fillRect(left, y + height - allowed - denied, wide, denied);
+		});
+
+		ctx.restore();
+	}
+
+	// the usage on the card of a REST endpoint stays current while the card shows: AppMapView.usageOf reads it again once it
+	// is ACTIVITY_REFRESH old, and where it is newer than that of the card, its rows take it over
+	refreshGrantUsage(data) {
+
+		this.view.usageOf('grants');
+
+		const usage = this.view.usage.grants?.data;
+
+		if (!usage || usage === data.usage) {
+			return;
+		}
+
+		data.usage = usage;
+
+		const rows = data.sections.flatMap(s => s.items).filter(row => row.grant);
+
+		AppMapPanels.annotateUsage(rows.map(row => row.grant), usage);
+		rows.forEach(AppMapPanels.updateRequestRow);
+	}
+
+	// the columns the rows of the requests on a card share, in units of the size of their text: the widest chip and the
+	// widest number of requests among them (see drawTile), and the methods any of them allows, so that the bars, the numbers
+	// and the methods stand below each other whatever the chip of a row says; null on a card without requests
+	static requestSlots(renderer, items) {
+
+		const rows = items.filter(item => item.tile?.access);
+
+		if (!rows.length) {
+			return null;
+		}
+
+		const wide = (text, weight, size) => renderer.textWidth(text, weight) / AppMapRenderer.LABEL_SIZE * size;
+
+		return {
+			chip:  d3.max(rows, item => item.tile.chip ? wide(item.tile.chip, 600, 0.72) + 0.9 : 0),
+			count: d3.max(rows, item => item.tile.count != null ? wide(item.tile.count, 600, 0.66) : 0),
+			// a column for each method that a row of the card allows, in the order of VERBS
+			verbs: AppMapPanels.VERBS.map(([verb]) => verb).filter(verb => rows.some(item => item.tile.verbs?.some(v => v.verb === verb)))
+		};
+	}
+
+	// a number of requests in short, as on the row of a request and in the cells of its matrix
+	static shortCount(count) {
+
+		return new Intl.NumberFormat(undefined, { notation: 'compact' }).format(count);
+	}
+
+	// the usage of a permission in one line, below its matrix
+	static describeGrantUsage(use) {
+
+		const days = `in the last ${use.days} ${use.days === 1 ? 'day' : 'days'}`;
+
+		if (use.allowed + use.denied === 0) {
+			return `No requests ${days}.`;
+		}
+
+		return `Requests ${days} below the cells and per day below, denied ones in red: ${use.allowed.toLocaleString()} allowed, ${use.denied.toLocaleString()} denied, the last on ${new Date(use.last).toLocaleString()}.`;
+	}
+
+	// the row of a path on the card of a REST endpoint: the path, the methods its permission allows, who may send them (see
+	// matrixOf), how often it was requested, and the permission, so that its box can switch it (see AppMapView.flipAccess)
+	static requestRow(g) {
+
+		const row = {
+			name:   '/' + g.signature,
+			kind:   'Request',
+			mono:   true,
+			grant:  g,
+			open:   { area: 'security', tab: 'resource-access', filter: g.signature }
+		};
+
+		return AppMapPanels.updateRequestRow(row);
+	}
+
+	// who may send the requests of a row, after its permission changed: the matrix of the permission for its box, the methods
+	// it allows, faded where they are set without effect, and a chip with everyone who may send at least one of them
+	static updateRequestRow(row) {
+
+		const access = AppMapPanels.matrixOf(row.grant);
+		const [pub, auth] = access.rows;
+		const some   = access.rows.length - 2;
+		const any    = (cells, state) => cells.some(cell => cell === state);
+		const chips  = [any(pub.cells, 'yes') && 'public', any(auth.cells, 'yes') && 'signed in', any(auth.cells, 'some') && `${some} ${some > 1 ? 'grantees' : 'grantee'}`].filter(Boolean);
+		const set    = AppMapPanels.VERBS.map(([verb], i) => ({ verb, cells: access.rows.map(r => r.cells[i]) })).filter(v => v.cells.some(cell => cell !== 'no'));
+
+		const use    = row.grant.usage;
+
+		return Object.assign(row, {
+			access,
+			count:    use ? AppMapPanels.shortCount(use.allowed + use.denied) : null,
+			series:   use,
+			verbs:    set.map(({ verb, cells }) => ({ verb, live: cells.some(cell => cell === 'yes' || cell === 'some') })),
+			chip:     set.length ? (chips.length ? chips.join(' · ') : 'no effect') : 'admins only',
+			chipTint: { access: any(pub.cells, 'yes') ? 'pub' : (chips.length ? 'auth' : 'none') }
+		});
+	}
+
+	// who may send which request a resource access permission allows, as a matrix of audiences and methods (see VERBS): the
+	// flags of a permission only apply to those who can see it, so a method for public users needs the permission to be
+	// visible to public users, and one for signed-in users needs it to be visible to them, or to public users, or to a user
+	// or group with rights on the permission (a grantee), which then applies to them alone. Public and signed-in users come
+	// first, then the grantees; a cell is one of the states of ACCESS_CELL
+	static matrixOf(g) {
+
+		const flags    = g.flags ?? 0;
+		const visPub   = !!g.visibleToPublicUsers;
+		const visAuth  = !!g.visibleToAuthenticatedUsers;
+		const grantees = (g.grantees ?? []).map(p => ({ name: p.name ?? p.id, group: !!p.isGroup || /Group$/.test(p.type ?? '') }));
+		const allAuth  = visAuth || visPub;
+		const cells    = state => AppMapPanels.VERBS.map(([, a, p]) => state((flags & a) !== 0, (flags & p) !== 0));
+
+		const rows = [
+			{ who: 'Public users', about: 'Visitors who are not signed in', icon: 'public', kind: 'pub', cells: cells((auth, pub) => !pub ? 'no' : (visPub ? 'yes' : 'none')) },
+			{ who: 'Signed-in users', about: 'Every user who is signed in', icon: 'auth', kind: 'auth', cells: cells(auth => !auth ? 'no' : (allAuth ? 'yes' : (grantees.length ? 'some' : 'none'))) },
+			...grantees.map(p => ({ who: p.name, about: `${p.group ? 'Group' : 'User'} with rights on the permission`, icon: p.group ? 'group' : 'user', kind: 'grantee', cells: cells(auth => !auth ? 'no' : (allAuth ? 'implied' : 'yes')) }))
+		];
+
+		const legend = [...new Set(rows.flatMap(r => r.cells))].filter(state => state !== 'no' && state !== 'implied');
+
+		// with its usage, public and signed-in users have the number of their requests below their cells, which takes
+		// higher rows, and the sum takes a line at the foot
+		const use    = g.usage ?? null;
+		const rowH   = use ? 2.4 : 1.9;
+
+		// the requests per day below the sum, CHART_LINES high with the dates below them
+		const chart  = use ? 1.5 + AppMapPanels.CHART_LINES + 1.2 : 0;
+
+		return {
+			rows,
+			legend,
+			use,
+			rowH,
+			// the rows the box needs, as AppMapView.tileZoom counts them: drawMatrix sets its lines ACCESS_LINE of them apart
+			lines: AppMapPanels.ACCESS_LINE * (1.6 + rows.length * rowH + legend.length * 1.1 + 1.6 + chart) - 0.6
+		};
+	}
+
+	// how a click on a cell of the matrix of a permission changes it: on, the method is allowed for the audience, with the
+	// visibility it needs; off, it is not. Where a change opens more than the cell to anyone, the question to ask first. As
+	// { flags, visibleToPublicUsers, visibleToAuthenticatedUsers, question }
+	static switchAccess(g, kind, column, on) {
+
+		const [verb, a, p] = AppMapPanels.VERBS[column];
+		const allAuth      = AppMapPanels.VERBS.reduce((bits, [, auth]) => bits | auth, 0);
+		const allPub       = AppMapPanels.VERBS.reduce((bits, [, , pub]) => bits | pub, 0);
+		const grantees     = (g.grantees ?? []).length > 0;
+		const questions    = [];
+		let flags          = g.flags ?? 0;
+		let visPub         = !!g.visibleToPublicUsers;
+		let visAuth        = !!g.visibleToAuthenticatedUsers;
+
+		if (kind === 'pub') {
+
+			if (on) {
+
+				flags |= p;
+				questions.push(`Public users may then send ${verb} without signing in.`);
+
+				// visible to public users, the permission is visible to every signed-in user, too
+				if (!visPub && !visAuth && grantees && (flags & allAuth)) {
+					questions.push('Every signed-in user may then also send what only the users and groups with rights on it may send now.');
+				}
+
+				visPub = true;
+
+			} else {
+
+				flags &= ~p;
+
+				// with no method left for public users the permission is no longer visible to them; signed-in users keep what
+				// they were allowed through that
+				if (visPub && !(flags & allPub)) {
+
+					visPub  = false;
+					visAuth = visAuth || (flags & allAuth) !== 0;
+				}
+			}
+
+		} else if (on) {
+
+			flags |= a;
+
+			// a method for every signed-in user makes the permission visible to them, which opens the other methods for the
+			// users and groups with rights on it to them as well
+			if (kind === 'auth' && !visPub && !visAuth) {
+
+				if (grantees && (flags & allAuth & ~a)) {
+					questions.push('Every signed-in user may then also send what only the users and groups with rights on it may send now.');
+				}
+
+				visAuth = true;
+			}
+
+		} else {
+
+			flags &= ~a;
+		}
+
+		return { flags, visibleToPublicUsers: visPub, visibleToAuthenticatedUsers: visAuth, question: questions.length ? questions.join(' ') + ' Continue?' : null };
+	}
+
+	// a row that leads to another element of the map: an arrow and a chip in its colour, with the kind of the relation in
+	// short, or the kind of the element; opened, the relation in full and what the map knows it from
+	leadRow(node, chip, does, evidence) {
+
+		return {
+			name:     node.n,
+			kind:     AppMapModel.KIND_LABEL[node.k],
+			arrow:    true,
+			tint:     node,
+			chip:     chip ?? AppMapModel.KIND_LABEL[node.k],
+			settings: [['Kind', AppMapModel.KIND_LABEL[node.k]], ['Name', node.n, node], does && ['Relation', does], evidence && ['Evidence', String(evidence)]].filter(Boolean),
+			open:     AppMapPanels.leadTo(node)
+		};
+	}
+
+	// a group: the types it has grants on with the rights it has there, its members, users and groups, and the groups it is
+	// a member of itself
+	groupRows(n, members) {
+
+		const group  = (this.view.model.groups ?? []).find(g => g.id === n.id);
+		const byId   = this.view.byId;
+		const byName = (a, b) => a.name.localeCompare(b.name);
+
+		const grants = Object.entries(group?.p ?? {}).map(([id, letters]) => [byId.get(id), String(letters)]).filter(([node]) => node).map(([node, letters]) => ({
+			name:     node.n,
+			kind:     'Grant',
+			arrow:    true,
+			tint:     node,
+			chip:     [...letters].map(l => l.toUpperCase()).join(' · '),
+			settings: [['Type', node.n, node], ['Read', letters.includes('r'), null, 'allowRead'], ['Write', letters.includes('w'), null, 'allowWrite'], ['Delete', letters.includes('d'), null, 'allowDelete'], ['Access control', letters.includes('a'), null, 'allowAccessControl']],
+			open:     AppMapPanels.leadTo(node),
+			edit:     { kind: 'grant', group: n, type: node }
+		})).sort(byName);
+
+		const people = members.map(m => ({
+			name:     m.name ?? m.id,
+			kind:     m.isGroup ? 'Group' : 'User',
+			glyph:    m.isGroup ? '◎' : '●',
+			tint:     m.isGroup ? byId.get(m.id) ?? null : null,
+			settings: [['Kind', m.isGroup ? 'Group' : 'User'], ['Name', m.name ?? ''], m.isAdmin != null && ['Admin', !!m.isAdmin, null, 'isAdmin'], m.blocked != null && ['Blocked', !!m.blocked, null, 'blocked']].filter(Boolean),
+			edit:     { kind: 'principal', id: m.id, name: m.name ?? m.id },
+			open:     { area: 'security', tab: 'users-and-groups', group: !!m.isGroup, filter: m.name ?? '' }
+		})).sort(byName);
+
+		const parents = (group?.in ?? []).map(id => byId.get(id)).filter(Boolean).map(node => ({ ...this.leadRow(node, null, 'member of'), open: { area: 'security', tab: 'users-and-groups', group: true, filter: node.n } }));
+
+		return [
+			{ heading: `Grants · ${grants.length}`, items: grants },
+			{ heading: `Members · ${people.length}`, items: people },
+			{ heading: `Member of · ${parents.length}`, items: parents }
+		];
+	}
+
+	// an external service: the methods and pages that use it, and how
+	externalRows(n) {
+
+		const links = this.view.links.filter(l => l.target === n && l.source !== n);
+		const row   = l => {
+
+			const call = l.x?.f ? l.x : null;
+
+			return {
+				...this.leadRow(l.source),
+				chip:     call ? `${call.f}()` : AppMapModel.KIND_LABEL[l.source.k],
+				settings: [['Kind', AppMapModel.KIND_LABEL[l.source.k]], ['Name', l.source.n, l.source], call && ['Call', `${call.f}() in line ${call.l}`], call && ['Code', call.c]].filter(Boolean)
+			};
+		};
+
+		// the code that uses the service, by its kind, methods first; each row with the call that was found
+		return d3.groups(links, l => l.source.k).sort(([a], [b]) => (a === 'method' ? 0 : 1) - (b === 'method' ? 0 : 1)).map(([kind, list]) => ({
+			heading: `${AppMapModel.KIND_LABEL[kind]}s · ${list.length}`,
+			items:   list.map(row).sort((a, b) => a.name.localeCompare(b.name))
+		}));
+	}
+
+	// what an external service is to the code that uses it, in one sentence above its rows
+	static leadOf(n, links) {
+
+		const kind = links[0]?.kind;
+		const what = n.id.replace(/^ext:/, '');
+
+		switch (kind) {
+
+			case 'requests':
+				return what === 'http' ? 'The code below sends requests to URLs it computes when it runs.'
+					: what === 'geocoding' ? 'The code below looks up addresses with this provider.'
+					: what.startsWith('translation') ? 'The code below translates texts with this provider.'
+					: `The code below sends requests to ${what}.`;
+			case 'mails':
+				return 'The code below sends e-mails through the SMTP server in structr.conf.';
+			case 'executes':
+				return what === 'exec' ? 'The code below runs scripts it chooses when it runs.' : 'The code below runs this script, as structr.conf names it.';
+			case 'queries':
+				return 'The code below queries this database.';
+			default:
+				return null;
+		}
+	}
+
+	// where the rows of an element stand on its card in the given number of columns, in units of the size of their text: a
+	// heading per section that has rows, the rows of a section filling its columns from top to bottom, one after the other,
+	// so they read as lists; while the element loads, a few empty rows
+	static insideLayout(data, columns) {
+
+		const [tw, th] = AppMapPanels.TILE;
+		const [gx, gy] = AppMapPanels.TILE_GAP;
+		const items    = [];
+		let y          = 0;
+
+		const full = columns * tw + (columns - 1) * gx;
+
+		// a section has two columns, or as many as it says, which share the whole width of the card; a card with many rows is
+		// wider for its height (more columns of TILE in the loop of insidePanel), so its rows are smaller, and longer
+		const group = (heading, tiles, faded, own, empty) => {
+
+			if (!tiles.length && !empty) {
+				return;
+			}
+
+			if (heading) {
+
+				items.push({ heading, x: 0, y: y + AppMapPanels.TILE_HEADING * 0.6 });
+				y += AppMapPanels.TILE_HEADING;
+			}
+
+			// a section that says so when it has no rows
+			if (!tiles.length) {
+
+				items.push({ note: empty, x: 0, y: y + th / 2 });
+				y += th + gy;
+
+				return;
+			}
+
+			const across = own ?? AppMapPanels.TILE_ACROSS;
+			const width  = (full - (across - 1) * gx) / across;
+			const rows   = Math.ceil(tiles.length / across);
+
+			tiles.forEach((tile, i) => items.push({ tile, faded, col: Math.floor(i / rows), x: Math.floor(i / rows) * (width + gx), y: y + (i % rows) * (th + gy), width }));
+
+			y += rows * (th + gy) + gy;
+		};
+
+		if (data?.failed) {
+
+			items.push({ note: 'This could not be read', x: 0, y: AppMapPanels.TILE_HEADING * 0.6 });
+			y = AppMapPanels.TILE_HEADING;
+
+		} else if (!data?.sections) {
+
+			group(null, [{}, {}, {}, {}, {}, {}, {}, {}], false);
+
+		} else {
+
+			// a sentence that says what the rows are, where the kind of the element alone does not
+			if (data.lead) {
+
+				items.push({ note: data.lead, x: 0, y: y + AppMapPanels.TILE_HEADING * 0.6 });
+				y += AppMapPanels.TILE_HEADING * 1.4;
+			}
+
+			data.sections.forEach(s => group(s.heading, s.items, !!s.faded, s.columns, s.empty));
+
+			if (!data.sections.some(s => s.items.length)) {
+				items.push({ note: 'Nothing inside', x: 0, y: AppMapPanels.TILE_HEADING * 0.6 });
+				y = AppMapPanels.TILE_HEADING;
+			}
+		}
+
+		return { items, width: full, height: Math.max(0, y - gy) };
+	}
+
+	// the card a type, a REST endpoint, a group or an external service opens to in place of its shape: what it holds as
+	// rows, as a page shows its elements as boxes, with the header above them and the foot with the way out of the map
+	// below. The rows have their place on the map whatever the zoom, as the boxes of a page do: INSIDE_CARD[0] radii wide to
+	// each side, in a number of columns that only the number of rows decides, as high as they need, at most INSIDE_CARD[1]
+	// radii up and down from the middle, more columns before smaller rows. Header and foot have their size on the screen (see HEAD) and grow out of that area. Em
+	// is the size of the text of a tile
+	insidePanel(n, k, radius = this.view.shownRadius(n)) {
+
+		const [bw, bh] = AppMapPanels.INSIDE_CARD;
+		const data     = this.insides.get(n);
+		const width    = 2 * radius * bw;
+		const most     = 2 * radius * bh;
+		const pad      = AppMapPanels.TILE_PAD;
+		const count    = data?.sections ? d3.sum(data.sections, s => s.items.length) : 6;
+		const layouts  = data?.layouts ?? (this.pending ??= new Map());
+
+		// the rows are as wide as TILE_WIDE rows of TILE side by side at least, so a card with few rows does not show them, and
+		// the room around them, larger than a card with many
+		let columns = AppMapPanels.TILE_WIDE;
+		let layout, em, area;
+
+		for (;; columns++) {
+
+			const key = `${columns}`;
+
+			layout = layouts.get(key) ?? layouts.set(key, AppMapPanels.insideLayout(data, columns)).get(key);
+			em     = width / (layout.width + 2 * pad);
+			area   = (layout.height + 2 * pad) * em;
+
+			if (area <= most || columns >= AppMapPanels.TILE_COLUMNS) {
+				break;
+			}
+		}
+
+		// a card that is full makes its tiles smaller still, and they stand in the middle of its width
+		if (area > most) {
+
+			em   = em * most / area;
+			area = most;
+		}
+
+		// a card with few rows keeps the proportion of a card, its rows at the top: else it would lie flat and fill the
+		// screen across when it opens (see AppMapView.fillZoom), with rows far too large
+		area = Math.max(area, width * AppMapPanels.INSIDE_LOW);
+
+		const size = AppMapPanels.headSize(width, area, k);
+		const top  = n.y - area / 2;
+		const y0   = top - size.depth;
+
+		// the rows begin a little below the header, closer than the padding at the sides
+		// the rows reach across the whole card, also where a full card made them smaller: their text keeps its size, they
+		// only grow wider (stretch), so they do not stand in the middle with a wide margin on either side
+		const stretch = Math.max(1, (width - 2 * pad * em) / (layout.width * em));
+
+		return { x0: n.x - width / 2, y0, width, height: size.depth + area + size.foot, em, stretch, columns, layout, head: size.depth, size, left: n.x - width / 2 + pad * em, top: top + pad * em * 0.3, px: em * 1.3 * k };
+	}
+
+	// whether an element is close enough to show its card, even if only as a sketch
+	hasInsideCard(n, k) {
+
+		return AppMapPanels.INSIDE_KINDS.has(n.k) && this.insidePanel(n, k).px >= AppMapPanels.CODE_SKETCH;
+	}
+
+	// how far the card of an element has taken the place of its shape, from 0 to 1, see AppMapRenderer.drawElements
+	insideCover(n, k) {
+
+		const px = AppMapPanels.INSIDE_KINDS.has(n.k) ? this.insidePanel(n, k).px : 0;
+
+		return Math.min(1, Math.max(0, (px - AppMapPanels.CODE_SKETCH) / (AppMapPanels.CODE_READ - AppMapPanels.CODE_SKETCH)));
+	}
+
+	// the types on screen that are close enough to show what they hold, with their panel and how far they have opened
+	insidePanels(renderer, k) {
+
+		return this.view.nodes
+			.filter(n => AppMapPanels.INSIDE_KINDS.has(n.k) && renderer.onScreen(n, 200 + Math.max(...AppMapPanels.INSIDE_CARD) * this.view.shownRadius(n) * k))
+			.map(n => ({ n, panel: this.insidePanel(n, k) }))
+			.filter(({ panel }) => panel.px >= AppMapPanels.CODE_SKETCH)
+			.map(c => ({ ...c, strong: Math.min(1, (c.panel.px - AppMapPanels.CODE_SKETCH) / (AppMapPanels.CODE_READ - AppMapPanels.CODE_SKETCH)) }));
+	}
+
+	// a small rounded label: a flag of a property; returns its width
+	drawChip(renderer, text, x, y, size, ink, fill) {
+
+		const ctx   = renderer.ctx;
+		const width = renderer.textWidth(text, 600) / AppMapRenderer.LABEL_SIZE * size + size * 1.1;
+		const high  = size * 1.55;
+
+		ctx.fillStyle = fill;
+		ctx.beginPath();
+		ctx.roundRect(x, y - high / 2, width, high, high / 2);
+		ctx.fill();
+
+		ctx.fillStyle = ink;
+		renderer.screenText(text, x + size * 0.55, y, 600, size, false, 'left');
+
+		return width;
+	}
+
+	// a type opens as a card like a page: from afar a sketch of its header and its tiles, close up its name in the header
+	// and its properties as tiles, a relationship with a bar in the colour of the type it leads to and a dot at the edge of
+	// the card where its line leaves (see drawGates). Closer still each tile opens in itself, see drawTile
+	drawInsides(renderer, k, insidePanels) {
+
+		const ctx   = renderer.ctx;
+		const look  = this.view.look;
+		const gates    = new Map();
+		const [tw, th] = AppMapPanels.TILE;
+
+		this.inspecting.clear();
+
+		for (const { n, panel, strong } of insidePanels) {
+
+			this.requestInside(n);
+
+			const data   = this.insides.get(n);
+			const colour = renderer.colorOf(n);
+
+			if (n.k === 'api' && data?.sections) {
+				this.refreshGrantUsage(data);
+			}
+			const em     = panel.em;
+			const radius = AppMapPanels.corner(panel.width, panel.height, k);
+			const read   = panel.px >= AppMapPanels.CODE_READ;
+
+			ctx.save();
+			this.drawCard(ctx, panel.x0, panel.y0, panel.width, panel.height, colour, k, 0.35 + 0.65 * strong, radius);
+
+			ctx.beginPath();
+			ctx.roundRect(panel.x0, panel.y0, panel.width, panel.height, radius);
+			ctx.clip();
+
+			const head = { x0: panel.x0, y0: panel.y0, width: panel.width, height: panel.height, ...panel.size, line: panel.y0 + panel.head };
+
+			if (read) {
+
+				this.inspecting.add(n);
+
+				if (data?.open) {
+					this.cards.push({ n, open: data.open, rect: [panel.x0, panel.y0, panel.width, panel.height], foot: panel.size.foot, opacity: 1 });
+				}
+
+				this.drawHeader(renderer, head, data?.kindLabel ?? AppMapModel.KIND_LABEL[n.k], n.n, colour, k);
+
+			} else {
+
+				ctx.globalAlpha = 0.35 + 0.65 * strong;
+				this.drawBand(ctx, head, colour);
+			}
+
+			const list    = [];
+			const slots   = AppMapPanels.requestSlots(renderer, panel.layout.items);
+
+			for (const item of panel.layout.items) {
+
+				// the rows of the requests on the card of a REST endpoint share their columns, see requestSlots
+				if (item.tile?.access) {
+					item.slots = slots;
+				}
+
+				const x = panel.left + item.x * em * panel.stretch;
+				const y = panel.top + item.y * em;
+
+				if (item.heading || item.note) {
+
+					if (read) {
+
+						ctx.globalAlpha = 1;
+						ctx.fillStyle   = look.label;
+						// a heading in small capitals no larger than the kind in a header, a note in the size of the rows
+						if (item.heading) {
+							renderer.screenText(item.heading.toUpperCase(), x, y, 600, Math.min(em * 0.62, AppMapPanels.HEAD.kind * 1.1 / k), false, 'left');
+						} else {
+							renderer.screenText(item.note, x, y, 400, em * 0.8, false, 'left');
+						}
+					}
+
+					continue;
+				}
+
+				// the card the tile lies in, for a glide into it, see AppMapView.glideIntoTile
+				item.card = n;
+
+				this.drawTile(renderer, item, x, y, (item.width ?? tw) * em * panel.stretch, th * em, em, k, read ? 1 : 0.2 + 0.3 * strong, read, item.tile.owner ?? n);
+
+				// the dot of a relationship stands at the side of the card, at the height of its tile, a little apart from
+				// those of the other tiles in its row
+				if (read && item.tile.target && !item.faded) {
+					list.push({ row: item.tile, y: y + th * em / 2 + (item.col - (panel.columns - 1) / 2) * th * em * 0.18, panel: { x0: panel.x0, width: panel.width } });
+				}
+			}
+
+			if (read) {
+
+				gates.set(n, list);
+			}
+
+			ctx.restore();
+		}
+
+		this.drawGates(renderer, k, gates);
+	}
+
+	// the colour of a row: that of the element of the map it leads to, of who may send a request (see ACCESS_COLOR) or of its
+	// method (see VERB_COLOR)
+	tintOf(renderer, tint) {
+
+		if (!tint) {
+			return null;
+		}
+
+		const dark = this.view.look.dark ? 1 : 0;
+
+		return tint.verb ? AppMapPanels.VERB_COLOR[tint.verb][dark] : (tint.access ? AppMapRenderer.ACCESS_COLOR[tint.access][dark] : renderer.colorOf(tint));
+	}
+
+	// a row of a card, as the fields of a database in Notion or Airtable: a small square with a sign (that of the type of a
+	// field, an arrow to another element, the sign of a grant or a member), then its name and a dot when it must be set; on
+	// the right a chip, in the colour of the element it leads to, stacked when it leads to many, as a repeater stacks its
+	// copies; a faded row (one a type inherits) is paler. The square is the box of the row, framed in its colour: closer
+	// up it opens in itself, as an HTML element does in its page, see drawBox
+	drawTile(renderer, item, x, y, width, height, em, k, alpha, read, n) {
+
+		const ctx    = renderer.ctx;
+		const look   = this.view.look;
+		const tile   = item.tile;
+		const tint   = this.tintOf(renderer, tile.tint);
+		const middle = y + height / 2;
+		const sign   = height * 0.62;
+		const size   = em * 0.9;
+		const wide   = tile.badge || tile.access ? sign * AppMapPanels.BADGE : sign;
+		const faded  = item.faded ? 0.65 : 1;
+
+		// the box of a permission stands at the end of its row, after what it allows, with the path in bold in front; every
+		// other box at the start
+		const end    = !!tile.access;
+		const box    = [end ? x + width - wide : x, middle - sign / 2, wide, sign];
+		const start  = end ? x : x + wide + em * 0.5;
+		const weight = end ? 700 : 500;
+
+		// the name, the chip and the dot give way while the box opens, slowly, over the whole of it (see drawBox)
+		const fade = 1 - Math.min(1, Math.max(0, (sign * k - AppMapPanels.TILE_SKETCH) / (AppMapPanels.TILE_OPEN - AppMapPanels.TILE_SKETCH)));
+
+		ctx.save();
+		ctx.globalAlpha = alpha * faded * (read && tile.name ? fade : 1);
+
+		if (!read || !tile.name) {
+
+			// from afar a grey square for the box and a bar for the name
+			ctx.fillStyle   = look.trace;
+			ctx.globalAlpha = alpha * 0.45;
+			ctx.fillRect(...box);
+			ctx.fillRect(start, middle - em * 0.2, Math.min(width * 0.55, (tile.name?.length ?? 8) * em * 0.5), em * 0.4);
+			ctx.restore();
+
+			return;
+		}
+
+		const limit = end ? box[0] - em * 0.5 : x + width;
+		let   room  = limit - start;
+
+		// the rows of the requests stand in columns (see requestSlots): what lies before the chip begins where the widest
+		// chip of the card begins, not where its own does
+		const slots = item.slots ?? null;
+
+		// on the right, the chip
+		if (tile.chip) {
+
+			const ink   = this.tintOf(renderer, tile.chipTint) ?? tint ?? look.label;
+			const label = AppMapPanels.cutText(renderer, tile.chip, 600, em * 0.72, width * 0.45);
+			const across = renderer.textWidth(label, 600) / AppMapRenderer.LABEL_SIZE * em * 0.72 + em * 0.9;
+			const high   = height * 0.62;
+			const left   = limit - across - (tile.many ? em * 0.25 : 0);
+
+			if (tile.many) {
+
+				ctx.strokeStyle = d3.color(ink).copy({ opacity: 0.45 }).formatRgb();
+				ctx.lineWidth   = 1 / k;
+				ctx.beginPath();
+				ctx.roundRect(left + em * 0.25, middle - high / 2 - em * 0.18, across, high, high / 2);
+				ctx.stroke();
+			}
+
+			ctx.beginPath();
+			ctx.roundRect(left, middle - high / 2, across, high, high / 2);
+			ctx.fillStyle = look.card;
+			ctx.fill();
+			ctx.fillStyle = d3.color(ink).copy({ opacity: look.dark ? 0.22 : 0.12 }).formatRgb();
+			ctx.fill();
+
+			ctx.fillStyle = ink;
+			renderer.screenText(label, left + em * 0.45, middle, 600, em * 0.72, false, 'left');
+
+			room = (slots ? limit - Math.min(slots.chip * em, width * 0.45 + em * 0.9) : left) - start - em * 0.5;
+		}
+
+		// before the chip, how often the request was sent in the last days: the number, in grey, and before it the requests
+		// per day as bars (see drawSeries)
+		if (tile.count != null) {
+
+			const font   = em * 0.66;
+			const across = renderer.textWidth(tile.count, 600) / AppMapRenderer.LABEL_SIZE * font;
+
+			ctx.fillStyle = look.label;
+			renderer.screenText(tile.count, start + room - across, middle, 600, font, false, 'left');
+
+			room -= (slots ? slots.count * em : across) + em * 0.4;
+		}
+
+		if (tile.series) {
+
+			const wide = Math.min(em * 6, room * 0.3);
+			const high = height * 0.56;
+
+			AppMapPanels.drawSeries(ctx, tile.series, start + room - wide, middle - high / 2, wide, high, look.label, AppMapPanels.VERB_COLOR.DELETE[look.dark ? 1 : 0], k);
+
+			room -= wide + em * 0.6;
+		}
+
+		// before it, the methods a request allows, each as a badge in its colour, faded where it is set without effect
+		if (tile.verbs?.length) {
+
+			const dark  = look.dark ? 1 : 0;
+			const font  = em * 0.6;
+			const high  = height * 0.5;
+			let   right = start + room;
+
+			// in columns each method has its place, so that they stand below each other; else they follow each other
+			const order = slots ? slots.verbs.map(verb => tile.verbs.find(v => v.verb === verb) ?? { verb, absent: true }) : tile.verbs;
+
+			for (const { verb, live, absent } of [...order].reverse()) {
+
+				const across = renderer.textWidth(verb, 700) / AppMapRenderer.LABEL_SIZE * font + em * 0.6;
+
+				right -= across;
+
+				if (absent) {
+
+					right -= em * 0.25;
+					continue;
+				}
+
+				ctx.save();
+				ctx.globalAlpha *= live ? 1 : 0.35;
+				ctx.beginPath();
+				ctx.roundRect(right, middle - high / 2, across, high, high * 0.2);
+				ctx.fillStyle = AppMapPanels.VERB_COLOR[verb][dark];
+				ctx.fill();
+				ctx.fillStyle = look.dark ? '#0b0e12' : '#ffffff';
+				renderer.screenText(verb, right + across / 2, middle, 700, font, false, 'center');
+				ctx.restore();
+				right -= em * 0.25;
+			}
+
+			room = right - start - em * 0.5;
+		}
+
+		// the name, and a dot when it must be set
+		const name = AppMapPanels.cutText(renderer, tile.name, weight, size, room);
+
+		ctx.fillStyle = item.faded ? look.label : look.labelFocus;
+		renderer.screenText(name, start, middle, weight, size, !!(tile.badge || tile.mono), 'left');
+
+		if (tile.dot) {
+
+			ctx.fillStyle = renderer.colorOf(n);
+			ctx.beginPath();
+			ctx.arc(start + renderer.textWidth(name, weight) / AppMapRenderer.LABEL_SIZE * size + em * 0.4, middle, em * 0.16, 0, 2 * Math.PI);
+			ctx.fill();
+		}
+
+		ctx.restore();
+
+		// the box, where it stands on the map, also for a double click and a glide into it (see AppMapView.glideIntoTile)
+		item.box = box;
+		this.tiles.push({ n, item, x: box[0], y: box[1], width: box[2], height: box[3] });
+
+		this.drawBox(renderer, item, n, box, k, alpha * faded);
+	}
+
+	// the box of a row: closed, a light square framed in its colour (that of the element it leads to, else that of the
+	// element of the card) with its sign; as it comes closer (from TILE_SKETCH to TILE_OPEN pixels high) it opens in itself
+	// to a card like every other, with its name in the header, below it its settings as the controls of an HTML element show
+	// them, and at its foot the way out of the map, where there is one (see AppMapView.placeOpenButton)
+	drawBox(renderer, item, n, box, k, alpha) {
+
+		const ctx    = renderer.ctx;
+		const look   = this.view.look;
+		const tile   = item.tile;
+		const tint   = this.tintOf(renderer, tile.tint);
+		const colour = tint ?? renderer.colorOf(n);
+		const [x, y, width, height] = box;
+		const change = Math.min(1, Math.max(0, (height * k - AppMapPanels.TILE_SKETCH) / (AppMapPanels.TILE_OPEN - AppMapPanels.TILE_SKETCH)));
+		const radius = Math.min(height * 0.22, AppMapPanels.corner(width, height, k));
+		const shape  = new Path2D();
+
+		shape.roundRect(x, y, width, height, radius);
+
+		ctx.save();
+		ctx.globalAlpha = alpha;
+		ctx.fillStyle   = tile.badge && change < 0.5 ? tint : (tint ? d3.color(tint).copy({ opacity: look.dark ? 0.2 : 0.1 }).formatRgb() : (look.dark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(16, 24, 40, 0.05)'));
+		ctx.fill(shape);
+		// a box under the pointer stands out with a stronger frame, see AppMapView.onPointerMove
+		const lit = this.view.hoveredTile === item && change < 0.5;
+
+		ctx.strokeStyle = d3.color(colour).copy({ opacity: lit ? 1 : 0.55 }).formatRgb();
+		ctx.lineWidth   = lit ? 2 / k : Math.min(Math.max(1 / k, width * 0.03), 1.6 / k);
+		ctx.stroke(shape);
+
+		// closed: the sign, which gives way to the card
+		if (change < 0.5) {
+
+			ctx.globalAlpha = alpha * (1 - 2 * change);
+
+			if (tile.badge) {
+
+				// the method in white on its colour, as a badge
+				ctx.fillStyle = look.dark ? '#0b0e12' : '#ffffff';
+				renderer.screenText(tile.badge, x + width / 2, y + height / 2, 700, height * 0.4, false, 'center');
+
+			} else if (tile.access) {
+
+				// a permission: the matrix it opens to in small, public and signed-in users by the methods (see drawMatrix)
+				const across = width / AppMapPanels.VERBS.length;
+
+				tile.access.rows.slice(0, 2).forEach((row, j) => row.cells.forEach((state, i) => {
+					this.drawCell(ctx, x + across * (i + 0.5), y + height * (0.32 + j * 0.36), height * 0.12, state, look, k);
+				}));
+
+			} else if (tile.arrow) {
+
+				ctx.fillStyle = tint ?? look.label;
+				renderer.screenText('→', x + width / 2, y + height / 2, 700, height * 0.58, false, 'center');
+
+			} else if (tile.glyph) {
+
+				ctx.fillStyle = tint ?? look.label;
+				renderer.screenText(tile.glyph, x + width / 2, y + height / 2, 700, height * (tile.glyph.length > 1 ? 0.42 : 0.55), false, 'center');
+
+			} else {
+
+				this.drawTypeSign(renderer, tile.sign, x + width / 2, y + height / 2, width, look.label);
+			}
+
+			this.drawOpenSign(renderer, x + width, y + height, height, k, colour, lit);
+
+			ctx.restore();
+			return;
+		}
+
+		// its settings: a label in small capitals on the left and the value on the right, in a field behind the longest label
+		// or, yes or no, as a box that is ticked or not at the right edge; several of them side by side under the labels of a
+		// row without a name of its own; to be changed where the way at the foot of the card leads
+		const settings = tile.settings ?? [];
+		const head     = AppMapPanels.headSize(width, height, k);
+		const top      = y + head.depth;
+		const bottom   = y + height - head.foot;
+		const step     = Math.min((bottom - top) / (settings.length + 0.6), AppMapPanels.TILE_TEXT * 2.1 / k);
+		const font     = step / 2.1;
+		const left     = x + head.inset;
+		const right    = x + width - head.inset;
+		const labels   = d3.max(settings, ([label]) => renderer.textWidth(label.toUpperCase(), 600) / AppMapRenderer.LABEL_SIZE * font * 0.72) ?? 0;
+		const fieldX   = Math.min(left + labels + font, left + (width - 2 * head.inset) * 0.6);
+		const fieldW   = right - fieldX;
+		const ground   = look.dark ? 'rgba(255, 255, 255, 0.05)' : '#f6f7f9';
+		const edge     = look.dark ? 'rgba(255, 255, 255, 0.14)' : '#dfe3e8';
+		const column   = fieldW / 2;
+
+		const tick = (cx, line, value) => {
+
+			const high = font * 1.55;
+
+			ctx.lineWidth = 1 / k;
+			ctx.beginPath();
+			ctx.roundRect(cx, line - high / 2, high, high, high * 0.2);
+			ctx.fillStyle   = value ? colour : ground;
+			ctx.strokeStyle = value ? colour : edge;
+			ctx.fill();
+			ctx.stroke();
+
+			if (value) {
+
+				ctx.strokeStyle = look.card;
+				ctx.lineWidth   = high * 0.14;
+				ctx.lineCap     = 'round';
+				ctx.beginPath();
+				ctx.moveTo(cx + high * 0.25, line + high * 0.02);
+				ctx.lineTo(cx + high * 0.43, line + high * 0.2);
+				ctx.lineTo(cx + high * 0.76, line - high * 0.2);
+				ctx.stroke();
+			}
+		};
+
+		ctx.globalAlpha = alpha * (2 * change - 1);
+		ctx.fillStyle   = look.card;
+		ctx.fill(shape);
+		ctx.stroke(shape);
+
+		this.drawHeader(renderer, { x0: x, y0: y, width, height, ...head, line: top, band: { x, width, outline: shape } }, tile.access ? 'Permission' : (tile.kind ?? ''), tile.badge ? `${tile.badge} ${tile.name}` : tile.name, colour, k);
+
+		if (tile.access) {
+			this.drawMatrix(renderer, item, n, left, right, top, bottom, k, change);
+		}
+
+		settings.forEach(([label, value, link, key], i) => {
+
+			const line = top + step * (i + 0.8);
+			const high = font * 1.55;
+
+			ctx.fillStyle = look.label;
+			renderer.screenText(label.toUpperCase(), left, line, 600, font * 0.72, false, 'left');
+
+			if (Array.isArray(value)) {
+
+				// the labels of the columns, or a box per column
+				value.forEach((v, c) => {
+
+					if (typeof v === 'boolean') {
+
+						tick(fieldX + c * column, line, v);
+
+					} else {
+
+						ctx.fillStyle = look.label;
+						renderer.screenText(String(v).toUpperCase(), fieldX + c * column, line, 600, font * 0.72, false, 'left');
+					}
+				});
+
+			} else if (typeof value === 'boolean') {
+
+				tick(right - font * 1.55, line, value);
+
+				// a setting that can be switched answers a click once the box stands open
+				if (key && tile.edit && change >= 0.9) {
+					this.toggles.push({ rect: [right - font * 1.55, line - font * 0.78, font * 1.55, font * 1.55], item, n, index: i, key });
+				}
+
+			} else {
+
+				ctx.lineWidth = 1 / k;
+				ctx.beginPath();
+				ctx.roundRect(fieldX, line - high / 2, fieldW, high, high * 0.15);
+				ctx.fillStyle   = ground;
+				ctx.strokeStyle = edge;
+				ctx.fill();
+				ctx.stroke();
+
+				ctx.fillStyle = link ? this.tintOf(renderer, link) : look.labelFocus;
+				renderer.screenText(AppMapPanels.cutText(renderer, String(value), link ? 600 : 400, font, fieldW - font), fieldX + font * 0.5, line, link ? 600 : 400, font, false, 'left');
+			}
+		});
+
+		if (tile.open) {
+			this.cards.push({ n, item, open: tile.open, rect: box, foot: head.foot, opacity: 2 * change - 1 });
+		}
+
+		ctx.restore();
+	}
+
+	// the matrix of the permission of a request in its open box (see matrixOf), as the policy editors of Supabase or
+	// Firebase show roles and actions: a column per method, headed in its colour; a row per
+	// audience with its sign, its name and in small grey text who it is, and a cell per method. The cells of public and
+	// signed-in users, and of a grantee where not every signed-in user is allowed anyway, answer a click once the box stands
+	// open (see AppMapView.flipAccess); below them what the colours mean, where they are not plain, and that admins may
+	// always send every request
+	drawMatrix(renderer, item, n, left, right, top, bottom, k, change) {
+
+		const ctx    = renderer.ctx;
+		const look   = this.view.look;
+		const tile   = item.tile;
+		const access = tile.access;
+		const step   = Math.min((bottom - top) / (access.lines + 0.6), AppMapPanels.TILE_TEXT * 2.1 / k) * AppMapPanels.ACCESS_LINE;
+		const font   = step / 1.3;
+		const dark   = look.dark ? 2 : 1;
+		const names  = (right - left) * 0.4;
+		const column = (right - left - names) / AppMapPanels.VERBS.length;
+		const centre = i => left + names + column * (i + 0.5);
+		const live   = !!tile.grant?.id && change >= 0.9;
+		const rowH   = step * access.rowH;
+		let   line   = top + step * 1.1;
+
+		// the methods above their columns, in their colours
+		AppMapPanels.VERBS.forEach(([verb], i) => {
+
+			ctx.fillStyle = AppMapPanels.VERB_COLOR[verb][dark - 1];
+			renderer.screenText(verb, centre(i), line, 700, font * 0.68, false, 'center');
+		});
+
+		line += step * 0.5 + rowH / 2;
+
+		for (const row of access.rows) {
+
+			this.drawAudienceSign(ctx, row.icon, left + font * 0.6, line - step * 0.3, font * 0.6, look.dark ? '#c9d1d9' : '#495057');
+
+			ctx.fillStyle = look.labelFocus;
+			renderer.screenText(AppMapPanels.cutText(renderer, row.who, 600, font, names - font * 2), left + font * 1.6, line - step * 0.3, 600, font, false, 'left');
+			ctx.fillStyle = look.label;
+			renderer.screenText(AppMapPanels.cutText(renderer, row.about, 400, font * 0.72, names - font * 2), left + font * 1.6, line + step * 0.45, 400, font * 0.72, false, 'left');
+
+			row.cells.forEach((state, i) => {
+
+				const r = font * 0.5;
+
+				this.drawCell(ctx, centre(i), line, r, state, look, k);
+
+				if (live && state !== 'implied') {
+					this.toggles.push({ rect: [centre(i) - r * 1.8, line - r * 1.8, r * 3.6, r * 3.6], item, n, key: row.kind, column: i, state, label: `${AppMapPanels.VERBS[i][0]} for ${row.who}` });
+				}
+			});
+
+			// below the cells of public and signed-in users, how often they sent the method in the last days: allowed in
+			// grey, denied after it in red; the grantees are among the signed-in users, the usage does not tell them apart
+			if (access.use && (row.kind === 'pub' || row.kind === 'auth')) {
+
+				AppMapPanels.VERBS.forEach(([verb], i) => {
+
+					const use = access.use.flags[(row.kind === 'pub' ? 'NON_AUTH_USER_' : 'AUTH_USER_') + verb];
+
+					if (!use) {
+						return;
+					}
+
+					const allowed = AppMapPanels.shortCount(use.allowed);
+					const denied  = use.denied ? ' / ' + AppMapPanels.shortCount(use.denied) : '';
+					const size    = font * 0.62;
+					const width   = renderer.textWidth(allowed + denied, 600) / AppMapRenderer.LABEL_SIZE * size;
+					const x0      = centre(i) - width / 2;
+					const y0      = line + step * 0.95;
+
+					ctx.fillStyle = look.label;
+					renderer.screenText(allowed, x0, y0, 600, size, false, 'left');
+
+					if (denied) {
+
+						ctx.fillStyle = AppMapPanels.VERB_COLOR.DELETE[dark - 1];
+						renderer.screenText(denied, x0 + renderer.textWidth(allowed, 600) / AppMapRenderer.LABEL_SIZE * size, y0, 600, size, false, 'left');
+					}
+				});
+			}
+
+			line += rowH;
+		}
+
+		line += step * 0.1;
+
+		// what the colours mean, those that are not plain
+		for (const state of access.legend) {
+
+			this.drawCell(ctx, left + font * 0.6, line, font * 0.36, state, look, k);
+			ctx.fillStyle = look.label;
+			renderer.screenText(AppMapPanels.ACCESS_CELL[state][0], left + font * 1.6, line, 400, font * 0.72, false, 'left');
+			line += step * 1.1;
+		}
+
+		ctx.fillStyle = look.label;
+		renderer.screenText('Admins may always send every request.', left, line + step * 0.3, 400, font * 0.72, false, 'left');
+
+		// how often the permission decided a request, below the cells per method and here in sum; requests of admins do not
+		// count, they need no permission
+		if (access.use) {
+
+			// on its own scale here, the rows of the card share one (see annotateUsage)
+			const use    = { ...access.use, peak: d3.max(access.use.series, d => d.allowed + d.denied) ?? 0 };
+			const chartY = line + step * 2.5;
+			const chartH = step * AppMapPanels.CHART_LINES;
+			const date   = day => new Date(day).toLocaleDateString(undefined, { day: 'numeric', month: 'short', timeZone: 'UTC' });
+
+			renderer.screenText(AppMapPanels.cutText(renderer, AppMapPanels.describeGrantUsage(use), 400, font * 0.72, right - left), left, line + step * 1.4, 400, font * 0.72, false, 'left');
+
+			AppMapPanels.drawSeries(ctx, use, left, chartY, right - left, chartH, look.label, AppMapPanels.VERB_COLOR.DELETE[dark - 1], k);
+
+			ctx.fillStyle = look.label;
+			renderer.screenText(date(use.series[0].day), left, chartY + chartH + step * 0.6, 400, font * 0.66, false, 'left');
+			renderer.screenText(date(use.series[use.series.length - 1].day), right, chartY + chartH + step * 0.6, 400, font * 0.66, false, 'right');
+
+			if (use.peak) {
+				renderer.screenText(`${use.peak.toLocaleString()} on the busiest day`, left + (right - left) / 2, chartY + chartH + step * 0.6, 400, font * 0.66, false, 'center');
+			}
+		}
+	}
+
+	// a cell of the matrix of a permission: a disc in the colour of its state, with a tick where it is allowed, a ring with a
+	// dot where only the grantees are, a ring where it is set without effect, a faint ring where it is not allowed
+	drawCell(ctx, cx, cy, r, state, look, k) {
+
+		const [, light, dark] = AppMapPanels.ACCESS_CELL[state];
+		const tone            = look.dark ? dark : light;
+
+		ctx.save();
+		ctx.beginPath();
+		ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+
+		if (state === 'yes' || state === 'implied') {
+
+			ctx.fillStyle = state === 'implied' ? d3.color(tone).copy({ opacity: 0.55 }).formatRgb() : tone;
+			ctx.fill();
+
+			ctx.strokeStyle = look.card;
+			ctx.lineWidth   = r * 0.28;
+			ctx.lineCap     = 'round';
+			ctx.lineJoin    = 'round';
+			ctx.beginPath();
+			ctx.moveTo(cx - r * 0.42, cy + r * 0.02);
+			ctx.lineTo(cx - r * 0.1, cy + r * 0.32);
+			ctx.lineTo(cx + r * 0.45, cy - r * 0.3);
+			ctx.stroke();
+
+		} else {
+
+			ctx.strokeStyle = state === 'no' ? d3.color(tone).copy({ opacity: 0.7 }).formatRgb() : tone;
+			ctx.lineWidth   = state === 'no' ? Math.max(1 / k, r * 0.12) : r * 0.24;
+			ctx.stroke();
+
+			if (state === 'some') {
+
+				ctx.beginPath();
+				ctx.arc(cx, cy, r * 0.38, 0, 2 * Math.PI);
+				ctx.fillStyle = tone;
+				ctx.fill();
+			}
+		}
+
+		ctx.restore();
+	}
+
+	// the sign of an audience: the world for public users, a person for signed-in users and a user, two for a group
+	drawAudienceSign(ctx, icon, cx, cy, r, colour) {
+
+		const person = (px, py, size) => {
+
+			ctx.beginPath();
+			ctx.arc(px, py - size * 0.45, size * 0.38, 0, 2 * Math.PI);
+			ctx.fill();
+			ctx.beginPath();
+			ctx.ellipse(px, py + size * 0.55, size * 0.68, size * 0.48, 0, Math.PI, 2 * Math.PI);
+			ctx.fill();
+		};
+
+		ctx.save();
+		ctx.fillStyle   = colour;
+		ctx.strokeStyle = colour;
+		ctx.lineWidth   = r * 0.16;
+
+		if (icon === 'public') {
+
+			ctx.beginPath();
+			ctx.arc(cx, cy, r * 0.85, 0, 2 * Math.PI);
+			ctx.moveTo(cx - r * 0.85, cy);
+			ctx.lineTo(cx + r * 0.85, cy);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.ellipse(cx, cy, r * 0.38, r * 0.85, 0, 0, 2 * Math.PI);
+			ctx.stroke();
+
+		} else if (icon === 'group') {
+
+			ctx.globalAlpha *= 0.55;
+			person(cx + r * 0.42, cy - r * 0.05, r * 0.75);
+			ctx.globalAlpha /= 0.55;
+			person(cx - r * 0.25, cy + r * 0.05, r * 0.85);
+
+		} else {
+
+			person(cx, cy, r * 0.95);
+		}
+
+		ctx.restore();
+	}
+
+	// the magnifier with a plus that says there is more inside, as on the boxes of HTML elements (see drawZoomSign): small
+	// and faint at the lower right corner of a box, once the box is large enough on the screen to carry it; on a disc in the
+	// colour of the box while the pointer is on it
+	drawOpenSign(renderer, cx, cy, size, k, colour, lit) {
+
+		const ctx    = renderer.ctx;
+		const radius = size * (lit ? 0.3 : 0.2);
+
+		if (size * k < AppMapPanels.OPEN_SIGN) {
+			return;
+		}
+
+		ctx.save();
+
+		if (lit) {
+
+			ctx.beginPath();
+			ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+			ctx.fillStyle = colour;
+			ctx.fill();
+
+		} else {
+
+			ctx.globalAlpha *= 0.6;
+		}
+
+		// drawZoomSign puts the glass a little up and to the left of the point it is given, as much as the handle reaches
+		// down and to the right, so the sign as a whole stands in the middle of the disc; small enough to keep clear of its rim
+		this.drawZoomSign(ctx, cx, cy, radius * 1.5, lit ? this.view.look.card : colour);
+		ctx.restore();
+	}
+
+	// the sign of the type of a field, as databases show it: Aa for text, # for numbers, a tick for yes or no, a calendar
+	// for dates, ƒ for what is computed, ≡ for a choice; a dot for anything else
+	drawTypeSign(renderer, type, cx, cy, size, ink) {
+
+		const ctx  = renderer.ctx;
+		const sign = AppMapPanels.TYPE_SIGNS[String(type).replace(/\[\]$/, '')] ?? '•';
+
+		ctx.save();
+		ctx.fillStyle   = ink;
+		ctx.strokeStyle = ink;
+
+		if (sign === 'date') {
+
+			// a calendar: a frame with a bar on top
+			const w = size * 0.5;
+
+			ctx.lineWidth = size * 0.07;
+			ctx.beginPath();
+			ctx.roundRect(cx - w / 2, cy - w / 2 + size * 0.03, w, w * 0.9, size * 0.06);
+			ctx.stroke();
+			ctx.fillRect(cx - w / 2, cy - w / 2 + size * 0.03, w, w * 0.25);
+
+		} else {
+
+			renderer.screenText(sign, cx, cy, 700, size * (sign.length > 1 ? 0.42 : 0.55), false, 'center');
+		}
+
+		ctx.restore();
+	}
+
+	// whether a relation is drawn from the row of an open type instead of between the middles of its elements: a schema
+	// relationship of a type whose card can be read
+	withinOpenType(l) {
+
+		return l.kind === 'relates' && (this.inspecting.has(l.source) || this.inspecting.has(l.target));
+	}
+
+	// the schema relationships of the open types, each from the row of the property that holds it, at the side of the card
+	// that faces the type on the other end, with a dot there; to that type's own row when it is open too, else to its
+	// middle. Rows and relationships pair up by the type on the other end, in order, as the schema gives both
+	drawGates(renderer, k, gates) {
+
+		const ctx  = renderer.ctx;
+		const look = this.view.look;
+		const done = new Set();
+
+		const gateOf = (n, other) => {
+
+			const list  = gates.get(n);
+			const found = list?.find(g => g.row.target === other && !g.used);
+
+			if (!found) {
+				return null;
+			}
+
+			found.used = true;
+
+			const { panel } = found;
+			const right     = other.x >= n.x;
+
+			return { x: right ? panel.x0 + panel.width : panel.x0, y: found.y, out: right ? 1 : -1, colour: renderer.colorOf(other) };
+		};
+
+		ctx.save();
+		ctx.lineWidth   = 1.2 / k;
+		ctx.strokeStyle = look.trace;
+		ctx.fillStyle   = look.trace;
+		ctx.globalAlpha = 0.8;
+
+		for (const n of gates.keys()) {
+
+			for (const l of this.view.links) {
+
+				if (l.kind !== 'relates' || done.has(l) || (l.source !== n && l.target !== n) || l.source === l.target) {
+					continue;
+				}
+
+				done.add(l);
+
+				const other = l.source === n ? l.target : l.source;
+				const from  = gateOf(n, other);
+
+				if (!from) {
+					continue;
+				}
+
+				const to    = gates.has(other) ? gateOf(other, n) : null;
+				const end   = to ?? { x: other.x, y: other.y, out: 0 };
+				const reach = Math.max(Math.abs(end.x - from.x) * 0.5, 30 / k);
+
+				ctx.beginPath();
+				ctx.moveTo(from.x, from.y);
+				ctx.bezierCurveTo(from.x + from.out * reach, from.y, end.x + end.out * reach, end.y, end.x, end.y);
+				ctx.stroke();
+
+				// a dot in the colour of the type on the other end, set off from the card by a rim
+				for (const p of to ? [from, to] : [from]) {
+
+					ctx.beginPath();
+					ctx.arc(p.x, p.y, 3.2 / k, 0, 2 * Math.PI);
+					ctx.fillStyle   = p.colour;
+					ctx.strokeStyle = look.card;
+					ctx.lineWidth   = 1.5 / k;
+					ctx.fill();
+					ctx.stroke();
+					ctx.strokeStyle = look.trace;
+					ctx.lineWidth   = 1.2 / k;
+				}
+			}
+		}
+
+		ctx.restore();
+	}
+
 	draw(renderer, k) {
 
+		this.tiles   = [];
+		this.cards   = [];
+		this.toggles = [];
+
 		const codePanels = this.codePanels(renderer, k);
+		const insidePanels = this.insidePanels(renderer, k);
 		const panels     = [...this.trees].map(([page, tree]) => [page, tree, this.onScreen(renderer, page, k, 2000) ? this.pagePanel(page, tree, k) : null]);
 		const near       = Math.max(
 			d3.max(panels, ([, , panel]) => panel ? Math.min(1, Math.max(0, (panel.row - AppMapPanels.SKETCH_ROW) / (AppMapPanels.OPEN_ROW - AppMapPanels.SKETCH_ROW))) : 0) ?? 0,
-			d3.max(codePanels, c => c.strong) ?? 0
+			d3.max(codePanels, c => c.strong) ?? 0,
+			d3.max(insidePanels, c => c.strong) ?? 0
 		);
 
 		// the closer a page comes, the further the map around it steps back behind a veil, so that its card stands apart
@@ -685,6 +2507,7 @@ class AppMapPanels {
 		}
 
 		this.drawCode(renderer, k, codePanels);
+		this.drawInsides(renderer, k, insidePanels);
 
 		for (const [page, tree, panel] of panels) {
 
@@ -702,7 +2525,7 @@ class AppMapPanels {
 		}
 	}
 
-	// a page close enough opens inside itself: the tree from left to right, with right-angled branches, every element a
+	// a page close enough opens inside itself: the tree from top to bottom, with curved branches, every element a
 	// labelled box, repeaters with their data and stacked copies, actions in orange
 	drawPanel(renderer, page, tree, panel, k) {
 
@@ -767,18 +2590,11 @@ class AppMapPanels {
 			this.drawPill(renderer, d, x, y, w, s, k, lit && !opening, change);
 
 			if (opening) {
-
 				this.drawElement(renderer, d, k, panelOf, change);
-				continue;
 			}
 
-			// what an element without children shows, in the free space behind it, as long as the elements are too small to
-			// open; closer up the text would grow far beyond the screen, also from elements beside it
-			if (d.data.shows && !d.children && boxH * k < AppMapPanels.ELEMENT_SKETCH) {
-				const end = Math.min(x + d.room * s - 1.6 * s, page.x + panel.hw - 1.6 * s);
-
-				this.drawShows(renderer, d.data.shows, x + w + 0.8 * s, y, end - x - w - 0.8 * s, s);
-			}
+			// on top of everything, also of the folded corner of a sheet and of the header of an open element
+			this.drawProblemMark(renderer.ctx, d, x, y - r, w, s, k);
 		}
 
 		tree.frame = [page.x - panel.hw, page.y - panel.hh, 2 * panel.hw, 2 * panel.hh];
@@ -786,6 +2602,106 @@ class AppMapPanels {
 	}
 
 	// the box of an HTML element: a plain element a white box with a fine grey edge, one that does something with an edge and
+	// what is wrong with an HTML element: the scripting errors it caused while rendering, which the Pages area keeps (see
+	// _Pages.problems), and what cannot work in its repeater (see buildTrees)
+	static problemsOf(d) {
+
+		const errors = (typeof _Pages === 'undefined' || !d.data.id) ? [] : _Pages.problems.getRuntimeProblems({ id: d.data.id });
+
+		return { errors, warnings: d.warnings ?? [] };
+	}
+
+	/**
+	 * How many HTML elements of a page or shared component have problems: { errors, warnings }. Those of its tree, and for
+	 * a page also those below the depth of its outline, which the Pages area finds by their page (see
+	 * _Pages.problems.erroneousNodes), and the page itself. Counted anew when the scripting errors were loaded anew.
+	 */
+	problemsOfPage(n) {
+
+		const runtime = typeof _Pages === 'undefined' ? null : _Pages.problems.runtimeErrors;
+
+		if (this.countedFor !== runtime) {
+
+			this.counted    = new Map();
+			this.countedFor = runtime;
+		}
+
+		let result = this.counted.get(n);
+
+		if (!result) {
+
+			const list   = this.trees.get(n)?.list ?? [];
+			const errors = new Set(list.filter(d => d.data.id && runtime?.has(d.data.id)).map(d => d.data.id));
+
+			if (runtime && n.k === 'page') {
+
+				for (const [id, node] of _Pages.problems.erroneousNodes) {
+
+					if (node.pageId === n.id) {
+						errors.add(id);
+					}
+				}
+			}
+
+			result = { errors: errors.size, warnings: list.filter(d => d.warnings?.length).length };
+
+			this.counted.set(n, result);
+		}
+
+		return result;
+	}
+
+	// a mark at the top right corner of the box of an HTML element that has problems: red for scripting errors, else amber
+	drawProblemMark(ctx, d, x, top, w, s, k) {
+
+		const { errors, warnings } = AppMapPanels.problemsOf(d);
+
+		if (errors.length || warnings.length) {
+
+			// it grows with the box only up to a few pixels on screen, beyond that much more slowly, so that it does not
+			// cover the controls of an open element
+			const onScreen = 0.55 * s * k;
+			const radius   = (onScreen > 10 ? 10 * Math.pow(onScreen / 10, 0.3) : onScreen) / k;
+
+			this.drawProblemSign(ctx, x + w - 0.15 * s, top + 0.15 * s, radius, k, errors.length > 0);
+		}
+	}
+
+	// a filled circle in red or amber with an exclamation mark, once it can be told apart, and a rim in the colour of cards
+	drawProblemSign(ctx, cx, cy, radius, k, error) {
+
+		const look = this.view.look;
+		const s    = radius / 0.55;
+
+		ctx.save();
+		ctx.beginPath();
+		ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+		ctx.fillStyle   = error ? look.error : look.warning;
+		ctx.fill();
+		ctx.lineWidth   = Math.min(Math.max(0.8 / k, 0.12 * s), 2 / k);
+		ctx.strokeStyle = look.card;
+		ctx.stroke();
+
+		// an exclamation mark, once it can be told apart
+		if (radius * k > 4) {
+
+			ctx.strokeStyle = look.card;
+			ctx.lineWidth   = 0.14 * s;
+			ctx.lineCap     = 'round';
+			ctx.beginPath();
+			ctx.moveTo(cx, cy - 0.28 * s);
+			ctx.lineTo(cx, cy + 0.06 * s);
+			ctx.stroke();
+
+			ctx.fillStyle = look.card;
+			ctx.beginPath();
+			ctx.arc(cx, cy + 0.26 * s, 0.08 * s, 0, 2 * Math.PI);
+			ctx.fill();
+		}
+
+		ctx.restore();
+	}
+
 	// a bar on its left in the colour of what it does, filled with it when it is pointed at or held; a repeater on a stack of
 	// the copies it makes. Inside, the sign of what it does, its tag and a magnifier when it holds more; as the element opens
 	// (change from 0 to 1), they give way to its header and controls, see drawElement
@@ -950,16 +2866,27 @@ class AppMapPanels {
 
 		ctx.save();
 
-		const kind = d.data.repeater ? 'Repeater' : (d.data.action ? 'Event action' : ({ template: 'Template', script: 'Script', style: 'Style' }[d.data.tag] ?? 'HTML element'));
+		const kind = d.data.repeater ? 'Repeater' : (d.data.action ? 'Event action' : ({ template: 'Template', content: 'Script', script: 'Script', style: 'Style' }[d.data.tag] ?? 'HTML element'));
 
 		ctx.globalAlpha = Math.min(1, (change - 0.5) * 2);
-		this.drawHeader(renderer, panel.head, kind, `<${d.data.tag}>${d.data.key ? ' ' + d.data.key : ''}`, colour, k);
+		this.drawHeader(renderer, panel.head, kind, `${AppMapPanels.nameOf(d)}${d.data.key ? ' ' + d.data.key : ''}`, colour, k);
 
 		// the controls come with the header, growing and fading in with it, and go with it the same way
 		d.opened = { ...panel, change };
 
-		// a template shows its content as lines of text until it fills the screen, where its editor takes over
+		// a sheet shows its code until it fills the screen, where its editor takes over; while the code loads, grey lines
 		if (AppMapPanels.isSheet(d) && !this.view.showsControls(d)) {
+
+			const content = d.data.id ? (this.requestContent(d.data.id), this.contents.get(d.data.id)) : null;
+
+			if (content?.texts?.length) {
+
+				ctx.globalAlpha = Math.max(0, change * 2 - 1);
+				this.drawContent(renderer, AppMapPanels.contentOf(d, content.texts), area, area.width / (AppMapPanels.SHEET_COLUMNS * AppMapPanels.CODE_ADVANCE));
+				ctx.restore();
+
+				return;
+			}
 
 			const u = area.height / 40;
 
@@ -997,9 +2924,103 @@ class AppMapPanels {
 			ctx.roundRect(area.x + area.width * 0.6, area.y + u * 2, area.width * 0.4, u * 1.4, u * 0.15);
 			ctx.roundRect(area.x + area.width * 0.6, area.y + u * 4, area.width * 0.4, u * 1.4, u * 0.15);
 			ctx.fill();
+
+		} else if (this.view.editing !== d && d.data.text && d.data.id) {
+
+			// an element without its controls shows its text below the header
+			this.requestContent(d.data.id);
+
+			const content = this.contents.get(d.data.id);
+
+			if (content?.texts?.length) {
+
+				ctx.globalAlpha = Math.max(0, change * 2 - 1);
+				this.drawContent(renderer, AppMapPanels.contentOf(d, content.texts), area, AppMapPanels.CONTENT_TEXT * panel.fit / k);
+			}
 		}
 
 		ctx.restore();
+	}
+
+	// reads the texts of an HTML element once, when it first opens
+	requestContent(id) {
+
+		if (this.contents.has(id) || !this.view.loadContent) {
+			return;
+		}
+
+		this.contents.set(id, { loading: true });
+
+		Promise.resolve(this.view.loadContent(id)).then(texts => {
+
+			this.contents.set(id, { texts: texts ?? [] });
+			this.view.requestDraw();
+
+		}).catch(error => {
+
+			console.warn('Application map: the text of an element could not be read', error);
+
+			this.contents.set(id, { texts: [] });
+		});
+	}
+
+	// what an open HTML element shows of its texts: a sheet its code line by line, with no more than one empty line in a
+	// row; any other element its text as words, with its white space collapsed
+	static contentOf(d, texts) {
+
+		if (AppMapPanels.isSheet(d)) {
+
+			const lines  = texts.map(t => t.content).join('\n').replace(/\t/g, '    ').replace(/^\s*\n|\s+$/g, '').replace(/\n\s*\n(\s*\n)+/g, '\n\n').split('\n');
+			const indent = d3.min(lines.filter(l => l.trim()), l => l.length - l.trimStart().length) ?? 0;
+
+			// the lines of a block that is indented as a whole stand at the left edge
+			return { code: true, lines: lines.map(l => l.slice(Math.min(indent, l.length - l.trimStart().length))) };
+		}
+
+		return { code: false, text: texts.map(t => t.content).join(' ').replace(/\s+/g, ' ').trim() };
+	}
+
+	// the content of an open HTML element in its area: code line by line, cut at the width; a text broken into lines at
+	// its words; as many lines as fit the height
+	drawContent(renderer, content, area, size) {
+
+		const ctx   = renderer.ctx;
+		const look  = this.view.look;
+		const line  = size * 1.4;
+		const width = Math.floor(area.width / (size * AppMapPanels.CODE_ADVANCE));
+		const most  = Math.floor(area.height / line);
+
+		if (width < 4 || most < 1) {
+			return;
+		}
+
+		const cut   = text => text.length > width ? text.slice(0, width - 1) + '…' : text;
+		let   lines = [];
+
+		if (content.code) {
+
+			lines = content.lines.map(cut);
+
+		} else {
+
+			for (const word of content.text.split(' ')) {
+
+				const last = lines.length - 1;
+
+				if (last >= 0 && lines[last].length + 1 + word.length <= width) {
+					lines[last] += ' ' + word;
+				} else {
+					lines.push(cut(word));
+				}
+			}
+		}
+
+		if (lines.length > most) {
+			lines = [...lines.slice(0, most - 1), content.code ? `… ${lines.length - most + 1} more lines` : cut(lines[most - 1] + ' …')];
+		}
+
+		ctx.fillStyle = content.code ? look.labelFocus : look.labelNear;
+		lines.forEach((text, i) => renderer.screenText(text, area.x, area.y + line * (i + 0.6), 400, size, true, 'left'));
 	}
 
 	// a small magnifier with a plus: closer up there is more to see
@@ -1024,20 +3045,6 @@ class AppMapPanels {
 		ctx.restore();
 	}
 
-	// the template expressions of an element in code type, cut to the given width
-	drawShows(renderer, text, x, y, width, s) {
-
-		const size  = 0.9 * s;
-		const fit   = Math.floor(width / (size * AppMapPanels.CODE_ADVANCE));
-
-		if (fit < 4) {
-			return;
-		}
-
-		renderer.ctx.fillStyle = this.view.look.labelNear;
-		renderer.screenText(text.length > fit ? text.slice(0, fit - 1) + '…' : text, x, y, 400, size, true, 'left');
-	}
-
 	// the tree of a page that is not yet open: its branches and boxes without names, as strong as the page is close, on its
 	// sheet that lightens toward the frame it will become
 	drawSketch(renderer, page, tree, panel, k, strength) {
@@ -1051,6 +3058,9 @@ class AppMapPanels {
 
 		// the sheet turns into the frame early, so the sketch can be seen on it
 		this.drawFrame(ctx, page, panel, renderer.colorOf(page), k, Math.min(1, 0.55 + strength));
+
+		ctx.globalAlpha = 0.35 + 0.65 * strength;
+		this.drawBand(ctx, panel.head, renderer.colorOf(page));
 
 		ctx.globalAlpha = 0.45 + 0.55 * strength;
 		ctx.strokeStyle = look.trace;
@@ -1145,13 +3155,14 @@ class AppMapPanels {
 				continue;
 			}
 
-			// a relation of an element never runs back across the tree: where its way would leave the sheet behind its box,
-			// it leaves on the right at the height of its box and turns outside; only those of the page as a whole leave toward any side
+			// a relation of an element never runs back up across the tree: where its way would leave the sheet above its box,
+			// it leaves on the side of its target at the height of its box and turns outside; only those of the page as a whole
+			// leave toward any side
 			const from = AppMapPanels.origin(d, panel);
 			let   way  = AppMapPanels.crossing(page, panel, other);
 
-			if (d !== tree.root && (way.out[0] < 0 || (way.out[1] && page.x + way.along < from.x))) {
-				way = { out: [1, 0], along: from.y - page.y };
+			if (d !== tree.root && (way.out[1] < 0 || (way.out[0] && page.y + way.along < from.y))) {
+				way = { out: [Math.sign(other.x - page.x) || 1, 0], along: from.y - page.y };
 			}
 
 			const key = way.out.join();
@@ -1163,7 +3174,7 @@ class AppMapPanels {
 			const gate = gates.get(key);
 
 			gate.along.push(way.along);
-			gate.ahead = Math.max(gate.ahead, from.x - page.x);
+			gate.ahead = Math.max(gate.ahead, from.y - page.y);
 
 			if (!gate.lanes.has(colour)) {
 				gate.lanes.set(colour, { colour, count: 0, lit: false, lines: new Map(), boxes: [] });
@@ -1197,8 +3208,8 @@ class AppMapPanels {
 
 			const out    = gate.out;
 			const half   = out[0] ? panel.hh : panel.hw;
-			// a gate above or below lies no further left than the boxes whose relations leave through it
-			const mean   = out[1] ? Math.max(d3.mean(gate.along), gate.ahead) : d3.mean(gate.along);
+			// a gate on a side lies no higher than the boxes whose relations leave through it
+			const mean   = out[0] ? Math.max(d3.mean(gate.along), gate.ahead) : d3.mean(gate.along);
 			const place  = Math.max(-0.85 * half, Math.min(0.85 * half, mean));
 			const centre = out[0] ? { x: page.x + out[0] * panel.hw, y: page.y + place } : { x: page.x + place, y: page.y + out[1] * panel.hh };
 			const across = [-out[1], out[0]];
@@ -1221,24 +3232,24 @@ class AppMapPanels {
 					const back = Math.max(0, Math.min(bend, (at.x - from.x) * out[0] + (at.y - from.y) * out[1]));
 					const path = new Path2D();
 
-					// every line leaves its box to the right, as the tree reads, and turns where its gate lies elsewhere
-					const ahead = Math.max(Math.abs(at.x - from.x) * 0.4, 6 * panel.scale);
+					// every line leaves its box toward its gate, and turns square to the edge before it
+					const ahead = Math.max(Math.abs(out[0] ? at.x - from.x : at.y - from.y) * 0.4, 6 * panel.scale);
 
 					path.moveTo(from.x, from.y);
-					path.bezierCurveTo(from.x + ahead, from.y, at.x - out[0] * back, at.y - out[1] * back, at.x, at.y);
+					path.bezierCurveTo(from.x + out[0] * ahead, from.y + out[1] * ahead, at.x - out[0] * back, at.y - out[1] * back, at.x, at.y);
 
 					ctx.globalAlpha = alpha(lit);
 					ctx.lineWidth   = width(lit, 1);
 					ctx.stroke(path);
 				}
 
-				// beyond the edge one line to each element, the stronger the more it carries; one to an element behind the
-				// right edge first goes on to the right and turns around the sheet
+				// beyond the edge one line to each element, the stronger the more it carries; one to an element behind a side
+				// first goes on outward and turns around the sheet
 				for (const [other, line] of lane.lines) {
 
 					ctx.globalAlpha = alpha(line.lit);
 					ctx.lineWidth   = width(line.lit, line.count);
-					ctx.stroke(out[0] > 0 && other.x < at.x ? AppMapPanels.turn(at, other, page, panel, k) : AppMapRenderer.arc(at, other, 0.12));
+					ctx.stroke(out[0] && (other.x - at.x) * out[0] < 0 ? AppMapPanels.turn(at, other, page, panel, k) : AppMapRenderer.arc(at, other, 0.12));
 				}
 			});
 		}
@@ -1246,14 +3257,15 @@ class AppMapPanels {
 		ctx.globalAlpha = 1;
 	}
 
-	// from a gate on the right edge of an open page to an element behind it: out to the right, turning up or down toward
-	// the element, along the edge of the sheet, past its corner when the element lies beside the sheet, and on to the
-	// element; the way keeps clear of the sheet by some pixels whatever the zoom
+	// from a gate on a side of an open page to an element behind it: outward, turning up or down toward the element, along
+	// the edge of the sheet, past its corner when the element lies beside the sheet, and on to the element; the way keeps
+	// clear of the sheet by some pixels whatever the zoom
 	static turn(at, other, page, panel, k) {
 
 		const path  = new Path2D();
 		const room  = Math.max(Math.min(panel.hw, panel.hh) * 0.08, 24 / k);
-		const lane  = page.x + panel.hw + room;
+		const side  = Math.sign(at.x - page.x) || 1;
+		const lane  = page.x + side * (panel.hw + room);
 		const up    = other.y < at.y;
 		const sign  = up ? -1 : 1;
 		const turn  = { x: lane, y: at.y + sign * room };
@@ -1263,7 +3275,7 @@ class AppMapPanels {
 		path.moveTo(at.x, at.y);
 		path.quadraticCurveTo(lane, at.y, turn.x, turn.y);
 		path.lineTo(lane, past - sign * room);
-		path.bezierCurveTo(lane, past + sign * room * 0.5, lane - room, past, Math.max(other.x, lane - 2 * room), past);
+		path.bezierCurveTo(lane, past + sign * room * 0.5, lane - side * room, past, side > 0 ? Math.max(other.x, lane - 2 * room) : Math.min(other.x, lane + 2 * room), past);
 		path.quadraticCurveTo(other.x + (lane - other.x) * 0.3, past, other.x, other.y);
 
 		return path;
@@ -1287,7 +3299,7 @@ class AppMapPanels {
 
 		const [x, y] = AppMapPanels.box(d, panel);
 
-		return { x: x + (d.parent ? AppMapPanels.boxWidth(d, panel.scale) : 3.8 * panel.scale) / 2, y };
+		return { x: x + AppMapPanels.sizeOf(d)[0] * panel.scale / 2, y };
 	}
 
 	// ----- exploring from an HTML element: the elements its repeaters and action mappings reach -----

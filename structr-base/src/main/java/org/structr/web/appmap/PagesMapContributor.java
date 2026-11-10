@@ -333,28 +333,35 @@ public class PagesMapContributor implements ApplicationMapContributor {
 	}
 
 	/**
-	 * An outline: [tag, flags, children, ids, expressions, data key, element id]; the flags are
-	 * 1 (the element does something), 2 (it triggers an action mapping), 4 (it repeats), 8 (it
-	 * holds a text of its own) and 16 (it has show or hide conditions), the ids are those of the
-	 * repeater and action mapping nodes that live on the element, the expressions those that its
-	 * text shows, see expressionsOf. The element id is the UUID of the HTML element itself, so
-	 * that a client can show and change its settings and content. Text nodes and the head are
-	 * left out.
+	 * An outline: [tag, flags, children, ids, expressions, data key, element id, sources]; the
+	 * flags are 1 (the element does something), 2 (it triggers an action mapping), 4 (it repeats),
+	 * 8 (it holds a text of its own), 16 (it has show or hide conditions) and 32 (it is a
+	 * component, whose data adapter provides a data key to the elements below it), the ids are
+	 * those of the repeater and action mapping nodes that live on the element, the expressions
+	 * those that its text shows, see expressionsOf. The element id is the UUID of the HTML
+	 * element itself, so that a client can show and change its settings and content. The sources
+	 * are the data sources of a repeater that are set (functionQuery, cypherQuery, flow), so that
+	 * a client can point out a repeater that cannot work. Text nodes and the head are left out,
+	 * except those with a script block (see isScript), which have the tag "content", so that a
+	 * client can show their code as it shows a template.
 	 */
 	private List<Object> outlineOf(final HtmlNode html, final int depth) {
 
-		if (!html.isElement && !html.node.is(StructrTraits.TEMPLATE)) {
+		final boolean script = isScript(html);
+
+		if (!html.isElement && !html.node.is(StructrTraits.TEMPLATE) && !script) {
 			return null;
 		}
 
-		final String tag = html.isElement ? html.tag : "template";
+		final String tag = html.isElement ? html.tag : (script ? "content" : "template");
 
 		if (tag == null || SKIPPED_TAGS.contains(tag)) {
 			return null;
 		}
 
 		final int flags             = (html.isActive ? 1 : 0) | (html.actions.isEmpty() ? 0 : 2) | (StringUtils.isNotEmpty(html.functionQuery) || StringUtils.isNotEmpty(html.dataKey) ? 4 : 0)
-			| (hasText(html) ? 8 : 0) | (StringUtils.isNotBlank(html.node.getShowConditions()) || StringUtils.isNotBlank(html.node.getHideConditions()) ? 16 : 0);
+			| (hasText(html) ? 8 : 0) | (StringUtils.isNotBlank(html.node.getShowConditions()) || StringUtils.isNotBlank(html.node.getHideConditions()) ? 16 : 0)
+			| (html.isComponent ? 32 : 0);
 		final List<Object> item     = new LinkedList<>(List.of(tag, flags));
 		final List<Object> children = new LinkedList<>();
 		final List<String> ids      = new LinkedList<>(html.mapIds);
@@ -379,13 +386,32 @@ public class PagesMapContributor implements ApplicationMapContributor {
 		item.add(StringUtils.defaultString(expressionsOf(html)));
 		item.add(StringUtils.trimToNull(html.dataKey));
 		item.add(html.id);
+		item.add(html.sources());
 
 		return item;
 	}
 
 	/**
-	 * Whether an element holds a text of its own: a template its content, any other element a
-	 * text node among its children that is not empty.
+	 * Whether a node is a text node with a script block (${{ ... }}), which pages often use to
+	 * prepare the data of a repeater; such a node stands in the outline as an element of its own.
+	 */
+	private boolean isScript(final HtmlNode html) {
+
+		return isText(html) && html.content != null && html.content.contains("${{");
+	}
+
+	/**
+	 * Whether a node is a text node: no element, no template and no comment.
+	 */
+	private boolean isText(final HtmlNode html) {
+
+		return !html.isElement && !html.node.is(StructrTraits.TEMPLATE) && !html.node.is(StructrTraits.COMMENT);
+	}
+
+	/**
+	 * Whether an element holds a text of its own: a template or a text node with a script block
+	 * its content, any other element a text node among its children that is not empty and has
+	 * no script block, as that stands in the outline itself.
 	 */
 	private boolean hasText(final HtmlNode html) {
 
@@ -395,7 +421,7 @@ public class PagesMapContributor implements ApplicationMapContributor {
 
 		for (final HtmlNode child : html.children) {
 
-			if (!child.isElement && !child.node.is(StructrTraits.TEMPLATE) && !child.node.is(StructrTraits.COMMENT) && StringUtils.isNotBlank(child.content)) {
+			if (isText(child) && !isScript(child) && StringUtils.isNotBlank(child.content)) {
 				return true;
 			}
 		}
@@ -404,8 +430,8 @@ public class PagesMapContributor implements ApplicationMapContributor {
 	}
 
 	/**
-	 * The template expressions an element shows: those in its text nodes, or in its own content
-	 * for a template, each once, shortened to EXPRESSIONS_LENGTH together; null when there are
+	 * The template expressions an element shows: those in its text nodes without a script block,
+	 * or in its own content for a template or a text node with a script block, each once, shortened to EXPRESSIONS_LENGTH together; null when there are
 	 * none. render(), include() and include_child() are left out, as they only place other
 	 * elements, which the outline shows itself.
 	 */
@@ -421,7 +447,7 @@ public class PagesMapContributor implements ApplicationMapContributor {
 
 			for (final HtmlNode child : html.children) {
 
-				if (!child.isElement && !child.node.is(StructrTraits.TEMPLATE) && !child.node.is(StructrTraits.COMMENT)) {
+				if (isText(child) && !isScript(child)) {
 					collectExpressions(child.content, expressions);
 				}
 			}

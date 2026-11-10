@@ -105,6 +105,25 @@ public class HttpStatsSnapshotTest {
 	}
 
 	@Test
+	public void testLoadingAgainDoesNotCountTwice() {
+
+		final long now                               = System.currentTimeMillis();
+		final Map<String, Map<String, Stats>> stats = new ConcurrentHashMap<>();
+
+		record(stats, "get", now - 2 * MINUTE, 3);
+		record(stats, "get", now, 2);
+
+		final Map<Long, Long> before = stats.get("http").get("get").buckets();
+
+		HttpStatsSnapshot.save(stats);
+
+		// the HTTP service restarts within the same process, with its statistics still in memory
+		HttpStatsSnapshot.load(stats);
+
+		assertEquals(before, stats.get("http").get("get").buckets());
+	}
+
+	@Test
 	public void testBucketsOlderThanTheRetentionAreDropped() {
 
 		Settings.HttpStatsRetentionDays.setValue(7);

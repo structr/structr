@@ -59,6 +59,7 @@ import org.structr.rest.auth.SessionHelper;
 import org.structr.rest.common.MetricsFilter;
 import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
+import org.structr.rest.common.UsageStatistics;
 import org.structr.rest.servlet.DocumentationServlet;
 import org.structr.rest.servlet.UIExtensionsServlet;
 import org.structr.rest.servlet.MetricsServlet;
@@ -1085,7 +1086,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		return map;
 	}
 
-	// the access statistics outlive a restart: restored before the first request, saved every five minutes and on stop
+	// the access and usage statistics outlive a restart: restored before the first request, saved every five minutes and on stop
 	private synchronized void startStatsSnapshots() {
 
 		if (statsSnapshots != null) {
@@ -1094,6 +1095,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		}
 
 		HttpStatsSnapshot.load(stats);
+		UsageStatistics.load();
 
 		statsSnapshots = Executors.newSingleThreadScheduledExecutor(runnable -> {
 
@@ -1103,7 +1105,12 @@ public class HttpService implements RunnableService, StatsCallback {
 			return thread;
 		});
 
-		statsSnapshots.scheduleWithFixedDelay(() -> HttpStatsSnapshot.save(stats), 5, 5, TimeUnit.MINUTES);
+		statsSnapshots.scheduleWithFixedDelay(() -> {
+
+			HttpStatsSnapshot.save(stats);
+			UsageStatistics.save();
+
+		}, 5, 5, TimeUnit.MINUTES);
 	}
 
 	private synchronized void stopStatsSnapshots() {
@@ -1114,6 +1121,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			statsSnapshots = null;
 
 			HttpStatsSnapshot.save(stats);
+			UsageStatistics.save();
 		}
 	}
 

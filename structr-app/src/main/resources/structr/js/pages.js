@@ -66,6 +66,274 @@ let _Pages = {
 		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
 
 		_Pages.refreshVisibilityMappingIndex();
+		_Pages.problems.reloadRuntimeErrors();
+	},
+	/**
+	 * Problem indicators in the page tree: a warning icon on elements whose repeater
+	 * configuration cannot work as intended, and an error icon on elements that caused
+	 * scripting errors during rendering. Scripting errors come from the unseen entries
+	 * of the runtime event log, which the server acknowledges when the element is modified.
+	 */
+	problems: {
+		indicatorClass: 'problem-indicator',
+		runtimeErrors: new Map(),
+		erroneousNodes: new Map(),
+		reloadTimeout: undefined,
+		scheduleRuntimeErrorReload: () => {
+
+			window.clearTimeout(_Pages.problems.reloadTimeout);
+
+			_Pages.problems.reloadTimeout = window.setTimeout(_Pages.problems.reloadRuntimeErrors, 500);
+		},
+		reloadRuntimeErrors: async () => {
+
+			let response = await fetch(`${Structr.rootUrl}_runtimeEventLog?type=Scripting&seen=false&${Structr.getRequestParameterName('pageSize')}=1000`);
+			if (!response.ok) {
+				return;
+			}
+
+			let eventLog      = await response.json();
+			let runtimeErrors = new Map();
+
+			for (let runtimeEvent of eventLog.result ?? []) {
+
+				let data = runtimeEvent.data;
+				if (!data?.id) {
+					continue;
+				}
+
+				let errorsForNode = runtimeErrors.get(data.id) ?? new Map();
+				let key           = `${data.name}:${data.row}:${data.column}:${data.message}`;
+				let error         = errorsForNode.get(key);
+
+				if (error) {
+
+					error.count++;
+					error.timestamp = Math.max(error.timestamp, runtimeEvent.absoluteTimestamp);
+
+				} else {
+
+					errorsForNode.set(key, { name: data.name, row: data.row, column: data.column, message: data.message, timestamp: runtimeEvent.absoluteTimestamp, count: 1 });
+				}
+
+				runtimeErrors.set(data.id, errorsForNode);
+			}
+
+			// both at once, so that whoever counts by the errors finds their pages too
+			let erroneousNodes = await _Pages.problems.loadErroneousNodes([...runtimeErrors.keys()]);
+
+			_Pages.problems.runtimeErrors  = runtimeErrors;
+			_Pages.problems.erroneousNodes = erroneousNodes;
+			_Pages.problems.updateAllIndicators();
+
+			// the application map marks the same errors on its HTML elements
+			if (Structr.isModuleActive(_AppMap)) {
+				_AppMap.view?.requestDraw();
+			}
+		},
+		/**
+		 * The page and display name of each node with scripting errors, so the page node can
+		 * show them even when the elements themselves are not loaded in the tree. The event
+		 * log knows only the node id. Deleted nodes are left out.
+		 */
+		loadErroneousNodes: async (ids) => {
+
+			let headers = _Helpers.getHeadersForCustomView(['id', 'type', 'name', 'tag', 'pageId', 'isPage']);
+			let nodes   = new Map();
+
+			await Promise.all(ids.map(async id => {
+
+				let node = _Pages.problems.erroneousNodes.get(id);
+				if (!node) {
+
+					let response = await fetch(Structr.rootUrl + id, { headers });
+					if (!response.ok) {
+						return;
+					}
+
+					let result = (await response.json()).result;
+
+					node = {
+						pageId: result.isPage ? result.id : result.pageId,
+						displayName: result.name ?? result.tag ?? result.type
+					};
+				}
+
+				nodes.set(id, node);
+			}));
+
+			return nodes;
+		},
+		getPageSummaryProblems: (page) => {
+
+			let entries = [];
+
+			for (let [id, node] of _Pages.problems.erroneousNodes) {
+
+				if (node.pageId === page.id && id !== page.id) {
+
+					let properties = new Set([..._Pages.problems.runtimeErrors.get(id)?.values() ?? []].map(error => (error.name ?? '').replace(/^_html_/, '')));
+
+					entries.push(`${node.displayName} (${[...properties].join(', ')})`);
+				}
+			}
+
+			if (entries.length === 0) {
+				return [];
+			}
+
+			let shown = entries.slice(0, 10).map(entry => '  ' + entry);
+			if (entries.length > shown.length) {
+				shown.push(`  … and ${entries.length - shown.length} more`);
+			}
+
+			return [`${entries.length} element${entries.length === 1 ? '' : 's'} on this page caused scripting errors:\n${shown.join('\n')}`];
+		},
+		sourceLabels: { functionQuery: 'function query', cypherQuery: 'cypher query', flow: 'flow' },
+		getConfigurationProblems: (entity) => {
+
+			return _Pages.problems.checkRepeater(_Pages.problems.repeaterOf(entity), _Pages.problems.contextOf(entity));
+		},
+		/**
+		 * The problems of a repeater configuration, from a description that the page tree and the
+		 * application map each build from what they know:
+		 *
+		 *     repeater: { dataKey, component, sources: the names of the data source properties that are set }
+		 *     context:  { ancestors: [{ dataKey, component }], innermost first, inPage }
+		 *
+		 * component marks an element with a component configuration, whose data adapter provides
+		 * a data key to render_each() and apply_templates() below it. The context is null when it
+		 * is not fully known. A data key without a data source is only reported when the context
+		 * is known and lies in a page (not in a shared component or an unused element), and when
+		 * neither an enclosing repeater with the same data key nor a component can provide it.
+		 */
+		checkRepeater: (repeater, context) => {
+
+			let problems = [];
+			let dataKey  = repeater.dataKey?.trim();
+			let queries  = repeater.sources.map(source => _Pages.problems.sourceLabels[source] ?? source);
+
+			if (dataKey) {
+
+				let providable = !context || !context.inPage || repeater.component || context.ancestors.some(ancestor => ancestor.component || ancestor.dataKey?.trim() === dataKey);
+
+				if (queries.length === 0 && !providable) {
+
+					problems.push(`Data key "${dataKey}" is set, but there is no function query, cypher query or flow, and no enclosing repeater uses the same data key. The element is not rendered (unless the URL has a nodeId parameter).`);
+				}
+
+			} else if (queries.length > 0) {
+
+				problems.push(`Has a ${queries.join(' and a ')} but no data key. The query is never evaluated and the element is rendered once, without data.`);
+			}
+
+			if (queries.length > 1) {
+
+				problems.push(`Has more than one data source (${queries.join(', ')}). Only the first one that returns a non-empty result is used.`);
+			}
+
+			return problems;
+		},
+		repeaterOf: (entity) => {
+
+			let isSet   = value => value && (typeof value !== 'string' || value.trim().length > 0);
+			let sources = Object.keys(_Pages.problems.sourceLabels).filter(key => isSet(entity[key]));
+
+			return { dataKey: entity.dataKey, component: !!entity.componentConfiguration, sources };
+		},
+		/**
+		 * The rendering context of an element of the page tree, or null when one of its
+		 * ancestors is not loaded.
+		 */
+		contextOf: (entity) => {
+
+			let ancestors = [];
+			let current   = entity;
+
+			while (current.parent?.id) {
+
+				current = StructrModel.obj(current.parent.id);
+
+				if (!current) {
+					return null;
+				}
+
+				ancestors.push(_Pages.problems.repeaterOf(current));
+			}
+
+			let pageId = current.isPage ? current.id : current.pageId;
+
+			return { ancestors, inPage: !!pageId && pageId !== _Pages.shadowPage?.id };
+		},
+		getRuntimeProblems: (entity) => {
+
+			let errorsForNode = _Pages.problems.runtimeErrors.get(entity.id);
+			if (!errorsForNode) {
+				return [];
+			}
+
+			return [...errorsForNode.values()].map(error => {
+
+				let date     = new Date(error.timestamp);
+				let location = `${(error.name ?? '').replace(/^_html_/, '')}, line ${error.row}${error.column ? `, column ${error.column}` : ''}`;
+				let count    = (error.count > 1) ? `${error.count}×, last ` : '';
+
+				return `Scripting error in ${location} (${count}${date.toLocaleTimeString()}): ${error.message}`;
+			});
+		},
+		updateIndicator: (entity, element) => {
+
+			let iconsContainer = element?.querySelector(':scope > .node-container > .icons-container');
+			if (!iconsContainer) {
+				return;
+			}
+
+			iconsContainer.querySelector(`:scope > .${_Pages.problems.indicatorClass}`)?.remove();
+
+			let configurationProblems = _Pages.problems.getConfigurationProblems(entity);
+			let runtimeProblems       = _Pages.problems.getRuntimeProblems(entity);
+
+			if (entity.isPage) {
+				runtimeProblems.push(..._Pages.problems.getPageSummaryProblems(entity));
+			}
+
+			let problems = [...runtimeProblems, ...configurationProblems];
+
+			if (problems.length > 0) {
+
+				let icon  = (runtimeProblems.length > 0) ? _Icons.iconErrorRedFilled : _Icons.iconWarningYellowFilled;
+				let title = _Helpers.escapeTags(problems.map(p => '- ' + p).join('\n'));
+
+				iconsContainer.insertAdjacentHTML('afterbegin', _Icons.getSvgIcon(icon, 16, 16, [_Pages.problems.indicatorClass, 'flex-none'], title));
+			}
+		},
+		updateIndicatorsForSubtree: (element) => {
+
+			for (let node of [element, ...element.querySelectorAll('.node')]) {
+
+				let entity = StructrModel.obj(node.id?.replace(/^id_/, ''));
+				if (entity) {
+					_Pages.problems.updateIndicator(entity, node);
+				}
+			}
+		},
+		updateAllIndicators: () => {
+
+			if (!Structr.isModuleActive(_Pages)) {
+				return;
+			}
+
+			for (let tree of [_Pages.pagesTree?.[0], _Pages.unusedElementsTree?.[0], _Pages.componentsSlideout?.[0]]) {
+
+				for (let node of tree?.querySelectorAll('.node') ?? []) {
+
+					let entity = StructrModel.obj(node.id?.replace(/^id_/, ''));
+					if (entity) {
+						_Pages.problems.updateIndicator(entity, node);
+					}
+				}
+			}
+		}
 	},
 	visibilityMappingDomNodeIds: new Set(),
 	refreshVisibilityMappingIndex: (cb) => {
@@ -1146,6 +1414,8 @@ let _Pages = {
 		_Entities.appendContextMenuIcon(iconsContainer[0], entity);
 		_Pages.appendPagePreviewIcon(iconsContainer, entity);
 		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
+
+		_Pages.problems.updateIndicator(entity, div[0]);
 
 		_Elements.contextMenu.enableContextMenuOnElement(div[0], entity);
 		_Entities.setMouseOver(div);

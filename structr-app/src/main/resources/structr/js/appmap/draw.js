@@ -58,6 +58,10 @@ class AppMapRenderer {
 	static ACCESS_SMALL = 8;
 	static ACCESS_FROM  = 8;
 
+	// the smallest size of the problem sign of a page on screen: warnings may shrink to a dot from afar, scripting errors
+	// keep the size of the access badge
+	static WARNING_SMALL = 4;
+
 	// the colour of the badge: public users see the page, only authenticated users, only admins and those with grants;
 	// [light, dark]
 	static ACCESS_COLOR = { pub: ['#e03131', '#ff6b6b'], auth: ['#1c7ed6', '#4dabf7'], none: ['#495057', '#adb5bd'] };
@@ -325,6 +329,7 @@ class AppMapRenderer {
 		// an open page lies above every hover decoration: rings, arcs and labels must not cover its structure
 		view.panels.draw(this, k);
 		this.drawAccess(k, rect, focus, near, around);
+		this.drawPageProblems(k, rect, focus, near, around);
 		this.drawRouting(k, rect, focus, near);
 
 		if (!focus && view.layout.areaPlaces.size) {
@@ -653,7 +658,7 @@ class AppMapRenderer {
 		const ctx   = this.ctx;
 		const t     = view.transform;
 		const now   = performance.now();
-		const open  = [...view.panels.trees].filter(([, tree]) => tree.open).map(([page]) => page.id).join();
+		const open  = [...view.panels.trees].filter(([, tree]) => tree.open).map(([page]) => page.id).concat([...view.panels.inspecting].map(n => n.id)).join();
 		const key   = [view.generation, view.layout.version, view.look.bg, view.strands.bundled(), ctx.canvas.width, ctx.canvas.height, open].join('|');
 		const shot  = this.relationsShot;
 		const last  = this.lastView;
@@ -746,8 +751,8 @@ class AppMapRenderer {
 			}
 
 			// a page that is open draws the relations of its repeaters and action mappings from their boxes itself, and those
-			// of the page as a whole rest meanwhile
-			if (p.links.every(x => this.view.panels.withinOpenPage(x))) {
+			// of the page as a whole rest meanwhile; an open type draws its schema relationships from its rows
+			if (p.links.every(x => this.view.panels.withinOpenPage(x) || this.view.panels.withinOpenType(x))) {
 				continue;
 			}
 
@@ -1074,7 +1079,15 @@ class AppMapRenderer {
 				continue;
 			}
 
-			ctx.globalAlpha = this.presence(n, focus, around);
+			// the shape of a type, a REST endpoint, a group or an external service gives way to its card, which may be lower
+			// than the shape (see AppMapPanels.insidePanel)
+			const cover = AppMapPanels.INSIDE_KINDS.has(n.k) ? this.view.panels.insideCover(n, k) : 0;
+
+			if (cover >= 1) {
+				continue;
+			}
+
+			ctx.globalAlpha = this.presence(n, focus, around) * (1 - cover);
 			ctx.fillStyle   = this.colorOf(n);
 			this.shape(n, r);
 			ctx.fill();
@@ -1154,6 +1167,55 @@ class AppMapRenderer {
 		}
 
 		ctx.restore();
+	}
+
+	// that HTML elements of a page or shared component have problems (see AppMapPanels.problemsOfPage), as the sign their
+	// boxes carry, on the upper right corner of its square, left of the access badge; the pointer on it says how many
+	drawPageProblems(k, rect, focus, near, around) {
+
+		const view = this.view;
+		const ctx  = this.ctx;
+
+		this.problemBoxes = [];
+
+		ctx.save();
+
+		for (const n of view.nodes) {
+
+			if (n.k !== 'page' && n.k !== 'component') {
+				continue;
+			}
+
+			const { errors, warnings } = view.panels.problemsOfPage(n);
+			const r      = Math.max(view.shownRadius(n), 2 / k);
+			const [w, h] = AppMapRenderer.PAGE_BOX;
+
+			if ((!errors && !warnings) || n.x + r * w < rect[0] || n.x - r * w > rect[2] || n.y + r * h < rect[1] || n.y - r * h > rect[3]) {
+				continue;
+			}
+
+			const small  = errors ? AppMapRenderer.ACCESS_SMALL : AppMapRenderer.WARNING_SMALL;
+			const size   = Math.min(AppMapRenderer.ACCESS_SIZE, Math.max(small, 2 * r * w * k * AppMapRenderer.ACCESS_SHARE)) / k;
+			const badge  = this.accessBadge(n, k);
+			const x      = badge ? badge.x - size * 1.15 : n.x + r * w - size * 0.35;
+			const y      = badge ? badge.y + (badge.size - size) / 2 : n.y - r * h - size * 0.65;
+
+			// in focus the signs step back with their pages
+			ctx.globalAlpha = focus && !near.has(n) ? (around.nodes.has(n) ? 0.55 : 0.15) : 1;
+
+			this.problemBoxes.push([n, x, y, x + size, y + size]);
+			view.panels.drawProblemSign(ctx, x + size / 2, y + size / 2, size / 2, k, errors > 0);
+		}
+
+		ctx.restore();
+	}
+
+	// the page or shared component whose problem sign lies under a point of the map
+	findPageProblems(x, y) {
+
+		const pad = 2 / this.view.transform.k;
+
+		return (this.problemBoxes ?? []).find(([, x0, y0, x1, y1]) => x >= x0 - pad && x <= x1 + pad && y >= y0 - pad && y <= y1 + pad)?.[0] ?? null;
 	}
 
 	// where the access badge of an element sits at a zoom, or null if it carries none there
@@ -1483,8 +1545,10 @@ class AppMapRenderer {
 			const text    = String(n.n).length > 32 ? String(n.n).slice(0, 31) + '…' : String(n.n);
 			const inFocus = near?.has(n);
 			const badge   = this.accessBadge(n, k);
-			// right of the element's own shape, in focus right of the slightly larger focus shape (see focusShape)
-			const beside  = Math.max(view.shownRadius(n), 2 / k) * ((AppMapRenderer.boxOf(n)?.[0] ?? 1) + (inFocus ? 0.1 : 0)) + 4 / k;
+			// right of the element's own shape, in focus right of the slightly larger focus shape (see focusShape), and of the
+			// card of a type that comes close enough to open
+			const shape   = view.panels.hasInsideCard(n, k) ? AppMapPanels.INSIDE_CARD[0] : (AppMapRenderer.boxOf(n)?.[0] ?? 1);
+			const beside  = Math.max(view.shownRadius(n), 2 / k) * (shape + (inFocus ? 0.1 : 0)) + 4 / k;
 			const offset  = badge ? Math.max(beside, badge.x + badge.size - n.x + 3 / k) : beside;
 			const sx      = t.applyX(n.x + offset);
 			const sy      = t.applyY(n.y);
@@ -1975,6 +2039,11 @@ class AppMapRenderer {
 		ctx.lineWidth    = 3 / k;
 
 		for (const { name, x, y, section } of this.groupingNamePlaces(k)) {
+
+			// an open card covers the names of the groupings beneath it
+			if (this.view.panels.covers(x, y)) {
+				continue;
+			}
 
 			// a section of pages is named in the colour of the pages, as it is the structure of that area
 			ctx.font        = this.font(section ? 600 : 500, AppMapRenderer.GROUPING_NAME_SIZE / k);

@@ -97,6 +97,13 @@ The Usage button shows how much the parts of the application are used: how often
 
 ![Usage](/structr/docs/appmap_usage.png)
 
+Independent of the Usage button, the map also shows how the grants and pages were used over a longer time, as far back as `application.stats.retention.days` (30 days by default) and across restarts:
+
+- The card of a REST endpoint shows a small bar chart of the requests per day next to each grant, with the denied requests in red on top, and the number of requests. All grants on a card share one scale, so you can compare them. When you open the box of a grant, the number of requests appears below each cell of its matrix, per method and for public and signed-in users, with the denied requests in red after the allowed ones. Below the matrix are the totals, the time of the last request and a larger chart of the requests per day. A grant with no requests is one that nothing uses. Requests of administrators are not counted, because they do not need a grant, and grants for the same signature share their numbers.
+- The tooltip of a page shows how often it was viewed and when it was last viewed. Previews in the Admin UI and partial reloads are not counted.
+
+See the Monitoring chapter for how these numbers are collected.
+
 ### Hotspots
 
 While the pointer rests on the Hotspots button, the map turns grey and shows only the glow of the most used elements, with their names and numbers. This is the fastest way to see where an application is under load.

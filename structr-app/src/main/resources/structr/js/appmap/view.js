@@ -36,11 +36,11 @@ class AppMapView {
 	// darkening them by multiplying took more than half of every frame and was hardly to be seen
 	static LOOKS = {
 		light: {
-			bg: '#ffffff', card: '#ffffff', veil: '#eef1f4', trace: '#7d8794', ring: '#1b2026', outline: '#ffffff', halo: '#ffffff', label: '#4f5862', labelNear: '#2a3038', labelFocus: '#111418', column: '#9aa3ad', found: '#ffd84d', blend: 'source-over', dark: false,
+			bg: '#ffffff', card: '#ffffff', veil: '#eef1f4', trace: '#7d8794', ring: '#1b2026', outline: '#ffffff', halo: '#ffffff', label: '#4f5862', labelNear: '#2a3038', labelFocus: '#111418', column: '#9aa3ad', found: '#ffd84d', warning: '#e8a400', error: '#e03131', blend: 'source-over', dark: false,
 			kinds: { page: '#5b2fe0', component: '#b0179b', type: '#1f8f12', method: '#0081a7', api: '#0b5ed7', external: '#123a9c', group: '#e04e00', dom: '#9a86f2', view: '#d18b00', action: '#e0123f' }
 		},
 		dark: {
-			bg: '#0b0e12', card: '#161b22', veil: '#000000', trace: '#8a96a3', ring: '#ffffff', outline: '#0b0e12', halo: '#0b0e12', label: '#aab3bd', labelNear: '#dfe4e9', labelFocus: '#ffffff', column: '#c3cbd3', found: '#d4a900', blend: 'lighter', dark: true,
+			bg: '#0b0e12', card: '#161b22', veil: '#000000', trace: '#8a96a3', ring: '#ffffff', outline: '#0b0e12', halo: '#0b0e12', label: '#aab3bd', labelNear: '#dfe4e9', labelFocus: '#ffffff', column: '#c3cbd3', found: '#d4a900', warning: '#ffc233', error: '#ff6b6b', blend: 'lighter', dark: true,
 			kinds: { page: '#a78bfa', component: '#f472d0', type: '#6ee05a', method: '#22d3ee', api: '#60a5fa', external: '#a5c8ff', group: '#ff8a3d', dom: '#b9a8ff', view: '#ffd04d', action: '#ff5c7c' }
 		}
 	};
@@ -186,10 +186,34 @@ class AppMapView {
 		this.wheelFrame = null;
 		this.drag       = [];
 		this.coastFrame = null;
+		this.grabbing   = false;
 
 		// reads the source of a method, or the text of the template a page consists of, for its box close up, as a promise of
 		// the text
 		this.loadSource = options.loadSource ?? null;
+
+		// reads the texts of an HTML element, for its box once it opens, as a promise of a list of { content, code }
+		this.loadContent = options.loadContent ?? null;
+
+		// reads the schema of a type, for its card close up, as a promise of the type as the _schema endpoint gives it
+		this.loadType = options.loadType ?? null;
+
+		// reads the resource access permissions, for the cards of the REST endpoints, and the members of a group, for its card
+		this.loadGrants  = options.loadGrants ?? null;
+
+		// reads how often the grants decided a request and the pages were viewed in the last days, see usageOf
+		this.loadUsage = options.loadUsage ?? null;
+		this.usage     = {};
+
+		// the views of the pages are read at once, so that the first tooltip on a page has them
+		this.usageOf('pages');
+		this.loadMembers = options.loadMembers ?? null;
+
+		// leads out of the map to what an open card stands for, in the Code area or the Security area, see placeOpenButton
+		this.openIn = options.openIn ?? null;
+
+		// switches a setting in an open box, see flip; a promise of whether it was changed
+		this.toggle = options.toggle ?? null;
 
 		// edits the code of a method or the text of a template above its field, see edit; the editor itself is the Admin
 		// UI's, the map only says where it stands
@@ -219,6 +243,33 @@ class AppMapView {
 		container.appendChild(this.canvas);
 		container.appendChild(this.tip);
 		container.appendChild(this.trailBar);
+
+		// the way out of the map, as an HTML element has its way into the Pages area; the wheel over it zooms the map
+		if (this.openIn) {
+
+			this.openButton             = document.createElement('button');
+			this.openButton.type        = 'button';
+			this.openButton.className   = 'appmap-open';
+			this.openButton.textContent = 'Open';
+			this.openButton.hidden      = true;
+			this.openButton.addEventListener('click', () => {
+
+				const card = this.openCard;
+
+				// a method lies in the folder of its type in the Code area
+				if (card) {
+					this.openIn({ ...card.open, owner: card.open.kind === 'method' ? this.links.find(l => l.kind === 'member' && l.source === card.open.node)?.target ?? null : null });
+				}
+			});
+			this.openButton.addEventListener('wheel', e => {
+
+				this.canvas.dispatchEvent(new WheelEvent('wheel', e));
+				e.preventDefault();
+
+			}, { passive: false });
+
+			container.appendChild(this.openButton);
+		}
 
 		this.rebuildIndex();
 
@@ -257,6 +308,7 @@ class AppMapView {
 		d3.select(this.canvas).on('.zoom', null).on('mousemove', null).on('mouseleave', null).on('click', null).on('dblclick', null);
 		this.canvas.remove();
 		this.tip.remove();
+		this.openButton?.remove();
 		this.trailBar.remove();
 	}
 
@@ -383,6 +435,12 @@ class AppMapView {
 
 		const degree = this.degree.get(n) ?? 0;
 
+		// a REST endpoint and a group are as large as what their cards hold, the grants of the one, the members and grants of
+		// the other (see AppMapPanels.insidePanel, whose card is as large as the element)
+		if (AppMapView.byContent(n)) {
+			return n.k === 'api' ? (n.rest?.n ?? 1) : n.s;
+		}
+
 		if (AppMapView.SIZE_BY !== 'size') {
 			return AppMapView.isSheet(n) ? (this.importance.get(n)?.value ?? 0) : degree;
 		}
@@ -395,7 +453,13 @@ class AppMapView {
 
 		const area = n.c?.[0] ?? '-';
 
-		return AppMapView.SIZE_BY === 'size' ? `${area}|${n.k}` : area;
+		return AppMapView.SIZE_BY === 'size' || AppMapView.byContent(n) ? `${area}|${n.k}` : area;
+	}
+
+	// the elements whose size follows what they hold, compared only among their kind, see measureOf
+	static byContent(n) {
+
+		return n.k === 'api' || n.k === 'group';
 	}
 
 	// the number of HTML elements in an outline of nested [tag, flags, children, ids, expressions]
@@ -566,6 +630,7 @@ class AppMapView {
 		this.followElement();
 		this.followCode();
 		this.placeEditor();
+		this.placeOpenButton();
 		this.updateHint();
 	}
 
@@ -585,6 +650,16 @@ class AppMapView {
 
 		const [px, py] = d3.pointer(e, this.canvas);
 		const [wx, wy] = this.transform.invert([px, py]);
+
+		// a setting in an open box is switched where it is
+		const toggle = this.toggle && this.panels.toggleAt(wx, wy);
+
+		if (toggle) {
+
+			toggle.item.tile.grant ? this.flipAccess(toggle) : this.flip(toggle);
+			return;
+		}
+
 		const marker   = this.renderer.findMarker(px, py);
 		const dom      = this.panels.findDom(wx, wy);
 		const code     = this.editor && this.panels.codeAt(wx, wy, this.transform.k);
@@ -630,7 +705,7 @@ class AppMapView {
 			return;
 		}
 
-		const access = this.renderer.findAccess(wx, wy);
+		const access = this.renderer.findPageProblems(wx, wy) ?? this.renderer.findAccess(wx, wy);
 		const n      = access ?? this.find(px, py);
 
 		if (n) {
@@ -733,10 +808,10 @@ class AppMapView {
 	}
 
 	// when an editor opens, its element glides to the middle of the screen and to the zoom at which it fills it, unless a
-	// glide is already under way, which leads there itself
+	// glide is already under way, which leads there itself, or the user moves the map, by hand or as it coasts on after
 	settleOn(n) {
 
-		if (d3.active(this.canvas)) {
+		if (d3.active(this.canvas) || this.grabbing || this.coastFrame) {
 			return;
 		}
 
@@ -747,28 +822,54 @@ class AppMapView {
 		}
 	}
 
-	// the zoom at which a method, a page of a single template or a template in a page fills GLIDE_FILL of the screen, with
+	// the zoom at which a method, a type, a page of a single template or a template in a page fills GLIDE_FILL of the screen, with
 	// its longer side
 	fillZoom(n) {
 
-		const size   = n.page ? k => (p => [p.width, p.height])(this.panels.elementPanel(n, k)) : k => AppMapRenderer.boxOf(n).map(v => 2 * v * this.drawnRadiusAt(n, k));
+		const size   = n.page ? k => (p => [p.width, p.height])(this.panels.elementPanel(n, k))
+			: AppMapPanels.INSIDE_KINDS.has(n.k) ? k => (p => [p.width, p.height])(this.panels.insidePanel(n, k, this.drawnRadiusAt(n, k)))
+			: k => AppMapRenderer.boxOf(n).map(v => 2 * v * this.drawnRadiusAt(n, k));
 		const across = this.zoomWhere(k => size(k)[0] * k, AppMapView.GLIDE_FILL * this.width);
 		const down   = this.zoomWhere(k => size(k)[1] * k, AppMapView.GLIDE_FILL * this.height);
 
 		return Math.min(across, down);
 	}
 
-	// the element with an editor near the middle of the screen whose filling zoom lies between the zoom now and the given
-	// one: zooming in stops there, so that it does not pass the element whose editor would open (see onWheel)
+	// the leaves of the map near the middle of the screen, the elements with nothing further inside, each with the zoom at
+	// which it stands open at its full size, the one a double click on it glides to: a method and a template fill the screen
+	// (see fillZoom), an HTML element has its controls at ELEMENT_FILL (see glideIntoElement), the box of a property its
+	// full size (see tileZoom)
+	leafZooms() {
+
+		const quarter = Math.min(this.width, this.height) / 4;
+		const near    = n => Math.abs(this.transform.applyX(n.x ?? 0) - this.width / 2) < this.width / 4 && Math.abs(this.transform.applyY(n.y ?? 0) - this.height / 2) < this.height / 4;
+		const opened  = this.panels.openElements().filter(d => this.panels.fromCentre(d) < quarter);
+		const methods = [...this.panels.reading].filter(near);
+		const tiles   = this.tilesNearMiddle();
+
+		return [
+			...methods.map(n => this.fillZoom(n)),
+			...opened.map(d => AppMapPanels.isSheet(d) ? this.fillZoom(d) : this.zoomWhere(k => this.panels.elementPanel(d, k).fit, AppMapView.ELEMENT_FILL)),
+			...tiles.map(t => this.tileZoom(t.item))
+		];
+	}
+
+	// zooming in stops where a leaf near the middle of the screen stands open at its full size (see leafZooms), and goes on
+	// past it only with the next turn, where onWheel holds it
 	fillStop(target) {
 
-		const k       = this.transform.k;
-		const near    = n => Math.abs(this.transform.applyX(n.x ?? 0) - this.width / 2) < this.width / 4;
-		const sheets  = this.panels.openElements().filter(d => AppMapPanels.isSheet(d) && this.panels.fromCentre(d) < Math.min(this.width, this.height) / 4);
-		const methods = [...this.panels.reading].filter(n => near(n) && Math.abs(this.transform.applyY(n.y) - this.height / 2) < this.height / 4);
-		const stops   = [...sheets, ...methods].map(n => this.fillZoom(n)).filter(f => f > k * 1.001 && f < target);
+		const k     = this.transform.k;
+		const stops = this.leafZooms().filter(f => f > k * 1.001 && f < target);
 
 		return stops.length ? Math.min(...stops) : target;
+	}
+
+	// whether a leaf near the middle of the screen stands open at its full size or closer: then the map only zooms out
+	atLeaf() {
+
+		const k = this.transform.k;
+
+		return this.leafZooms().some(f => k >= f * 0.999);
 	}
 
 	// whether a method, a page of a single template or a template in a page fills the screen, see MAXIMIZED: to open its
@@ -871,6 +972,51 @@ class AppMapView {
 		const [fx, fy, fw, fh] = AppMapPanels.codeField(panel);
 
 		this.editor.place({ left: t.applyX(fx), top: t.applyY(fy), width: fw * t.k, height: fh * t.k });
+	}
+
+	// the way into the Code area stands at the foot of the open card at the middle of the screen, on the right as the way
+	// into the Pages area of an HTML element: the smallest one the middle lies in, a property before its type, else the one
+	// nearest the middle; it comes and goes with the card
+	placeOpenButton() {
+
+		const button = this.openButton;
+
+		if (!button) {
+			return;
+		}
+
+		const t      = this.transform;
+		const middle = [this.width / 2, this.height / 2];
+		const cards  = this.spotlight ? [] : this.panels.cards
+			.map(c => ({ ...c, screen: [t.applyX(c.rect[0]), t.applyY(c.rect[1]), c.rect[2] * t.k, c.rect[3] * t.k] }))
+			.filter(({ screen: [x, y, w, h] }) => x < this.width && x + w > 0 && y < this.height && y + h > 0);
+		const within = cards.filter(({ screen: [x, y, w, h] }) => middle[0] >= x && middle[0] <= x + w && middle[1] >= y && middle[1] <= y + h);
+		const away   = c => Math.hypot(c.screen[0] + c.screen[2] / 2 - middle[0], c.screen[1] + c.screen[3] / 2 - middle[1]);
+		const card   = within.sort((a, b) => a.screen[2] * a.screen[3] - b.screen[2] * b.screen[3])[0] ?? cards.sort((a, b) => away(a) - away(b))[0] ?? null;
+
+		this.openCard = card;
+		button.hidden = !card;
+
+		if (!card) {
+			return;
+		}
+
+		const [x, y, w, h] = card.screen;
+		const foot         = card.foot * t.k;
+		const tile         = card.item?.tile;
+		const label        = card.open.area === 'security' ? 'Open in Security Area' : 'Open in Code Area';
+
+		if (button.textContent !== label) {
+			button.textContent = label;
+		}
+
+		button.style.opacity = String(card.opacity);
+		button.style.fontSize = `${Math.min(12.5, foot * 0.28)}px`;
+		button.style.left     = `${x + w - foot * 0.4}px`;
+		button.style.top      = `${y + h - foot / 2}px`;
+		// in the colour of the box it stands in; the box of a request opens in that of its endpoint, see AppMapPanels.drawBox
+		button.style.setProperty('--page', (!tile?.access && this.panels.tintOf(this.renderer, tile?.tint)) || this.renderer.colorOf(card.n));
+		button.classList.toggle('appmap-open-dark', this.look.dark);
 	}
 
 	// the data of the map loaded anew, after a change to the application: the elements keep their places, the view, the
@@ -1144,6 +1290,56 @@ class AppMapView {
 		this.measure();
 	}
 
+	// how often the grants decided a request ('grants') or the pages were viewed ('pages') in the last days, as a promise of
+	// { days, usage } or null; read at most every ACTIVITY_REFRESH milliseconds, and kept in usage[kind] for the tooltip,
+	// which cannot wait for it
+	usageOf(kind) {
+
+		const known = this.usage[kind];
+
+		if (!this.loadUsage) {
+			return Promise.resolve(null);
+		}
+
+		if (!known || Date.now() - known.time > AppMapView.ACTIVITY_REFRESH) {
+
+			const loaded = this.loadUsage(kind).catch(() => null);
+
+			this.usage[kind] = { time: Date.now(), loaded, data: known?.data ?? null };
+
+			loaded.then(data => {
+
+				if (this.usage[kind]?.loaded === loaded && data) {
+
+					this.usage[kind].data = data;
+					this.requestDraw();
+				}
+			});
+
+			return loaded;
+		}
+
+		return known.loaded;
+	}
+
+	// the views of a page in words, from what usageOf last read: how many in how many days, and when the last was
+	describePageViews(n) {
+
+		// read again for the next time where it is old
+		this.usageOf('pages');
+
+		const data = this.usage.pages?.data;
+
+		if (!data) {
+			return null;
+		}
+
+		const use  = data.usage?.[n.id];
+		const days = `in the last ${data.days} ${data.days === 1 ? 'day' : 'days'}`;
+
+		return use ? `${use.total.toLocaleString()} ${use.total === 1 ? 'view' : 'views'} ${days}, the last on ${new Date(use.lastUsed).toLocaleString()}` : `no views ${days}`;
+	}
+
 	// what the activity lens shows of an element: its number of requests or runs
 	static ACTIVITY = { usage: n => n.hits.n };
 
@@ -1205,16 +1401,34 @@ class AppMapView {
 		return pages.length ? pages.reduce((a, b) => b.pos < a.pos ? b : a) : null;
 	}
 
-	// glides to an element and holds its focus: at the current zoom, unless that is so close that an element without inner
-	// structure, like a type, fills the screen and hides its relations; then only as close as EXPLORE_SIZE allows
+	// glides to an element and holds its focus: at the current zoom, unless that is too close for it, as it is after the card
+	// of another element filled the screen; an element with inner structure, a method or a page, then shows as a double
+	// click shows it (see glideInto), any other only as close as EXPLORE_SIZE allows, so that its relations stay in sight
 	explore(n) {
 
 		const inner  = AppMapPanels.hasCode(n) || this.panels.trees.has(n);
 		const [w, h] = AppMapRenderer.boxOf(n) ?? [1, 1];
-		const close  = this.zoomWhere(k => 2 * Math.max(w, h) * this.drawnRadiusAt(n, k) * k, AppMapView.EXPLORE_SIZE * Math.min(this.width, this.height));
+		const close  = inner ? this.innerZoom(n) : this.zoomWhere(k => 2 * Math.max(w, h) * this.drawnRadiusAt(n, k) * k, AppMapView.EXPLORE_SIZE * Math.min(this.width, this.height));
 
 		this.pin(n);
-		this.glide(n.x, n.y, inner ? this.transform.k : Math.min(this.transform.k, close));
+		this.glide(n.x, n.y, Math.min(this.transform.k, close));
+	}
+
+	// the zoom at which glideInto shows a method or a page: its box filling the screen, a page at least open
+	innerZoom(n) {
+
+		const tree = this.panels.trees.get(n);
+
+		if (!tree || AppMapPanels.hasCode(n)) {
+			return this.fillZoom(n);
+		}
+
+		const [w, h] = AppMapRenderer.PAGE_BOX;
+		const across = this.zoomWhere(k => 2 * w * this.drawnRadiusAt(n, k) * k, AppMapView.GLIDE_FILL * this.width);
+		const down   = this.zoomWhere(k => 2 * h * this.drawnRadiusAt(n, k) * k, AppMapView.GLIDE_FILL * this.height);
+		const open   = this.zoomWhere(k => this.panels.pagePanel(n, tree, k, this.drawnRadiusAt(n, k)).row, AppMapPanels.OPEN_ROW * 1.2);
+
+		return Math.max(Math.min(across, down), open);
 	}
 
 	// the way exploring took, as a row of names above the map: a name leads back there, the cross ends exploring
@@ -1247,7 +1461,7 @@ class AppMapView {
 
 			const box = document.createElement('button');
 
-			box.textContent = `<${this.pinnedDom.data.tag}>`;
+			box.textContent = AppMapPanels.nameOf(this.pinnedDom);
 			box.title       = (this.pinnedDom.data.inner ?? []).map(m => m.n).join(', ');
 			box.disabled    = true;
 			box.style.setProperty('--kind', this.look.kinds.dom ?? '#888888');
@@ -1272,7 +1486,7 @@ class AppMapView {
 	// a short line on what can be done next, for the line below the map
 	updateHint() {
 
-		const open = this.panels.reading.size || [...this.panels.trees.values()].some(t => t.open);
+		const open = this.panels.reading.size || this.panels.inspecting.size || [...this.panels.trees.values()].some(t => t.open);
 		const hint = !this.nodes.length ? ''
 			: this.access && !this.pinned ? this.describeLens()
 			: this.activity && !this.pinned ? this.describeActivity()
@@ -1282,7 +1496,7 @@ class AppMapView {
 			: open && this.domEditor ? 'Zoom into an element or double-click it to change it, click code or a template to edit it · double-click the empty map to see the whole map again'
 			: open ? 'Double-click the empty map to see the whole map again'
 			: this.zoomTier() === 0 ? 'Hover an element to see what it connects to · click it to explore from there'
-			: 'Double-click a page or method to open it · drag to pan, the wheel zooms';
+			: 'Double-click a page, method or type to open it · drag to pan, the wheel zooms';
 
 		if (hint !== this.hint) {
 
@@ -1309,16 +1523,19 @@ class AppMapView {
 
 		}).on('start', e => {
 
-			// grabbing the map stops it where it is
+			// grabbing the map stops it where it is, and while it is held no glide moves it, see glide
 			if (e.sourceEvent) {
 
 				this.stopCoast();
-				this.drag = [];
+				this.drag     = [];
+				this.grabbing = true;
 			}
 
 		}).on('end', e => {
 
 			if (e.sourceEvent) {
+
+				this.grabbing = false;
 				this.coast();
 			}
 		});
@@ -1388,8 +1605,9 @@ class AppMapView {
 		const delta    = -e.deltaY * (e.deltaMode === 1 ? 0.05 : e.deltaMode ? 1 : 0.002) * (e.ctrlKey ? 10 : 1);
 		const [lo, hi] = this.zoom.scaleExtent();
 
-		// while the editor of code or of a template stands in its element, the map only zooms out, to leave it
-		const editor = this.editing && (!this.editing.page || AppMapPanels.isSheet(this.editing));
+		// while the editor of code or of a template stands in its element, or a leaf of the map stands open at its full size
+		// in the middle (see atLeaf), the map only zooms out, to leave it: there is nothing further in
+		const editor = (this.editing && (!this.editing.page || AppMapPanels.isSheet(this.editing))) || (delta > 0 && this.atLeaf());
 		const top    = editor ? Math.min(hi, this.transform.k) : hi;
 
 		if (editor && delta > 0) {
@@ -1453,8 +1671,8 @@ class AppMapView {
 
 	/**
 	 * A double click glides to the inner structure of the element under the pointer: a page or shared component opens
-	 * with its tree filling the screen, a method with its code, any other element shows its grouping, a type with its
-	 * methods; on the empty map the whole map comes back. The element is held in focus as by a click, so its jump markers
+	 * with its tree filling the screen, a method with its code, a type with its properties, any other element shows its
+	 * grouping; on the empty map the whole map comes back. The element is held in focus as by a click, so its jump markers
 	 * show. Only the view moves: the places of the elements stay exactly where they are.
 	 */
 	onDoubleClick(e) {
@@ -1475,6 +1693,15 @@ class AppMapView {
 			return;
 		}
 
+		// a property of an open type opens as its tile comes closer, as an HTML element does in its page
+		const tile = this.panels.tileAt(wx, wy);
+
+		if (tile) {
+
+			this.glideIntoTile(tile);
+			return;
+		}
+
 		// the element opened is the one explored from: its jump markers lead on; inside an open page the HTML element stays held
 		if (dom) {
 			this.pinDom(dom);
@@ -1490,6 +1717,131 @@ class AppMapView {
 		} else {
 			this.glide(...this.fitTransform());
 		}
+	}
+
+	// switches a setting in an open box: at once on the map, then in the database (see the option toggle); where that fails,
+	// it switches back. A grant of a group also changes the rights the map knows of the group, a required field its dot
+	async flip({ item, index, key }) {
+
+		const tile    = item.tile;
+		const setting = tile.settings[index];
+		const value   = !setting[1];
+		const apply   = v => {
+
+			setting[1] = v;
+
+			if (key === 'notNull') {
+				tile.dot = v;
+			}
+
+			if (tile.edit.kind === 'grant') {
+
+				const group   = (this.model.groups ?? []).find(g => g.id === tile.edit.group.id);
+				const letter  = { allowRead: 'r', allowWrite: 'w', allowDelete: 'd', allowAccessControl: 'a' }[key];
+				const letters = new Set(String(group?.p?.[tile.edit.type.id] ?? ''));
+
+				v ? letters.add(letter) : letters.delete(letter);
+
+				if (group?.p) {
+					group.p[tile.edit.type.id] = ['r', 'w', 'd', 'a'].filter(l => letters.has(l)).join('');
+				}
+
+				tile.chip = ['r', 'w', 'd', 'a'].filter(l => letters.has(l)).map(l => l.toUpperCase()).join(' · ');
+			}
+
+			this.requestDraw();
+		};
+
+		if (this.flipping) {
+			return;
+		}
+
+		this.flipping = true;
+		apply(value);
+
+		try {
+
+			if (!(await this.toggle({ ...tile.edit, key, label: setting[0], value }))) {
+				apply(!value);
+			}
+
+		} catch (error) {
+
+			console.warn('Application map: a setting could not be changed', error);
+			apply(!value);
+
+		} finally {
+
+			this.flipping = false;
+		}
+	}
+
+	// switches a cell of the matrix of the permission of a request in its open box (see AppMapPanels.switchAccess): at once
+	// on the map, in every request of the card the permission allows, then in the database (see the option toggle), after
+	// asking where the change opens more than the cell; back where that fails
+	async flipAccess({ item, n, key, column, state, label }) {
+
+		const grant  = item.tile.grant;
+		const before = { flags: grant.flags ?? 0, visibleToPublicUsers: !!grant.visibleToPublicUsers, visibleToAuthenticatedUsers: !!grant.visibleToAuthenticatedUsers };
+		const { question, ...after } = AppMapPanels.switchAccess(grant, key, column, state !== 'yes');
+		const rows   = (this.panels.insides.get(n)?.sections ?? []).flatMap(s => s.items).filter(row => row.grant === grant);
+		const apply  = values => {
+
+			Object.assign(grant, values);
+			rows.forEach(AppMapPanels.updateRequestRow);
+			this.requestDraw();
+		};
+
+		if (this.flipping) {
+			return;
+		}
+
+		this.flipping = true;
+		apply(after);
+
+		try {
+
+			if (!(await this.toggle({ kind: 'access', id: grant.id, label, values: after, question }))) {
+				apply(before);
+			}
+
+		} catch (error) {
+
+			console.warn('Application map: a resource access permission could not be changed', error);
+			apply(before);
+
+		} finally {
+
+			this.flipping = false;
+		}
+	}
+
+	// glides to the box of a row, the square before its name, so that it stands open in the middle of the screen at its
+	// full size, see tileZoom
+	glideIntoTile(tile, ms = AppMapView.GLIDE_MS) {
+
+		const [x, y, w, h] = tile.item.box;
+
+		this.glide(x + w / 2, y + h / 2, this.tileZoom(tile.item), ms);
+	}
+
+	// the zoom at which the box of a row stands open at its full size: as high as what it shows needs, its header, its
+	// settings at the largest size of their text (see TILE_TEXT and AppMapPanels.drawBox) and its foot, and at least a little
+	// more than TILE_OPEN; the box keeps its size on the map whatever the zoom
+	tileZoom(item) {
+
+		const rows = item.tile.access?.lines ?? item.tile.settings?.length ?? 0;
+		const need = AppMapPanels.HEAD.band + (rows + 0.6) * AppMapPanels.TILE_TEXT * 2.1 + AppMapPanels.HEAD.foot;
+
+		return Math.max(need, AppMapPanels.TILE_OPEN * 1.1) / item.box[3];
+	}
+
+	// the boxes of properties drawn in the last frame whose middle lies near the middle of the screen
+	tilesNearMiddle() {
+
+		const t = this.transform;
+
+		return this.panels.tiles.filter(({ x, y, width, height }) => Math.hypot(t.applyX(x + width / 2) - this.width / 2, t.applyY(y + height / 2) - this.height / 2) < Math.min(this.width, this.height) / 4);
 	}
 
 	// glides so close to an HTML element that it opens with its controls at ELEMENT_FILL of their size, with the controls in
@@ -1526,18 +1878,19 @@ class AppMapView {
 			return;
 		}
 
-		const tree = this.panels.trees.get(n);
+		// a type, a REST endpoint, a group or an external service: its card fills the screen as the box of a method does, in
+		// the middle; the card is only as high as what it holds, so the glide waits until that is there
+		if (AppMapPanels.INSIDE_KINDS.has(n.k)) {
 
-		if (tree) {
+			this.panels.requestInside(n).then(() => this.glide(n.x, n.y, this.fillZoom(n), ms));
 
-			// as large as the screen allows, and at least so close that the tree opens
-			const [w, h] = AppMapRenderer.PAGE_BOX;
-			const across = this.zoomWhere(k => 2 * w * this.drawnRadiusAt(n, k) * k, AppMapView.GLIDE_FILL * this.width);
-			const down   = this.zoomWhere(k => 2 * h * this.drawnRadiusAt(n, k) * k, AppMapView.GLIDE_FILL * this.height);
-			const fill   = Math.min(across, down);
-			const open   = this.zoomWhere(k => this.panels.pagePanel(n, tree, k, this.drawnRadiusAt(n, k)).row, AppMapPanels.OPEN_ROW * 1.2);
+			return;
+		}
 
-			this.glide(n.x, n.y, Math.max(fill, open));
+		// a page as large as the screen allows, and at least so close that its tree opens
+		if (this.panels.trees.has(n)) {
+
+			this.glide(n.x, n.y, this.innerZoom(n));
 
 			return;
 		}
@@ -1632,6 +1985,12 @@ class AppMapView {
 
 	// a smooth flight to the given point of the map at the given zoom (van Wijk and Nuij, as d3 interpolates zoom transitions)
 	glide(x, y, k, ms = AppMapView.GLIDE_MS) {
+
+		// the hand of the user leads: a glide would move the map under the pointer, and the speed the map coasts on with
+		// would include it
+		if (this.grabbing) {
+			return;
+		}
 
 		const [lo, hi] = this.zoom.scaleExtent();
 		const scale    = Math.min(hi, Math.max(lo, k));
@@ -1777,6 +2136,16 @@ class AppMapView {
 		// how often it was requested or ran since the start
 		if (n.hits) {
 			parts.push(AppMapView.describeUse(n) + ' since the start');
+		}
+
+		// how often a page was viewed in the last days, which outlives a restart
+		if (n.k === 'page') {
+
+			const views = this.describePageViews(n);
+
+			if (views) {
+				parts.push(views);
+			}
 		}
 
 		// what deleting it takes along, and what it passes on
@@ -1967,9 +2336,37 @@ class AppMapView {
 		return parts.join(' · ');
 	}
 
+	// how many HTML elements of a page or shared component have problems, see AppMapPanels.problemsOfPage
+	describePageProblems(n) {
+
+		const { errors, warnings } = this.panels.problemsOfPage(n);
+		const count = (number, what) => `${number} ${what}${number === 1 ? '' : 's'}`;
+		const lines = [];
+
+		if (errors) {
+			lines.push(`${count(errors, 'element')} caused scripting errors`);
+		}
+
+		if (warnings) {
+			lines.push(`${count(warnings, 'repeater')} cannot work as configured`);
+		}
+
+		lines.push('Zoom in to see them at their elements');
+
+		return lines;
+	}
+
+	// what is wrong with an HTML element (see AppMapPanels.problemsOf), then what it does
+	describeDom(d) {
+
+		const { errors, warnings } = AppMapPanels.problemsOf(d);
+
+		return [...errors, ...warnings, ...this.describeDomUse(d)];
+	}
+
 	// what an HTML element does, a line for each of its repeaters and event action mappings, in words: what it repeats,
 	// on which event it does what to which type, where that type comes from, and where it leads afterwards
-	describeDom(d) {
+	describeDomUse(d) {
 
 		// [when, what]: what happens on which event, or what the element repeats
 		const lines = [];
@@ -2194,9 +2591,25 @@ class AppMapView {
 
 		// the smallest thing under the pointer answers, at every zoom: an HTML element, an element (or the anchor of the
 		// grouping whose outline holds the pointer), a strand
-		const access = this.renderer.findAccess(wx, wy);
+		const troubled = this.renderer.findPageProblems(wx, wy);
+		const access   = troubled ? null : this.renderer.findAccess(wx, wy);
 
-		this.canvas.style.cursor = access ? 'pointer' : '';
+		this.canvas.style.cursor = troubled || access ? 'pointer' : '';
+
+		// the problem sign of a page says how many of its elements have problems; they show on the elements themselves
+		if (troubled) {
+
+			this.showTip(e, troubled.n, this.describePageProblems(troubled), 420);
+
+			if (this.hoveredDom || this.hoveredStrand) {
+
+				this.hoveredDom    = null;
+				this.hoveredStrand = null;
+				this.requestDraw();
+			}
+
+			return;
+		}
 
 		// the access badge of a page stands for the page, which from afar it may be all there is to see of: the page comes
 		// into focus, and the tooltip says who may see it
@@ -2210,6 +2623,40 @@ class AppMapView {
 			if (this.hovered !== focus || this.hoveredDom || this.hoveredStrand) {
 
 				this.hovered       = focus;
+				this.hoveredDom    = null;
+				this.hoveredStrand = null;
+				this.requestDraw();
+			}
+
+			return;
+		}
+
+		// the box of a row of an open card says that it opens closer up: it stands out, the pointer becomes a magnifier, and
+		// the tooltip says how; an open one shows itself
+		const box  = this.panels.tileAt(wx, wy);
+		const item = box?.item ?? null;
+
+		if (item !== this.hoveredTile) {
+
+			this.hoveredTile = item;
+			this.requestDraw();
+		}
+
+		if (box) {
+
+			const open = box.height * this.transform.k >= AppMapPanels.TILE_OPEN;
+
+			this.canvas.style.cursor = open ? (this.toggle && this.panels.toggleAt(wx, wy) ? 'pointer' : '') : 'zoom-in';
+
+			if (open) {
+				this.tip.hidden = true;
+			} else {
+				this.showTip(e, item.tile.name, `${item.tile.kind ?? ''} · zoom in or double-click to open`, 360);
+			}
+
+			if (this.hovered || this.hoveredDom || this.hoveredStrand) {
+
+				this.hovered       = null;
 				this.hoveredDom    = null;
 				this.hoveredStrand = null;
 				this.requestDraw();
@@ -2234,7 +2681,7 @@ class AppMapView {
 			if (dom.opened) {
 				this.tip.hidden = true;
 			} else {
-				this.showTip(e, `<${dom.data.tag}> in ${dom.page.n}`, this.describeDom(dom), 420);
+				this.showTip(e, `${AppMapPanels.nameOf(dom)} in ${dom.page.n}`, this.describeDom(dom), 420);
 			}
 
 			this.canvas.style.cursor = this.panels.boxTargets(dom).length ? 'pointer' : '';
@@ -2291,6 +2738,7 @@ class AppMapView {
 
 		this.hovered        = null;
 		this.hoveredDom     = null;
+		this.hoveredTile    = null;
 		this.hoveredStrand  = null;
 		this.hoveredMarker  = null;
 		this.expandedMarker = null;

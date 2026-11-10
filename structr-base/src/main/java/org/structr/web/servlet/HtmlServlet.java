@@ -64,6 +64,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.docs.Documentation;
 import org.structr.rest.auth.AuthHelper;
+import org.structr.rest.common.UsageStatistics;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
@@ -579,6 +580,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					}
 
 				} else {
+
+					// a page view, also when answered from the browser cache; the previews in the admin UI and partial reloads are not
+					if (EditMode.NONE.equals(edit) && rootElement.is(StructrTraits.PAGE) && request.getParameter(ENCODED_RENDER_STATE_PARAMETER_NAME) == null) {
+
+						UsageStatistics.record(UsageStatistics.PAGES, rootElement.getUuid());
+					}
 
 					if (!EditMode.WIDGET.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement, dontCache)) {
 

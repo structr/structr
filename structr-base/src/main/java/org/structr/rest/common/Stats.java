@@ -83,8 +83,12 @@ public class Stats {
 	}
 
 	/**
-	 * Adds buckets saved before a restart. Called before any new request is counted, so the buckets
+	 * Restores buckets saved before a restart. Called before any new request is counted, so the buckets
 	 * stay in time order, which aggregate() relies on.
+	 *
+	 * <p>A bucket keeps the larger of the two counts instead of their sum: in a new process the buckets in
+	 * memory are empty, and when the HTTP service restarts within the same process, the saved buckets are
+	 * a snapshot of the ones still in memory, which adding would count twice.
 	 */
 	public void restore(final Map<Long, Long> saved) {
 
@@ -92,7 +96,7 @@ public class Stats {
 
 			for (final Map.Entry<Long, Long> entry : new TreeMap<>(saved).entrySet()) {
 
-				values.merge(entry.getKey(), entry.getValue(), Long::sum);
+				values.merge(entry.getKey(), entry.getValue(), Math::max);
 			}
 		}
 	}

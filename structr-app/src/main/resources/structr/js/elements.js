@@ -315,6 +315,8 @@ let _Elements = {
 
 		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
 
+		_Pages.problems.updateIndicator(entity, div[0]);
+
 		_Elements.clickOrSelectElementIfLastSelected(div, entity);
 
 		return div;
@@ -954,6 +956,8 @@ let _Elements = {
 
 		_Entities.appendContextMenuIcon(iconsContainer[0], entity);
 		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
+
+		_Pages.problems.updateIndicator(entity, div?.[0]);
 
 		_Elements.clickOrSelectElementIfLastSelected(div, entity);
 

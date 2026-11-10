@@ -32,6 +32,8 @@ import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.common.Stats;
+import org.structr.rest.common.UsageStatistics;
+import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.service.HttpService;
 
 import java.util.LinkedHashMap;
@@ -66,6 +68,30 @@ public class StatsResource extends ExactMatchEndpoint {
 
 		@Override
 		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+
+			// usage of the grants or pages instead of the requests per method, see UsageStatistics; admins only, because
+			// it names signatures and pages, and the stats grant of a monitoring account is meant for request counts
+			final String usage = securityContext.getRequest().getParameter("usage");
+			if (usage != null) {
+
+				if (!securityContext.isSuperUser()) {
+
+					throw new NotAllowedException("Access to the usage statistics is restricted to admin users");
+				}
+
+				if (UsageStatistics.GRANTS.equals(usage) || UsageStatistics.PAGES.equals(usage)) {
+
+					// with the days they go back, for the "in the last 30 days" of whoever shows them
+					final Map<String, Object> result = new LinkedHashMap<>();
+
+					result.put("days",  UsageStatistics.retentionDays());
+					result.put("usage", UsageStatistics.get(usage));
+
+					return new PagingIterable("stats", List.of(result));
+				}
+
+				throw new FrameworkException(422, "Unknown usage statistics '" + usage + "', expected '" + UsageStatistics.GRANTS + "' or '" + UsageStatistics.PAGES + "'.");
+			}
 
 			final HttpService httpService = Services.getInstance().getServiceImplementation(HttpService.class);
 			if (httpService != null) {

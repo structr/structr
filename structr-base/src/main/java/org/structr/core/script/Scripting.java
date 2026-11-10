@@ -365,6 +365,11 @@ public class Scripting {
 				// unwrap() has no throws clause, so a promise it could not resolve -- rejected, or still
 				// pending with nothing left that could settle it -- arrives wrapped in this marker.
 				//
+				// It is reported as the synchronous path reports a failing script, so that it reaches the
+				// runtime event log and the admin UI, which show it at the element whose script failed.
+				reportError(actionContext.getSecurityContext(), entity, tfx, snippet);
+
+				//
 				// Each of the two failures it may carry has to leave by the same route the synchronous path
 				// uses, or the reported status would depend on whether the snippet was wrapped. An
 				// AssertException is not a FrameworkException, so it leaves unchecked for Actions.execute to
@@ -1023,6 +1028,32 @@ public class Scripting {
 		boolean broadcastToAdminUI =  !(ex.isHostException() && (ex.asHostException() instanceof AssertException));
 
 		reportError(securityContext, entity, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet, broadcastToAdminUI);
+	}
+
+	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final PolyglotWrapper.ThenableFailure tfx, final Snippet snippet) throws FrameworkException {
+
+		final Throwable failure = tfx.getReportedFailure();
+
+		// an assertion that failed in a nested evaluation has been reported there already
+		if (failure instanceof AlreadyLoggedAssertException) {
+			return;
+		}
+
+		final SourceSection location = tfx.getLocation();
+		int lineNumber               = 1;
+		int columnNumber             = 1;
+		int endLineNumber            = 1;
+		int endColumnNumber          = 1;
+
+		if (location != null) {
+
+			lineNumber      = location.getStartLine();
+			columnNumber    = location.getStartColumn();
+			endLineNumber   = location.getEndLine();
+			endColumnNumber = location.getEndColumn();
+		}
+
+		reportError(securityContext, entity, failure.getMessage(), lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet, !(failure instanceof AssertException));
 	}
 
 	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {

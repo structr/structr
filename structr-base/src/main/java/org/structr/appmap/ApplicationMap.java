@@ -249,14 +249,24 @@ public class ApplicationMap {
 	 */
 	public void addReference(final String source, final String target, final String kind, final double baseWeight) {
 
+		addReference(source, target, kind, baseWeight, null);
+	}
+
+	/**
+	 * Adds a reference as above, with the details of where it was found; an edge keeps those of
+	 * the first reference.
+	 */
+	public void addReference(final String source, final String target, final String kind, final double baseWeight, final Map<String, Object> details) {
+
 		if (source == null || target == null || source.equals(target)) {
 			return;
 		}
 
-		final String key = edgeKey(source, target, kind);
-		final int count  = references.merge(key, 1, Integer::sum);
+		final String key      = edgeKey(source, target, kind);
+		final int count       = references.merge(key, 1, Integer::sum);
+		final MapEdge earlier = edges.get(key);
 
-		edges.put(key, new MapEdge(source, target, kind, baseWeight * (1 + Math.log(count)), null));
+		edges.put(key, new MapEdge(source, target, kind, baseWeight * (1 + Math.log(count)), null, earlier != null && earlier.details != null ? earlier.details : details));
 
 		connect(source, target);
 	}

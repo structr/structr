@@ -62,6 +62,7 @@ import org.structr.rest.auth.JWTHelper;
 import org.eclipse.jetty.session.ManagedSession;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import org.structr.rest.auth.SessionHelper;
+import org.structr.rest.common.UsageStatistics;
 import org.structr.web.auth.provider.*;
 import org.structr.web.entity.User;
 import org.structr.web.resource.RegistrationResourceHandler;
@@ -393,6 +394,12 @@ public class UiAuthenticator implements Authenticator {
 
 			RuntimeEventLog.resourceAccess("No permission", eventLogMap);
 
+			// grants that exist but are not visible to the user still decided this request
+			if (!permissions.isEmpty()) {
+
+				recordGrantUsage(rawResourceSignature, method, validUser, false);
+			}
+
 			TransactionCommand.simpleBroadcastGenericMessage(Map.of(
 				"type",               "RESOURCE_ACCESS",
 				"message",            errorMessage,
@@ -407,109 +414,14 @@ public class UiAuthenticator implements Authenticator {
 
 			throw new UnauthorizedException("Access denied");
 
-		} else {
+		} else if (ResourceAccess.hasFlag(requiredFlag(method, validUser), combinedFlags)) {
 
-			switch (method) {
+			recordGrantUsage(rawResourceSignature, method, validUser, true);
 
-				case GET:
-
-					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_GET, combinedFlags)) {
-
-						return;
-					}
-
-					if (validUser && ResourceAccess.hasFlag(AUTH_USER_GET, combinedFlags)) {
-
-						return;
-					}
-
-					break;
-
-				case PUT:
-
-					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_PUT, combinedFlags)) {
-
-						return;
-					}
-
-					if (validUser && ResourceAccess.hasFlag(AUTH_USER_PUT, combinedFlags)) {
-
-						return;
-					}
-
-					break;
-
-				case POST:
-
-					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_POST, combinedFlags)) {
-
-						return;
-					}
-
-					if (validUser && ResourceAccess.hasFlag(AUTH_USER_POST, combinedFlags)) {
-
-						return;
-					}
-
-					break;
-
-				case DELETE:
-
-					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_DELETE, combinedFlags)) {
-
-						return;
-					}
-
-					if (validUser && ResourceAccess.hasFlag(AUTH_USER_DELETE, combinedFlags)) {
-
-						return;
-					}
-
-					break;
-
-				case OPTIONS:
-
-					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_OPTIONS, combinedFlags)) {
-
-						return;
-					}
-
-					if (validUser && ResourceAccess.hasFlag(AUTH_USER_OPTIONS, combinedFlags)) {
-
-						return;
-					}
-
-					break;
-
-				case HEAD:
-
-					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_HEAD, combinedFlags)) {
-
-						return;
-					}
-
-					if (validUser && ResourceAccess.hasFlag(AUTH_USER_HEAD, combinedFlags)) {
-
-						return;
-					}
-
-					break;
-
-				case PATCH:
-
-					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_PATCH, combinedFlags)) {
-
-						return;
-					}
-
-					if (validUser && ResourceAccess.hasFlag(AUTH_USER_PATCH, combinedFlags)) {
-
-						return;
-					}
-
-					break;
-			}
+			return;
 		}
+
+		recordGrantUsage(rawResourceSignature, method, validUser, false);
 
 		final String errorMessage = "Found " + permissionsFound + " resource access permission" + (permissionsFound > 1 ? "s" : "") + " for " + userInfo + " and signature '" + rawResourceSignature + "' (URI: " + escapedURI + "), but method '" + method + "' not allowed in any of them.";
 
@@ -533,6 +445,34 @@ public class UiAuthenticator implements Authenticator {
 		));
 
 		throw new UnauthorizedException("Access denied");
+	}
+
+	/**
+	 * The flag a grant must have for the given method and kind of user, which is also the name of the
+	 * checkbox in the resource access table that the usage statistics are reported for.
+	 */
+	private static long requiredFlag(final Method method, final boolean validUser) {
+
+		return switch (method) {
+
+			case GET     -> validUser ? AUTH_USER_GET     : NON_AUTH_USER_GET;
+			case PUT     -> validUser ? AUTH_USER_PUT     : NON_AUTH_USER_PUT;
+			case POST    -> validUser ? AUTH_USER_POST    : NON_AUTH_USER_POST;
+			case DELETE  -> validUser ? AUTH_USER_DELETE  : NON_AUTH_USER_DELETE;
+			case OPTIONS -> validUser ? AUTH_USER_OPTIONS : NON_AUTH_USER_OPTIONS;
+			case HEAD    -> validUser ? AUTH_USER_HEAD    : NON_AUTH_USER_HEAD;
+			case PATCH   -> validUser ? AUTH_USER_PATCH   : NON_AUTH_USER_PATCH;
+		};
+	}
+
+	/**
+	 * Counted per signature, flag and outcome, e.g. "User AUTH_USER_GET allowed". Only called for signatures
+	 * that have grants, so requests to made-up URLs cannot grow the statistics. Requests of administrators
+	 * are not counted, they do not need a grant.
+	 */
+	private static void recordGrantUsage(final String signature, final Method method, final boolean validUser, final boolean allowed) {
+
+		UsageStatistics.record(UsageStatistics.GRANTS, signature + " " + (validUser ? "AUTH_USER_" : "NON_AUTH_USER_") + method.name() + " " + (allowed ? "allowed" : "denied"));
 	}
 
 	@Override

@@ -41,7 +41,8 @@
  *          inherits, requests (to a web host or a geocoding or translation service), queries (a foreign database), executes
  *          (a script configured for exec), mails, current (a page to the type of the current object of its
  *          route); details of a schema relationship as { m: multiplicity, cd?: cascading delete, pp?: direction in which
- *          it passes on rights, r, w, d, a: Add, Keep or Remove per right }, see AppMapAccess
+ *          it passes on rights, r, w, d, a: Add, Keep or Remove per right }, see AppMapAccess; details of the use of an
+ *          external service as { f: function, l: line, c: the line itself }, from its first call
  * - group: { id, n, m: number of members, t: ids of the types the group has grants on, p: the rights per type as the
  *          letters r, w and d, in: ids of the groups it is a member of, g, area }
  * - site:  { id, n: host name and port, pages: ids }
@@ -131,7 +132,8 @@ class AppMapModel {
 				continue;
 			}
 
-			const node = { id: g.id, k: 'group', n: g.n, m: g.m, g: g.g ?? g.id, area: g.area ?? 'security' };
+			// its size is what its card holds: its members, the types it has grants on and the groups it is a member of
+			const node = { id: g.id, k: 'group', n: g.n, m: g.m, s: g.m + g.t.length + (g.in?.length ?? 0), g: g.g ?? g.id, area: g.area ?? 'security' };
 
 			this.nodes.push(node);
 			this.byId.set(node.id, node);

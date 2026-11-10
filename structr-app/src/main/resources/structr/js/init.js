@@ -1647,6 +1647,10 @@ let Structr = {
 
 			case "SCRIPTING_ERROR":
 
+				if (Structr.isModuleActive(_Pages) || Structr.isModuleActive(_AppMap)) {
+					_Pages.problems.scheduleRuntimeErrorReload();
+				}
+
 				if (showScriptingErrorPopups) {
 
 					let getLocationTable = (data) => {
@@ -2121,6 +2125,31 @@ let Structr = {
 			for (let checkbox of form.querySelectorAll('input[type="checkbox"]')) {
 				checkbox.addEventListener('change', Structr.globalSearch.doSearch);
 			}
+		},
+		/**
+		 * Opens the search with the given text in its field and searches for it, as if it had been typed there; a module
+		 * calls it when the user starts typing in its content (see _AppMap.typeToSearch). Returns false when there is no
+		 * global search.
+		 */
+		open: text => {
+
+			let outerUi = document.querySelector('#global-search-ui');
+			let popover = document.querySelector('#global-search-popover');
+			let field   = popover?.querySelector('[name="searchString"]');
+
+			if (!field || outerUi.classList.contains('hidden')) {
+				return false;
+			}
+
+			if (!popover.matches(':popover-open')) {
+				popover.showPopover();
+			}
+
+			field.value = text;
+			field.focus();
+			field.dispatchEvent(new Event('input'));
+
+			return true;
 		},
 		clear: () => {
 

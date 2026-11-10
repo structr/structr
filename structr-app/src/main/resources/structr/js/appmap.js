@@ -59,7 +59,7 @@ let _AppMap = {
 		use: [
 			[['Hover'],        'Shows the connections.'],
 			[['Click'],        'Holds an element to explore it, or edits its code and settings.'],
-			[['Double-click'], 'Opens a page or method.'],
+			[['Double-click'], 'Opens a page, method, type or property.'],
 			[['Esc'],          'Ends editing or exploring.']
 		]
 	},
@@ -82,7 +82,28 @@ let _AppMap = {
 		// meantime is safe (see load)
 		Structr.mainMenu.unblock(100);
 
+		document.addEventListener('keydown', _AppMap.typeToSearch);
+
 		await _AppMap.load();
+	},
+	// typing on the map searches: the first character opens the global search with it in its field, which marks what it
+	// finds on the map (see onGlobalSearch). Not with a space, not while a field, an editor or a dialog has the keys, and
+	// not with a modifier, which belongs to a shortcut
+	typeToSearch: e => {
+
+		if (e.key.length !== 1 || e.key.trim() === '' || e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented || e.isComposing) {
+			return;
+		}
+
+		let target = e.target;
+
+		if (target.closest?.('input, textarea, select, [contenteditable=""], [contenteditable="true"], dialog, [popover]')) {
+			return;
+		}
+
+		if (Structr.globalSearch.open?.(e.key)) {
+			e.preventDefault();
+		}
 	},
 	unload: () => {
 
@@ -90,6 +111,8 @@ let _AppMap = {
 		if (_AppMap.isDirty() && !confirm('Discard unsaved changes?')) {
 			return false;
 		}
+
+		document.removeEventListener('keydown', _AppMap.typeToSearch);
 
 		_AppMap.view?.destroy();
 		_AppMap.view = undefined;
@@ -178,12 +201,63 @@ let _AppMap = {
 			},
 			editor: _AppMap.codeEditor(container),
 			domEditor: _AppMap.elementEditor(container),
+			loadContent: id => _AppMap.loadContent(id),
 			loadSource: async n => {
 
 				let response = await fetch(Structr.rootUrl + (n.tpl ? 'Template/' + n.tpl : 'SchemaMethod/' + n.id));
 				let result   = response.ok ? (await response.json()).result : null;
 
 				return result ? ((n.tpl ? result.content : result.source) ?? '') : null;
+			},
+			openIn: open => _AppMap.openIn(open),
+			toggle: change => _AppMap.toggle(change),
+			// how often the grants decided a request, or the pages were viewed, in the last days, as { days, usage } (see
+			// UsageStatistics); null where it cannot be read
+			loadUsage: async kind => {
+
+				let response = await fetch(`${Structr.rootUrl}stats?usage=${kind}`);
+
+				if (!response.ok) {
+					return null;
+				}
+
+				// a single result may come wrapped in a list
+				let result = (await response.json()).result;
+
+				return (Array.isArray(result) ? result[0] : result) ?? null;
+			},
+			// the resource access permissions, for the cards of the REST endpoints
+			loadGrants: async () => {
+
+				let size = Structr.getRequestParameterName('pageSize') + '=10000';
+
+				// with whom the permissions are visible to, the users and groups that have rights on them included, as a
+				// permission only applies to those who can see it (see AppMapPanels.accessOf)
+				let response = await fetch(Structr.rootUrl + `ResourceAccess?${size}`, {
+					headers: { Accept: 'application/json; charset=utf-8; properties=id,flags,signature,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees' }
+				});
+
+				if (response.ok) {
+					return (await response.json()).result;
+				}
+
+				console.warn(`Application map: ResourceAccess answered ${response.status}`);
+
+				return null;
+			},
+			// the members of a group, users and groups, for its card; a group that cannot be read has none after a while
+			loadMembers: n => new Promise(resolve => {
+
+				Command.get(n.id, 'id,name,members', group => resolve(group?.members ?? []));
+				window.setTimeout(() => resolve([]), 5000);
+			}),
+			loadType: async n => {
+
+				let response = await fetch(Structr.rootUrl + '_schema/' + encodeURIComponent(n.n));
+				let result   = response.ok ? (await response.json()).result : null;
+
+				// a single result may come wrapped in a list
+				return (Array.isArray(result) ? result[0] : result) ?? null;
 			},
 			onStatus: text => {
 
@@ -197,9 +271,170 @@ let _AppMap = {
 
 		_AppMap.initControls();
 
+		// the scripting errors of HTML elements, which the map marks on them (see AppMapPanels.problemsOf); the Pages area
+		// keeps them, and is missing in the preview
+		_AppMap.loadProblems();
+
 		// a search made before the map opened
 		if (Structr.globalSearch.current) {
 			_AppMap.view.search(Structr.globalSearch.current);
+		}
+	},
+	// leaves the map for what an open card stands for, see AppMapView.placeOpenButton: in the Code area a type, a method (of
+	// a type, or a user-defined function) or a property of a type, a relationship as the remote property it is there, what
+	// cannot be found as its type; in the Security area the resource access permissions or the users and groups, filtered
+	// by the name of what the card stands for
+	// switches a setting of an open box on the map (see AppMapView.flip and flipAccess) in the database: a setting of a field
+	// on its schema property, a right of a group on a type on its schema grant, whether a user is an admin or blocked on the
+	// user, after asking, and the flags and the visibility of a resource access permission on it, after asking where the
+	// change opens more than was clicked; says whether it was changed, and why not where it was not
+	toggle: async ({ kind, key, label, value, values, question, owner, name, group, type, id, name: principal }) => {
+
+		let first = async url => {
+
+			let response = await fetch(Structr.rootUrl + url);
+			let result   = response.ok ? (await response.json()).result : null;
+
+			return Array.isArray(result) ? result[0] : result;
+		};
+
+		let target = null;
+
+		if (kind === 'property') {
+
+			target = await first(`SchemaProperty?schemaNode=${owner.id}&name=${encodeURIComponent(name)}`);
+
+		} else if (kind === 'grant') {
+
+			target = await first(`SchemaGrant?schemaNode=${type.id}&principal=${group.id}`);
+
+		} else if (kind === 'principal') {
+
+			let question = `${value ? 'Make' : 'No longer make'} ${principal} ${key === 'isAdmin' ? 'an admin' : 'blocked'}?`;
+
+			if (!(await _Dialogs.confirmation.showPromise(question, false))) {
+				return false;
+			}
+
+			target = { id };
+
+		} else if (kind === 'access') {
+
+			if (question && !(await _Dialogs.confirmation.showPromise(question, false))) {
+				return false;
+			}
+
+			target = { id };
+		}
+
+		if (!target?.id) {
+
+			new ErrorMessage().text(`${label} could not be changed: ${kind === 'grant' ? 'the grant' : 'the property'} was not found`).show();
+
+			return false;
+		}
+
+		let response = await fetch(Structr.rootUrl + target.id, { method: 'PUT', body: JSON.stringify(values ?? { [key]: value }) });
+
+		if (!response.ok) {
+
+			let message = (await response.json().catch(() => null))?.message ?? response.status;
+
+			new ErrorMessage().text(`${label} could not be changed: ${message}`).show();
+
+			return false;
+		}
+
+		return true;
+	},
+
+	openIn: async open => {
+
+		if (open.area === 'security') {
+
+			// the filter goes into the stored state of the list before the area opens: the area reads it when it builds the
+			// list, shows it in the filter field and loads the list with it, however long that takes (see _Pager.initPager)
+			let id        = open.tab === 'resource-access' ? _Security.resourceAccessesPagerId : (open.group ? _Security.groupsPagerId : _Security.usersPagerId);
+			let attribute = open.tab === 'resource-access' ? 'signature' : 'name';
+			let type      = open.tab === 'resource-access' ? 'ResourceAccess' : (open.group ? 'Group' : 'User');
+
+			_Pager.restorePagerData(id);
+
+			_Pager.pagerFilters[id] = Object.assign({}, _Pager.pagerFilters[id], { [attribute]: open.filter || null });
+			_Pager.page[id]         = 1;
+
+			_Pager.storePagerData(id, type, 1, _Pager.pageSize[id] ?? 25, _Pager.sortKey[id] ?? attribute, _Pager.sortOrder[id] ?? 'asc', _Pager.pagerFilters[id]);
+
+			// the area opens the tab it showed last (see _Security.onload); an address with a tab in it opens no area at all,
+			// the handler of the address leaves those to the area that is open (see the hashchange listener in init.js)
+			LSWrapper.setItem(_Security.securityTabKey, open.tab);
+
+			window.location.href = '#security';
+
+			return;
+		}
+
+		if (typeof _Code === 'undefined') {
+			return;
+		}
+
+		let list = async url => {
+
+			let response = await fetch(Structr.rootUrl + url);
+			let result   = response.ok ? (await response.json()).result : null;
+
+			return Array.isArray(result) ? result : (result ? [result] : []);
+		};
+
+		// a service class has its own folder in the tree; only the schema of the type says whether it is one
+		let base = async type => {
+
+			let schema = (await list(`_schema/${encodeURIComponent(type.n)}`))[0];
+
+			return `/root/${schema?.isServiceClass ? 'services' : 'custom'}/${type.id}`;
+		};
+
+		let path = null;
+
+		if (open.kind === 'type') {
+
+			path = await base(open.node);
+
+		} else if (open.kind === 'method') {
+
+			path = open.owner ? `${await base(open.owner)}/methods/${open.node.id}` : `/globals/${open.node.id}`;
+
+		} else {
+
+			let owner    = open.node;
+			let name     = open.name;
+			let type     = await base(owner);
+			let property = (await list(`SchemaProperty?schemaNode=${owner.id}&name=${encodeURIComponent(name)}`))[0];
+
+			if (property) {
+
+				path = `${type}/properties/${property.id}`;
+
+			} else {
+
+				// a relationship is named on the type it leaves from by its target name, on the other by its source name
+				let relationship = (await list(`SchemaRelationshipNode?targetJsonName=${encodeURIComponent(name)}`)).find(r => r.sourceId === owner.id)
+					?? (await list(`SchemaRelationshipNode?sourceJsonName=${encodeURIComponent(name)}`)).find(r => r.targetId === owner.id);
+
+				path = relationship ? `${type}/remoteproperties/${relationship.id}` : type;
+			}
+		}
+
+		// as _Code.helpers.navigateToSchemaObjectFromAnywhere: the tree needs a moment once the Code area has opened
+		let timeout = window.location.hash === '#code' ? 100 : 1000;
+
+		window.location.href = '#code';
+		window.setTimeout(() => _Code.tree.findAndOpenNode(path, false), timeout);
+	},
+	loadProblems: () => {
+
+		if (typeof _Pages !== 'undefined') {
+			_Pages.problems.reloadRuntimeErrors();
 		}
 	},
 	// the data of the map loaded anew in place, after a change to the application, see AppMapView.replaceModel
@@ -215,6 +450,9 @@ let _AppMap = {
 
 		_AppMap.view?.replaceModel(new AppMapModel(json.result));
 		_AppMap.showCounts();
+
+		// saving an element acknowledges its scripting errors
+		_AppMap.loadProblems();
 
 		if (Structr.globalSearch.current) {
 			_AppMap.view?.search(Structr.globalSearch.current);
@@ -397,16 +635,55 @@ let _AppMap = {
 	// everything the controls of an open HTML element show (see AppMapView.followElement): where a repeater takes its data
 	// from, its query and its data key, the show and hide conditions, the texts the element holds (its text nodes, or
 	// itself for a template) and for each action mapping its event and action; with the element itself
+	// an element of a page as the view ui gives it, or null where it cannot be read
+	readElement: async id => {
+
+		let response = await fetch(Structr.rootUrl + id + '/ui');
+		let result   = response.ok ? (await response.json()).result : null;
+
+		return Array.isArray(result) ? result[0] : result;
+	},
+
+	// the texts of an element: the content of a template, else those of its text nodes, the text of a script or a style
+	// marked as code; nested objects may come with their id only
+	textsOf: async element => {
+
+		let texts = [];
+
+		if (typeof element.content === 'string') {
+
+			texts.push({ id: element.id, content: element.content, code: true, entity: element, contentType: element.contentType || 'text/html' });
+
+		} else {
+
+			for (let nested of element.children ?? []) {
+
+				let child = 'content' in nested || 'tag' in nested ? nested : await _AppMap.readElement(nested.id);
+
+				// the text of a script or a style is code, edited as the content of a template is
+				if (child && typeof child.content === 'string' && child.type !== 'Comment') {
+
+					let code = AppMapPanels.SCRIPTS[element.tag] && !texts.some(t => t.code);
+
+					texts.push({ id: child.id, content: child.content, code, entity: child, contentType: child.contentType || AppMapPanels.SCRIPTS[element.tag] });
+				}
+			}
+		}
+
+		return texts;
+	},
+
+	// the texts of an element, for its box on the map, read when it opens there
+	loadContent: async id => {
+
+		let element = await _AppMap.readElement(id);
+
+		return element ? (await _AppMap.textsOf(element)).map(({ content, code }) => ({ content, code: !!code })) : null;
+	},
+
 	loadElement: async id => {
 
-		let read = async id => {
-
-			let response = await fetch(Structr.rootUrl + id + '/ui');
-			let result   = response.ok ? (await response.json()).result : null;
-
-			return Array.isArray(result) ? result[0] : result;
-		};
-
+		let read    = _AppMap.readElement;
 		let element = await read(id);
 
 		if (!element) {
@@ -425,27 +702,7 @@ let _AppMap = {
 			}
 		}
 
-		let texts = [];
-
-		if (typeof element.content === 'string') {
-
-			texts.push({ id: element.id, content: element.content, code: true, entity: element, contentType: element.contentType || 'text/html' });
-
-		} else {
-
-			for (let nested of element.children ?? []) {
-
-				let child = 'content' in nested || 'tag' in nested ? nested : await read(nested.id);
-
-				// the text of a script or a style is code, edited as the content of a template is
-				if (child && typeof child.content === 'string' && child.type !== 'Comment') {
-
-					let code = AppMapPanels.SCRIPTS[element.tag] && !texts.some(t => t.code);
-
-					texts.push({ id: child.id, content: child.content, code, entity: child, contentType: child.contentType || AppMapPanels.SCRIPTS[element.tag] });
-				}
-			}
-		}
+		let texts = await _AppMap.textsOf(element);
 
 		let flow   = element.flow?.name ?? element.flow ?? null;
 		let source = flow ? 'flow' : (element.cypherQuery && !element.functionQuery ? 'cypherQuery' : 'functionQuery');
@@ -552,15 +809,28 @@ let _AppMap = {
 
 		let form = () => {
 
+			let heading = text => `<div class="appmap-el-heading">${text}</div>`;
+
 			let main = [];
 			let side = [];
 			let r    = data.repeater;
+
+			// what is wrong with the element comes first, as of the map's data; saving loads the map anew
+			let { errors, warnings } = data.problems;
+
+			if (errors.length || warnings.length) {
+
+				let item = (text, kind) => `<li class="appmap-el-${kind}">${_Helpers.escapeTags(text)}</li>`;
+
+				side.push(`<ul class="appmap-el-problems">${errors.map(e => item(e, 'error')).join('')}${warnings.map(w => item(w, 'warning')).join('')}</ul>`);
+			}
 
 			if (data.isRepeater) {
 
 				let tabs = AppMapPanels.SOURCES.filter(([key]) => key !== 'flow' || r.source === 'flow');
 
 				main.push(`
+					${heading('Data source')}
 					<div class="appmap-el-tabs" role="group" aria-label="Source">
 						${tabs.map(([key, label]) => `<button type="button" data-source="${key}" aria-pressed="${key === r.source}"${key === 'flow' || r.source === 'flow' ? ' disabled' : ''}>${label}</button>`).join('')}
 					</div>
@@ -570,6 +840,11 @@ let _AppMap = {
 				`);
 
 				side.push(`<label class="appmap-el-row"><span>Key</span><input class="appmap-el-key appmap-el-mono" spellcheck="false" value="${escape(r.key)}"></label>`);
+			}
+
+			// a sheet holds nothing but its code; elsewhere a heading says which field holds the content of the element
+			if (data.texts.length && !data.isSheet) {
+				main.push(heading(data.texts.length > 1 ? 'Contents' : 'Content'));
 			}
 
 			data.texts.forEach((t, i) => {
@@ -806,7 +1081,7 @@ let _AppMap = {
 					return;
 				}
 
-				data = { ...loaded, isRepeater: d.data.repeater, isSheet: AppMapPanels.isSheet(d) };
+				data = { ...loaded, isRepeater: d.data.repeater, isSheet: AppMapPanels.isSheet(d), problems: AppMapPanels.problemsOf(d) };
 
 				form();
 				state();

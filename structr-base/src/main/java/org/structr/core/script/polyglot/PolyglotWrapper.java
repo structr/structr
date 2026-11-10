@@ -19,6 +19,8 @@
 package org.structr.core.script.polyglot;
 
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.SourceSection;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.*;
 import org.slf4j.Logger;
@@ -672,8 +674,9 @@ public abstract class PolyglotWrapper {
 	 */
 	private static Object unwrapThenable(final ActionContext actionContext, final Value thenable) {
 
-		final Object[] outcome  = new Object[] { null, null };
-		final boolean[] settled = new boolean[] { false, false };
+		final Object[] outcome          = new Object[] { null, null };
+		final boolean[] settled         = new boolean[] { false, false };
+		final SourceSection[] rejection = new SourceSection[] { null };
 		final ProxyExecutable onFulfilled = args -> {
 			settled[0] = true;
 
@@ -683,8 +686,9 @@ public abstract class PolyglotWrapper {
 		};
 
 		final ProxyExecutable onRejected = args -> {
-			settled[1] = true;
-			outcome[1] = args.length > 0 ? unwrap(actionContext, args[0]) : null;
+			settled[1]   = true;
+			outcome[1]   = args.length > 0 ? unwrap(actionContext, args[0]) : null;
+			rejection[0] = args.length > 0 ? locationOf(args[0]) : null;
 
 			return null;
 		};
@@ -723,16 +727,16 @@ public abstract class PolyglotWrapper {
 			// stringifies the exception into the message and discards its status code.
 			if (reason instanceof FrameworkException fex) {
 
-				throw new ThenableFailure(fex);
+				throw new ThenableFailure(fex).at(rejection[0]);
 			}
 
 			if (reason instanceof AssertException aex) {
 
-				throw new ThenableFailure(aex);
+				throw new ThenableFailure(aex).at(rejection[0]);
 			}
 
 			throw new ThenableFailure(new FrameworkException(422, "Server-side scripting error: promise rejected with "
-				+ (reason != null ? reason.toString() : "no reason given")));
+				+ (reason != null ? reason.toString() : "no reason given"))).at(rejection[0]);
 		}
 
 		if (!settled[0]) {
@@ -746,6 +750,29 @@ public abstract class PolyglotWrapper {
 	}
 
 	/**
+	 * Where in the script a guest error was raised that a promise was rejected with, or null for any
+	 * other reason, which has no place in the script. The location is only exposed by the exception the
+	 * error becomes when it is thrown, so it is thrown here and caught again.
+	 */
+	private static SourceSection locationOf(final Value reason) {
+
+		if (reason == null || !reason.isException()) {
+			return null;
+		}
+
+		try {
+
+			reason.throwException();
+
+		} catch (final PolyglotException pex) {
+
+			return pex.getSourceLocation();
+		}
+
+		return null;
+	}
+
+	/**
 	 * Carries a script-level failure out of {@link #unwrap}, which has no {@code throws} clause and
 	 * around a hundred call sites. Its cause is always the {@link FrameworkException} to report;
 	 * {@code Scripting.evaluateScript} unwraps it again.
@@ -754,6 +781,8 @@ public abstract class PolyglotWrapper {
 	 * everything else exactly as it did -- this is the one thing it must not swallow.</p>
 	 */
 	public static class ThenableFailure extends RuntimeException {
+
+		private SourceSection location = null;
 
 		public ThenableFailure(final FrameworkException cause) {
 
@@ -768,6 +797,24 @@ public abstract class PolyglotWrapper {
 		public ThenableFailure(final AssertException cause) {
 
 			super(cause.getMessage(), cause);
+		}
+
+		/**
+		 * Remembers where in the script the promise was rejected, so that the failure can be reported there.
+		 */
+		public ThenableFailure at(final SourceSection location) {
+
+			this.location = location;
+
+			return this;
+		}
+
+		/**
+		 * @return where in the script the promise was rejected, or null when that is not known
+		 */
+		public SourceSection getLocation() {
+
+			return location;
 		}
 
 		/**

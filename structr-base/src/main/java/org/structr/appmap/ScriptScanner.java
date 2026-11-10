@@ -18,6 +18,7 @@
  */
 package org.structr.appmap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 
 import java.util.ArrayList;
@@ -88,20 +89,35 @@ public class ScriptScanner {
 		matcher = INTEGRATION.matcher(source);
 
 		while (matcher.find()) {
-			integration(map, origin, matcher.group(1), arguments(source, matcher.end()));
+			integration(map, origin, matcher.group(1), arguments(source, matcher.end()), callOf(source, matcher.group(1), matcher.start(1)));
 		}
 
-		if (MAIL.matcher(source).find()) {
+		matcher = MAIL.matcher(source);
+
+		if (matcher.find()) {
 
 			final String host = Settings.SmtpHost.getValue();
 
 			map.addNode(MAIL_ID, ApplicationMap.EXTERNAL, host == null || host.isBlank() ? "Send e-mail" : "Send e-mail via " + host);
-			map.addReference(origin, MAIL_ID, "mails", 1.0);
+			map.addReference(origin, MAIL_ID, "mails", 1.0, callOf(source, matcher.group(1), matcher.start(1)));
 		}
 	}
 
+	/**
+	 * Where a call to an external service was found, so that a client can show it: the function
+	 * (f), the number of the line in the script (l) and the line itself (c), shortened.
+	 */
+	static Map<String, Object> callOf(final String source, final String function, final int index) {
+
+		final int start  = source.lastIndexOf('\n', index - 1) + 1;
+		final int end    = source.indexOf('\n', index);
+		final int number = (int) source.substring(0, start).chars().filter(c -> c == '\n').count() + 1;
+
+		return Map.of("f", function, "l", number, "c", StringUtils.abbreviate(source.substring(start, end < 0 ? source.length() : end).trim(), 160));
+	}
+
 	// ----- private methods -----
-	private static void integration(final ApplicationMap map, final String origin, final String function, final List<String> arguments) {
+	private static void integration(final ApplicationMap map, final String origin, final String function, final List<String> arguments, final Map<String, Object> call) {
 
 		switch (function) {
 
@@ -111,7 +127,7 @@ public class ScriptScanner {
 
 				if (url == null) {
 
-					connect(map, origin, "ext:http", "Call computed URLs", "requests");
+					connect(map, origin, "ext:http", "Call computed URLs", "requests", call);
 
 				} else if (url.startsWith("http://") || url.startsWith("https://")) {
 
@@ -119,16 +135,16 @@ public class ScriptScanner {
 
 					// a host without a domain is the server itself or one in the same network, not an integration
 					if (host != null && host.contains(".")) {
-						connect(map, origin, "ext:" + host, "Call " + host, "requests");
+						connect(map, origin, "ext:" + host, "Call " + host, "requests", call);
 					}
 				}
 
 				// a relative URL is a request to Structr itself
 			}
 
-			case "jdbc"                           -> database(map, origin, literal(arguments, 0), "jdbc", "JDBC");
-			case "mongodb"                        -> database(map, origin, literal(arguments, 0), "mongodb", "MongoDB");
-			case "remoteCypher", "remote_cypher"  -> database(map, origin, literal(arguments, 0), "cypher", "Neo4j");
+			case "jdbc"                           -> database(map, origin, literal(arguments, 0), "jdbc", "JDBC", call);
+			case "mongodb"                        -> database(map, origin, literal(arguments, 0), "mongodb", "MongoDB", call);
+			case "remoteCypher", "remote_cypher"  -> database(map, origin, literal(arguments, 0), "cypher", "Neo4j", call);
 
 			case "geocode" -> {
 
@@ -136,7 +152,7 @@ public class ScriptScanner {
 				final String provider = Settings.GeocodingProvider.getValue();
 				final String name     = provider.substring(provider.lastIndexOf('.') + 1).replace("GeoCodingProvider", "");
 
-				connect(map, origin, "ext:geocoding", name.isEmpty() ? "Geocode addresses" : "Geocode via " + name, "requests");
+				connect(map, origin, "ext:geocoding", name.isEmpty() ? "Geocode addresses" : "Geocode via " + name, "requests", call);
 			}
 
 			case "translate" -> {
@@ -146,13 +162,13 @@ public class ScriptScanner {
 
 				if (provider == null) {
 
-					connect(map, origin, "ext:translation", "Translate via a computed provider", "requests");
+					connect(map, origin, "ext:translation", "Translate via a computed provider", "requests", call);
 
 				} else {
 
 					final String key = provider.toLowerCase();
 
-					connect(map, origin, "ext:translation:" + key, "Translate via " + TRANSLATION_PROVIDERS.getOrDefault(key, provider), "requests");
+					connect(map, origin, "ext:translation:" + key, "Translate via " + TRANSLATION_PROVIDERS.getOrDefault(key, provider), "requests", call);
 				}
 			}
 
@@ -163,22 +179,22 @@ public class ScriptScanner {
 
 				if (key == null) {
 
-					connect(map, origin, "ext:exec", "Run computed scripts", "executes");
+					connect(map, origin, "ext:exec", "Run computed scripts", "executes", call);
 
 				} else {
 
-					connect(map, origin, "ext:exec:" + key, "Run " + key, "executes");
+					connect(map, origin, "ext:exec:" + key, "Run " + key, "executes", call);
 				}
 			}
 		}
 	}
 
 	// a foreign database, one per host its URL names; a URL without a host, like an Oracle thin URL, as it is written
-	private static void database(final ApplicationMap map, final String origin, final String url, final String kind, final String label) {
+	private static void database(final ApplicationMap map, final String origin, final String url, final String kind, final String label, final Map<String, Object> call) {
 
 		if (url == null) {
 
-			connect(map, origin, "ext:" + kind, "Query computed " + label + " databases", "queries");
+			connect(map, origin, "ext:" + kind, "Query computed " + label + " databases", "queries", call);
 
 			return;
 		}
@@ -186,14 +202,14 @@ public class ScriptScanner {
 		final String host = url.contains("://") ? hostOf(url) : url;
 
 		if (host != null) {
-			connect(map, origin, "ext:" + kind + ":" + host, "Query " + host + " (" + label + ")", "queries");
+			connect(map, origin, "ext:" + kind + ":" + host, "Query " + host + " (" + label + ")", "queries", call);
 		}
 	}
 
-	private static void connect(final ApplicationMap map, final String origin, final String id, final String name, final String kind) {
+	private static void connect(final ApplicationMap map, final String origin, final String id, final String name, final String kind, final Map<String, Object> call) {
 
 		map.addNode(id, ApplicationMap.EXTERNAL, name);
-		map.addReference(origin, id, kind, 1.0);
+		map.addReference(origin, id, kind, 1.0, call);
 	}
 
 	// the arguments of a call, as written, from just behind its opening parenthesis to the closing one; commas inside

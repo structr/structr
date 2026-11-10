@@ -161,6 +161,7 @@ public class ApplicationMapTest extends StructrUiTest {
 		assertTrue("The outline must name a repeater at its element", found.contains(ids.get("itemRepeater")));
 		assertTrue("The outline must give the id of an element, so that its settings can be changed", collectOutlineElements(outline, new HashSet<>()).contains(ids.get("itemRepeater")));
 		assertTrue("The outline must mark the elements that hold a text of their own", collectOutlineFlags(outline, new HashSet<>()).stream().anyMatch(flags -> (flags & 8) != 0));
+		assertTrue("The outline must name the data sources of a repeater that are set, so that a client can point out one that cannot work", collectOutlineSources(outline, new HashSet<>()).contains("functionQuery"));
 
 		for (final String action : List.of("archiveAction", "updateAction", "createAction", "deleteAction", "callAction")) {
 			assertTrue("The outline must name every action mapping of the page at its trigger element, missing " + action, found.contains(ids.get(action)));
@@ -409,6 +410,8 @@ public class ApplicationMapTest extends StructrUiTest {
 		assertTrue("Sending mail must be an edge to the mail service, whatever the spelling of the function", hasEdge(map, ids.get("syncItems"), "ext:mail", "mails"));
 		assertEquals("The mail service must say that it sends e-mail, and through which server", "Send e-mail via " + Settings.SmtpHost.getValue(), node(map, "ext:mail", "n"));
 		assertEquals("An external service must be part of the integrations", "integration", node(map, "ext:api.example.com", "area"));
+		assertEquals("The use of an external service must name the function that calls it", "GET", map.getString("result.edges.find { it[0] == '" + ids.get("syncItems") + "' && it[1] == 'ext:api.example.com' }[6].f"));
+		assertTrue("The use of an external service must show the line of the call", map.getString("result.edges.find { it[0] == '" + ids.get("syncItems") + "' && it[1] == 'ext:api.example.com' }[6].c").contains("GET("));
 	}
 
 	@Test
@@ -731,6 +734,41 @@ public class ApplicationMapTest extends StructrUiTest {
 		}
 
 		assertNotNull("An action mapping whose action was never chosen must still be on the map", node(fetchMap(), ids.get("emptyAction"), "k"));
+	}
+
+	@Test
+	public void testScriptBlocksStandAsElementsOfTheirOwn() {
+
+		createApplication();
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page      = app.getNodeById(StructrTraits.PAGE, ids.get("page")).as(Page.class);
+			final DOMElement div = page.createElement("div");
+			final DOMNode script = page.createTextNode("${{ $.store('items', $.find('Item')); }}");
+
+			page.getElementsByTagName("body").get(0).appendChild(div);
+			div.appendChild(script);
+
+			ids.put("scriptHolder", div.getUuid());
+			ids.put("scriptBlock",  script.getUuid());
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final List<Object> outline = fetchMap().getList("result.nodes.find { it.id == '" + ids.get("page") + "' }.d");
+		final List<?> holder       = findOutlineItem(outline, ids.get("scriptHolder"));
+		final List<?> block        = findOutlineItem(outline, ids.get("scriptBlock"));
+
+		assertNotNull("A text node with a script block must stand in the outline, so that a client can show its code", block);
+		assertEquals("A script block must have the tag content, as the Pages area calls it", "content", block.get(0));
+		assertTrue("A script block must have a text", (((Number) block.get(1)).intValue() & 8) != 0);
+		assertTrue("A script block must stand below its element", ((List<?>) holder.get(2)).contains(block));
+		assertEquals("An element whose only text is a script block must have no text of its own", 0, ((Number) holder.get(1)).intValue() & 8);
 	}
 
 	@Test
@@ -1122,6 +1160,47 @@ public class ApplicationMapTest extends StructrUiTest {
 		}
 
 		return found;
+	}
+
+	private Set<String> collectOutlineSources(final List<?> items, final Set<String> found) {
+
+		for (final Object entry : items) {
+
+			final List<?> item = (List<?>) entry;
+
+			if (item.size() > 2) {
+				collectOutlineSources((List<?>) item.get(2), found);
+			}
+
+			if (item.size() > 7) {
+
+				for (final Object source : (List<?>) item.get(7)) {
+					found.add(source.toString());
+				}
+			}
+		}
+
+		return found;
+	}
+
+	private List<?> findOutlineItem(final List<?> items, final String id) {
+
+		for (final Object entry : items) {
+
+			final List<?> item = (List<?>) entry;
+
+			if (item.size() > 6 && id.equals(item.get(6))) {
+				return item;
+			}
+
+			final List<?> found = item.size() > 2 ? findOutlineItem((List<?>) item.get(2), id) : null;
+
+			if (found != null) {
+				return found;
+			}
+		}
+
+		return null;
 	}
 
 	private Set<Integer> collectOutlineFlags(final List<?> items, final Set<Integer> found) {
