@@ -122,50 +122,26 @@ public class SearchNodesCommand extends AbstractCommand {
 			final Map<String, Object> tmp = new LinkedHashMap<>(result);
 			final List<String> labels     = (List) result.get("labels");
 
-			if (labels.contains(StructrTraits.DOM_NODE)) {
+			final Map<String, String> typeToMarkerMap = Map.ofEntries(
+					Map.entry(StructrTraits.DOM_NODE,                            "isDOMElement"),
+					Map.entry(StructrTraits.ACTION_MAPPING,                      "isActionMapping"),
+					Map.entry(StructrTraits.PARAMETER_MAPPING,                   "isParameterMapping"),
+					Map.entry(StructrTraits.SITE,                                "isSiteElement"),
+					Map.entry(StructrTraits.ABSTRACT_SCHEMA_NODE,                "isSchemaElement"),
+					Map.entry(StructrTraits.SCHEMA_RELOADING_NODE,               "isSchemaElement"),
+					Map.entry(StructrTraits.FILE,                                "isFilesystemElement"),
+					Map.entry(StructrTraits.FOLDER,                              "isFilesystemElement"),
+					Map.entry(StructrTraits.LOCALIZATION,                        "isLocalizationElement"),
+					Map.entry(StructrTraits.MAIL_TEMPLATE,                       "isMailTemplateElement"),
+					Map.entry(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE, "isDeploymentScript"),
+					Map.entry(StructrTraits.FLOW_BASE_NODE,                      "isFlowNode")
+			);
 
-				tmp.put("isDOMElement", true);
-			}
-
-			if (labels.contains(StructrTraits.ACTION_MAPPING)) {
-
-				tmp.put("isActionMapping", true);
-			}
-
-			if (labels.contains(StructrTraits.PARAMETER_MAPPING)) {
-
-				tmp.put("isParameterMapping", true);
-			}
-
-			if (labels.contains(StructrTraits.SITE)) {
-
-				tmp.put("isSiteElement", true);
-			}
-
-			if (labels.contains(StructrTraits.ABSTRACT_SCHEMA_NODE) || labels.contains(StructrTraits.SCHEMA_RELOADING_NODE)) {
-
-				tmp.put("isSchemaElement", true);
-			}
-
-			if (labels.contains(StructrTraits.FILE) || labels.contains(StructrTraits.FOLDER)) {
-
-				tmp.put("isFilesystemElement", true);
-			}
-
-			if (labels.contains(StructrTraits.LOCALIZATION)) {
-
-				tmp.put("isLocalizationElement", true);
-			}
-
-			if (labels.contains(StructrTraits.MAIL_TEMPLATE)) {
-
-				tmp.put("isMailTemplateElement", true);
-			}
-
-			if (labels.contains(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE)) {
-
-				tmp.put("isDeploymentScript", true);
-			}
+			typeToMarkerMap.forEach((key, value) -> {
+				if (labels.contains(key)) {
+					tmp.put(value, true);
+				}
+			});
 
 			results.add(GraphObjectMap.fromMap(tmp));
 		}
