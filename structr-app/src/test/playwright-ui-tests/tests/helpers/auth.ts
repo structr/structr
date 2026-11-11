@@ -71,7 +71,7 @@ export async function login(page: Page, screenshot: boolean = false, passwordOve
 
 export async function logout(page: Page) {
 
-	await page.locator('.submenu-trigger').hover();
+	await page.locator('.submenu-trigger').click();
 	await page.locator('#logout_').waitFor({ state: 'visible' });
 	await page.locator('#logout_').click();
 	await page.locator('#usernameField').waitFor({ state: 'visible' });

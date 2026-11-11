@@ -72,14 +72,33 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	});
 
-	$(document).on('mouseenter', '[data-toggle="popup"]', function() {
-		let target = $(this).data("target");
-		$(target).addClass('visible');
+	// header popups open on click only; a link inside, a click outside or Esc closes them
+	$(document).on('click', '[data-toggle="popup"]', function(e) {
+
+		let target = document.querySelector($(this).data('target'));
+
+		if (target.contains(e.target)) {
+			if (e.target.closest('a')) {
+				target.classList.remove('visible');
+			}
+			return;
+		}
+
+		let open = !target.classList.contains('visible');
+		Structr.closeHeaderPopups();
+		target.classList.toggle('visible', open);
 	});
 
-	$(document).on('mouseleave', '[data-toggle="popup"]', function() {
-		let target = $(this).data("target");
-		$(target).removeClass('visible');
+	document.addEventListener('click', (e) => {
+		if (!e.target.closest('[data-toggle="popup"]')) {
+			Structr.closeHeaderPopups();
+		}
+	});
+
+	document.addEventListener('keydown', (e) => {
+		if (e.key === 'Escape') {
+			Structr.closeHeaderPopups();
+		}
 	});
 
 	StructrWS.init();
@@ -868,6 +887,12 @@ let Structr = {
 				console.log(e);
 			}
 		});
+	},
+	closeHeaderPopups: () => {
+
+		for (let trigger of document.querySelectorAll('[data-toggle="popup"]')) {
+			document.querySelector(trigger.dataset.target)?.classList.remove('visible');
+		}
 	},
 	mainMenu: {
 		lastMenuEntry: undefined,
@@ -2504,7 +2529,7 @@ let Structr = {
 					let el = _Helpers.createSingleDOMElementFromHTML(`
 						<div class="flex items-center justify-between gap-4 p-1 hover-bg-green:hover cursor-pointer">
 							<div class="whitespace-nowrap">${handler.displayName}</div>
-							<div class="font-mono text-sm whitespace-nowrap">${handler.shortcut}</div>
+							<div class="flex gap-1 whitespace-nowrap">${_Helpers.formatShortcutAsKeys(handler.shortcut)}</div>
 						</div>
 					`);
 
@@ -2536,27 +2561,27 @@ let Structr = {
 					<ul>
 						<li class="submenu-trigger" data-toggle="popup" data-target="#submenu">
 
-							${_Icons.getSvgIcon(_Icons.iconHamburgerMenu, 12, 12, ['icon-white', 'opacity-80', 'hover:opacity-100'])}
+							${_Icons.getSvgIcon(_Icons.iconHamburgerMenu, 12, 12, ['icon-white', 'opacity-80', 'hover:opacity-100', 'cursor-pointer'], 'More modules')}
 
 							<ul id="submenu">
-								<li data-name="Dashboard"><a id="dashboard_" href="#dashboard" data-activate-module="dashboard">Dashboard</a></li>
-								<li data-name="Graph"><a id="graph_" href="#graph" data-activate-module="graph">Graph</a></li>
+								<li data-name="Dashboard"><a id="dashboard_" href="#dashboard" data-activate-module="dashboard" title="Overview of this instance: about, deployment, logs and settings">Dashboard</a></li>
+								<li data-name="Graph"><a id="graph_" href="#graph" data-activate-module="graph" title="Explore the database as an interactive graph">Graph</a></li>
 								<!--li data-name="Apps"><a id="apps_" href="#apps" data-activate-module="apps">Apps</a></li-->
-								<li data-name="Pages"><a id="pages_" href="#pages" data-activate-module="pages">Pages</a></li>
-								<li data-name="Files"><a id="files_" href="#files" data-activate-module="files">Files</a></li>
+								<li data-name="Pages"><a id="pages_" href="#pages" data-activate-module="pages" title="Build and edit pages, templates and shared components">Pages</a></li>
+								<li data-name="Files"><a id="files_" href="#files" data-activate-module="files" title="Manage files, folders and images">Files</a></li>
 								<!--li data-name="Export Diff"><a id="export-diff_" href="#export-diff" data-activate-module="export-diff">Export Diff</a></li-->
-								<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>
-								<li data-name="Schema"><a id="schema_" href="#schema" data-activate-module="schema">Schema</a></li>
-								<li data-name="Code"><a id="code_" href="#code" data-activate-module="code">Code</a></li>
-								<li data-name="Application Map"><a id="appmap_" href="#appmap" data-activate-module="appmap">Application Map</a></li>
-								<li data-name="Flows"><a id="flows_" href="#flows" data-activate-module="flows">Flows</a></li>
-								<li data-name="Processes"><a id="processes_" href="#processes" data-activate-module="processes">Processes</a></li>
-								<li data-name="Data"><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
-								<li data-name="Job Queue"><a id="job-queue_" href="#job-queue" data-activate-module="job-queue">Job Queue</a></li>
-								<li data-name="Localization"><a id="localization_" href="#localization" data-activate-module="localization">Localization</a></li>
-								<li data-name="Mail Templates"><a id="mail-templates_" href="#mail-templates" data-activate-module="mail-templates">Mail Templates</a></li>
-								<li data-name="Documentation"><a id="docs_" href="#docs" data-activate-module="docs">Documentation</a></li>
-								<li data-name="Login"><a id="logout_" href="javascript:void(0)">Login</a></li>
+								<li data-name="Security"><a id="security_" href="#security" data-activate-module="security" title="Manage users, groups, resource permissions and CORS settings">Security</a></li>
+								<li data-name="Schema"><a id="schema_" href="#schema" data-activate-module="schema" title="Define types, properties, relationships and methods">Schema</a></li>
+								<li data-name="Code"><a id="code_" href="#code" data-activate-module="code" title="Edit schema methods, user-defined functions and properties as code">Code</a></li>
+								<li data-name="Application Map"><a id="appmap_" href="#appmap" data-activate-module="appmap" title="See how pages, types and methods of the application connect">Application Map</a></li>
+								<li data-name="Flows"><a id="flows_" href="#flows" data-activate-module="flows" title="Build logic visually with Flows">Flows</a></li>
+								<li data-name="Processes"><a id="processes_" href="#processes" data-activate-module="processes" title="Model and run BPMN processes">Processes</a></li>
+								<li data-name="Data"><a id="crud_" href="#crud" data-activate-module="crud" title="Browse, create and edit data of every type">Data</a></li>
+								<li data-name="Job Queue"><a id="job-queue_" href="#job-queue" data-activate-module="job-queue" title="Monitor import jobs and other background tasks">Job Queue</a></li>
+								<li data-name="Localization"><a id="localization_" href="#localization" data-activate-module="localization" title="Manage translations used by the localize() function">Localization</a></li>
+								<li data-name="Mail Templates"><a id="mail-templates_" href="#mail-templates" data-activate-module="mail-templates" title="Edit templates for emails sent by the application">Mail Templates</a></li>
+								<li data-name="Documentation"><a id="docs_" href="#docs" data-activate-module="docs" title="Read the Structr documentation">Documentation</a></li>
+								<li data-name="Login"><a id="logout_" href="javascript:void(0)" title="End this session">Login</a></li>
 							</ul>
 						</li>
 					</ul>
@@ -2573,18 +2598,18 @@ let Structr = {
 
 					<div id="global-search-ui" class="hidden" style="target-name: --global-search;">
 
-						<button class="m-0 p-0 border-0 bg-transparent" popovertarget="global-search-popover" style="anchor-name: --global-search;">
+						<button class="m-0 p-0 border-0 bg-transparent" popovertarget="global-search-popover" style="anchor-name: --global-search;" title="Global Search">
 							${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Global Search')}
 						</button>
 
 						${Structr.globalSearch.templates.popover(config)}
 					</div>
 					
-					<div class="group relative">
+					<div class="relative cursor-pointer" data-toggle="popup" data-target="#keyboard-shortcuts-popup" title="Keyboard Shortcuts">
 
 						${_Icons.getSvgIcon(_Icons.iconKeyboardShortcuts, 24, 24, _Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Keyboard Shortcuts')}
 
-						<div class="absolute group-hover:block hidden pt-4" style="z-index: 1002; right: -2rem;">
+						<div id="keyboard-shortcuts-popup" class="absolute hidden pt-4 cursor-default" style="z-index: 1002; right: -2rem;" title="">
 							<div id="keyboard-shortcuts-menu" class="bg-canvas border border-gray-ddd mt px-3 py-2 rounded-b-xl">
 							</div>
 						</div>
@@ -2592,22 +2617,22 @@ let Structr = {
 					</div>
 
 					<div>
-						<a target="_blank" href="${_Helpers.getPrefixedRootUrl('/structr/config')}">
+						<a target="_blank" href="${_Helpers.getPrefixedRootUrl('/structr/config')}" title="System Settings (opens the Configuration Interface)">
 							${_Icons.getSvgIconWithID('settings-icon', _Icons.iconSettingsWrench, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'System Settings')}
 						</a>
 					</div>
 
 					<div>
-						<a href="#docs">
+						<a href="#docs" title="Documentation">
 							${_Icons.getSvgIcon(_Icons.iconDocumentation, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1.5']), 'Documentation')}
 						</a>
 					</div>
 
-					<div>
-						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), `Toggle Console (Ctrl+Alt+C)`)}
+					<div title="Toggle Console (${_Helpers.formatShortcut('Ctrl-Alt-C')})">
+						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), `Toggle Console (${_Helpers.formatShortcut('Ctrl-Alt-C')})`)}
 					</div>
 
-					<div id="${Structr.notificationIconId}" class="relative">
+					<div id="${Structr.notificationIconId}" class="relative cursor-pointer" title="Show notifications">
 						${_Icons.getSvgIcon(_Icons.iconNotificationBell, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Show notifications')}
 						<div class="absolute flex items-center rounded-full h-4 -top-1 -right-3 text-white bg-red">
 							<div data-notification-count class="px-2 text-xs empty:hidden"></div>

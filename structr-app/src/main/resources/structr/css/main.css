@@ -483,7 +483,7 @@ ul#submenu {
 	line-height: 2em;
 }
 
-ul#submenu.visible {
+ul#submenu.visible, #keyboard-shortcuts-popup.visible {
 	display: block;
 }
 
@@ -5506,3 +5506,14 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	padding-right: 5%;
 }
 /* END embedded documentation in structr-ui straight from the ontology servlet */
+.keyboard-key {
+	display: inline-block;
+	min-width: 1.25rem;
+	padding: 0 0.25rem;
+	font-family: inherit;
+	font-size: 0.7rem;
+	text-align: center;
+	background-color: #f9fafb;
+	border: 1px solid #d1d5db;
+	border-radius: 0.25rem;
+}

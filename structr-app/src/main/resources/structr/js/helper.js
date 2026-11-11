@@ -901,7 +901,19 @@ let _Helpers = {
 			el.attr('title', 'Result count = ' + pageSize);
 		},
 	},
-	isMac: () => (navigator.platform === 'MacIntel'),
+	isMac: () => /^mac|^ip(hone|ad)/i.test(navigator.userAgentData?.platform || navigator.platform),
+	// splits a 'Ctrl-Alt-C' style shortcut into the key names of the current platform ('Mod' is Cmd on macOS, Ctrl elsewhere)
+	getShortcutKeys: (shortcut) => {
+
+		let mac = _Helpers.isMac();
+
+		return shortcut.split('-').map(key => {
+			if (key === 'Mod') key = (mac ? 'Cmd' : 'Ctrl');
+			return (mac ? ({ Ctrl: 'Control ⌃', Alt: 'Option ⌥', Shift: 'Shift ⇧', Cmd: 'Command ⌘' }[key] ?? key) : key);
+		});
+	},
+	formatShortcut: (shortcut) => _Helpers.getShortcutKeys(shortcut).join(' + '),
+	formatShortcutAsKeys: (shortcut) => _Helpers.getShortcutKeys(shortcut).map(key => `<kbd class="keyboard-key">${key}</kbd>`).join(''),
 	getHeadersForCustomView: (desiredProperties = []) => {
 
 		let propertiesString = ((desiredProperties.length > 0) ? ` properties=${desiredProperties.join(',')}` : '');

@@ -96,7 +96,7 @@ export async function goToModule(page: Page, linkId: string) {
 	const isInsideSubmenu = await link.evaluate(el => el.closest('#submenu') !== null);
 
 	if (isInsideSubmenu) {
-		await page.locator('.submenu-trigger').hover();
+		await page.locator('.submenu-trigger').click();
 	}
 
 	await link.waitFor({ state: 'visible' });
