@@ -2871,12 +2871,15 @@ let _Entities = {
 				_Entities.generalTab.populateInputFields(el, entity);
 				_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity);
 
-				$('button#set-password-button').on('click', (e) => {
+				el[0].querySelector('form#set-password-form').addEventListener('submit', (e) => {
+					e.preventDefault();
+
 					let input = $('input#password-input');
 					_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
 				});
 
-				document.querySelector('button#rotate-device-trust-secret').addEventListener('click', async (e) => {
+				el[0].querySelector('button#rotate-device-trust-secret').addEventListener('click', async (e) => {
+
 					let response = await fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/rotateDeviceTrustSecret`, {
 						method: 'POST'
 					});
@@ -4337,9 +4340,11 @@ let _Entities = {
 						</div>
 
 						<div>
-							<label class="block mb-2" for="password-input">Password</label>
-							<input class="mb-2" type="password" id="password-input" autocomplete="new-password" value="****** HIDDEN ******">
-							<button class="action" type="button" id="set-password-button">Set Password</button>
+							<form id="set-password-form">
+								<label class="block mb-2" for="password-input">Password</label>
+								<input class="mb-2" type="password" id="password-input" autocomplete="new-password" value="****** HIDDEN ******">
+								<button class="action" type="submit">Set Password</button>
+							</form>
 						</div>
 
 						<div>
