@@ -46,8 +46,11 @@ public final class LogCapture {
 	}
 
 	/**
-	 * As above, for code that fails on another thread: waits up to the given time for the first
-	 * mention, and a little longer for any repetition of it.
+	 * As above, for a failure that is reported after the given code has returned: one on another
+	 * thread, or one in an HTTP request, whose frame reports it when the server has already sent the
+	 * response. Waits up to the given time for the first mention, and a little longer for any
+	 * repetition of it. A test that asserts nothing is reported waits too, or a late report would
+	 * arrive after the capture has ended.
 	 */
 	public static List<String> mentions(final String marker, final long awaitMillis, final Supplier<?> code) {
 

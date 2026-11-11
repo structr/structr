@@ -78,7 +78,7 @@ public class CallTraceRestTest extends StructrRestTestBase {
 		extendSchema(type -> type.addMethod("onCreate", "{\n\tthrow new Error('rest-lifecycle-marker');\n}"), "TraceRestItem");
 
 		final List<String> roots = new ArrayList<>();
-		final List<String> lines = LogCapture.mentions("rest-lifecycle-marker", () -> roots.addAll(LogCapture.flowsWithoutEntryFrame(() ->
+		final List<String> lines = LogCapture.mentions("rest-lifecycle-marker", 10_000, () -> roots.addAll(LogCapture.flowsWithoutEntryFrame(() ->
 
 			RestAssured.given()
 				.contentType("application/json; charset=UTF-8")
@@ -101,7 +101,7 @@ public class CallTraceRestTest extends StructrRestTestBase {
 		creationFailures.set(1);
 
 		final List<String> roots = new ArrayList<>();
-		final List<String> lines = LogCapture.mentions("Simulated termination", () -> roots.addAll(LogCapture.flowsWithoutEntryFrame(() -> {
+		final List<String> lines = LogCapture.mentions("Simulated termination", 2_000, () -> roots.addAll(LogCapture.flowsWithoutEntryFrame(() -> {
 
 			final Response response = RestAssured.given()
 				.contentType("application/json; charset=UTF-8")
