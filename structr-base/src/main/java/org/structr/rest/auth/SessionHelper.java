@@ -34,6 +34,7 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
@@ -183,6 +184,28 @@ public class SessionHelper {
 	 *
 	 * @param user
 	 */
+	public static void clearSessionAfterTransaction(final String sessionId) {
+
+		if (!TransactionCommand.inTransaction()) {
+
+			clearSession(sessionId);
+			return;
+		}
+
+		TransactionCommand.queuePostProcessProcedure(() -> {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				clearSession(sessionId);
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("Unable to clear timed-out session {}: {}", sessionId, fex.getMessage());
+			}
+		});
+	}
+
 	public static void clearInvalidSessions(final Principal user) {
 
 		if (user == null) {
@@ -357,8 +380,8 @@ public class SessionHelper {
 				// invalidate session
 				SessionHelper.invalidateSession(sessionId);
 
-				// remove invalid session ID
-				SessionHelper.clearSession(sessionId);
+				// remove invalid session ID after the request transaction, so no node lock is held while Jetty's session lock is taken
+				SessionHelper.clearSessionAfterTransaction(sessionId);
 
 				logger.debug("4a. Cleared timed-out session " + sessionId);
 

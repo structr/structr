@@ -30,6 +30,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
@@ -38,6 +39,7 @@ import org.structr.core.traits.definitions.SessionDataNodeTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  */
@@ -46,6 +48,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	private static final Logger logger = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
 
 	private static final Map<String, SessionData> anonymousSessionCache = Collections.synchronizedMap(new LRUMap(100_000));
+	private static final Set<String>                     pendingDeletes = ConcurrentHashMap.newKeySet();
 
 	@Override
 	public boolean doExists(final String id) throws Exception {
@@ -55,6 +58,10 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	@Override
 	public void doStore(final String id, final SessionData data, final long lastSaveTime) throws Exception {
+
+		if (pendingDeletes.contains(id)) {
+			return;
+		}
 
 		assertInitialized();
 
@@ -109,6 +116,11 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 			return true;
 		}
 
+		if (pendingDeletes.contains(id)) {
+
+			return false;
+		}
+
 		assertInitialized();
 
 		final App app = StructrApp.getInstance();
@@ -137,6 +149,11 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 		if (anonymousSessionCache.containsKey(id)) {
 
 			return anonymousSessionCache.get(id);
+		}
+
+		if (pendingDeletes.contains(id)) {
+
+			return null;
 		}
 
 		assertInitialized();
@@ -185,6 +202,27 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 		}
 
 		assertInitialized();
+
+		// inside a request transaction, deleting would hold the node lock until the request ends while Jetty's session lock is taken (deadlock)
+		if (TransactionCommand.inTransaction()) {
+
+			pendingDeletes.add(id);
+			TransactionCommand.queuePostProcessProcedure(() -> {
+
+				try {
+					deleteSessionDataNodes(id);
+				} finally {
+					pendingDeletes.remove(id);
+				}
+			});
+
+			return true;
+		}
+
+		return deleteSessionDataNodes(id);
+	}
+
+	private boolean deleteSessionDataNodes(final String id) {
 
 		final Traits traits = Traits.of(StructrTraits.SESSION_DATA_NODE);
 		final App app       = StructrApp.getInstance();

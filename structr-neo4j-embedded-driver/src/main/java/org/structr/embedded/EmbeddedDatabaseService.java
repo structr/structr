@@ -19,6 +19,7 @@
 package org.structr.embedded;
 
 import org.neo4j.dbms.api.DatabaseManagementService;
+import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.TransientFailureException;
@@ -36,6 +37,7 @@ import org.structr.api.util.CountResult;
 import org.structr.api.util.NodeWithOwnerResult;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -74,7 +76,14 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 		databaseName = Settings.ConnectionDatabaseName.getPrefixedValue(serviceName);
 		databasePath = Path.of(Settings.DatabasePath.getValue("db"));
 
-		managementService = new DatabaseManagementServiceBuilder( databasePath ).build();
+		final DatabaseManagementServiceBuilder builder = new DatabaseManagementServiceBuilder(databasePath);
+		final int lockTimeout                          = Settings.LockAcquisitionTimeout.getValue();
+
+		if (lockTimeout > 0) {
+			builder.setConfig(GraphDatabaseSettings.lock_acquisition_timeout, Duration.ofSeconds(lockTimeout));
+		}
+
+		managementService = builder.build();
 		graphDb = managementService.database(databaseName);
 
 		// build list of supported query languages
