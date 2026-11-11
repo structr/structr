@@ -29,7 +29,6 @@ import org.structr.core.graph.NativeQueryCommand;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -86,7 +85,7 @@ public class CypherFunction extends CoreFunction {
 					int parameterCount = sources.length;
 					if (parameterCount % 2 == 0) {
 
-						throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+						throw new FrameworkException(400, getDisplayName(false) + ": Invalid number of parameters: " + parameterCount + ". Should be uneven. " + usage());
 					}
 
 					for (int c = 1; c < parameterCount; c += 2) {
@@ -109,7 +108,7 @@ public class CypherFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 
@@ -122,15 +121,6 @@ public class CypherFunction extends CoreFunction {
 			throw new FrameworkException(422, "%s: UnknownClientException (Cause: %s)".formatted(getDisplayName(), ex.getMessage()));
 		}
     }
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${cypher(query)}. Example ${cypher('MATCH (n) RETURN n')}"),
-			Usage.javaScript("Usage: ${{ $.cypher(query); }}. Example ${{ $.cypher('MATCH (n) RETURN n'); }}")
-		);
-	}
 
 	@Override
 	public String getShortDescription() {

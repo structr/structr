@@ -24,7 +24,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -79,21 +78,12 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${$.error(propertyName, errorToken[, errorMessage])}. Example: ${$.error('name', 'alreadyTaken'[, 'Another node with that name already exists'])}"),
-			Usage.structrScript("Usage: ${error(propertyName, errorToken[, errorMessage])}. Example: ${error('name', 'alreadyTaken'[, 'Another node with that name already exists'])}")
-		);
 	}
 
 	@Override

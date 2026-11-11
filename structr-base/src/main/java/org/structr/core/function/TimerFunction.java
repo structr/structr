@@ -24,7 +24,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -78,16 +77,10 @@ public class TimerFunction extends CoreFunction {
 
 		} catch (ArgumentCountException | ArgumentNullException ace) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${timer(name, action)}."), Usage.javaScript("Usage: ${{$.timer(name, action)}}."));
 	}
 
 	@Override

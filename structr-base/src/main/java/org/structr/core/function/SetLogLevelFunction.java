@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
@@ -66,19 +65,10 @@ public class SetLogLevelFunction extends CoreFunction {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${setLogLevel(string)}. Example ${setLogLevel('WARN')}"),
-			Usage.javaScript("Usage: ${{ $.setLogLevel(string) }}. Example ${{ $.setLogLevel('WARN')}}")
-		);
 	}
 
 	@Override

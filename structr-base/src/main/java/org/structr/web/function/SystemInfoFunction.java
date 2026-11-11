@@ -27,7 +27,6 @@ import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.graph.NodeService;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
@@ -71,12 +70,6 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 		}
 
 		return systemInfo;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.javaScript("Usage: ${{ $.systemInfo([key]) }}"), Usage.structrScript("Usage: ${systemInfo([key])}"));
 	}
 
 	@Override

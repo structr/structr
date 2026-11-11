@@ -20,6 +20,8 @@ export class FlowScriptCondition extends FlowNode {
                 let scriptSource = new D3NE.Input('ScriptSource', socket.getSocket('scriptSource'));
                 let exceptionHandler = new D3NE.Output('ExceptionHandler', socket.getSocket('exceptionHandler'));
 
+                node.data.id = scopedDbNode.id;
+
                 let script = new D3NE.Control('<textarea class="control-textarea">', (element, control) =>{
 
                     if(scopedDbNode !== undefined && scopedDbNode.script !== undefined && scopedDbNode !== null) {
@@ -61,7 +63,7 @@ export class FlowScriptCondition extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

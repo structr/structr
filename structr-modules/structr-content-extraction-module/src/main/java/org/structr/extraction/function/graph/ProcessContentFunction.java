@@ -26,10 +26,8 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.api.processing.ProcessingResult;
-import org.structr.extraction.entity.ExtractedContentNode;
 import org.structr.extraction.filesystem.FolderTreeWalker;
 import org.structr.extraction.function.ContentExtractionFunction;
 import org.structr.extraction.options.ContentOptionsResolver;
@@ -40,7 +38,6 @@ import org.structr.web.entity.Folder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -84,7 +81,7 @@ public class ProcessContentFunction extends ContentExtractionFunction {
 
 			if (!file.isGranted(Permission.write, securityContext)) {
 
-				throw new FrameworkException(403, getName() + "(): processing " + file.getPath() + " requires write permission on the file.");
+				throw new FrameworkException(403, getDisplayName(false) + ": processing " + file.getPath() + " requires write permission on the file.");
 			}
 		}
 
@@ -100,7 +97,7 @@ public class ProcessContentFunction extends ContentExtractionFunction {
 
 		} catch (final IllegalArgumentException ex) {
 
-			throw new FrameworkException(422, getName() + "(): " + ex.getMessage());
+			throw new FrameworkException(422, getDisplayName(false) + ": " + ex.getMessage());
 		}
 
 		if (wait) {
@@ -118,12 +115,6 @@ public class ProcessContentFunction extends ContentExtractionFunction {
 		}
 
 		return ContentExtraction.schedule(securityContext.getUser(false), files.stream().map(File::getUuid).toList(), overrides, force, queue);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ documents.processContent(fileOrFolderOrList [, options ]) }"), Usage.javaScript("Usage: ${{ $.documents.processContent(fileOrFolderOrList [, options ]); }}"));
 	}
 
 	@Override
@@ -189,7 +180,7 @@ public class ProcessContentFunction extends ContentExtractionFunction {
 
 		if (sources == null || sources.length == 0 || sources[0] == null) {
 
-			throw new FrameworkException(422, getName() + "(): expected a File, a Folder or a list of them as argument 1.");
+			throw new FrameworkException(422, getDisplayName(false) + ": expected a File, a Folder or a list of them as argument 1.");
 		}
 
 		final List<Object> targets = sources[0] instanceof Iterable<?> iterable ? toList(iterable) : List.of(sources[0]);
@@ -211,7 +202,7 @@ public class ProcessContentFunction extends ContentExtractionFunction {
 
 			} else {
 
-				throw new FrameworkException(422, getName() + "(): expected Files and Folders, got " + target + ".");
+				throw new FrameworkException(422, getDisplayName(false) + ": expected Files and Folders, got " + target + ".");
 			}
 		}
 

@@ -32,7 +32,6 @@ import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -101,7 +100,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 					final int parameterCount = sources.length;
 					if (parameterCount % 2 == 0) {
 
-						throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+						throw new FrameworkException(400, getDisplayName(false) + ": Invalid number of parameters: " + parameterCount + ". Should be uneven. " + usage());
 					}
 
 					for (int c = 3; c < parameterCount; c += 2) {
@@ -139,19 +138,10 @@ public class CreateRelationshipFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${createRelationship(fromNode, toNode, relationshipType)}"),
-			Usage.javaScript("Usage: ${{ $.createRelationship(fromNode, toNode, relationshipType) }}")
-		);
 	}
 
 	@Override

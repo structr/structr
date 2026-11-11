@@ -20,7 +20,6 @@ package org.structr.web.function;
 
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -51,16 +50,10 @@ public class JobListFunction extends UiAdvancedFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${jobList()}. Example: ${jobList()}"), Usage.javaScript("Usage: ${{ $.jobList() }}. Example: ${{ $.jobList() }}"));
 	}
 
 	@Override

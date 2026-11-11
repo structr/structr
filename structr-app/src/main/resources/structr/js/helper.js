@@ -910,16 +910,6 @@ let _Helpers = {
 			Accept: 'application/json; charset=utf-8;' + propertiesString
 		}
 	},
-	getDataCommentAttributeForPropertyFromSchemaInfoHint: (key, typeInfo) => {
-
-		let hint = typeInfo?.[key]?.hint;
-
-		if (hint) {
-			return `data-comment="${_Helpers.escapeForHtmlAttributes(hint)}"`;
-		}
-
-		return '';
-	},
 	getSchemaInformationPromise: async () => {
 		return new Promise((resolve) => {
 			fetch(Structr.rootUrl + '_schema').then(response => response.json()).then(schemaData => {

@@ -27,11 +27,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
-import org.structr.docs.ontology.FunctionCategory;
 import org.structr.process.auth.ProcessJWTHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -82,7 +79,7 @@ public class ValidateProcessTokenFunction extends ProcessModuleFunction {
 
 		} catch (ArgumentNullException | ArgumentCountException ex) {
 
-			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ex.getMessage());
 
 			return null;
 		}
@@ -94,12 +91,6 @@ public class ValidateProcessTokenFunction extends ProcessModuleFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("token");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${validateProcessToken(token)}"), Usage.javaScript("Usage: ${{$.validateProcessToken(token)}}"));
 	}
 
 	@Override

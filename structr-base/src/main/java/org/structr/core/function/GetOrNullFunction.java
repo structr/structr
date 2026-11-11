@@ -28,7 +28,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -100,18 +99,12 @@ public class GetOrNullFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${getOrNull(entity, propertyKey)}"), Usage.javaScript("Usage: ${{ $.getOrNull(entity, propertyKey) }}"));
 	}
 
 	@Override

@@ -27,8 +27,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.DataAdapter;
-import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
@@ -36,7 +34,6 @@ import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
@@ -129,19 +126,10 @@ public class IncludeFunction extends UiCommunityFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${include(name [, collection, dataKey])}. Example: ${include('Main Template')}"),
-			Usage.javaScript("Usage: ${{ $.include(name); }}. Example: ${{ $.include('Main Template'); }}")
-		);
 	}
 
 	@Override
@@ -315,7 +303,7 @@ public class IncludeFunction extends UiCommunityFunction {
 				} else {
 
 					// ERROR: we have found multiple DOMNodes with the same name
-					logger.warn(getName() + "(): Ambiguous node name '" + name + "' (" + StringUtils.join(nodeList, ", ") + ")");
+					logger.warn(getDisplayName(false) + ": Ambiguous node name '" + name + "' (" + StringUtils.join(nodeList, ", ") + ")");
 
 					return null;
 				}

@@ -223,11 +223,6 @@ public abstract class PropertyGenerator<T> {
 		}
 		*/
 
-		if (StringUtils.isNotBlank(source.getHint())) {
-
-			propertyKey.hint(source.getHint());
-		}
-
 		if (StringUtils.isNotBlank(source.getCategory())) {
 
 			propertyKey.category(source.getCategory());

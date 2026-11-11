@@ -19,6 +19,7 @@ export class FlowComparison extends FlowNode {
                 let valueSource = new D3NE.Input('ValueSource', socket.getSocket('valueSource'), true);
                 let result = new D3NE.Output('Result', socket.getSocket('condition_Result'), true);
 
+                node.data.id = scopedDbNode.id;
                 node.data.dbNode = scopedDbNode;
 
                 let operation = new D3NE.Control('<select class="control-select">' +
@@ -71,7 +72,7 @@ export class FlowComparison extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

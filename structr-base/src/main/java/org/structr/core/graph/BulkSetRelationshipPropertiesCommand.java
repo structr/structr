@@ -182,12 +182,6 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
-
-	@Override
 	public final List<ConceptReference> getParentConcepts() {
 
 		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));

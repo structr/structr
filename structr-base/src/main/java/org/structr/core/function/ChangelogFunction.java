@@ -41,7 +41,6 @@ import org.structr.core.property.StringProperty;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
@@ -130,7 +129,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 
@@ -140,15 +139,6 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${changelog(entity[, resolve=false[, filterKey, filterValue...]])}. Example: ${changelog(current, false, 'verb', 'change', 'timeTo', now)}"),
-			Usage.javaScript("Usage: ${{ $.changelog(entity[, resolve=false[, filterObject]]); }}. Example: ${{ $.changelog($.current, false, {verb:'change', timeTo: new Date()})); }}")
-		);
 	}
 
 	@Override

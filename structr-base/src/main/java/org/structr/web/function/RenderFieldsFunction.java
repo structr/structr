@@ -21,13 +21,11 @@ package org.structr.web.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.datasources.Channel;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.ComponentConfiguration;
@@ -76,7 +74,7 @@ public class RenderFieldsFunction extends ApplyTemplatesFunction {
 
 			} else {
 
-				logger.warn(getName() + "(): Can only be used in a rendering context.");
+				logger.warn(getDisplayName(false) + ": Can only be used in a rendering context.");
 			}
 
 			return null;
@@ -89,19 +87,10 @@ public class RenderFieldsFunction extends ApplyTemplatesFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${renderFields(tag, slot)}. Example: ${renderFields('th'))}"),
-			Usage.javaScript("Usage: ${{ $.renderFields(tag, slot)}}. Example: ${{ $.renderFields('th')}}")
-		);
 	}
 
 	@Override

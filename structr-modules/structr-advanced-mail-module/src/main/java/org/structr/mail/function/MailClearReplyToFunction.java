@@ -20,7 +20,6 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
@@ -51,12 +50,6 @@ public class MailClearReplyToFunction extends AdvancedMailModuleFunction {
 		ctx.getAdvancedMailContainer().clearReplyTo();
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${mailClearReplyTo()}"), Usage.javaScript("Usage: ${{ $.mailClearReplyTo() }}"));
 	}
 
 	@Override

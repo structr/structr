@@ -29,6 +29,8 @@ export class FlowTypeQuery extends FlowNode {
                     node.isStartNode = false;
                 }
 
+                node.data.id = scopedDbNode.id;
+
                 const builder = new QueryBuilder(flowEditor);
 
                 // Add select box and render all SchemaTypes as dataType options
@@ -67,9 +69,7 @@ export class FlowTypeQuery extends FlowNode {
                             option.selected = true;
                             option.disabled = true;
                             element.add(option);
-
                         }
-
                     });
 
                     control.putData('dataType',element.value);
@@ -105,8 +105,6 @@ export class FlowTypeQuery extends FlowNode {
                     });
                 });
 
-
-
                 return node
                     .addInput(dataSource)
                     .addOutput(dataTarget)
@@ -120,7 +118,7 @@ export class FlowTypeQuery extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->
@@ -149,6 +147,4 @@ export class FlowTypeQuery extends FlowNode {
             </div>
         `;
     }
-
-
 }

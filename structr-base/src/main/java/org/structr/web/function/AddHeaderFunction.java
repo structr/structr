@@ -21,7 +21,6 @@ package org.structr.web.function;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -58,7 +57,7 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 
 		} else {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 		}
 
 		return null;
@@ -68,15 +67,6 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("name, value");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${addHeader(name, value)}. Example: ${addHeader('X-User', 'johndoe')}"),
-			Usage.javaScript("Usage: ${{ $.addHeader(name, value)}}. Example: ${{ $.addHeader('X-User', 'johndoe')}}")
-		);
 	}
 
 	@Override

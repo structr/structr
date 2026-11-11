@@ -24,7 +24,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -95,7 +94,7 @@ public class Base64DecodeFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 		}
 
 		return null;
@@ -128,15 +127,6 @@ public class Base64DecodeFunction extends CoreFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("base64Text [, scheme [, charset ]]");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${base64decode(base64Text [, scheme [, charset ]])}. Example: ${base64decode(\"VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==\")}"),
-			Usage.javaScript("Usage: ${{ $.base64decode(base64Text [, scheme [, charset ]]) }}. Example: ${{ $.base64decode(\"VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==\") }}")
-		);
 	}
 
 	@Override

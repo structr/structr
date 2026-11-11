@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -75,19 +74,12 @@ public class ConvertGeometryFunction extends GeoFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
-			logParameterError(caller, sources, e.getMessage(), isJs);
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: convertGeometry(sourceCRS, destCRS, geometry)"));
 	}
 
 	@Override

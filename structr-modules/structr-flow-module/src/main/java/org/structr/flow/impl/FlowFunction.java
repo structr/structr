@@ -28,7 +28,6 @@ import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
@@ -130,16 +129,10 @@ public class FlowFunction extends Function<Object, Object> {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${flow(name)}"), Usage.javaScript("Usage: ${{ $.flow(name) }}"));
 	}
 
 	@Override

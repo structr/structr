@@ -28,12 +28,10 @@ import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObjectMap;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
 import org.structr.common.error.ArgumentTypeException;
@@ -45,7 +43,6 @@ import org.structr.web.entity.Folder;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,7 +79,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 				if (sources[i] == null) {
 
-					throw new ArgumentTypeException("POST_multi_part(): the url and the parts must not be null.");
+					throw new ArgumentTypeException("POSTMultiPart(): the url and the parts must not be null.");
 				}
 			}
 
@@ -99,7 +96,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
@@ -204,15 +201,6 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.optional("partsMap", "map with multipart parts (type, content)"),
 			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, and `parseResponse` to parse the response body as JSON")
-		);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${POSTMultiPart(url, partsMap [, options ])}. Example: ${POSTMultiPart('http://localhost:8082/structr/upload', { name: \"Test\", file: first(find(\"AbstractFile\", \"name\", \"TestFile.txt\")) })}"),
-			Usage.javaScript("Usage: ${{ $.POSTMultiPart(url, partsMap [, options ]) }}. Example: ${{ $.POSTMultiPart('http://localhost:8082/structr/rest/folders', { name: \"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")[0] }) }}")
 		);
 	}
 

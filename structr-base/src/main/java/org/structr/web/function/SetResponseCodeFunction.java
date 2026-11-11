@@ -22,7 +22,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
@@ -72,18 +71,12 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 
 		} catch (IllegalArgumentException iae) {
 
-			logParameterError(caller, sources, iae.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, iae.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${setResponseCode(int)}."), Usage.javaScript("Usage: ${{ $.setResponseCode(int) }}."));
 	}
 
 	@Override

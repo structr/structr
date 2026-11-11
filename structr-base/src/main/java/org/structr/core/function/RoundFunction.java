@@ -93,12 +93,6 @@ public class RoundFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${round(value [, decimalPlaces = 0 ])}"), Usage.javaScript("Usage: ${{ $.round(value [, decimalPlaces = 0 ]) }}"));
-	}
-
-	@Override
 	public String getShortDescription() {
 
 		return "Rounds the given argument to the nearest integer or to the given number of decimal places.";

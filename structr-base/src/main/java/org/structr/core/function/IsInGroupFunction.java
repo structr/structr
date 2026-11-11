@@ -30,7 +30,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -61,15 +60,15 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 			if (!(sources[0] instanceof NodeInterface g && g.is(StructrTraits.GROUP))) {
 
-				logParameterError(caller, sources, "Expected node of type Group as first argument!", ctx.isJavaScriptContext());
+				logParameterError(caller, sources, getDisplayName(false) + ": Expected node of type Group as first argument!");
 
 			} else if (!(sources[1] instanceof NodeInterface p && p.is(StructrTraits.PRINCIPAL))) {
 
-				logParameterError(caller, sources, "Expected node of type Principal as second argument!", ctx.isJavaScriptContext());
+				logParameterError(caller, sources, getDisplayName(false) + ": Expected node of type Principal as second argument!");
 
 			} else if ((sources[1] instanceof SuperUser)) {
 
-				logParameterError(caller, sources, "Expected node of type Principal as second argument - SuperUser can not be member of a group!", ctx.isJavaScriptContext());
+				logParameterError(caller, sources, getDisplayName(false) + ": Expected node of type Principal as second argument - SuperUser can not be member of a group!");
 
 			} else {
 
@@ -87,7 +86,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 		}
 
 		return false;
@@ -110,15 +109,6 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 		}
 
 		return isInGroup;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${isInGroup(group, principal [, checkHierarchy = false ])}"),
-			Usage.javaScript("Usage: ${{ $.isInGroup(group, principal [, checkHierarchy = false ]);}}")
-		);
 	}
 
 	@Override

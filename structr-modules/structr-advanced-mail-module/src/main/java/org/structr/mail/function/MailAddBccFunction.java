@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
@@ -61,16 +60,10 @@ public class MailAddBccFunction extends AdvancedMailModuleFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			throw new FrameworkException(422, getName() + "(): " + e.getMessage() + " - Parameters: " + getParametersAsString(sources));
+			throw new FrameworkException(422, getDisplayName(false) + ": " + e.getMessage() + " - Parameters: " + getParametersAsString(sources));
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${mailAddBcc(address [, name])}"), Usage.javaScript("Usage: ${{ $.mailAddBcc(address [, name]) }}"));
 	}
 
 	@Override

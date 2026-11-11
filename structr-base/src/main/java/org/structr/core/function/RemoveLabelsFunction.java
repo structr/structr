@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -60,12 +59,6 @@ public class RemoveLabelsFunction extends ManageLabelsFunction {
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.javaScript("$.removeLabels(node, [ 'LABEL1', 'LABEL2' ])"), Usage.structrScript("removeLabels(node, merge('LABEL1', 'LABEL2'))"));
 	}
 
 	@Override

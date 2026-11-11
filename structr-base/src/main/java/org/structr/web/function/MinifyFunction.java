@@ -29,7 +29,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
@@ -74,13 +73,13 @@ public class MinifyFunction extends UiAdvancedFunction {
 
 			if (kind == null) {
 
-				throw new FrameworkException(422, "Unable to minify " + sourcePath + ": unsupported content type " + contentType + ", supported are JavaScript, CSS, HTML, SVG, XML and JSON");
+				throw new FrameworkException(422, getDisplayName(false) + ": Unable to minify '" + sourcePath + "': unsupported content type '" + contentType + "', supported are JavaScript, CSS, HTML, SVG, XML and JSON");
 			}
 
 			final String outputPath = resolveOutputPath(sourcePath, sources.length > 1 && sources[1] != null ? sources[1].toString() : null);
 			if (outputPath.equals(sourcePath)) {
 
-				throw new FrameworkException(422, "Unable to minify " + sourcePath + ": the output path must differ from the source path");
+				throw new FrameworkException(422, getDisplayName(false) + ": Unable to minify '" + sourcePath + "': the output path must differ from the source path");
 			}
 
 			final Charset charset = charsetOf(contentType);
@@ -96,31 +95,18 @@ public class MinifyFunction extends UiAdvancedFunction {
 
 			return write(securityContext, outputPath, minified, type);
 
-		} catch (ArgumentNullException pe) {
+		} catch (final ArgumentNullException pe) {
 
-			// silently ignore null arguments
+			throw new FrameworkException(422, getDisplayName(false) + ": Unable to minify: no null arguments are allowed");
 
-			return null;
+		} catch (final ArgumentCountException pe) {
 
-		} catch (ArgumentCountException pe) {
+			throw new FrameworkException(422, getDisplayName(false) + ": Unable to minify: " + pe.getMessage());
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+		} catch (final IOException ex) {
 
-			return usage(ctx.isJavaScriptContext());
-
-		} catch (IOException ex) {
-
-			throw new FrameworkException(500, "Unable to minify: " + ex.getMessage());
+			throw new FrameworkException(500, getDisplayName(false) + ": Unable to minify: " + ex.getMessage());
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${minify(file [, outputPath ])}. Example: ${minify('/js/app.js')}"),
-			Usage.javaScript("Usage: ${{ $.minify(file [, outputPath ]) }}. Example: ${{ $.minify('/js/app.js') }}")
-		);
 	}
 
 	@Override
@@ -138,6 +124,14 @@ public class MinifyFunction extends UiAdvancedFunction {
 		Without `outputPath`, the minified file is written next to the source with `.min` before the extension, so `/js/app.js` becomes `/js/app.min.js`. A relative `outputPath` is resolved against the folder of the source file. Missing folders are created, and an existing file at the output path is overwritten, so calling `minify()` again after changing the source updates the minified file.
 
 		A file that cannot be parsed is not written; the error names the problem, for JavaScript with its line and column.""";
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+				"The input file may not be identical to the output file."
+		);
 	}
 
 	@Override
@@ -170,7 +164,7 @@ public class MinifyFunction extends UiAdvancedFunction {
 		final NodeInterface node = value instanceof NodeInterface n ? n : FileHelper.getFileByAbsolutePath(securityContext, value.toString());
 		if (node == null || !node.is(StructrTraits.FILE)) {
 
-			throw new FrameworkException(422, "Unable to minify " + value + ": not a file");
+			throw new FrameworkException(422, getDisplayName(false) + ": Unable to minify '" + value + "': not a file");
 		}
 
 		return node.as(File.class);
@@ -207,7 +201,7 @@ public class MinifyFunction extends UiAdvancedFunction {
 
 			if (!existing.is(StructrTraits.FILE)) {
 
-				throw new FrameworkException(422, "Unable to minify: " + path + " exists and is not a file");
+				throw new FrameworkException(422, getDisplayName(false) + ": Unable to minify: '" + path + "' exists and is not a file");
 			}
 
 			final File file = existing.as(File.class);
@@ -227,7 +221,7 @@ public class MinifyFunction extends UiAdvancedFunction {
 
 		if (node == null || !node.is(StructrTraits.FOLDER)) {
 
-			throw new FrameworkException(422, "Unable to minify: " + path + " is not a folder");
+			throw new FrameworkException(422, getDisplayName(false) + ": Unable to minify: '" + path + "' is not a folder");
 		}
 
 		return node.as(Folder.class);

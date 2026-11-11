@@ -1639,10 +1639,4 @@ public class DeployDataCommand extends DeployCommand {
 
 		return List.of();
 	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
 }

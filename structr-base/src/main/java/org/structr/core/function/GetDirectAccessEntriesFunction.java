@@ -28,7 +28,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -61,7 +60,7 @@ public class GetDirectAccessEntriesFunction extends AdvancedScriptingFunction {
 
 			if (!(sources[0] instanceof NodeInterface)) {
 
-				logParameterError(caller, sources, "Expected node as first argument!", ctx.isJavaScriptContext());
+				logParameterError(caller, sources, getDisplayName(false) + ": Expected node as first argument!");
 
 				return Collections.emptyList();
 			}
@@ -77,7 +76,7 @@ public class GetDirectAccessEntriesFunction extends AdvancedScriptingFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 		}
 
 		return Collections.emptyList();
@@ -107,15 +106,6 @@ public class GetDirectAccessEntriesFunction extends AdvancedScriptingFunction {
 		}
 
 		return result;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${getDirectAccessEntries(node)}. Example: ${getDirectAccessEntries(this)}"),
-			Usage.javaScript("Usage: ${{ $.getDirectAccessEntries(node) }}. Example: ${{ $.getDirectAccessEntries($.this) }}")
-		);
 	}
 
 	@Override

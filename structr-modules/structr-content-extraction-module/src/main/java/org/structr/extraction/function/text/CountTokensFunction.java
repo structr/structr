@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.extraction.ContentExtractionSettings;
 import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.function.ContentExtractionFunction;
@@ -56,14 +55,8 @@ public class CountTokensFunction extends ContentExtractionFunction {
 
 		} catch (final IllegalArgumentException ex) {
 
-			throw new FrameworkException(422, getName() + "(): " + ex.getMessage());
+			throw new FrameworkException(422, getDisplayName(false) + ": " + ex.getMessage());
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ documents.countTokens(text [, encoding ]) }"), Usage.javaScript("Usage: ${{ $.documents.countTokens(text [, encoding ]); }}"));
 	}
 
 	@Override

@@ -84,12 +84,6 @@ public class TypeNameHint extends AbstractHint {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
-
-	@Override
 	public List<String> createMarkdownDocumentation(final Set<Details> details, final int startLevel) {
 
 		return List.of(getShortDescription());

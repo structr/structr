@@ -40,12 +40,12 @@ public abstract class ManageLabelsFunction extends CoreFunction {
 
 		if (!(sources[0] instanceof NodeInterface)) {
 
-			logParameterError(caller, sources, "Expected node as first argument!", ctx.isJavaScriptContext());
+			logParameterError(caller, sources, getDisplayName(false) + ": Expected node as first argument!");
 		}
 
 		if (!(sources[1] instanceof List)) {
 
-			logParameterError(caller, sources, "Expected list as second argument!", ctx.isJavaScriptContext());
+			logParameterError(caller, sources, getDisplayName(false) + ": Expected list as second argument!");
 		}
 	}
 }

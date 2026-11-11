@@ -64,16 +64,10 @@ public class ModFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${mod(value1, value2)}"), Usage.javaScript("Usage: ${{ $.mod(value1, value2) }}"));
 	}
 
 	@Override

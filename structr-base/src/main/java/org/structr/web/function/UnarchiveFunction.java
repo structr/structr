@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
@@ -54,7 +53,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 				|| (sources[0] != null && !(sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE))
 				|| (sources.length == 2 && sources[1] != null && !(sources[1] instanceof NodeInterface n && n.is(StructrTraits.FOLDER))))) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
@@ -77,12 +76,6 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${unarchive(archiveFile [, parentFolder ])}."), Usage.javaScript("Usage: ${{$.unarchive(archiveFile [, parentFolder ])}}."));
 	}
 
 	@Override

@@ -272,15 +272,6 @@ public class CacheExpression extends Expression {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('data', 3600, GET('http://api.myservice.com/get-external-result'))}"),
-			Usage.javaScript("Usage: ${{ $.cache(key, timeout, valueExpression) }}. Example: ${{ $.cache('data', 3600, () => $.GET('http://api.myservice.com/get-external-result')); }}")
-		);
-	}
-
-	@Override
 	public FunctionCategory getCategory() {
 
 		return FunctionCategory.Miscellaneous;

@@ -23,7 +23,6 @@ import org.structr.core.function.CoreFunction;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -63,19 +62,10 @@ public class FindNotFunction extends CoreFunction {
 
 		} else {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 		}
 
 		return notPredicate;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.not(predicate, ...) }}"),
-			Usage.structrScript("Usage: ${not(predicate, ...)}")
-		);
 	}
 
 	@Override

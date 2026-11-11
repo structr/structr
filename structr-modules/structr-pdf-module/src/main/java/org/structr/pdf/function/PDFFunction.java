@@ -28,7 +28,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.pdf.PdfRenderer;
 import org.structr.schema.action.ActionContext;
@@ -202,12 +201,6 @@ public class PDFFunction extends Function<Object, Object> {
 		}
 
 		return PdfRenderer.fileNameFor(pageName);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ pdf(pagePath [, fileName [, parameters ]]) }"), Usage.javaScript("Usage: ${{ $.pdf(pagePath [, fileName [, parameters ]]); }}"));
 	}
 
 	@Override

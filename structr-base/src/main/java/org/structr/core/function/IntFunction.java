@@ -60,7 +60,7 @@ public class IntFunction extends CoreFunction {
 
 			} else {
 
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
+				logParameterError(caller, sources);
 
 				return null;
 			}
@@ -73,7 +73,7 @@ public class IntFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 
@@ -83,12 +83,6 @@ public class IntFunction extends CoreFunction {
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${int(parameter)}"), Usage.javaScript("Usage: ${{ $.int(parameter) }}"));
 	}
 
 	@Override

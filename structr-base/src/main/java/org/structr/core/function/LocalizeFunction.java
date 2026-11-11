@@ -83,32 +83,23 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 			} else if (sources.length <= 2) {
 
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
+				logParameterError(caller, sources);
 
 				return null;
 
 			} else {
 
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
+				logParameterError(caller, sources);
 
 				return null;
 			}
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${localize(keyOrKeys [, domain])}. Example ${localize('HELLO_WORLD', 'myDomain')}"),
-			Usage.javaScript("Usage: ${{ $.localize(keyOrKeys [, domain]); }}. Example ${{ $.localize('HELLO_WORLD', 'myDomain'); }}")
-		);
 	}
 
 	@Override

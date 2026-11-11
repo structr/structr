@@ -25,7 +25,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -81,11 +80,11 @@ public class WriteFunction extends AdvancedScriptingFunction {
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
@@ -140,15 +139,6 @@ public class WriteFunction extends AdvancedScriptingFunction {
 			"Allowed 'sub/dir/file.txt'",
 			"Forbidden '../../../../etc/passwd'",
 			"Forbidden '/etc/passwd'"
-		);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${write(filename, text)}. Example: ${write('test.txt', this.name)}"),
-			Usage.javaScript("Usage: ${{$.write(filename, text)}}. Example: ${{ $.write('test.txt', $.this.name); }}")
 		);
 	}
 

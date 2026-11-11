@@ -23,7 +23,6 @@ import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
@@ -63,14 +62,8 @@ public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			throw new FrameworkException(422, getName() + "(): " + e.getMessage() + " - Parameters: " + getParametersAsString(sources));
+			throw new FrameworkException(422, getDisplayName(false) + ": " + e.getMessage() + " - Parameters: " + getParametersAsString(sources));
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${mailAddMimePart(content, contentType)}"), Usage.javaScript("Usage: ${{ $.mailAddMimePart(content, contentType) }}"));
 	}
 
 	@Override

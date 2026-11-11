@@ -111,7 +111,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 			// apply sorting and pagination by surrounding sort() and slice() expressions
 			applyQueryParameters(securityContext, query);
 
-			return handleQuerySources(securityContext, type, query, sources, exact, usage(ctx.isJavaScriptContext()));
+			return handleQuerySources(securityContext, type, query, sources, exact);
 
 		} finally {
 
@@ -197,7 +197,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 		return false;
 	}
 
-	protected Object handleQuerySources(final SecurityContext securityContext, final Traits traits, final QueryGroup query, final Object[] sources, final boolean exact, final String errorMessage) throws FrameworkException {
+	protected Object handleQuerySources(final SecurityContext securityContext, final Traits traits, final QueryGroup query, final Object[] sources, final boolean exact) throws FrameworkException {
 
 		// extension for native javascript objects
 		if (sources.length == 2) {
@@ -210,7 +210,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 				if (sources[1] == null) {
 
-					throw new FrameworkException(422, getName() + "(): Second parameter cannot be null. Parameters: " + getParametersAsString(sources));
+					throw new FrameworkException(422, getDisplayName(false) + ": Second parameter cannot be null. Parameters: " + getParametersAsString(sources));
 				}
 
 				if (!isAdvancedSearch(securityContext, traits, null, sources[1], query, exact)) {
@@ -228,7 +228,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 					} else {
 
 						// probably an error case where migration to predicates was forgotten
-						throw new FrameworkException(422, getName() + "(): Invalid parameter '" + uuid + "'. If, after the type, a single parameter is given, it must be of type Map, UUID or Advanced Find predicate. Maybe a missing migration of Advanced Find to predicates?");
+						throw new FrameworkException(422, getDisplayName(false) + ": Invalid parameter '" + uuid + "'. If, after the type, a single parameter is given, it must be of type Map, UUID or Advanced Find predicate. Maybe a missing migration of Advanced Find to predicates?");
 					}
 				}
 			}
@@ -258,7 +258,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 						// check number of parameters dynamically
 						if (c + 1 >= sources.length) {
 
-							throw new FrameworkException(400, "Invalid number of parameters, missing value for key " + key.jsonName() + ": " + errorMessage);
+							throw new FrameworkException(400, getDisplayName(false) + ": Invalid number of parameters, missing value for key '" + key.jsonName() + "'");
 						}
 
 						Object value = sources[++c]; // increment c to
@@ -270,7 +270,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 					} else {
 
-						throw new FrameworkException(422, "Unknown key '" + keyName + "', returning null");
+						throw new FrameworkException(422, getDisplayName(false) + ": Unknown key '" + keyName + "', returning null");
 					}
 				}
 			}

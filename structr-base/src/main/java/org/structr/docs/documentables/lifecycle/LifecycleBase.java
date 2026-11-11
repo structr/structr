@@ -75,12 +75,6 @@ public abstract class LifecycleBase implements Documentable {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return null;
-	}
-
-	@Override
 	public List<ConceptReference> getParentConcepts() {
 
 		final List<ConceptReference> parentConcepts = Documentable.super.getParentConcepts();

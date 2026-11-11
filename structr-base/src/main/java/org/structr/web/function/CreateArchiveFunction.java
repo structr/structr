@@ -29,7 +29,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
@@ -61,7 +60,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 		if (!(sources[1] instanceof NodeInterface || sources[1] instanceof Collection || sources.length < 2)) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 
 			return null;
 		}
@@ -106,7 +105,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 					} else {
 
-						logParameterError(caller, sources, ctx.isJavaScriptContext());
+						logParameterError(caller, sources);
 
 						return null;
 					}
@@ -114,7 +113,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 			} else {
 
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
+				logParameterError(caller, sources);
 
 				return null;
 			}
@@ -145,15 +144,6 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${createArchive(archiveFileName, files [, customFileType])}"),
-			Usage.javaScript("Usage: ${{ $.createArchive(archiveFileName, files [, customFileType]) }}")
-		);
 	}
 
 	@Override

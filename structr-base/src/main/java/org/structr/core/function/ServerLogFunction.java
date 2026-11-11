@@ -25,14 +25,12 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,15 +80,6 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 		}
 
 		return getServerLog(lines, truncateLinesAfter, logFileName, filter);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr/server.log' [, filter ]]]])}. Example: ${serverlog(200, -1, '/var/log/structr/server.log')}"),
-			Usage.javaScript("Usage: ${{ $.serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr/server.log' [, filter ]]]]); }}. Example: ${{ $.serverlog(200, -1, '/var/log/structr/server.log'); }}")
-		);
 	}
 
 	@Override

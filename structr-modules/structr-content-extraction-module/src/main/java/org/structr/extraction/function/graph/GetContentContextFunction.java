@@ -23,7 +23,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.extraction.ContentExtractionTraits;
 import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.entity.ExtractedContentNode;
@@ -52,19 +51,13 @@ public class GetContentContextFunction extends ContentExtractionFunction {
 
 		if (sources == null || sources.length == 0 || !(sources[0] instanceof NodeInterface node) || !node.is(ContentExtractionTraits.EXTRACTED_CONTENT_NODE)) {
 
-			throw new FrameworkException(422, getName() + "(): expected an ExtractedContentNode as argument 1.");
+			throw new FrameworkException(422, getDisplayName(false) + ": expected an ExtractedContentNode as argument 1.");
 		}
 
 		final int before = count(sources, 1);
 		final int after  = count(sources, 2);
 
 		return ResultMaps.toGraphObjectMap(ContentExtraction.getContext(node.as(ExtractedContentNode.class), before, after).toMap());
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ documents.getContentContext(node [, before [, after ]]) }"), Usage.javaScript("Usage: ${{ $.documents.getContentContext(node [, before [, after ]]); }}"));
 	}
 
 	@Override
@@ -108,6 +101,6 @@ public class GetContentContextFunction extends ContentExtractionFunction {
 			return number.intValue();
 		}
 
-		throw new FrameworkException(422, getName() + "(): argument " + (index + 1) + " must be a whole number of 0 or more.");
+		throw new FrameworkException(422, getDisplayName(false) + ": argument " + (index + 1) + " must be a whole number of 0 or more.");
 	}
 }

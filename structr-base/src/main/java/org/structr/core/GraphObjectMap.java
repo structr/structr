@@ -283,12 +283,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 				return null;
 			}
-
-			@Override
-			public List<Usage> getUsages() {
-
-				return null;
-			}
 		};
 	}
 

@@ -76,7 +76,7 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
@@ -86,12 +86,6 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 	public List<Documentable> getContextHints(String lastToken) {
 
 		return getContextHintsForTypes(lastToken);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${typeInfo(type [, view ])}."), Usage.javaScript("Usage: ${{ $.typeInfo(type [, view ]) }}."));
 	}
 
 	@Override

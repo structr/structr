@@ -25,7 +25,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.script.Scripting;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.action.ActionContext;
@@ -83,12 +82,6 @@ public class GetThemeFunction extends UiCommunityFunction {
 	public String getShortDescription() {
 
 		return "Applies the theme with the given name.";
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${getTheme('dark')}"), Usage.javaScript("Usage: ${{ $.getTheme('dark'); }}"));
 	}
 
 	@Override

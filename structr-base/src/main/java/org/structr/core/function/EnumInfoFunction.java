@@ -19,19 +19,15 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObjectMap;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -86,19 +82,10 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${enumInfo(type, enumProperty)}. Example ${enumInfo('Document', 'documentType')}"),
-			Usage.javaScript("Usage: ${{ $.enumInfo(type, enumProperty)}}. Example ${{ $.enumInfo('Document', 'documentType')}}")
-		);
 	}
 
 	@Override

@@ -147,7 +147,7 @@ public class ActionContext {
 		this.detachedContextStore           = detachedContextStore;
 
 		// carried over deliberately: every outbound HTTP function reports a bad argument through
-		// logParameterError(..., ctx.isJavaScriptContext()), and the public copy constructor above does
+		// logParameterError(...), and the public copy constructor above does
 		// not copy this -- a detached context built with that one would print StructrScript usage to a
 		// JavaScript caller, because ArgumentTypeException extends IllegalArgumentException and lands in
 		// exactly that catch block.

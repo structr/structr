@@ -20,12 +20,9 @@ package org.structr.web.function;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ArgumentCountException;
-import org.structr.common.error.ArgumentNullException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -60,15 +57,6 @@ public class GetRequestHeaderNamesFunction extends UiAdvancedFunction {
 		}
 
 		return List.of();
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${getRequestHeaderNames()}. Example: ${getRequestHeaderNames()}"),
-			Usage.javaScript("Usage: ${{ $.getRequestHeaderNames() }}. Example: ${{ $.getRequestHeaderNames()}}")
-		);
 	}
 
 	@Override

@@ -102,12 +102,6 @@ public class GetDataSourceFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.javaScript("Usage: ${{$.getDataSource('node:Page', 10, 1)}}"), Usage.structrScript("Usage: ${getDataSource('node:Page', 10, 1)}"));
-	}
-
-	@Override
 	public Category getCategory() {
 
 		return FunctionCategory.Rendering;

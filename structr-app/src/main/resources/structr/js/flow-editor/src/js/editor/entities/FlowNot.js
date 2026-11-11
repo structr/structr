@@ -18,6 +18,7 @@ export class FlowNot extends FlowNode {
                 let dataSources = new D3NE.Input('DataSources', socket.getSocket('condition_Conditions'), true);
                 let result = new D3NE.Output('Result', socket.getSocket('condition_Result'), true);
 
+                node.data.id = scopedDbNode.id;
                 node.data.dbNode = scopedDbNode;
 
                 return node
@@ -31,7 +32,7 @@ export class FlowNot extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

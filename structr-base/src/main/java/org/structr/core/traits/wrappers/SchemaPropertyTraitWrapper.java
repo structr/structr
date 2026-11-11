@@ -222,12 +222,6 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	}
 
 	@Override
-	public String getHint() {
-
-		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.HINT_PROPERTY));
-	}
-
-	@Override
 	public String getCategory() {
 
 		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.CATEGORY_PROPERTY));

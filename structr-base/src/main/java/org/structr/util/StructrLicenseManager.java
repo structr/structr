@@ -1179,12 +1179,6 @@ public class StructrLicenseManager implements LicenseManager {
 
 			return List.of();
 		}
-
-		@Override
-		public List<Usage> getUsages() {
-
-			return List.of();
-		}
 	}
 
 	public static class UpdateLicenseCommand extends NodeServiceCommand implements MaintenanceCommand {
@@ -1258,12 +1252,6 @@ public class StructrLicenseManager implements LicenseManager {
 
 		@Override
 		public List<Language> getLanguages() {
-
-			return List.of();
-		}
-
-		@Override
-		public List<Usage> getUsages() {
 
 			return List.of();
 		}

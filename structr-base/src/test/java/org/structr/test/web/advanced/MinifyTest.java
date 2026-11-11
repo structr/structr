@@ -135,7 +135,7 @@ public class MinifyTest extends StructrUiTest {
 			FileHelper.createFile(securityContext, stream("var answer = 42;"), "application/javascript", StructrTraits.FILE, "ok.js", null);
 
 			assertMinifyFails("${{ $.minify('/broken.js') }}", "Unable to minify JavaScript");
-			assertMinifyFails("${{ $.minify('/image.png') }}", "unsupported content type image/png");
+			assertMinifyFails("${{ $.minify('/image.png') }}", "unsupported content type 'image/png'");
 			assertMinifyFails("${{ $.minify('/ok.js', '/ok.js') }}", "the output path must differ from the source path");
 			assertMinifyFails("${{ $.minify('/missing.js') }}", "not a file");
 

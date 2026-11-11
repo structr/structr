@@ -315,16 +315,6 @@ public interface Documentable {
 	}
 
 	/**
-	 * Returns the usages of this Documentable, or null if no usages exist.
-	 *
-	 * @return the usages or null
-	 */
-	default List<Usage> getUsages() {
-
-		return null;
-	}
-
-	/**
 	 * Returns the properties of this Documentable, or null if no
 	 * properties are defined.
 	 *

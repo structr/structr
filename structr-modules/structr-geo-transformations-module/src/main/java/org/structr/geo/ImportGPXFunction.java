@@ -27,7 +27,6 @@ import org.structr.core.property.*;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -162,8 +161,7 @@ public class ImportGPXFunction extends GeoFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
-			logParameterError(caller, sources, e.getMessage(), isJs);
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
@@ -214,17 +212,6 @@ public class ImportGPXFunction extends GeoFunction {
 		}
 		```
 		""";
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("${importGpx(getContent(first(find('File', 'name', 'track.gpx')), 'utf-8')}"),
-			Usage.structrScript("${importGpx('<?xml version=\"1.0\"?><gpx version=\"1.0\"><wpt lat=\"42.438878\" lon=\"-71.119277\"><name>5066</name></wpt></gpx>')}"),
-			Usage.javaScript("${{ $.importGpx($.getContent($.find('File', { name: 'track.gpx' })[0], 'utf-8'); }}"),
-			Usage.javaScript("${{ $.importGpx('<?xml version=\"1.0\"?><gpx version=\"1.0\"><wpt lat=\"42.438878\" lon=\"-71.119277\"><name>5066</name></wpt></gpx>'); }}")
-		);
 	}
 
 	@Override

@@ -77,20 +77,12 @@ public class QuotFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${quot(value1, value2)}."), Usage.javaScript("Usage: ${{ $.quot(value1, value2) }}.")
-
-		);
 	}
 
 	@Override

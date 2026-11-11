@@ -58,16 +58,10 @@ public class IsCollectionFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return false;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${isCollection(value)}"), Usage.javaScript("Usage: ${{ $.isCollection(value) }}"));
 	}
 
 	@Override

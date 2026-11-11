@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
@@ -53,12 +52,6 @@ public class MailGetErrorFunction extends AdvancedMailModuleFunction {
 		AdvancedMailContainer amc = ctx.getAdvancedMailContainer();
 
 		return amc.getError();
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${mailGetError()}"), Usage.javaScript("Usage: ${{ $.mailGetError() }}"));
 	}
 
 	@Override

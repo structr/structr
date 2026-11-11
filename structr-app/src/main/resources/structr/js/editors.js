@@ -508,6 +508,15 @@ let _Editors = {
 
 		// ... so that editor auto-layout works
 		monacoEditor.layout();
+
+		// for the rare cases where the width/height are rounded up, subtract 1px each
+		let domNode = monacoEditor.getDomNode();
+		let curSize = {
+			width: domNode.clientWidth - 1,
+			height: domNode.clientHeight - 1
+		};
+
+		monacoEditor.layout(curSize);
 	},
 	setupMonacoAutoCompleteOnce: () => {
 

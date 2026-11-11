@@ -28,7 +28,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -65,7 +64,7 @@ public class BarcodeFunction extends UiAdvancedFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
@@ -105,7 +104,7 @@ public class BarcodeFunction extends UiAdvancedFunction {
 		final int parameterCount = sources.length - startIndex;
 		if (parameterCount % 2 != 0) {
 
-			throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". " + usage(true));
+			throw new FrameworkException(400, getDisplayName(false) + ": Invalid number of parameters: " + parameterCount + ". " + usage());
 		}
 
 		final Map<String, Object> params = new HashMap();
@@ -193,15 +192,6 @@ public class BarcodeFunction extends UiAdvancedFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("type, data [, width, height, hintKey, hintValue ]");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${ barcode(type, data[, width, height[, hintKey, hintValue]]) }"),
-			Usage.javaScript("Usage: ${{ $.barcode(type, data[, width, height[, hintsMap]]) }}")
-		);
 	}
 
 	@Override

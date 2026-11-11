@@ -468,10 +468,4 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 		return List.of();
 	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
 }

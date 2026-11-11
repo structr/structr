@@ -28,6 +28,7 @@ export class FlowForEach extends FlowNode {
                     node.isStartNode = false;
                 }
 
+                node.data.id = scopedDbNode.id;
                 node.data.dbNode = scopedDbNode;
 
                 return node
@@ -45,7 +46,7 @@ export class FlowForEach extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

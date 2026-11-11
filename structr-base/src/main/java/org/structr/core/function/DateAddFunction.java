@@ -25,7 +25,6 @@ import org.structr.core.converter.TemporalDateConverter;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -106,7 +105,7 @@ public class DateAddFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
@@ -127,15 +126,6 @@ public class DateAddFunction extends CoreFunction {
 		}
 
 		return 0;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${dateAdd(date, years[, months[, days[, hours[, minutes[, seconds]]]]])}. Example: ${dateAdd(this.createdDate, 1, -1, 0, 0, 0, 0)}"),
-			Usage.javaScript("Usage: ${{ $.dateAdd(date, years[, months[, days[, hours[, minutes[, seconds]]]]]); }}. Example: ${{ $.dateAdd($.this.createdDate, 1, -1, 0, 0, 0, 0); }}")
-		);
 	}
 
 	@Override

@@ -27,11 +27,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.DoubleProperty;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
@@ -63,65 +63,45 @@ public class UTMToLatLonFunction extends GeoFunction {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+			assertArrayHasLengthAndTypes(sources, 1, String.class);
 
 			final String utmString = (String)sources[0];
-			if (utmString != null) {
+			final String[] parts   = utmString.split("[\\s]+");
 
-				final String[] parts = utmString.split("[\\s]+");
-				if (parts.length < 3) {
+			if (parts.length < 3) {
 
-					logger.warn("Unsupported UTM string: this implementation only supports the full UTM format with spaces, e.g. 32U 439596 5967780 or 32 N 439596 5967780.");
+				logger.warn("Unsupported UTM string: this implementation only supports the full UTM format with spaces, e.g. 32U 439596 5967780 or 32 N 439596 5967780.");
 
-				} else if (parts.length == 3) {
+			} else if (parts.length == 3) {
 
-					// full UTM string
-					// 32U 439596 5967780
-					final String zone = parts[0];
-					final String east = parts[1];
-					final String north = parts[2];
+				// full UTM string
+				// 32U 439596 5967780
+				final String zone = parts[0];
+				final String east = parts[1];
+				final String north = parts[2];
 
-					return utmToLatLon(zone, getHemisphereFromZone(zone), east, north);
+				return utmToLatLon(zone, getHemisphereFromZone(zone), east, north);
 
-				} else if (parts.length == 4) {
+			} else if (parts.length == 4) {
 
-					// full UTM string with hemisphere indication
-					// 32 N 439596 5967780
-					final String zone       = parts[0];
-					final String hemisphere = parts[1];
-					final String east       = parts[2];
-					final String north      = parts[3];
+				// full UTM string with hemisphere indication
+				// 32 N 439596 5967780
+				final String zone       = parts[0];
+				final String hemisphere = parts[1];
+				final String east       = parts[2];
+				final String north      = parts[3];
 
-					return utmToLatLon(zone, hemisphere, east, north);
-				}
-
-			} else {
-
-				logger.warn("Invalid argument(s), cannot convert to double: {}, {}", sources[0], sources[1]);
+				return utmToLatLon(zone, hemisphere, east, north);
 			}
 
-		} catch (ArgumentNullException ae) {
+		} catch (ArgumentNullException | ArgumentCountException | ArgumentTypeException ae) {
 
-			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
-			logParameterError(caller, sources, ae.getMessage(), isJs);
-
-			return null;
-
-		} catch (ArgumentCountException ae) {
-
-			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
-			logParameterError(caller, sources, ae.getMessage(), isJs);
+			logParameterError(caller, sources, ae.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.javaScript("Usage: ${{ $.utmToLatLon(utmString) }}."), Usage.structrScript("Usage: ${utmToLatLon(utmString)}."));
 	}
 
 	@Override

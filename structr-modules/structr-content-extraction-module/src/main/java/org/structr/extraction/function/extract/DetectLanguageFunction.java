@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.function.ContentExtractionFunction;
 import org.structr.schema.action.ActionContext;
@@ -48,12 +47,6 @@ public class DetectLanguageFunction extends ContentExtractionFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		return ResultMaps.toGraphObjectMap(ContentExtraction.detectLanguage(textArgument(sources, 0)).toMap());
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ documents.detectLanguage(text) }"), Usage.javaScript("Usage: ${{ $.documents.detectLanguage(text); }}"));
 	}
 
 	@Override

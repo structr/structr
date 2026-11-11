@@ -26,14 +26,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
-import org.structr.docs.ontology.FunctionCategory;
 import org.structr.process.auth.ProcessJWTHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Creates a signed JWT for process-scoped access (low security level).
@@ -84,7 +80,7 @@ public class ProcessTokenFunction extends ProcessModuleFunction {
 
 		} catch (ArgumentNullException | ArgumentCountException ex) {
 
-			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ex.getMessage());
 
 			return null;
 		}
@@ -96,15 +92,6 @@ public class ProcessTokenFunction extends ProcessModuleFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("processInstanceId, taskId, action [, expiryMinutes]");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${processToken(processInstanceId, taskId, action [, expiryMinutes])}"),
-			Usage.javaScript("Usage: ${{$.processToken(processInstanceId, taskId, action [, expiryMinutes])}}")
-		);
 	}
 
 	@Override

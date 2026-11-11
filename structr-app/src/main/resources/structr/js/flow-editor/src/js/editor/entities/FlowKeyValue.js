@@ -18,6 +18,8 @@ export class FlowKeyValue extends FlowNode {
                 let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
                 let dataTarget = new D3NE.Output('ObjectDataTarget', socket.getSocket('objectDataTargets'));
 
+                node.data.id = scopedDbNode.id;
+
                 let key = new D3NE.Control('<input type="text" value="" class="control-text">', (element, control) =>{
 
                     if(scopedDbNode !== undefined && scopedDbNode.key !== undefined && scopedDbNode.key !== null) {
@@ -52,7 +54,7 @@ export class FlowKeyValue extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

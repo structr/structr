@@ -17,6 +17,8 @@ export class FlowConstant extends FlowNode {
                 let socket = FlowSockets.getInst();
                 let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
 
+                node.data.id = scopedDbNode.id;
+
                 let value = new D3NE.Control('<textarea class="control-textarea">', (element, control) =>{
 
                     if(scopedDbNode !== undefined && scopedDbNode.value !== undefined) {
@@ -92,7 +94,7 @@ export class FlowConstant extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

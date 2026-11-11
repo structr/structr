@@ -59,18 +59,12 @@ public class RetrieveFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${retrieve(key)}."), Usage.javaScript("Usage: ${{ $.retrieve(key) }}."));
 	}
 
 	@Override

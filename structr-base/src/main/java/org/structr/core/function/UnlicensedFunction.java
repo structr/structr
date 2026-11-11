@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -51,12 +50,6 @@ public class UnlicensedFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		throw new UnlicensedScriptException(name, module);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
 	}
 
 	@Override

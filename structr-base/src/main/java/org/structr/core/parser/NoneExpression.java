@@ -185,12 +185,6 @@ public class NoneExpression extends Expression {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${none(list, expression)}. Example: ${none(user.groups, is_allowed(data, current, 'read'))}"));
-	}
-
-	@Override
 	public FunctionCategory getCategory() {
 
 		return FunctionCategory.Collection;

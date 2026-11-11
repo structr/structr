@@ -47,14 +47,6 @@ public abstract class KeywordHint extends AbstractHint {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		// keywords have no usages
-
-		return null;
-	}
-
-	@Override
 	public List<Language> getLanguages() {
 
 		// keywords are valid for all languages

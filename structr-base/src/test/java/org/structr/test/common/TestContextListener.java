@@ -63,8 +63,9 @@ public class TestContextListener implements IInvokedMethodListener {
 	public static final String MDC_KEY = "test";
 
 	/**
-	 * A short, explicit logger name rather than this class's own: {@code %logger{36}} abbreviates
-	 * anything longer, and this logger's output is read by a tool.
+	 * An explicit logger name rather than this class's own, so the verdict lines stand out as their
+	 * own source. The pattern prints only the last segment ({@code %logger{0}}), so it shows up as
+	 * {@code TestContext}. The tool that reads these lines matches on the message, not the logger.
 	 */
 	private static final Logger logger = LoggerFactory.getLogger("org.structr.test.TestContext");
 

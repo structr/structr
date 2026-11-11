@@ -132,7 +132,7 @@ public class CreateDocumentationTest extends StructrUiTest {
 			}
 		}
 
-		// verify signatures, usages and parameters only for built-in functions
+		// verify signatures and parameters only for built-in functions
 		if (DocumentableType.BuiltInFunction.equals(documentableType)) {
 
 			// verify that a function has at least one signature
@@ -140,13 +140,6 @@ public class CreateDocumentationTest extends StructrUiTest {
 			if (signatures == null || signatures.isEmpty()) {
 
 				errors.add("Function " + item.getName() + " has no signatures.");
-			}
-
-			// verify that a function has at least one usage
-			final List<Usage> usages = item.getUsages();
-			if (usages == null || usages.isEmpty()) {
-
-				errors.add("Function " + item.getName() + " has no usages.");
 			}
 
 			// verify the parameters
@@ -183,22 +176,10 @@ public class CreateDocumentationTest extends StructrUiTest {
 				}
 			}
 
-			// verify that a function has a usage and a signature for all languages
+			// verify that a function has a signature for all languages
 			for (final Language language : item.getLanguages()) {
 
-				boolean hasUsage     = false;
 				boolean hasSignature = false;
-
-				if (usages != null) {
-
-					for (final Usage usage : usages) {
-
-						if (usage.getLanguages().contains(language)) {
-
-							hasUsage = true;
-						}
-					}
-				}
 
 				if (signatures != null) {
 
@@ -209,11 +190,6 @@ public class CreateDocumentationTest extends StructrUiTest {
 							hasSignature = true;
 						}
 					}
-				}
-
-				if (!hasUsage) {
-
-					errors.add(type + " " + item.getName() + " has no usage for language " + language.name());
 				}
 
 				if (!hasSignature) {

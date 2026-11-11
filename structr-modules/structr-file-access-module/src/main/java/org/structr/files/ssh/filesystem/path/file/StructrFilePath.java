@@ -235,6 +235,10 @@ public class StructrFilePath extends StructrPath {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface actualFile = getActualFile();
+			if (actualFile == null) {
+
+				throw new NoSuchFileException(toString());
+			}
 
 			// if a folder is to be deleted, check contents
 			if (actualFile.is(StructrTraits.FOLDER) && actualFile.as(Folder.class).getChildren().iterator().hasNext()) {

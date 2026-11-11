@@ -20,9 +20,7 @@ package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
-import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -48,12 +46,6 @@ public class RequestStoreGetKeysFunction extends UiAdvancedFunction {
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		return ctx.getRequestStore().keySet();
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${requestStoreGetKeys()}."), Usage.javaScript("Usage: ${{ $.requestStoreGetKeys(); }}."));
 	}
 
 	@Override

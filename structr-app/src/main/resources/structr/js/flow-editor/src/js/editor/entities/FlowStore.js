@@ -9,8 +9,6 @@ export class FlowStore extends FlowNode {
         super(node);
     }
 
-
-
     getComponent() {
         let scopedDbNode = this.dbNode;
         return new D3NE.Component('Store', {
@@ -28,8 +26,8 @@ export class FlowStore extends FlowNode {
                     node.isStartNode = false;
                 }
 
+                node.data.id = scopedDbNode.id;
                 node.data.dbNode = scopedDbNode;
-
 
                 let operation = new D3NE.Control('<select class="control-select"><option value="store">Store</option><option value="retrieve">Retrieve</option></select>', (element, control) =>{
 
@@ -96,7 +94,7 @@ export class FlowStore extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

@@ -24,7 +24,6 @@ import org.structr.core.function.SortKeyArguments;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -56,15 +55,6 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 
 		// the keys are checked against the type of the query, which is not known yet
 		return new SortKeysPredicate(SortKeyArguments.parse(getName(), sources != null ? Arrays.asList(sources) : List.of()), ctx.getLocale());
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.sort(sortKey1 [, sortKey2 ... ]) }}. Example: ${{ $.find('Group', $.predicate.sort('name')) }}"),
-			Usage.structrScript("Usage: ${sort(sortKey1 [, sortKey2 ... ])}. Example: ${find('Group', sort('name'))}")
-		);
 	}
 
 	@Override

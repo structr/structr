@@ -28,7 +28,6 @@ public interface PropertyDefinition {
 	String getDbName();
 	String getFormat();
 	String getTypeHint();
-	String getHint();
 	String getCategory();
 	String getFqcn();
 	boolean isNotNull();

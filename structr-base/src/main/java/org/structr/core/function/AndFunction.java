@@ -71,12 +71,6 @@ public class AndFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${and(b1, b2, ...)}"), Usage.javaScript("Usage: ${{ $.and(b1, b2, ...) }}"));
-	}
-
-	@Override
 	public List<Parameter> getParameters() {
 
 		return List.of(Parameter.mandatory("expressions...", "list of expressions to evaluate"));

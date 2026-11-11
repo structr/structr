@@ -144,10 +144,4 @@ public class MigrationCommand extends NodeServiceCommand implements MaintenanceC
 
 		return List.of();
 	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
 }

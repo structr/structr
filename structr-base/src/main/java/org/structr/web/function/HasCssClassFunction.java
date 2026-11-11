@@ -24,7 +24,6 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -77,21 +76,12 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${hasCssClass(element, css)}. Example: ${hasCssClass(this, 'active')}"),
-			Usage.javaScript("Usage: ${{ $.hasCssClass(element, css) }}. Example: ${{ $.hasCssClass(this, 'active')}}")
-		);
 	}
 
 	@Override

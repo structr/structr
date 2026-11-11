@@ -155,10 +155,4 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 
 		return List.of();
 	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
 }

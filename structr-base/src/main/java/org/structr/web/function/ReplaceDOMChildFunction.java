@@ -21,7 +21,6 @@ package org.structr.web.function;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.DOMNodeContent;
@@ -57,15 +56,6 @@ public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 		final String html       = (String)sources[2];
 
 		return ReplaceDOMChildFunction.apply(ctx.getSecurityContext(), parent, child, html);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${replaceDomChild(parent, child, html)}. Example: ${replaceDomChild(this, child, html)}"),
-			Usage.javaScript("Usage: ${{ $.replaceDomChild(parent, child, html) }}. Example: ${{ $.replaceDomChild(this, child, html) }}")
-		);
 	}
 
 	@Override

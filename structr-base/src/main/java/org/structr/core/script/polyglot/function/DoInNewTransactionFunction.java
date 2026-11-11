@@ -377,12 +377,6 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.javaScript("Usage: ${{ $.doInNewTransaction(function) }}. Example: ${{ $.doInNewTransaction(() => log($.me))}"));
-	}
-
-	@Override
 	public List<String> getNotes() {
 
 		return List.of(

@@ -25,7 +25,6 @@ import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.api.ContentExtractionException;
 import org.structr.extraction.api.document.OcrInfo;
@@ -101,12 +100,6 @@ public class ExtractContentInfoFunction extends ContentExtractionFunction {
 		}
 
 		return ResultMaps.toGraphObjectMap(info);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ documents.extractContentInfo(file) }"), Usage.javaScript("Usage: ${{ $.documents.extractContentInfo(file); }}"));
 	}
 
 	@Override

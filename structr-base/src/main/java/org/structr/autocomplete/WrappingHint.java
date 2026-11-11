@@ -88,12 +88,6 @@ public class WrappingHint extends AbstractHint {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return documentable.getUsages();
-	}
-
-	@Override
 	public boolean isHidden() {
 
 		return documentable.isHidden();

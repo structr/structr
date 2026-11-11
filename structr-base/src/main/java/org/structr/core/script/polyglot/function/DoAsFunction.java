@@ -172,12 +172,6 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.javaScript("Usage: ${{ $.doAs(user, function) }}. Example: ${{ $.doAs(user, () => log($.me))}"));
-	}
-
-	@Override
 	public FunctionCategory getCategory() {
 
 		return FunctionCategory.System;

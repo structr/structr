@@ -78,16 +78,10 @@ public class LastFunction extends CoreFunction {
 
 		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${last(collection)}"), Usage.javaScript("Usage: ${{ $.last(collection) }}"));
 	}
 
 	@Override

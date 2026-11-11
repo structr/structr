@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.schema.action.ActionContext;
 
@@ -52,7 +51,7 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 			final MQTTClient client = toMQTTClient(sources[0]);
 			if(client == null){
 
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
+				logParameterError(caller, sources);
 
 				return null;
 			}
@@ -61,16 +60,10 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 
 		} else {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${mqttPublish(client, topic, message)}"), Usage.javaScript("Usage: ${{ $.mqttPublish(client, topic, message) }}"));
 	}
 
 	@Override

@@ -19,7 +19,6 @@
 package org.structr.web.function;
 
 import org.apache.commons.lang3.StringUtils;
-import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.datasources.Channel;
@@ -31,7 +30,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.AsyncBuffer;
@@ -185,16 +183,10 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 		} else {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${renderEach(tag)} or ${renderEach(tag, slot)}."), Usage.javaScript("Usage: ${{ $.renderEach(tag)}} or ${{ $.renderEach(tag, slot)}}."));
 	}
 
 	@Override

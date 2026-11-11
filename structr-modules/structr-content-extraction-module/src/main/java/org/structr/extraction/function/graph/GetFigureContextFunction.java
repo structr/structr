@@ -25,7 +25,6 @@ import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.extraction.ContentExtractionTraits;
 import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.api.document.FigureContext;
@@ -77,12 +76,6 @@ public class GetFigureContextFunction extends ContentExtractionFunction {
 			text(figure.get(DocumentFigureTraitDefinition.CAPTION_PROPERTY)), page(figure.get(DocumentFigureTraitDefinition.PAGE_PROPERTY)), texts(figure.get(DocumentFigureTraitDefinition.MENTIONS_PROPERTY)), maxTokens, related);
 
 		return toGraphObjectMaps(List.of(context.toMap())).getFirst();
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ documents.getFigureContext(document, figure [, options ]) }"), Usage.javaScript("Usage: ${{ $.documents.getFigureContext(document, figure [, options ]); }}"));
 	}
 
 	@Override
@@ -171,7 +164,7 @@ public class GetFigureContextFunction extends ContentExtractionFunction {
 			return result;
 		}
 
-		throw new FrameworkException(422, getName() + "(): expected a figure as argument " + (index + 1) + ": a result of documents.extractFigures(), a DocumentFigure or an object with label, caption, page and mentions.");
+		throw new FrameworkException(422, getDisplayName(false) + ": expected a figure as argument " + (index + 1) + ": a result of documents.extractFigures(), a DocumentFigure or an object with label, caption, page and mentions.");
 	}
 
 	private static Object orEmpty(final Object value) {

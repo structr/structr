@@ -81,7 +81,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 					final int parameterCount = sources.length;
 					if (parameterCount % 2 == 0) {
 
-						throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+						throw new FrameworkException(400, getDisplayName(false) + ": Invalid number of parameters: " + parameterCount + ". Should be uneven. " + usage());
 					}
 
 					for (int c = 1; c < parameterCount; c += 2) {
@@ -167,19 +167,10 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage());
 
 			return null;
 		}
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.structrScript("Usage: ${maintenance(command [, key, value [, ... ]])}. Example: ${maintenance('rebuildIndex', 'mode', 'nodesOnly'))')}"),
-			Usage.javaScript("Usage: ${{ $.maintenance(command [, key, value [, ... ]])}}. Example: ${{ $.maintenance('rebuildIndex', { mode: 'nodesOnly' })}}")
-		);
 	}
 
 	@Override

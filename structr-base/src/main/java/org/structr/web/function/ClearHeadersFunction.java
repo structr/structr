@@ -19,7 +19,6 @@
 package org.structr.web.function;
 
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -52,16 +51,10 @@ public class ClearHeadersFunction extends UiAdvancedFunction {
 
 		} else {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources);
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${clearHeaders()}. Example: ${clearHeaders()}"), Usage.javaScript("Usage: ${{ $.clearHeaders()}}. Example: ${{ $.clearHeaders()}}"));
 	}
 
 	@Override

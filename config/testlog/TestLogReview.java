@@ -259,11 +259,12 @@ public class TestLogReview {
 	static Path writeBaseline = null;
 
 	/**
-	 * The state of a log we currently consider normal, committed alongside this tool. Used unless
-	 * {@code --baseline} says otherwise, so the everyday invocation needs no arguments and shows only
-	 * what deviates. Because it is a file in the repository, accepting new noise becomes an explicit,
-	 * reviewable commit rather than a habit of ignoring lines -- and the diff of that commit says
-	 * exactly which messages the team decided to live with.
+	 * Where a locally written baseline is picked up automatically, unless {@code --baseline} names
+	 * another file. None is committed: a baseline describes only the run it was written from (its
+	 * modules, JDK and locale), so each developer or CI job writes its own with
+	 * {@code --write-baseline}. When the file is absent, the tool runs without a baseline and reports
+	 * everything. Signatures include the logger name, so a change to the logback pattern makes an
+	 * existing baseline stale; write it again afterwards.
 	 */
 	static final Path DEFAULT_BASELINE = Paths.get("config/testlog/normal.baseline");
 	static boolean usingDefaultBaseline = false;

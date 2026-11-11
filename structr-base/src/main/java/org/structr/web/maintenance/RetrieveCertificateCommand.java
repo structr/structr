@@ -1053,10 +1053,4 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 		return List.of();
 	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
 }

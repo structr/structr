@@ -170,12 +170,6 @@ public class ReduceExpression extends Expression {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${reduce(list, initialValue, reduceExpression)}. Example: ${reduce(this.children, 0, sum(accumulator, data.value)))}"));
-	}
-
-	@Override
 	public FunctionCategory getCategory() {
 
 		return FunctionCategory.Collection;

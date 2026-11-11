@@ -57,7 +57,6 @@ public interface JsonSchema {
 	String KEY_ENUM                     = "enum";
 	String KEY_FQCN                     = "fqcn";
 	String KEY_FORMAT                   = "format";
-	String KEY_HINT                     = "hint";
 	String KEY_CATEGORY                 = "category";
 	String KEY_READ_ONLY                = "readOnly";
 	String KEY_SERIALIZATION_DISABLED   = "serializationDisabled";

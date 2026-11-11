@@ -21,7 +21,6 @@ package org.structr.diff.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.diff.compare.ExportComparison;
 import org.structr.schema.action.ActionContext;
@@ -61,12 +60,6 @@ public class CompareExportsFunction extends Function<Object, Object> {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("leftFileId, rightFileId");
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${ compareExports(leftFileId, rightFileId) }"), Usage.javaScript("Usage: ${{ $.compareExports(leftFileId, rightFileId); }}"));
 	}
 
 	@Override

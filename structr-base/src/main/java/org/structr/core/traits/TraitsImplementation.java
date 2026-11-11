@@ -569,12 +569,6 @@ public class TraitsImplementation implements Traits {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return null;
-	}
-
-	@Override
 	public List<DocumentedProperty> getDocumentedProperties() {
 
 		final List<DocumentedProperty> properties = new LinkedList<>();

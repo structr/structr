@@ -19,6 +19,8 @@ export class FlowDataSource extends FlowNode {
                 let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
                 let exceptionHandler = new D3NE.Output('ExceptionHandler', socket.getSocket('exceptionHandler'));
 
+                node.data.id = scopedDbNode.id;
+
                 let query = new D3NE.Control('<textarea class="control-textarea">', (element, control) =>{
 
                     if(scopedDbNode !== undefined && scopedDbNode.query !== undefined) {
@@ -59,7 +61,7 @@ export class FlowDataSource extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

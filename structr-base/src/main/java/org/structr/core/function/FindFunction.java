@@ -20,14 +20,9 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.QueryGroup;
-import org.structr.core.app.StructrApp;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -112,15 +107,6 @@ public class FindFunction extends AbstractQueryFunction {
 				Signature.structrScript("type, key, value"),
 				Signature.javaScript("type, uuid"),
 				Signature.structrScript("type, uuid")
-		);
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.find(type, key, value); }}"),
-			Usage.structrScript("Usage: ${find(type, key, value)}")
 		);
 	}
 

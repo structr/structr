@@ -153,12 +153,6 @@ public class DetachedNodesCommand extends NodeServiceCommand implements Maintena
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-
-		return List.of();
-	}
-
-	@Override
 	public List<Link> getLinkedConcepts() {
 
 		final List<Link> links = new LinkedList<>();

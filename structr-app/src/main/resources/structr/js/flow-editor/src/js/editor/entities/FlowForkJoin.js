@@ -9,8 +9,6 @@ export class FlowForkJoin extends FlowNode {
         super(node);
     }
 
-
-
     getComponent() {
         let scopedDbNode = this.dbNode;
         return new D3NE.Component('ForkJoin', {
@@ -21,6 +19,7 @@ export class FlowForkJoin extends FlowNode {
                 let next = new D3NE.Output('Next', socket.getSocket('next'));
                 let exceptionHandler = new D3NE.Output('ExceptionHandler', socket.getSocket('exceptionHandler'));
 
+                node.data.id = scopedDbNode.id;
                 node.data.dbNode = scopedDbNode;
 
                 return node
@@ -35,7 +34,7 @@ export class FlowForkJoin extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
+            <div data-node-id="{{ node.data.id }}" class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

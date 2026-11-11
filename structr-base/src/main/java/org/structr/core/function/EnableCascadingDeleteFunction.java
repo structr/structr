@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -51,12 +50,6 @@ public class EnableCascadingDeleteFunction extends AdvancedScriptingFunction {
 		ctx.getSecurityContext().setDoCascadingDelete(true);
 
 		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-
-		return List.of(Usage.structrScript("Usage: ${enableCascadingDelete()}"), Usage.javaScript("Usage: ${$.enableCascadingDelete()}"));
 	}
 
 	@Override
