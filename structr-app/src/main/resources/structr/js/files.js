@@ -359,6 +359,18 @@ let _Files = {
 					_Files.mountDialog.show(entity);
 				}
 			});
+
+			elements.push({
+				icon: _Icons.getMenuSvgIcon(_Icons.iconEject, 14, 14),
+				name: 'Unmount Folder',
+				clickHandler: () => {
+					_Files.mountDialog.unmount.confirmation(entity).then(unmounted => {
+						if (unmounted === true) {
+							_Files.refreshTree();
+						}
+					});
+				}
+			});
 		}
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
@@ -1935,6 +1947,24 @@ let _Files = {
 
 			_Dialogs.custom.prependCustomDialogButton(`<button form="mount-dialog-form" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">${mount ? 'Save' : 'Mount'}</button>`);
 
+			if (mount) {
+
+				let btn = _Dialogs.custom.appendCustomDialogButton(`<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getMenuSvgIcon(_Icons.iconEject, 14, 14)} Unmount</button>`);
+
+				btn.addEventListener('click', () => {
+
+					_Files.mountDialog.unmount.confirmation(existingFolder).then(unmounted => {
+
+						if (unmounted === true) {
+
+							_Dialogs.custom.clickDialogCancelButton();
+
+							_Files.refreshTree();
+						}
+					});
+				});
+			}
+
 			let mountDialogForm = dialogText.querySelector('#mount-dialog-form');
 			mountDialogForm.addEventListener('submit', async (e) => {
 
@@ -2189,6 +2219,47 @@ let _Files = {
 			}
 
 			return false;
+		},
+		unmount: {
+			confirmation: async (folder) => {
+
+				let OPTION_KEEP_META_DATA   = 'keep';
+				let OPTION_DELETE_META_DATA = 'delete';
+				let OPTION_CANCEL           = 'cancel';
+
+				let options = [
+					{ buttonText: '<div>Unmount &amp; <span class="font-bold">keep</span> meta-data</div>',   result: OPTION_KEEP_META_DATA },
+					{ buttonText: '<div>Unmount &amp; <span class="font-bold">delete</span> meta-data</div>', result: OPTION_DELETE_META_DATA },
+					{ buttonText: 'Cancel',                                                                   result: OPTION_CANCEL }
+				];
+
+				let answer = await _Dialogs.multipleChoiceQuestion.askPromise(`
+					Do you want to delete the folder completely from the virtual filesystem or <span class="font-bold">keep the meta-data</span>?<br><br>
+
+					<span class="font-bold">Keeping</span> the meta-data means that all file/folder information, with possible relationships to other graph data,<br>
+					will be kept but no access to the file contents will remain.<br>
+					The file nodes will still report the last known size but will have no content.
+
+				`, options, OPTION_CANCEL, OPTION_CANCEL);
+
+				if (answer === OPTION_KEEP_META_DATA) {
+
+					await Command.deleteNodePromise(folder.storageConfiguration.id, false);
+
+					return true;
+
+				} else if (answer === OPTION_DELETE_META_DATA) {
+
+					await Command.deleteNodePromise(folder.storageConfiguration.id, false);
+					await Command.deleteNodePromise(folder.id, true);
+
+					return true;
+
+				} else {
+
+					return false;
+				}
+			},
 		},
 		templates: {
 			dialog: config => `

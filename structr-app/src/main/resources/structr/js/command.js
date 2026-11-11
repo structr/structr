@@ -369,6 +369,11 @@ let Command = {
 		if (recursive) obj.data.recursive = recursive;
 		return StructrWS.sendObj(obj, callback);
 	},
+	deleteNodePromise: async (id, recursive) => {
+		return new Promise((resolve, reject) => {
+			Command.deleteNode(id, recursive, resolve);
+		});
+	},
 	/**
 	 * Send a DELETE_NODES command to the server.
 	 *

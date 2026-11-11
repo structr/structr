@@ -762,6 +762,11 @@
 		<path d="M6.75 11.25v-1.5a4.5 4.5 0 0 1 4.5 -4.5H15a4.5 4.5 0 0 0 4.5 -4.5h0"/>
 	</symbol>
 
+	<symbol id="eject-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+		<path d="m11.4 1.779 -9.75 12.1A0.7 0.7 0 0 0 2.251 15h19.5a0.7 0.7 0 0 0 0.6 -1.117L12.6 1.779a0.785 0.785 0 0 0 -1.2 0Z"/>
+		<path d="M1.75 18h20.5s1 0 1 1v2.5s0 1 -1 1H1.75s-1 0 -1 -1V19s0 -1 1 -1"/>
+	</symbol>
+
 	<g id="non-trivial-color-icons">
 
 		<symbol id="dom-active-element" viewBox="0 0 24 24" fill="transparent" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">

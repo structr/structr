@@ -71,6 +71,7 @@ let _Icons = {
 	iconFolderClosed:         'folder-closed-icon',
 	iconMountedFolderOpen:    'folder-link-open-icon',
 	iconMountedFolderClosed:  'folder-link-closed-icon',
+	iconEject:                'eject-icon',
 	iconFileTypeImage:        'file-image',
 	iconFileTypeEmpty:        'file-empty',
 	iconFileTypePDF:          'file-pdf',
