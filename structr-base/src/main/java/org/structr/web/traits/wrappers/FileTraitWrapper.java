@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.common.trace.DynamicFileFrame;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.api.UnnamedArguments;
@@ -104,8 +106,11 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 		} catch (FrameworkException fex) {
 
-			final Logger logger = LoggerFactory.getLogger(File.class);
-			logger.warn("Exception occurred in onUpload handler of {}: {}", this, fex.getMessage());
+			if (!ScriptError.reportIfPresent(fex)) {
+
+				final Logger logger = LoggerFactory.getLogger(File.class);
+				logger.warn("Exception occurred in onUpload handler of {}: {}", this, fex.getMessage());
+			}
 		}
 	}
 
@@ -257,7 +262,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 					try {
 
-						final String result = Scripting.replaceVariables(new ActionContext(securityContext), wrappedObject, content, "getInputStream");
+						final String result = Scripting.replaceVariables(new ActionContext(securityContext), wrappedObject, content, false, "getInputStream", DynamicFileFrame::new);
 						String encoding = "UTF-8";
 
 						// if we have set a custom contentType response header in the script, use that - otherwise use the content-type of the file
@@ -287,7 +292,10 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 					} catch (Throwable t) {
 
-						logger.warn("Scripting error in {}:\n{}\n{}", getUuid(), content, t.getMessage());
+						if (!ScriptError.reportIfPresent(t)) {
+
+							logger.warn("Scripting error in {}:\n{}\n{}", getUuid(), content, t.getMessage());
+						}
 					}
 				}
 			}

@@ -16,19 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.script;
+package org.structr.common.trace;
 
-import org.structr.common.error.AssertException;
+/**
+ * A job from the job queue, running on a job thread after the code that created it.
+ */
+public class JobFrame extends ContinuationFrame {
 
-public class AlreadyLoggedAssertException extends AssertException {
-
-	public AlreadyLoggedAssertException(final String message, final int statusCode) {
-
-		super(message, statusCode);
+	public JobFrame(final CallFrame creator, final String jobName) {
+		super(creator, jobName);
 	}
 
-	public AlreadyLoggedAssertException(final AssertException ex) {
+	@Override
+	public String kind() {
+		return "JOB";
+	}
 
-		super(ex.getMessage(), ex.getStatus());
+	@Override
+	public String describe() {
+		return "job " + getName();
 	}
 }

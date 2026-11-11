@@ -29,14 +29,20 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NumericalMethodInputParsingException;
 import org.structr.common.error.SemanticErrorToken;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.MethodFrame;
+import org.structr.common.trace.ScriptFrame;
+import org.structr.common.trace.ScriptIdentity;
 import org.structr.core.GraphObject;
 import org.structr.core.api.Arguments.Argument;
+import org.structr.core.script.ScriptFailures;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.StructrBinding;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.script.polyglot.context.ContextHelper;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyGenerator;
 
@@ -80,6 +86,36 @@ public abstract class AbstractMethod {
 	public abstract String getFullMethodName();
 
 	public abstract String getDeclaringTrait();
+
+	/**
+	 * The uuid of the node holding this method's code, or null for a method implemented in Java.
+	 */
+	public String getCodeSourceId() {
+
+		return null;
+	}
+
+	/**
+	 * A frame for a call of this method on the given entity, child of the current frame.
+	 */
+	public MethodFrame callFrame(final GraphObject entity, final String sourceName) {
+
+		return new MethodFrame(new ScriptFrame.Spec(getName(), scriptIdentity(entity, sourceName, getCodeSourceId(), 0), null));
+	}
+
+	/**
+	 * The code of this method as run on the given entity, compiled under the given source name and
+	 * stored in the given node.
+	 */
+	public ScriptIdentity scriptIdentity(final GraphObject entity, final String sourceName, final String codeSourceId, final int startRow) {
+
+		return ScriptIdentity.builder(sourceName)
+			.codeSource(codeSourceId, codeSourceId != null ? StructrTraits.SCHEMA_METHOD : null)
+			.entity(entity != null ? entity.getType() : null, entity != null ? entity.getUuid() : null)
+			.declaredBy(getDeclaringTrait(), isStatic())
+			.startRow(startRow)
+			.build();
+	}
 
 	public abstract Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException;
 
@@ -147,15 +183,23 @@ public abstract class AbstractMethod {
 							// Context reference count handling
 							ContextHelper.incrementReferenceCount(context);
 
-							final Value result = Scripting.evaluatePolyglot(inner, engineName, context, entity, snippet);
+							final ActionContext callContext = inner;
+							final Value result;
 
-							// Context reference count handling
-							ContextHelper.decrementReferenceCount(context);
+							try {
 
-							if (ContextHelper.getReferenceCount(context) <= 0) {
+								result = CallTrace.call(callFrame(entity, snippet.getName()), () -> Scripting.evaluatePolyglot(callContext, engineName, context, entity, snippet));
 
-								context.close();
-								actionContext.putScriptingContext(engineName, null);
+							} finally {
+
+								// a failing call gives back its reference as well, or the context is never closed
+								ContextHelper.decrementReferenceCount(context);
+
+								if (ContextHelper.getReferenceCount(context) <= 0) {
+
+									context.close();
+									actionContext.putScriptingContext(engineName, null);
+								}
 							}
 
 							effectiveLocale = inner.getLocale();
@@ -197,7 +241,11 @@ public abstract class AbstractMethod {
 
 			} catch (FrameworkException ex) {
 
-				throw new RuntimeException(ex);
+				throw ScriptFailures.thrownIntoScript(new RuntimeException(ex));
+
+			} catch (RuntimeException ex) {
+
+				throw ScriptFailures.thrownIntoScript(ex);
 			}
 		};
 	}

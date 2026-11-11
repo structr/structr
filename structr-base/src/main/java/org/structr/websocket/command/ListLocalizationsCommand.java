@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -136,7 +137,10 @@ public class ListLocalizationsCommand extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Exception occured", fex);
+			if (!ScriptError.reportIfPresent(fex)) {
+
+				logger.warn("Exception occured", fex);
+			}
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 		}
 	}

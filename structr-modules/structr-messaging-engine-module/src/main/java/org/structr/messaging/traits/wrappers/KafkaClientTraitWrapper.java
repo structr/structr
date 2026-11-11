@@ -30,7 +30,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.RetryException;
 import org.structr.common.SecurityContext;
+import org.structr.common.LogThrottle;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -43,6 +46,7 @@ import org.structr.messaging.engine.AfterCommit;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.implementation.kafka.entity.KafkaClient;
 import org.structr.messaging.traits.definitions.KafkaClientTraitDefinition;
+import org.structr.messaging.traits.definitions.MessageClientFrame;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -58,6 +62,9 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 	// each message and never find the worker that setup() started
 	private static final Map<String, Producer<String, String>> producerMap = new ConcurrentHashMap<>();
 	private static final Map<String, ConsumerWorker> consumerWorkerMap     = new ConcurrentHashMap<>();
+
+	// the group id is evaluated on every poll, so a failing expression would be reported once a second
+	private static final LogThrottle groupIdFailures = new LogThrottle("KafkaClient groupId", 1);
 
 	public KafkaClientTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 
@@ -277,16 +284,8 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 					consumer.close();
 				}
 
-				this.consumer = new KafkaConsumer<>(client.getConfiguration(KafkaConsumer.class));
-
-				if (client.getGroupId() != null) {
-
-					this.currentGroupId = Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), null, client.getGroupId(), false, "groupId");
-
-				} else {
-
-					this.currentGroupId = client.getGroupId();
-				}
+				this.consumer       = new KafkaConsumer<>(client.getConfiguration(KafkaConsumer.class));
+				this.currentGroupId = evaluateGroupId();
 
 			} catch (KafkaException ex) {
 
@@ -301,7 +300,10 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 
 			} catch (FrameworkException ex) {
 
-				logger.error("Could not refresh KafkaConsumer configuration. " + ex);
+				if (!ScriptError.reportIfPresent(ex)) {
+
+					logger.error("Could not refresh KafkaConsumer configuration. " + ex);
+				}
 			}
 		}
 
@@ -309,27 +311,56 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 
 			try {
 
-				String cId = null;
-
-				if (client.getGroupId() != null) {
-
-					cId = Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), null, client.getGroupId(), false, "groupId");
-
-				} else {
-
-					cId = client.getGroupId();
-				}
-
 				// the group id is null for a client without one, then the consumer uses a group of its own
-
-				return !Objects.equals(currentGroupId, cId);
+				return !Objects.equals(currentGroupId, evaluateGroupId());
 
 			} catch (FrameworkException ex) {
 
-				logger.error("Exception while trying to evaluate KafkaClient groupId. " + ex);
+				if (!ScriptError.reportIfPresent(ex)) {
+
+					logger.error("Exception while trying to evaluate KafkaClient groupId. " + ex);
+				}
 
 				return false;
 			}
+		}
+
+		/**
+		 * The group id with its expressions evaluated. A failure of the expression is reported once per
+		 * client and message within the log throttle's window, and handled otherwise.
+		 */
+		private String evaluateGroupId() throws FrameworkException {
+
+			final String groupId = client.getGroupId();
+			if (groupId == null) {
+
+				return null;
+			}
+
+			return CallTrace.call(new MessageClientFrame("groupId", client.getType(), clientId), () -> {
+
+				try {
+
+					return Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), null, groupId, false, "groupId");
+
+				} catch (FrameworkException | RuntimeException ex) {
+
+					final ScriptError error = ScriptError.of(ex);
+					if (error != null) {
+
+						if (groupIdFailures.allow(clientId + ":" + error.getMessage())) {
+
+							error.report();
+
+						} else {
+
+							error.handled();
+						}
+					}
+
+					throw ex;
+				}
+			});
 		}
 
 		public void updateSubscriptions(boolean forceUpdate) {
@@ -477,7 +508,10 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 
 				} catch (FrameworkException | RuntimeException e) {
 
-					logger.error("Could not process records in ConsumerWorker: " + e);
+					if (!ScriptError.reportIfPresent(e)) {
+
+						logger.error("Could not process records in ConsumerWorker: " + e);
+					}
 				}
 			}
 
@@ -530,7 +564,10 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 				} catch (FrameworkException | NotInTransactionException ex) {
 
 					// the next round reads the client again
-					logger.error("Exception in ConsumerWorker for KafkaClient. " + ex);
+					if (!ScriptError.reportIfPresent(ex)) {
+
+						logger.error("Exception in ConsumerWorker for KafkaClient. " + ex);
+					}
 
 				} catch (KafkaException ex) {
 

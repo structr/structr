@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
@@ -81,7 +82,10 @@ public class PageImporter extends HtmlFileImporter {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Exception while importing page {}: {}", fileName, fex.toString());
+			if (!ScriptError.reportIfPresent(fex)) {
+
+				logger.warn("Exception while importing page {}: {}", fileName, fex.toString());
+			}
 		}
 	}
 
@@ -152,7 +156,10 @@ public class PageImporter extends HtmlFileImporter {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			if (!ScriptError.reportIfPresent(fex)) {
+
+				logger.warn("", fex);
+			}
 		}
 	}
 

@@ -23,7 +23,7 @@ import org.graalvm.polyglot.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.structr.api.Predicate;
+import org.structr.api.RetryException;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.LogThrottle;
@@ -31,15 +31,16 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
-import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.trace.CallFrame;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.MethodFrame;
+import org.structr.common.trace.ScriptError;
+import org.structr.common.trace.ScriptFrame;
+import org.structr.common.trace.ScriptIdentity;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaMethod;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.function.Functions;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DateProperty;
 import org.structr.core.script.polyglot.PendingThenables;
 import org.structr.core.script.polyglot.PolyglotWrapper;
@@ -95,6 +96,16 @@ public class Scripting {
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue, final boolean returnNullValueForEmptyResult, final String methodName) throws FrameworkException {
 
+		return replaceVariables(actionContext, entity, rawValue, returnNullValueForEmptyResult, methodName, null);
+	}
+
+	/**
+	 * Replaces each template expression in the given value by its result, evaluating it in a frame
+	 * made by the given factory, or a default frame if it is null. An expression's rows are counted
+	 * from the start of the whole value, so a failure points at its line there.
+	 */
+	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue, final boolean returnNullValueForEmptyResult, final String methodName, final ScriptFrame.Factory frameFactory) throws FrameworkException {
+
 		if (rawValue == null) {
 
 			return null;
@@ -128,15 +139,29 @@ public class Scripting {
 					}
 				});
 
+				int searchFrom = 0;
+				int counted    = 0;
+				int row        = 0;
+
 				for (final String expression : expressions) {
+
+					// expressions are extracted in order, so each one is found after the previous one
+					final int start = value.indexOf(expression, searchFrom);
+					if (start >= 0) {
+
+						row        += StringUtils.countMatches(value.substring(counted, start), '\n');
+						counted     = start;
+						searchFrom  = start + expression.length();
+					}
 
 					try {
 
 						final ScriptConfig scriptConfig = ScriptConfig.builder()
 								.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+								.frameFactory(frameFactory)
 								.build();
 
-						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null, scriptConfig);
+						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, row, entity != null ? entity.getUuid() : null, scriptConfig);
 						String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
 						// non-null value?
@@ -236,12 +261,10 @@ public class Scripting {
 
 		// temporarily disable notifications for scripted actions
 
-		boolean enableTransactionNotifications = false;
-		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final SecurityContext securityContext        = actionContext.getSecurityContext();
+		final boolean enableTransactionNotifications = securityContext != null && securityContext.doTransactionNotifications();
 
 		if (securityContext != null) {
-
-			enableTransactionNotifications = securityContext.doTransactionNotifications();
 
 			securityContext.setDoTransactionNotifications(false);
 		}
@@ -249,6 +272,13 @@ public class Scripting {
 		final Snippet snippet = new Snippet(methodName, source, scriptConfig.wrapJsInMain());
 		snippet.setCodeSource(codeSource);
 		snippet.setStartRow(startRow);
+
+		final CallFrame frame = callFrame(securityContext, entity, methodName, startRow, codeSource, scriptConfig);
+
+		return CallTrace.call(frame, () -> evaluate(actionContext, entity, snippet, engine, isJavascript, isScriptEngine, securityContext, enableTransactionNotifications, scriptConfig, frame));
+	}
+
+	private static Object evaluate(final ActionContext actionContext, final GraphObject entity, final Snippet snippet, final String engine, final boolean isJavascript, final boolean isScriptEngine, final SecurityContext securityContext, final boolean enableTransactionNotifications, final ScriptConfig scriptConfig, final CallFrame frame) throws FrameworkException, UnlicensedScriptException {
 
 		if (isScriptEngine) {
 
@@ -296,10 +326,20 @@ public class Scripting {
 
 			} catch (StructrScriptException t) {
 
-				// This block reports syntax errors in StructrScript expressions
-				// StructrScript evaluation should not throw exceptions
+				// A syntax error in a StructrScript expression is reported, and the expression evaluates
+				// to null; StructrScript evaluation does not throw.
+				ScriptFailures.reportSyntaxError(frame, t.getMessage(), t.getRow(), t.getColumn());
 
-				reportError(actionContext.getSecurityContext(), entity, t.getMessage(), t.getRow(), t.getColumn(), snippet);
+			} catch (UnlicensedScriptException | RetryException t) {
+
+				throw t;
+
+			} catch (FrameworkException | RuntimeException t) {
+
+				// a failure of a StructrScript function, attributed where it was called
+				ScriptFailures.attributeStructrScript(actionContext, t);
+
+				throw t;
 			}
 
 			return null;
@@ -364,11 +404,6 @@ public class Scripting {
 
 				// unwrap() has no throws clause, so a promise it could not resolve -- rejected, or still
 				// pending with nothing left that could settle it -- arrives wrapped in this marker.
-				//
-				// It is reported as the synchronous path reports a failing script, so that it reaches the
-				// runtime event log and the admin UI, which show it at the element whose script failed.
-				reportError(actionContext.getSecurityContext(), entity, tfx, snippet);
-
 				//
 				// Each of the two failures it may carry has to leave by the same route the synchronous path
 				// uses, or the reported status would depend on whether the snippet was wrapped. An
@@ -520,34 +555,25 @@ public class Scripting {
 
 			} catch (PolyglotException ex) {
 
-				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
+				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException host) {
 
-					// Only report error, if exception is not an already logged AssertException
-					if (ex.isHostException() && !(ex.asHostException() instanceof AlreadyLoggedAssertException)) {
+					// A failure that already carries a script error happened further in -- a nested call
+					// -- and is passed on unchanged. Anything else happened here.
+					final FrameworkException wrapped = host.getCause() instanceof FrameworkException fex ? fex : null;
+					final Throwable carrier          = wrapped != null ? wrapped : host;
 
-						reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+					ScriptFailures.attributeEvaluation(ex, snippet, carrier);
+
+					if (wrapped != null) {
+
+						throw wrapped;
 					}
 
-					// If exception is AssertException and has been logged above, rethrow as AlreadyLoggedAssertException
-					if (ex.isHostException() && ex.asHostException() instanceof AssertException ae) {
-
-						throw new AlreadyLoggedAssertException(ae);
-					}
-
-					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
-					if (ex.asHostException().getCause() instanceof FrameworkException) {
-
-						throw ex.asHostException().getCause();
-
-					} else {
-
-						throw ex.asHostException();
-					}
+					throw host;
 
 				} else {
 
-					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
-					throw new FrameworkException(422, "Server-side scripting error", ex);
+					throw ScriptFailures.attributeEvaluation(ex, snippet, new FrameworkException(422, "Server-side scripting error", ex));
 				}
 			}
 
@@ -985,6 +1011,11 @@ public class Scripting {
 
 			return buf.toString();
 
+		} else if (value instanceof Throwable throwable && ScriptError.of(throwable) instanceof ScriptError error) {
+
+			// a failure of user code: where it happened and the calls that led there, not Java frames
+			return error.format();
+
 		} else if (value instanceof Throwable throwable) {
 
 			final String mdcString        = MDC.get(ScratchpadTraitWrapper.MDC_SCRATCHPAD_TAG);
@@ -1008,171 +1039,24 @@ public class Scripting {
 		}
 	}
 
-	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final PolyglotException ex, final Snippet snippet) throws FrameworkException {
+	/**
+	 * The frame for an evaluation, child of the current frame.
+	 */
+	private static CallFrame callFrame(final SecurityContext securityContext, final GraphObject entity, final String methodName, final int startRow, final String codeSource, final ScriptConfig scriptConfig) {
 
-		final String message = ex.getMessage();
-		int lineNumber       = 1;
-		int columnNumber     = 1;
-		int endLineNumber    = 1;
-		int endColumnNumber  = 1;
-		final SourceSection location = ex.getSourceLocation();
+		final AbstractMethod method       = scriptConfig != null ? scriptConfig.getCurrentMethod() : null;
+		final ScriptFrame.Factory factory = scriptConfig != null && scriptConfig.getFrameFactory() != null ? scriptConfig.getFrameFactory() : (method != null ? MethodFrame::new : ScriptFrame::new);
+		final ScriptIdentity identity     = method != null
 
-		if (location != null) {
+			? method.scriptIdentity(entity, methodName, codeSource, startRow)
 
-			lineNumber      = location.getStartLine();
-			columnNumber    = location.getStartColumn();
-			endLineNumber   = location.getEndLine();
-			endColumnNumber = location.getEndColumn();
-		}
+			: ScriptIdentity.builder(methodName)
+				.codeSource(codeSource, null)
+				.entity(entity != null ? entity.getType() : null, entity != null ? entity.getUuid() : null)
+				.startRow(startRow)
+				.build();
 
-		boolean broadcastToAdminUI =  !(ex.isHostException() && (ex.asHostException() instanceof AssertException));
-
-		reportError(securityContext, entity, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet, broadcastToAdminUI);
-	}
-
-	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final PolyglotWrapper.ThenableFailure tfx, final Snippet snippet) throws FrameworkException {
-
-		final Throwable failure = tfx.getReportedFailure();
-
-		// an assertion that failed in a nested evaluation has been reported there already
-		if (failure instanceof AlreadyLoggedAssertException) {
-			return;
-		}
-
-		final SourceSection location = tfx.getLocation();
-		int lineNumber               = 1;
-		int columnNumber             = 1;
-		int endLineNumber            = 1;
-		int endColumnNumber          = 1;
-
-		if (location != null) {
-
-			lineNumber      = location.getStartLine();
-			columnNumber    = location.getStartColumn();
-			endLineNumber   = location.getEndLine();
-			endColumnNumber = location.getEndColumn();
-		}
-
-		reportError(securityContext, entity, failure.getMessage(), lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet, !(failure instanceof AssertException));
-	}
-
-	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
-
-		reportError(securityContext, entity, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet, true);
-	}
-
-	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final int endLineNumber, final int endColumnNumber, final Snippet snippet, final boolean broadcastToAdminUI) throws FrameworkException {
-
-		final String entityName               = snippet.getName();
-		final String entityDescription        = (StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + snippet.getCodeSource();
-		final Map<String, Object> messageData = new LinkedHashMap<>();
-		final Map<String, Object> eventData   = new LinkedHashMap<>();
-		final StringBuilder exceptionPrefix   = new StringBuilder();
-		final String errorName                = "Scripting Error";
-
-		eventData.putAll(
-			Map.of(
-				"errorName", errorName,
-				"row", lineNumber + snippet.getStartRow(),
-				"column", columnNumber,
-				"endRow", endLineNumber + snippet.getStartRow(),
-				"endColumn", endColumnNumber,
-				"entity", entityDescription
-			)
-		);
-		messageData.putAll(
-			Map.of(
-				"type", "SCRIPTING_ERROR",
-				"row", lineNumber + snippet.getStartRow(),
-				"column", columnNumber,
-				"endRow", endLineNumber + snippet.getStartRow(),
-				"endColumn", endColumnNumber
-			)
-		);
-
-		putIfNotNull(eventData,   "message", message);
-		putIfNotNull(messageData, "message", message);
-
-		final String codeSourceId = snippet.getCodeSource();
-		if (codeSourceId != null) {
-
-			String nodeType = null;
-			String nodeId = null;
-
-			if (entity != null) {
-
-				final String entityType = entity.getClass().getSimpleName();
-				final String entityId = entity.getUuid();
-
-				messageData.put("entityType", entityType);
-				messageData.put("entityId", entityId);
-				eventData.put("entityType", entityType);
-				eventData.put("entityId", entityId);
-
-				exceptionPrefix.append(entityType).append("[").append(entityId).append("]:");
-
-			}
-
-			final NodeInterface codeSource = StructrApp.getInstance().getNodeById(codeSourceId);
-			if (codeSource != null) {
-
-				nodeType = codeSource.getTraits().getName();
-				nodeId = codeSource.getUuid();
-
-				if (codeSource.is(StructrTraits.SCHEMA_METHOD) && codeSource.as(SchemaMethod.class).isStaticMethod()) {
-
-					final AbstractSchemaNode node = codeSource.as(SchemaMethod.class).getSchemaNode();
-					final String staticTypeName   = codeSource.getName();
-
-					messageData.put("staticType",     staticTypeName);
-					messageData.put("isStaticMethod", true);
-					eventData.put("staticType",       staticTypeName);
-					eventData.put("isStaticMethod",   true);
-
-					exceptionPrefix.append(staticTypeName).append("[static]:");
-
-				} else {
-
-					if (entity == null) {
-
-						// Only generate generic exception prefix, if none has been written for entity
-						exceptionPrefix.append(nodeType).append("[").append(nodeId).append("]:");
-					}
-				}
-
-			}
-
-			eventData.put("type", nodeType);
-			messageData.put("nodeType", nodeType);
-			eventData.put("id", nodeId);
-			messageData.put("nodeId", nodeId);
-		}
-
-		if (snippet.getName() != null) {
-
-			eventData.put("name", snippet.getName());
-			messageData.put("name", snippet.getName());
-		}
-
-		RuntimeEventLog.scripting(errorName, eventData);
-
-		if (broadcastToAdminUI == true) {
-
-			TransactionCommand.simpleBroadcastGenericMessage(messageData, Predicate.only(securityContext.getSessionId()));
-		}
-
-		exceptionPrefix.append(snippet.getName()).append(":").append(lineNumber).append(":").append(columnNumber);
-
-		// log error but don't throw exception
-		logger.error(exceptionPrefix.toString() + ": " + message);
-	}
-
-	private static void putIfNotNull(final Map<String, Object> map, final String key, final Object value) {
-
-		if (value != null) {
-
-			map.put(key, value);
-		}
+		return factory.create(new ScriptFrame.Spec(methodName, identity, securityContext != null ? securityContext.getSessionId() : null));
 	}
 
 	// ----- nested classes -----

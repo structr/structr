@@ -21,6 +21,7 @@ package org.structr.core.api;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
@@ -72,6 +73,12 @@ public class ScriptMethod extends AbstractMethod {
 			this.declaringClass = declaringClass.getName();
 			fullName = "method ‛" + this.declaringClass + "." + name + "‛";
 		}
+	}
+
+	@Override
+	public String getCodeSourceId() {
+
+		return uuid;
 	}
 
 	public String getDeclaringClass() {
@@ -194,7 +201,7 @@ public class ScriptMethod extends AbstractMethod {
 
 		} catch (AssertException e)   {
 
-			throw new FrameworkException(e.getStatus(), e.getMessage());
+			throw ScriptError.carry(e, new FrameworkException(e.getStatus(), e.getMessage()));
 
 		} catch (IllegalArgumentTypeException iatx) {
 

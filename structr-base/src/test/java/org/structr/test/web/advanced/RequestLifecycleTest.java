@@ -18,6 +18,7 @@
  */
 package org.structr.test.web.advanced;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
@@ -33,6 +34,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
@@ -283,11 +285,15 @@ public class RequestLifecycleTest extends StructrUiTest {
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 
+		// a script error is reported by the scripting layer, with its trace; what goes wrong around it is
+		// logged where the rendering is
 		final Logger contentLogger                 = (Logger) LoggerFactory.getLogger(Content.class);
+		final Logger scriptingLogger               = (Logger) LoggerFactory.getLogger(Scripting.class.getName());
 		final ListAppender<ILoggingEvent> appender = new ListAppender<>();
 
 		appender.start();
 		contentLogger.addAppender(appender);
+		scriptingLogger.addAppender(appender);
 
 		try {
 
@@ -300,6 +306,7 @@ public class RequestLifecycleTest extends StructrUiTest {
 		} finally {
 
 			contentLogger.detachAppender(appender);
+			scriptingLogger.detachAppender(appender);
 			appender.stop();
 		}
 	}
@@ -445,6 +452,11 @@ public class RequestLifecycleTest extends StructrUiTest {
 		while (System.currentTimeMillis() < deadline) {
 
 			for (final ILoggingEvent event : List.copyOf(appender.list)) {
+
+				if (event.getLevel() == Level.ERROR && event.getFormattedMessage() != null && event.getFormattedMessage().contains(message)) {
+
+					return event;
+				}
 
 				for (IThrowableProxy proxy = event.getThrowableProxy(); proxy != null; proxy = proxy.getCause()) {
 

@@ -23,6 +23,7 @@ import jakarta.servlet.SessionTrackingMode;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -54,6 +55,8 @@ import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.config.StringMultiChoiceSetting;
 import org.structr.api.service.*;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.RequestFrame;
 import org.structr.core.Services;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.rest.common.MetricsFilter;
@@ -378,6 +381,36 @@ public class HttpService implements RunnableService, StatsCallback {
 		servletContext.insertHandler(gzipHandler);
 
 		final List<Connector> connectors = new LinkedList<>();
+
+		// Every request is one call flow, whose root names it. It encloses the servlet's transaction, so
+		// the lifecycle methods run by the commit belong to the request as well.
+		{
+			servletContext.addFilter(new FilterHolder((request, response, chain) -> {
+
+				final HttpServletRequest http = (HttpServletRequest) request;
+
+				CallTrace.discardStaleFlow("HTTP " + http.getMethod() + " " + http.getRequestURI());
+
+				final HttpSession session     = http.getSession(false);
+				final String sessionId        = session != null ? session.getId() : http.getRequestedSessionId();
+				final CallTrace.Scope scope   = CallTrace.enter(new RequestFrame(http.getMethod(), http.getRequestURI(), sessionId));
+
+				try {
+
+					chain.doFilter(request, response);
+
+				} catch (Throwable t) {
+
+					scope.failed(t);
+					throw t;
+
+				} finally {
+
+					scope.exit();
+				}
+
+			}), "/*", EnumSet.of(DispatcherType.REQUEST));
+		}
 
 		// Block TRACE verb globally instead of adding code to every servlet
 		{

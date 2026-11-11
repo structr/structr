@@ -18,6 +18,7 @@
  */
 package org.structr.core.script.polyglot.config;
 
+import org.structr.common.trace.ScriptFrame;
 import org.structr.core.api.AbstractMethod;
 
 public class ScriptConfigBuilder {
@@ -44,6 +45,13 @@ public class ScriptConfigBuilder {
     public ScriptConfigBuilder currentMethod(final AbstractMethod currentMethod) {
 
         config.setCurrentMethod(currentMethod);
+
+        return this;
+    }
+
+    public ScriptConfigBuilder frameFactory(final ScriptFrame.Factory frameFactory) {
+
+        config.setFrameFactory(frameFactory);
 
         return this;
     }

@@ -20,9 +20,11 @@ package org.structr.core.datasources;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.LoggerFactory;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Operation;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.app.Query;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.graph.search.ComparisonSearchAttribute;
@@ -126,7 +128,10 @@ public class QueryBuilder {
 
 			} catch (FrameworkException ex) {
 
-				ex.printStackTrace();
+				if (!ScriptError.reportIfPresent(ex)) {
+
+					LoggerFactory.getLogger(QueryBuilder.class).warn("Unable to evaluate the value of query key {}", key, ex);
+				}
 			}
 		}
 

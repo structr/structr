@@ -27,6 +27,8 @@ import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
+import org.structr.common.trace.TemplateFrame;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
@@ -505,12 +507,14 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 		try {
 
-			result = Scripting.replaceVariables(renderContext, this, value, true, key.jsonName());
+			result = Scripting.replaceVariables(renderContext, this, value, true, key.jsonName(), TemplateFrame::new);
 
 		} catch (Throwable t) {
 
-			logger.warn("Scripting error in {} {}:\n{}", key, getUuid(), value, t);
+			if (!ScriptError.reportIfPresent(t)) {
 
+				logger.warn("Scripting error in {} {}:\n{}", key, getUuid(), value, t);
+			}
 		}
 
 		return result;

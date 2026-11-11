@@ -31,6 +31,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.Functions;
@@ -68,6 +69,17 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	public String getNamespaceIdentifier() {
 
 		return null;
+	}
+
+	/**
+	 * Whether a JavaScript error passed to this function arrives as the exception itself, carrying where
+	 * it was thrown, rather than as its message. Only for functions that format what they are given,
+	 * such as log(); everything else keeps receiving the message, which is what a stored or returned
+	 * value has always been.
+	 */
+	public boolean receivesScriptErrors() {
+
+		return false;
 	}
 
 	/**
@@ -279,6 +291,10 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	}
 
 	public static void logException (final Logger l, final Throwable t, final String msg, final Object... messageParams) {
+
+		if (ScriptError.reportIfPresent(t)) {
+			return;
+		}
 
 		if (Settings.LogFunctionsShortenStacktrace.getValue()) {
 

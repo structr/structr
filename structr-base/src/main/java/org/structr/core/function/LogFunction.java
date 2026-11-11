@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.CallFrame;
+import org.structr.common.trace.CallTrace;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
@@ -51,6 +53,12 @@ public class LogFunction extends CoreFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("objects...");
+	}
+
+	@Override
+	public boolean receivesScriptErrors() {
+
+		return true;
 	}
 
 	@Override
@@ -94,6 +102,16 @@ public class LogFunction extends CoreFunction {
 					} else if (node.is(StructrTraits.FILE)) {
 
 						buf.append("[").append(node.getName()).append("]: ");
+					}
+				}
+
+				// flows and processes run scripts that are not methods; the trace knows where they are
+				if (buf.isEmpty()) {
+
+					final CallFrame frame = flowOrProcessFrame();
+					if (frame != null) {
+
+						buf.append("[").append(frame.describe()).append("]: ");
 					}
 				}
 			}
@@ -166,5 +184,18 @@ public class LogFunction extends CoreFunction {
 		linkedConcepts.add(Link.to("ispartof", ConceptReference.of(ConceptType.Topic, "Logging")));
 
 		return linkedConcepts;
+	}
+
+	private static CallFrame flowOrProcessFrame() {
+
+		for (CallFrame frame = CallTrace.current(); frame != null; frame = frame.getParent()) {
+
+			if (frame.isLogContext()) {
+
+				return frame;
+			}
+		}
+
+		return null;
 	}
 }

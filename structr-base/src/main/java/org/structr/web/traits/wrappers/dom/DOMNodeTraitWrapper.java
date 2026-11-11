@@ -21,6 +21,7 @@ package org.structr.web.traits.wrappers.dom;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
@@ -30,6 +31,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.common.trace.TemplateFrame;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -46,6 +48,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -1126,10 +1129,16 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			return true;
 		}
 
+		// rendering goes on after a failing condition, so its errors are reported here
+		final ScriptConfig scriptConfig = ScriptConfig.builder()
+				.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+				.frameFactory(TemplateFrame::new)
+				.build();
+
 		try {
 
 			// If hide conditions evaluates to "true", don't render
-			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Scripting.evaluate(renderContext, wrappedObject, "${".concat(_hideConditions.trim()).concat("}"), "hideConditions", getUuid()))) {
+			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Scripting.evaluate(renderContext, wrappedObject, "${".concat(_hideConditions.trim()).concat("}"), "hideConditions", getUuid(), scriptConfig))) {
 
 				return false;
 			}
@@ -1153,7 +1162,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		try {
 
 			// If show conditions evaluates to "false", don't render
-			if (StringUtils.isNotBlank(_showConditions) && Boolean.FALSE.equals(Scripting.evaluate(renderContext, wrappedObject, "${".concat(_showConditions.trim()).concat("}"), "showConditions", getUuid()))) {
+			if (StringUtils.isNotBlank(_showConditions) && Boolean.FALSE.equals(Scripting.evaluate(renderContext, wrappedObject, "${".concat(_showConditions.trim()).concat("}"), "showConditions", getUuid(), scriptConfig))) {
 
 				return false;
 			}

@@ -24,6 +24,8 @@ import org.structr.api.RetryException;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.CallFrame;
+import org.structr.common.trace.CallTrace;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
@@ -70,6 +72,7 @@ public class ForkHandler implements FlowHandler {
 	private class ForkTask implements Callable<Object> {
 
 		private final Context context;
+		private final CallFrame caller          = CallTrace.capture();
 		private SecurityContext securityContext = null;
 		private NodeInterface fork              = null;
 		private NodeInterface startNode         = null;
@@ -134,22 +137,26 @@ public class ForkHandler implements FlowHandler {
 
 					final Object[] result = { null };
 
-					// the database can terminate the transaction to resolve a deadlock, so it is repeated like a REST request
-					RetryException.repeat(() -> {
+					// the fork runs after the transaction that started it, so its failures end here
+					CallTrace.run(new FlowForkFrame(caller, fork.getUuid()), () -> {
 
-						// each attempt starts from a copy, so that the result or error of a terminated attempt does not end the next one early
-						final Context attempt = new Context(context);
+						// the database can terminate the transaction to resolve a deadlock, so it is repeated like a REST request
+						RetryException.repeat(() -> {
 
-						try (final Tx tx = app.tx()) {
+							// each attempt starts from a copy, so that the result or error of a terminated attempt does not end the next one early
+							final Context attempt = new Context(context);
 
-							fork.as(FlowFork.class).handle(attempt);
+							try (final Tx tx = app.tx()) {
 
-							final FlowEngine engine = new FlowEngine(attempt);
+								fork.as(FlowFork.class).handle(attempt);
 
-							result[0] = engine.execute(attempt, startNode.as(FlowNode.class));
+								final FlowEngine engine = new FlowEngine(attempt);
 
-							tx.success();
-						}
+								result[0] = engine.execute(attempt, startNode.as(FlowNode.class));
+
+								tx.success();
+							}
+						});
 					});
 
 					return result[0];

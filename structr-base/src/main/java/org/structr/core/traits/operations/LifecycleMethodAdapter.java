@@ -18,10 +18,13 @@
  */
 package org.structr.core.traits.operations;
 
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.LifecycleFrame;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.api.ScriptMethod;
@@ -72,32 +75,18 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 	@Override
 	public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final String type = graphObject.getTraits().getName();
-
 		for (final ScriptMethod method : methods) {
 
-			final ScriptConfig scriptConfig = ScriptConfig.builder()
-					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
-					.currentMethod(method)
-					.build();
-
-			Actions.execute(securityContext, graphObject, "${" + method.getRawSource().trim() + "}", null, type + ".onCreate", null, scriptConfig);
+			execute(securityContext, graphObject, method, null);
 		}
 	}
 
 	@Override
 	public void afterCreation(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
 
-		final String type = graphObject.getTraits().getName();
-
 		for (final ScriptMethod method : methods) {
 
-			final ScriptConfig scriptConfig = ScriptConfig.builder()
-					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
-					.currentMethod(method)
-					.build();
-
-			Actions.execute(securityContext, graphObject, "${" + method.getRawSource().trim() + "}", null, type + ".afterCreate", null, scriptConfig);
+			execute(securityContext, graphObject, method, null);
 		}
 	}
 
@@ -113,63 +102,40 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 			// entity is null because it is deleted, properties are available via "data" keyword
 			for (final ScriptMethod method : methods) {
 
-				final ScriptConfig scriptConfig = ScriptConfig.builder()
-						.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
-						.currentMethod(method)
-						.build();
-
-				Actions.execute(securityContext, null, "${" + method.getRawSource().trim() + "}", null, type + ".afterDelete", null, scriptConfig);
+				execute(securityContext, null, method, null);
 			}
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			if (!ScriptError.reportIfPresent(ex)) {
+
+				LoggerFactory.getLogger(LifecycleMethodAdapter.class).warn("Exception in afterDelete of {}", type, ex);
+			}
 		}
 	}
 
 	@Override
 	public void afterModification(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
 
-		final String type = graphObject.getTraits().getName();
-
 		for (final ScriptMethod method : methods) {
 
-			final ScriptConfig scriptConfig = ScriptConfig.builder()
-					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
-					.currentMethod(method)
-					.build();
-
-			Actions.execute(securityContext, graphObject, "${" + method.getRawSource().trim() + "}", null, type + ".afterSave", null, scriptConfig);
+			execute(securityContext, graphObject, method, null);
 		}
 	}
 
 	@Override
 	public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
 
-		final String type = graphObject.getTraits().getName();
-
 		for (final ScriptMethod method : methods) {
 
-			final ScriptConfig scriptConfig = ScriptConfig.builder()
-					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
-					.currentMethod(method)
-					.build();
-
-			Actions.execute(securityContext, graphObject, "${" + method.getRawSource().trim() + "}", null, type + ".onDelete", null, scriptConfig);
+			execute(securityContext, graphObject, method, null);
 		}
 	}
 
 	@Override
 	public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		final String type = graphObject.getTraits().getName();
-
 		for (final ScriptMethod method : methods) {
-
-			final ScriptConfig scriptConfig = ScriptConfig.builder()
-					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
-					.currentMethod(method)
-					.build();
 
 			final GraphObjectMap modifications = modificationQueue.getModifications(graphObject);
 			final Map<String, Object> parameters = new LinkedHashMap<>();
@@ -178,39 +144,40 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 
 			securityContext.getContextStore().setConstant(KEYWORD_MODIFICATIONS, modifications);
 
-			Actions.execute(securityContext, graphObject, "${" + method.getRawSource().trim() + "}", parameters, type + ".onSave", null, scriptConfig);
+			execute(securityContext, graphObject, method, parameters);
 		}
 	}
 
 	@Override
 	public void onNodeCreation(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
 
-		final String type = nodeInterface.getTraits().getName();
-
 		for (final ScriptMethod method : methods) {
 
-			final ScriptConfig scriptConfig = ScriptConfig.builder()
-					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
-					.currentMethod(method)
-					.build();
-
-			Actions.execute(securityContext, nodeInterface, "${" + method.getRawSource().trim() + "}", null, type + ".onNodeCreation", null, scriptConfig);
+			execute(securityContext, nodeInterface, method, null);
 		}
 	}
 
 	@Override
 	public void onNodeDeletion(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
 
-		final String type = nodeInterface.getTraits().getName();
-
 		for (final ScriptMethod method : methods) {
 
-			final ScriptConfig scriptConfig = ScriptConfig.builder()
-					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
-					.currentMethod(method)
-					.build();
-
-			Actions.execute(securityContext, nodeInterface, "${" + method.getRawSource().trim() + "}", null, type + ".onNodeDeletion", null, scriptConfig);
+			execute(securityContext, nodeInterface, method, null);
 		}
+	}
+
+	/**
+	 * Runs one implementation of a lifecycle method in a frame of its own, named by the callback and
+	 * with the method's node as its code source, so the editor can mark a failing line.
+	 */
+	private static void execute(final SecurityContext securityContext, final GraphObject entity, final ScriptMethod method, final Map<String, Object> parameters) throws FrameworkException {
+
+		final ScriptConfig scriptConfig = ScriptConfig.builder()
+				.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+				.currentMethod(method)
+				.frameFactory(LifecycleFrame::new)
+				.build();
+
+		Actions.execute(securityContext, entity, "${" + method.getRawSource().trim() + "}", parameters, method.getName(), method.getCodeSourceId(), scriptConfig);
 	}
 }

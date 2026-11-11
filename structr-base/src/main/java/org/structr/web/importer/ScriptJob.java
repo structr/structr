@@ -20,6 +20,7 @@ package org.structr.web.importer;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -28,12 +29,16 @@ import org.structr.common.AccessMode;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.CallFrame;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.ScriptJobFrame;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.ScheduledJob;
+import org.structr.core.script.ScriptFailures;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.config.ScriptConfig;
@@ -56,6 +61,21 @@ public class ScriptJob extends ScheduledJob {
 		super(jobTitle, user, configuration, ctxStore, queueName);
 
 		this.script  = script;
+	}
+
+	/**
+	 * The job's frame continues the trace of the code that scheduled it. A function handed to schedule()
+	 * was written in that code's source; a script string is evaluated in a frame of its own below it.
+	 */
+	@Override
+	protected CallFrame jobFrame() {
+
+		if (script instanceof PolyglotWrapper.FunctionWrapper) {
+
+			return new ScriptJobFrame(getCreator(), jobName);
+		}
+
+		return super.jobFrame();
 	}
 
 	@Override
@@ -133,6 +153,13 @@ public class ScriptJob extends ScheduledJob {
 				reportFinished();
 
 			} catch (Exception e) {
+
+				// a failure of the job's script is reported with its trace, to the session that scheduled it,
+				// when reportException logs it
+				if (e instanceof PolyglotException) {
+
+					ScriptFailures.attribute(CallTrace.current(), e);
+				}
 
 				reportException(e);
 

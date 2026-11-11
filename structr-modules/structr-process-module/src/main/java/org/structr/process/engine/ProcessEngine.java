@@ -21,11 +21,13 @@ package org.structr.process.engine;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObject;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.NamedArguments;
@@ -992,11 +994,14 @@ public class ProcessEngine {
 			final String expression = (language == ScriptLanguage.STRUCTR_SCRIPT)
 				? "${" + executableScript + "}"
 				: "${js{" + executableScript + "}}";
-			Scripting.evaluate(ctx, element, expression, "automaticTask");
+			Scripting.evaluate(ctx, element, expression, "automaticTask", null, nonFatalScript());
 
 		} catch (Exception ex) {
 
-			logger.warn("Automatic task {} failed (non-fatal): {}\n--- Original ---\n{}\n--- Transpiled ---\n{}", getBpmnId(element), ex.getMessage(), script, executableScript);
+			if (!ScriptError.reportIfPresent(ex)) {
+
+				logger.warn("Automatic task {} failed (non-fatal): {}\n--- Original ---\n{}\n--- Transpiled ---\n{}", getBpmnId(element), ex.getMessage(), script, executableScript);
+			}
 		}
 	}
 
@@ -1148,11 +1153,14 @@ public class ProcessEngine {
 
 			final String rewritten        = rewriteConditionExpression(inner, names);
 
-			return Scripting.evaluate(ctx, element, "${js{" + rewritten + "}}", "ioMapping");
+			return Scripting.evaluate(ctx, element, "${js{" + rewritten + "}}", "ioMapping", null, nonFatalScript());
 
 		} catch (final Exception ex) {
 
-			logger.warn("ioMapping expression '{}' on {} failed (non-fatal): {}", source, getBpmnIdSafe(element), ex.getMessage());
+			if (!ScriptError.reportIfPresent(ex)) {
+
+				logger.warn("ioMapping expression '{}' on {} failed (non-fatal): {}", source, getBpmnIdSafe(element), ex.getMessage());
+			}
 
 			return null;
 		}
@@ -2521,7 +2529,10 @@ public class ProcessEngine {
 
 			} catch (Throwable t) {
 
-				logger.warn("After-commit task listener for event '{}' on task '{}' failed: {}", eventName, taskId, t.getMessage());
+				if (!ScriptError.reportIfPresent(t)) {
+
+					logger.warn("After-commit task listener for event '{}' on task '{}' failed: {}", eventName, taskId, t.getMessage());
+				}
 			}
 		});
 	}
@@ -2722,7 +2733,10 @@ public class ProcessEngine {
 
 			} catch (Throwable t) {
 
-				logger.warn("After-commit process listener for event '{}' on instance '{}' failed: {}", eventName, instanceId, t.getMessage());
+				if (!ScriptError.reportIfPresent(t)) {
+
+					logger.warn("After-commit process listener for event '{}' on instance '{}' failed: {}", eventName, instanceId, t.getMessage());
+				}
 			}
 		});
 	}
@@ -3989,7 +4003,7 @@ public class ProcessEngine {
 				expression = "${js{" + rewritten + "}}";
 			}
 
-			final Object result = Scripting.evaluate(ctx, contextElement, expression, "conditionExpression");
+			final Object result = Scripting.evaluate(ctx, contextElement, expression, "conditionExpression", null, nonFatalScript());
 			if (result instanceof Boolean) {
 
 				return (Boolean) result;
@@ -4005,7 +4019,10 @@ public class ProcessEngine {
 
 		} catch (Exception ex) {
 
-			logger.warn("Error evaluating condition '{}': {}", condition, ex.getMessage());
+			if (!ScriptError.reportIfPresent(ex)) {
+
+				logger.warn("Error evaluating condition '{}': {}", condition, ex.getMessage());
+			}
 
 			return false;
 		}
@@ -4053,6 +4070,7 @@ public class ProcessEngine {
 
 		final ScriptConfig scriptConfig = ScriptConfig.builder()
 			.wrapJsInMain(schemaMethod.wrapJsInMain())
+			.frameFactory(BpmnScriptFrame::new)
 			.build();
 
 		return Scripting.evaluate(ctx, entity, "${" + source.trim() + "}", label, method.getUuid(), scriptConfig);
@@ -4404,5 +4422,17 @@ public class ProcessEngine {
 		// Legacy fallback: attachedToRef in bpmnAttributes JSON.
 
 		return getAttributeValue(element, "attachedToRef");
+	}
+
+	/**
+	 * A script whose failure does not stop the process: it is reported where it happens, with its trace,
+	 * and the process goes on.
+	 */
+	private static ScriptConfig nonFatalScript() {
+
+		return ScriptConfig.builder()
+			.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+			.frameFactory(BpmnScriptFrame::nonFatal)
+			.build();
 	}
 }

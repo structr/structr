@@ -41,6 +41,7 @@ import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
+import org.structr.test.common.LogCapture;
 import org.structr.web.common.FileHelper;
 import org.testng.annotations.Test;
 
@@ -51,6 +52,7 @@ import java.util.Map;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -840,6 +842,52 @@ public class CsvImportTest extends CsvTestBase {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testFailingTransformIsReportedOnceInsideTheImportJob() {
+
+		createAdminUser();
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createEmptySchema();
+			final JsonType newType  = schema.addType("Item");
+
+			newType.addStringProperty("comment");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Map<String, Object> params     = new LinkedHashMap<>();
+		final Map<String, Object> mappings   = new LinkedHashMap<>();
+		final Map<String, Object> transforms = new LinkedHashMap<>();
+
+		params.put("targetType", "Item");
+		params.put("quoteChar",  "");
+		params.put("delimiter",  ";");
+		params.put("mappings",   mappings);
+		params.put("transforms", transforms);
+
+		mappings.put("comment", "comment");
+		transforms.put("comment", "{\n\tthrow new Error('csv-transform-marker');\n}");
+
+		final List<String> lines = LogCapture.mentions("csv-transform-marker", () -> {
+
+			importCsv("comment\nfirst", params);
+
+			return null;
+		});
+
+		assertEquals(lines.toString(), 1, lines.size());
+		assertTrue(lines.get(0), lines.get(0).matches("(?s).*:2:\\d+: .*csv-transform-marker.*called from import of test\\.csv.*called from HTTP POST /structr/rest/File/[0-9a-f]{32}/doCSVImport"));
 	}
 
 	@Test

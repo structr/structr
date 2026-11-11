@@ -19,6 +19,7 @@
 package org.structr.core.script.polyglot.config;
 
 import org.structr.api.config.Settings;
+import org.structr.common.trace.ScriptFrame;
 import org.structr.core.api.AbstractMethod;
 
 public class ScriptConfig {
@@ -26,6 +27,7 @@ public class ScriptConfig {
     private boolean wrapJsInMain                                  = Settings.WrapJSInMainFunction.getValue(false);
     private boolean keepContextOpen                               = false;
     private AbstractMethod currentMethod                          = null;
+    private ScriptFrame.Factory frameFactory                      = null;
 
     protected ScriptConfig() {}
 
@@ -64,4 +66,18 @@ public class ScriptConfig {
         return this.currentMethod;
     }
 
+    /**
+     * Makes the frame the evaluation runs in, so that a call site can say what kind of code it runs.
+     * Null lets the evaluation decide: a method frame if a current method is set, a plain script frame
+     * otherwise.
+     */
+    public ScriptFrame.Factory getFrameFactory() {
+
+        return frameFactory;
+    }
+
+    protected void setFrameFactory(final ScriptFrame.Factory frameFactory) {
+
+        this.frameFactory = frameFactory;
+    }
 }

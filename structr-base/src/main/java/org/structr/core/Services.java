@@ -53,6 +53,8 @@ import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaService;
 import org.structr.schema.parser.ZonedDateTimePropertyGenerator;
 import org.structr.util.StructrLicenseManager;
+import org.structr.common.trace.ScriptError;
+import org.structr.core.script.ScriptErrorReporter;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -351,6 +353,9 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		// check settings for incompatibilities which would prevent proper function
 		checkForSettingsConflicts();
+
+		// the call trace decides when a failure of user code is reported, the reporter how
+		ScriptError.setReporter(new ScriptErrorReporter());
 
 		// if configuration is not yet established, instantiate it
 		// this is the place where the service classes get the

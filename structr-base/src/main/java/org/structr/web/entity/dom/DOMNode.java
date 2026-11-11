@@ -27,6 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
@@ -457,6 +458,11 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	}
 
 	static void logScriptingError (final Logger logger, final Throwable t, String message, Object... arguments) {
+
+		// a failure of user code is reported once, with the calls that led to it
+		if (ScriptError.reportIfPresent(t)) {
+			return;
+		}
 
 		if (t instanceof UnlicensedScriptException) {
 

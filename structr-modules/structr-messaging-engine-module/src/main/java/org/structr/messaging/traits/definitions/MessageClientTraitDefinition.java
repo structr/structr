@@ -24,6 +24,8 @@ import org.structr.api.RetryException;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObject;
 import org.structr.core.api.*;
 import org.structr.core.app.App;
@@ -141,51 +143,67 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 				public RestMethodResult sendMessage(final ActionContext actionContext, final MessageClient client, final String topic, final String message) throws FrameworkException {
 
 					final App app = StructrApp.getInstance();
+					final MessageFrame frame;
 
+					// a message received from a broker arrives on a thread with no transaction, which reading
+					// the client needs
 					try (final Tx tx = app.tx()) {
 
-						final Iterable<MessageSubscriber> subscribers = client.getSubscribers();
-						if (subscribers != null) {
-
-							subscribers.forEach(sub -> {
-
-								String subTopic = sub.getTopic();
-								if (subTopic != null && (subTopic.equals(topic) || subTopic.equals("*"))) {
-
-									try {
-
-										final AbstractMethod method = Methods.resolveMethod(sub.getTraits(), "onMessage");
-										if (method != null) {
-
-											final NamedArguments params = new NamedArguments();
-
-											params.add("topic", topic);
-											params.add("message", message);
-
-											method.execute(actionContext, sub, params);
-
-										} else {
-
-											throw new RuntimeException("No such method onMessage!");
-										}
-
-									} catch (FrameworkException e) {
-
-										// the database terminated the transaction, so the other subscribers cannot continue in it
-										if (RetryException.find(e) != null) {
-
-											throw new RetryException(e);
-										}
-
-										final Logger logger = LoggerFactory.getLogger(MessageClientTraitWrapper.class);
-										logger.warn("Could not invoke 'onMessage' method on MessageSubscriber: " + e.getMessage());
-									}
-								}
-							});
-						}
+						frame = new MessageFrame(topic, client.getType(), client.getUuid());
 
 						tx.success();
 					}
+
+					CallTrace.run(frame, () -> {
+
+						try (final Tx tx = app.tx()) {
+
+							final Iterable<MessageSubscriber> subscribers = client.getSubscribers();
+							if (subscribers != null) {
+
+								subscribers.forEach(sub -> {
+
+									String subTopic = sub.getTopic();
+									if (subTopic != null && (subTopic.equals(topic) || subTopic.equals("*"))) {
+
+										try {
+
+											final AbstractMethod method = Methods.resolveMethod(sub.getTraits(), "onMessage");
+											if (method != null) {
+
+												final NamedArguments params = new NamedArguments();
+
+												params.add("topic", topic);
+												params.add("message", message);
+
+												method.execute(actionContext, sub, params);
+
+											} else {
+
+												throw new RuntimeException("No such method onMessage!");
+											}
+
+										} catch (FrameworkException e) {
+
+											// the database terminated the transaction, so the other subscribers cannot continue in it
+											if (RetryException.find(e) != null) {
+
+												throw new RetryException(e);
+											}
+
+											if (!ScriptError.reportIfPresent(e)) {
+
+												final Logger logger = LoggerFactory.getLogger(MessageClientTraitWrapper.class);
+												logger.warn("Could not invoke 'onMessage' method on MessageSubscriber: " + e.getMessage());
+											}
+										}
+									}
+								});
+							}
+
+							tx.success();
+						}
+					});
 
 					return new RestMethodResult(200);
 				}

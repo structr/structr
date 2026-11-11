@@ -28,6 +28,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.MailHelper;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.app.App;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
@@ -155,7 +156,11 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 				} catch (final FrameworkException | EmailException ex) {
 
-					logger.info("Unable to create user with e-mail {}", emailString, ex);
+					if (!ScriptError.reportIfPresent(ex)) {
+
+						logger.info("Unable to create user with e-mail {}", emailString, ex);
+					}
+
 					returnedMethodResult = new RestMethodResult(422, ex.getMessage());
 
 					return returnedMethodResult;
@@ -270,9 +275,12 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 		} catch (FrameworkException fxe) {
 
-			logger.warn("Unable to send confirmation e-mail, scripting error in {} template. {}", key.name(), fxe);
+			if (!ScriptError.reportIfPresent(fxe)) {
 
-			throw new FrameworkException(503, "Unable to send confirmation e-mail");
+				logger.warn("Unable to send confirmation e-mail, scripting error in {} template. {}", key.name(), fxe);
+			}
+
+			throw ScriptError.carry(fxe, new FrameworkException(503, "Unable to send confirmation e-mail"));
 		}
 	}
 

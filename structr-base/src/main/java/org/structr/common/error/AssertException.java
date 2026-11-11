@@ -19,6 +19,8 @@
 package org.structr.common.error;
 
 import com.google.gson.*;
+import org.structr.common.trace.ScriptError;
+import org.structr.common.trace.ScriptErrorCarrier;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -26,10 +28,11 @@ import java.util.Map;
 /**
  * Exception to be thrown when an unlicensed scripting function is encountered.
  */
-public class AssertException extends RuntimeException implements JsonException {
+public class AssertException extends RuntimeException implements JsonException, ScriptErrorCarrier {
 
 	private final Map<String, String> headers = new LinkedHashMap<>();
 	private int statusCode                    = 422;
+	private ScriptError scriptError           = null;
 
 	public AssertException(final String message, final int statusCode) {
 
@@ -42,6 +45,18 @@ public class AssertException extends RuntimeException implements JsonException {
 	public int getStatus() {
 
 		return statusCode;
+	}
+
+	@Override
+	public ScriptError getScriptError() {
+
+		return scriptError;
+	}
+
+	@Override
+	public void setScriptError(final ScriptError scriptError) {
+
+		this.scriptError = scriptError;
 	}
 
 	@Override

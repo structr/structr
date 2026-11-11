@@ -26,10 +26,15 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.CallFrame;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.NewTransactionFrame;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.script.ScriptFailures;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.script.polyglot.context.ContextHelper;
@@ -91,116 +96,7 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 					shouldRestoreLock = true;
 				}
 
-				final Map<String, String> contextMap = MDC.getCopyOfContextMap();
-				final Thread workerThread = new Thread(() -> {
-
-					MDC.setContextMap(contextMap);
-
-					// Execute main batch function
-					Object result = null;
-					Throwable exception = null;
-					boolean isInterrupted = false;
-
-					if (unwrappedArgs[0] instanceof PolyglotWrapper.FunctionWrapper) {
-
-						ContextFactory.LockedContext innerLockedContext = null;
-
-						try {
-
-							innerLockedContext = ContextFactory.getContext("js", actionContext, entity);
-
-						} catch (FrameworkException ex) {
-
-							logger.error("Could not retrieve context in DoInNewTransactionFunction worker.", ex);
-
-							return;
-						}
-
-						innerLockedContext.getLock().lock();
-
-						try {
-
-							final Context innerContext = innerLockedContext.getContext();
-							innerContext.enter();
-
-							// Execute batch function until it returns anything but true
-							do {
-
-								ContextHelper.incrementReferenceCount(innerContext);
-								boolean hasError = false;
-
-								try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
-
-									result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper) unwrappedArgs[0]).execute());
-									tx.success();
-
-								} catch (Throwable ex) {
-
-									hasError = true;
-									exception = ex;
-
-									if (ex.getCause() != null && ex.getCause() instanceof InterruptedException) {
-
-										logger.warn("Thread was interrupted - breaking out of doInNewTransaction()");
-
-									} else if (unwrappedArgs.length < 2 || !(unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper)) {
-
-										// Log if no error handler is given
-										Function.logException(logger, ex, "Error in doInNewTransaction(): {}", ex.toString());
-									}
-								}
-
-								if (actionContext.hasError() || hasError) {
-
-									if (unwrappedArgs.length >= 2 && unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper) {
-
-										// Execute error handler
-										try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
-
-											result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper) unwrappedArgs[1]).execute(Value.asValue(exception)));
-											tx.success();
-
-											// Error has been handled, clear error buffer.
-											actionContext.getErrorBuffer().setStatus(0);
-											actionContext.getErrorBuffer().getErrorTokens().clear();
-
-										} catch (Throwable ex) {
-
-											Function.logException(logger, ex, "Error in transaction error handler: {}", ex.getMessage());
-										}
-									}
-								}
-
-								ContextHelper.decrementReferenceCount(innerContext);
-
-								isInterrupted = Thread.currentThread().isInterrupted();
-
-							} while (!isInterrupted && result != null && result.equals(true));
-
-						} catch (Throwable ex) {
-
-							throw new RuntimeException(new FrameworkException(422, "Could enter context for doInNewTransaction method.", ex));
-
-						} finally {
-
-							try {
-
-								final Context innerContext = innerLockedContext.getContext();
-								innerContext.leave();
-
-								if (ContextHelper.getReferenceCount(innerContext) <= 0) {
-
-									innerContext.close();
-									actionContext.removeScriptingContextByValue(innerLockedContext);
-								}
-
-							} finally {
-
-								innerLockedContext.getLock().unlock();
-							}
-						}
-					}
-				}, THREAD_NAME_PREFIX + NodeServiceCommand.getNextUuid());
+				final Thread workerThread = new Thread(new Worker(unwrappedArgs), THREAD_NAME_PREFIX + NodeServiceCommand.getNextUuid());
 
 				workerThread.start();
 
@@ -390,5 +286,179 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 	public FunctionCategory getCategory() {
 
 		return FunctionCategory.System;
+	}
+
+	// ----- nested classes -----
+	/**
+	 * Runs the batch function on the worker thread, each run in a transaction of its own, until it
+	 * returns anything but true. A failing run goes to the error handler if there is one, whose result
+	 * then decides whether the batch runs again.
+	 */
+	private final class Worker implements Runnable {
+
+		private final Map<String, String> contextMap = MDC.getCopyOfContextMap();
+		private final CallFrame caller               = CallTrace.capture();
+		private final PolyglotWrapper.FunctionWrapper batch;
+		private final PolyglotWrapper.FunctionWrapper errorHandler;
+
+		private Worker(final Object[] arguments) {
+
+			this.batch        = arguments[0] instanceof PolyglotWrapper.FunctionWrapper function ? function : null;
+			this.errorHandler = arguments.length >= 2 && arguments[1] instanceof PolyglotWrapper.FunctionWrapper function ? function : null;
+		}
+
+		@Override
+		public void run() {
+
+			MDC.setContextMap(contextMap);
+
+			if (batch == null) {
+				return;
+			}
+
+			// The worker continues the caller's trace, but nothing on the caller's side will see its
+			// failures: they end here, reported or handled.
+			final NewTransactionFrame frame = new NewTransactionFrame(caller);
+
+			CallTrace.run(frame, () -> runInOwnContext(frame));
+		}
+
+		/**
+		 * Runs the batch in a scripting context of the worker's own, which is closed afterwards unless
+		 * something else still uses it.
+		 */
+		private void runInOwnContext(final NewTransactionFrame frame) {
+
+			final ContextFactory.LockedContext lockedContext;
+
+			try {
+
+				lockedContext = ContextFactory.getContext("js", actionContext, entity);
+
+			} catch (FrameworkException ex) {
+
+				logger.error("Could not retrieve context in DoInNewTransactionFunction worker.", ex);
+
+				return;
+			}
+
+			lockedContext.getLock().lock();
+
+			try {
+
+				final Context context = lockedContext.getContext();
+				context.enter();
+
+				runBatches(frame, context);
+
+			} catch (Throwable ex) {
+
+				throw new RuntimeException(new FrameworkException(422, "Could not enter context for doInNewTransaction method.", ex));
+
+			} finally {
+
+				release(lockedContext);
+			}
+		}
+
+		private void runBatches(final NewTransactionFrame frame, final Context context) {
+
+			Object result       = null;
+			Throwable exception = null;
+			boolean isInterrupted;
+
+			do {
+
+				ContextHelper.incrementReferenceCount(context);
+				boolean hasError = false;
+
+				try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
+
+					result = PolyglotWrapper.unwrap(actionContext, batch.execute());
+					tx.success();
+
+				} catch (Throwable ex) {
+
+					hasError  = true;
+					exception = ex;
+
+					batchFailed(frame, ex);
+				}
+
+				if (errorHandler != null && (actionContext.hasError() || hasError)) {
+
+					try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
+
+						result = PolyglotWrapper.unwrap(actionContext, errorHandler.execute(Value.asValue(exception)));
+						tx.success();
+
+						// Error has been handled, clear error buffer.
+						actionContext.getErrorBuffer().setStatus(0);
+						actionContext.getErrorBuffer().getErrorTokens().clear();
+
+					} catch (Throwable ex) {
+
+						if (!ScriptFailures.report(frame, ex)) {
+
+							Function.logException(logger, ex, "Error in transaction error handler: {}", ex.getMessage());
+						}
+					}
+				}
+
+				ContextHelper.decrementReferenceCount(context);
+
+				isInterrupted = Thread.currentThread().isInterrupted();
+
+			} while (!isInterrupted && result != null && result.equals(true));
+		}
+
+		/**
+		 * A failure of the batch is reported, or counts as handled if there is an error handler, which
+		 * receives it with where it happened.
+		 */
+		private void batchFailed(final NewTransactionFrame frame, final Throwable ex) {
+
+			if (ex.getCause() instanceof InterruptedException) {
+
+				logger.warn("Thread was interrupted - breaking out of doInNewTransaction()");
+
+				return;
+			}
+
+			final ScriptError error = ScriptFailures.attribute(frame, ex);
+
+			if (error == null) {
+
+				// a deadlock, which is not a script error
+				Function.logException(logger, ex, "Error in doInNewTransaction(): {}", ex.toString());
+
+			} else if (errorHandler != null) {
+
+				error.handled();
+
+			} else {
+
+				error.report();
+			}
+		}
+
+		private void release(final ContextFactory.LockedContext lockedContext) {
+
+			try {
+
+				final Context context = lockedContext.getContext();
+				context.leave();
+
+				if (ContextHelper.getReferenceCount(context) <= 0) {
+
+					context.close();
+					actionContext.removeScriptingContextByValue(lockedContext);
+				}
+
+			} finally {
+
+				lockedContext.getLock().unlock();
+			}
+		}
 	}
 }

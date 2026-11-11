@@ -20,6 +20,8 @@ package org.structr.common.error;
 
 import com.google.gson.*;
 import jakarta.servlet.http.HttpServletResponse;
+import org.structr.common.trace.ScriptError;
+import org.structr.common.trace.ScriptErrorCarrier;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -33,13 +35,14 @@ import java.util.Map.Entry;
  *
  *
  */
-public class FrameworkException extends Exception implements JsonException {
+public class FrameworkException extends Exception implements JsonException, ScriptErrorCarrier {
 
 	private final Map<String, String> headers = new LinkedHashMap<>();
 	private ErrorBuffer errorBuffer           = new ErrorBuffer();
 	private Map<String, String> data          = null;
 	private String message                    = null;
 	private int status                        = HttpServletResponse.SC_OK;
+	private ScriptError scriptError           = null;
 
 	public FrameworkException(final int status, final String message) {
 
@@ -105,6 +108,18 @@ public class FrameworkException extends Exception implements JsonException {
 
 		return buf.toString();
 
+	}
+
+	@Override
+	public ScriptError getScriptError() {
+
+		return scriptError;
+	}
+
+	@Override
+	public void setScriptError(final ScriptError scriptError) {
+
+		this.scriptError = scriptError;
 	}
 
 	@Override

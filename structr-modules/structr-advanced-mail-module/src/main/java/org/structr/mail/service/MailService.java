@@ -35,6 +35,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.common.helper.DynamicMailAttachment;
 import org.structr.common.mail.MailServiceInterface;
+import org.structr.common.trace.CallFrame;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.HandOffFrame;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
@@ -908,6 +912,9 @@ public class MailService implements RunnableService, MailServiceInterface {
 		private int skipped = 0;
 		private String error = null;
 
+		// a fetch requested from a running call flow continues it; a scheduled one starts its own
+		private final CallFrame requestedBy = CallTrace.capture();
+
 		public MailFetchTask(final Mailbox mailbox, final boolean retryFailed) {
 
 			this(mailbox.getUuid(), mailbox.getHost(), retryFailed);
@@ -922,6 +929,13 @@ public class MailService implements RunnableService, MailServiceInterface {
 
 		@Override
 		public void run() {
+
+			final CallFrame frame = requestedBy != null ? new HandOffFrame(requestedBy, "mail fetch of mailbox " + mailboxUuid) : new MailFetchFrame(mailboxUuid);
+
+			CallTrace.inFrame(frame, this::fetch).run();
+		}
+
+		private void fetch() {
 
 			final long start  = System.currentTimeMillis();
 			Store store       = null;
@@ -1174,8 +1188,16 @@ public class MailService implements RunnableService, MailServiceInterface {
 
 				error = what + ": " + ex;
 
-				logger.warn("Skipping {} of mailbox [{}]: {}", what, mailboxUuid, ex.toString());
-				logger.debug("Details for the skipped message", ex);
+				// a failing script is reported with its trace; this only records that the message was skipped
+				if (ScriptError.reportIfPresent(ex)) {
+
+					logger.warn("Skipping {} of mailbox [{}] because a script failed on it", what, mailboxUuid);
+
+				} else {
+
+					logger.warn("Skipping {} of mailbox [{}]: {}", what, mailboxUuid, ex.toString());
+					logger.debug("Details for the skipped message", ex);
+				}
 
 				// moved past in a transaction of its own, so that one unreadable message cannot block the folder
 				if (uids != null) {

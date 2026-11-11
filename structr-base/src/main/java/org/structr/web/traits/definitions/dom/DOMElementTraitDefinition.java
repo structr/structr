@@ -31,6 +31,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.api.AbstractMethod;
@@ -422,8 +423,11 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 							out.append("Error while rendering node ").append(elem.getUuid()).append(": ").append(t.getMessage());
 
-							final Logger logger = LoggerFactory.getLogger(DOMElement.class);
-							logger.warn("", t);
+							if (!ScriptError.reportIfPresent(t)) {
+
+								final Logger logger = LoggerFactory.getLogger(DOMElement.class);
+								logger.warn("", t);
+							}
 						}
 
 						// render end tag, if needed (= if not singleton tags)

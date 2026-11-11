@@ -38,6 +38,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.IJsonInput;
 import org.structr.core.JsonInput;
 import org.structr.core.JsonSingleInput;
@@ -176,7 +177,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (Throwable t) {
 
-			logger.warn("Exception in DELETE", t);
+			if (!ScriptError.reportIfPresent(t)) {
+
+				logger.warn("Exception in DELETE", t);
+			}
 
 			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in DELETE: " + t.getMessage());
 
@@ -295,7 +299,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (Throwable t) {
 
-			logger.warn("Exception in OPTIONS => Error thrown: ", t);
+			if (!ScriptError.reportIfPresent(t)) {
+
+				logger.warn("Exception in OPTIONS => Error thrown: ", t);
+			}
 
 			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in OPTIONS: " + t.getMessage());
 
@@ -501,7 +508,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (Throwable t) {
 
-			logger.warn("Exception in POST", t);
+			if (!ScriptError.reportIfPresent(t)) {
+
+				logger.warn("Exception in POST", t);
+			}
 
 			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in POST: " + t.getMessage());
 
@@ -631,8 +641,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (Throwable t) {
 
-			logger.warn("Exception in PUT", t);
-			logger.warn(" => Error thrown: ", t);
+			if (!ScriptError.reportIfPresent(t)) {
+
+				logger.warn("Exception in PUT", t);
+				logger.warn(" => Error thrown: ", t);
+			}
 
 			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in PUT: " + t.getMessage());
 
@@ -782,7 +795,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (Throwable t) {
 
-			logger.warn("Exception in PATCH", t);
+			if (!ScriptError.reportIfPresent(t)) {
+
+				logger.warn("Exception in PATCH", t);
+			}
 
 			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in PATCH: " + t.getMessage());
 
@@ -896,7 +912,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				// ignore exceptions which (by jettys standards) should be handled less verbosely
 
-			} else {
+			} else if (!ScriptError.reportIfPresent(t)) {
 
 				logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
 				logger.warn(" => Error thrown: ", t);

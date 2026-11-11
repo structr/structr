@@ -35,6 +35,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.Services;
 import org.structr.core.StaticValue;
 import org.structr.core.api.Methods;
@@ -264,7 +265,10 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 				} catch (FrameworkException fex) {
 
-					logger.error("Error encountered during '{}': {}", Actions.NOTIFICATION_AFTER_ACME_CHALLENGE, fex.getMessage(), fex);
+					if (!ScriptError.reportIfPresent(fex)) {
+
+						logger.error("Error encountered during '{}': {}", Actions.NOTIFICATION_AFTER_ACME_CHALLENGE, fex.getMessage(), fex);
+					}
 				}
 
 			} else {
@@ -826,7 +830,10 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 			} catch (FrameworkException fex) {
 
-				logger.error("Error encountered during '{}': {}", Actions.NOTIFICATION_ON_ACME_CHALLENGE, fex.getMessage(), fex);
+				if (!ScriptError.reportIfPresent(fex)) {
+
+					logger.error("Error encountered during '{}': {}", Actions.NOTIFICATION_ON_ACME_CHALLENGE, fex.getMessage(), fex);
+				}
 
 				publishWarningMessage("Error encountered during '" + Actions.NOTIFICATION_ON_ACME_CHALLENGE + "'", fex.getMessage());
 			}

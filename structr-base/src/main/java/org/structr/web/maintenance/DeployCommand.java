@@ -40,6 +40,7 @@ import org.graalvm.polyglot.SourceSection;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.VersionHelper;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -2595,7 +2596,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			} catch (Throwable t) {
 
 				final String msg = "Exception caught while importing '" + confFile + "'";
-				logger.warn(msg, t);
+
+				if (!ScriptError.reportIfPresent(t)) {
+
+					logger.warn(msg, t);
+				}
+
 				publishWarningMessage(msg, t.toString());
 
 				// the whole file rolled back with the transaction, so "applied" is false for all of it

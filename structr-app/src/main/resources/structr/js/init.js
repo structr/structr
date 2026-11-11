@@ -1620,11 +1620,23 @@ let Structr = {
 									<th>Column:</th>
 									<td class="pl-2">${data.column}</td>
 								</tr>
+								${getCallers(data)}
 							</table>
 							<br>
 							${data.message}
 						`;
 					}
+
+					// the calls that led to the failing code, innermost first
+					let getCallers = (data) => {
+
+						return (data.callers ?? []).map((caller, i) => `
+							<tr>
+								<th>${i === 0 ? 'Called from:' : ''}</th>
+								<td class="pl-2">${_Helpers.escapeTags(caller)}</td>
+							</tr>
+						`).join('');
+					};
 
 					if (data.nodeId && data.nodeType) {
 

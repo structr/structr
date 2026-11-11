@@ -705,6 +705,18 @@ public class ActionContext {
 		return scriptRow + ":" + scriptColumn;
 	}
 
+	/** The row of the StructrScript function called last, or 0 if none was recorded. */
+	public int getScriptRow() {
+
+		return scriptRow;
+	}
+
+	/** The column of the StructrScript function called last, or 0 if none was recorded. */
+	public int getScriptColumn() {
+
+		return scriptColumn;
+	}
+
 	private int scriptRow    = 0;
 	private int scriptColumn = 0;
 

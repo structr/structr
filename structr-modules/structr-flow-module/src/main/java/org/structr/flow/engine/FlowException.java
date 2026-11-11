@@ -19,6 +19,7 @@
 package org.structr.flow.engine;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.flow.api.ThrowingElement;
 
 public class FlowException extends FrameworkException {
@@ -31,6 +32,9 @@ public class FlowException extends FrameworkException {
 		super(422, rootCause.getMessage());
 		this.rootCause = rootCause;
 		this.causeElement = causeElement;
+
+		// a failing script inside the node stays the failure that is reported, or handled
+		setScriptError(ScriptError.of(rootCause));
 	}
 
 	public Exception getRootCause() {

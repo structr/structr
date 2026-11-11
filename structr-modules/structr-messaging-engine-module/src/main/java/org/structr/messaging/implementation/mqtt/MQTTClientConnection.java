@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.Services;
 
 import java.nio.charset.StandardCharsets;
@@ -243,7 +244,10 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 
 			} catch (FrameworkException | RuntimeException e) {
 
-				logger.error("Error during MQTT message callback: " + e.getMessage());
+				if (!ScriptError.reportIfPresent(e)) {
+
+					logger.error("Error during MQTT message callback: " + e.getMessage());
+				}
 			}
 
 			acknowledge();

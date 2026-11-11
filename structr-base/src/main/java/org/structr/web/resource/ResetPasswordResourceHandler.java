@@ -27,6 +27,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.MailHelper;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.MailTemplate;
@@ -175,7 +176,10 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 
 		} catch (Exception e) {
 
-			logger.error("Unable to send reset password e-mail", e);
+			if (!ScriptError.reportIfPresent(e)) {
+
+				logger.error("Unable to send reset password e-mail", e);
+			}
 
 			return false;
 		}
@@ -225,9 +229,12 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 
 		} catch (FrameworkException fxe) {
 
-			logger.warn("Unable to send confirmation e-mail, scripting error in {} template. {}", key.name(), fxe);
+			if (!ScriptError.reportIfPresent(fxe)) {
 
-			throw new FrameworkException(503, "Unable to send confirmation e-mail");
+				logger.warn("Unable to send confirmation e-mail, scripting error in {} template. {}", key.name(), fxe);
+			}
+
+			throw ScriptError.carry(fxe, new FrameworkException(503, "Unable to send confirmation e-mail"));
 		}
 	}
 

@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NativeQueryCommand;
@@ -82,7 +83,10 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 
 			} catch (Throwable t) {
 
-				logger.warn("", t);
+				if (!ScriptError.reportIfPresent(t)) {
+
+					logger.warn("", t);
+				}
 			}
 		}
 

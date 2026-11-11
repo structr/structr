@@ -24,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.api.NamedArguments;
@@ -61,33 +63,39 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 
 		final App app = StructrApp.getInstance();
 
-		try (final Tx tx = app.tx()) {
+		CallTrace.run(new XmppFrame("message", message.getFrom() != null ? message.getFrom().toString() : "unknown sender"), () -> {
 
-			final NodeInterface client = StructrApp.getInstance().getNodeById(StructrTraits.XMPP_CLIENT, uuid);
-			if (client != null) {
+			try (final Tx tx = app.tx()) {
 
-				final String callbackName   = "onXMPP" + message.getClass().getSimpleName();
-				final AbstractMethod method = Methods.resolveMethod(client.getTraits(), callbackName);
+				final NodeInterface client = StructrApp.getInstance().getNodeById(StructrTraits.XMPP_CLIENT, uuid);
+				if (client != null) {
 
-				if (method != null) {
+					final String callbackName   = "onXMPP" + message.getClass().getSimpleName();
+					final AbstractMethod method = Methods.resolveMethod(client.getTraits(), callbackName);
 
-					final NamedArguments arguments = new NamedArguments();
+					if (method != null) {
 
-					// as text, like the sender of onXMPPPresence, so that a script can work with it like with any string
-					arguments.add("sender",  message.getFrom() != null ? message.getFrom().toString() : null);
-					arguments.add("message", message.getBody());
+						final NamedArguments arguments = new NamedArguments();
 
-					method.execute(new ActionContext(SecurityContext.getSuperUserInstance()), client, arguments);
+						// as text, like the sender of onXMPPPresence, so that a script can work with it like with any string
+						arguments.add("sender",  message.getFrom() != null ? message.getFrom().toString() : null);
+						arguments.add("message", message.getBody());
+
+						method.execute(new ActionContext(SecurityContext.getSuperUserInstance()), client, arguments);
+					}
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				if (!ScriptError.reportIfPresent(fex)) {
+
+					final Logger logger = LoggerFactory.getLogger(XMPPClientTraitDefinition.class);
+					logger.warn("", fex);
 				}
 			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			final Logger logger = LoggerFactory.getLogger(XMPPClientTraitDefinition.class);
-			logger.warn("", fex);
-		}
+		});
 	}
 
 	/**
@@ -109,34 +117,43 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 
 		final String sender = presence.getFrom().asBareJid().toString();
 		final App app       = StructrApp.getInstance();
-		boolean hasMethod   = false;
 
-		try (final Tx tx = app.tx()) {
+		final boolean hasMethod = CallTrace.call(new XmppFrame("presence", sender), () -> {
 
-			final NodeInterface client = app.getNodeById(StructrTraits.XMPP_CLIENT, connection.getUuid());
-			if (client != null) {
+			boolean found = false;
 
-				final AbstractMethod method = Methods.resolveMethod(client.getTraits(), "onXMPPPresence");
-				if (method != null) {
+			try (final Tx tx = app.tx()) {
 
-					final NamedArguments arguments = new NamedArguments();
+				final NodeInterface client = app.getNodeById(StructrTraits.XMPP_CLIENT, connection.getUuid());
+				if (client != null) {
 
-					hasMethod = true;
+					final AbstractMethod method = Methods.resolveMethod(client.getTraits(), "onXMPPPresence");
+					if (method != null) {
 
-					arguments.add("sender", sender);
-					arguments.add("type",   type.name());
+						final NamedArguments arguments = new NamedArguments();
 
-					method.execute(new ActionContext(SecurityContext.getSuperUserInstance()), client, arguments);
+						found = true;
+
+						arguments.add("sender", sender);
+						arguments.add("type",   type.name());
+
+						method.execute(new ActionContext(SecurityContext.getSuperUserInstance()), client, arguments);
+					}
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				if (!ScriptError.reportIfPresent(fex)) {
+
+					final Logger logger = LoggerFactory.getLogger(XMPPClientTraitDefinition.class);
+					logger.warn("", fex);
 				}
 			}
 
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			final Logger logger = LoggerFactory.getLogger(XMPPClientTraitDefinition.class);
-			logger.warn("", fex);
-		}
+			return found;
+		});
 
 		if (!hasMethod && type == Presence.Type.subscribe) {
 

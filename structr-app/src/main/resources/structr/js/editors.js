@@ -435,7 +435,7 @@ let _Editors = {
 					) {
 
 						let fromLine = line;
-						let toLine   = runtimeEvent.data.endLine ? runtimeEvent.data.endLine : line;
+						let toLine   = runtimeEvent.data.endRow ? runtimeEvent.data.endRow : line;
 						let fromCol  = column;
 						let toCol    = runtimeEvent.data.endColumn ? runtimeEvent.data.endColumn + 1 : column;
 
@@ -452,19 +452,25 @@ let _Editors = {
 						if (!keys[key]) {
 
 							keys[key] = true;
-							let date = new Date(runtimeEvent.absoluteTimestamp);
 
-							events.push({
-								range: new monaco.Range(fromLine, fromCol, toLine, toCol),
-								options: {
-									isWholeLine: (fromLine === toLine &&  fromCol === toCol),
-									className: 'monaco-editor-warning-line',
-									glyphMarginClassName: _Icons.monacoGlyphMarginClassName,
-									glyphMarginHoverMessage: {
-										value: `[${date.toLocaleDateString()} ${date.toLocaleTimeString()}] __Scripting error__` + '\n\n' + message
-									}
-								}
-							});
+							events.push(_Editors.getScriptErrorDecoration(runtimeEvent, fromLine, fromCol, toLine, toCol, '__Scripting error__' + '\n\n' + message));
+						}
+					}
+
+					// the error happened in code called from here: mark the line of the call
+					let [origin, ...callers] = runtimeEvent.data.trace ?? [];
+
+					for (let caller of callers) {
+
+						if (caller.id === entity.id && caller.name === errorAttributeName && caller.row) {
+
+							let key = `${entity.id}.${entity.name}:${caller.row}:caller`;
+							if (!keys[key]) {
+
+								keys[key] = true;
+
+								events.push(_Editors.getScriptErrorDecoration(runtimeEvent, caller.row, 0, caller.row, 0, '__Scripting error in called code__' + '\n\n' + `${origin.description}:${line}:${column}` + '\n\n' + message));
+							}
 						}
 					}
 				}
@@ -472,6 +478,22 @@ let _Editors = {
 
 			return events;
 		}
+	},
+	getScriptErrorDecoration: (runtimeEvent, fromLine, fromCol, toLine, toCol, text) => {
+
+		let date = new Date(runtimeEvent.absoluteTimestamp);
+
+		return {
+			range: new monaco.Range(fromLine, fromCol, toLine, toCol),
+			options: {
+				isWholeLine: (fromLine === toLine &&  fromCol === toCol),
+				className: 'monaco-editor-warning-line',
+				glyphMarginClassName: _Icons.monacoGlyphMarginClassName,
+				glyphMarginHoverMessage: {
+					value: `[${date.toLocaleDateString()} ${date.toLocaleTimeString()}] ` + text
+				}
+			}
+		};
 	},
 	prevAnimFrameReqId_resizeVisibleEditors: undefined,
 	resizeVisibleEditors: () => {

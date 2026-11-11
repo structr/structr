@@ -18,11 +18,14 @@
  */
 package org.structr.core.script.polyglot.wrappers;
 
+import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.CallTrace;
 import org.structr.core.GraphObject;
+import org.structr.core.script.ScriptFailures;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.core.function.Functions;
@@ -69,7 +72,7 @@ public class FunctionWrapper<T,R> implements ProxyExecutable, ProxyObject {
 
 			// on the calling thread, and before anything else: these Values belong to this context, so a
 			// worker may not see them, and the function is asked about plain Java values
-			T[] args = (T[]) Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
+			T[] args = (T[]) Arrays.stream(arguments).map(this::unwrap).toArray();
 
 			// isAsyncCapable() first: it is the function's statement about what apply() touches, and asking
 			// a function that made no such statement whether these arguments want async is meaningless. A
@@ -84,8 +87,26 @@ public class FunctionWrapper<T,R> implements ProxyExecutable, ProxyObject {
 
 		} catch (FrameworkException ex) {
 
-			throw new RuntimeException(ex);
+			throw ScriptFailures.thrownIntoScript(new RuntimeException(ex));
+
+		} catch (RuntimeException ex) {
+
+			throw ScriptFailures.thrownIntoScript(ex);
 		}
+	}
+
+	private Object unwrap(final Value argument) {
+
+		final PolyglotException guestError = func.receivesScriptErrors() ? PolyglotWrapper.guestException(argument) : null;
+		if (guestError != null) {
+
+			// thrown in the running script's own code, which is where it is attributed
+			ScriptFailures.attribute(CallTrace.current(), guestError);
+
+			return guestError;
+		}
+
+		return PolyglotWrapper.unwrap(actionContext, argument);
 	}
 
 	@Override

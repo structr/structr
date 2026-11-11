@@ -27,6 +27,8 @@ import org.structr.api.config.Settings;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.PropertyFrame;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -128,6 +130,7 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 					final ScriptConfig scriptConfig = ScriptConfig.builder()
 							.wrapJsInMain(this.readFunctionWrapJS())
+							.frameFactory(PropertyFrame::new)
 							.build();
 
 					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction.trim()).concat("}"), "getProperty(" + jsonName + ")", sourceUuid, scriptConfig);
@@ -178,6 +181,10 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 			}
 
 		} catch (Throwable t) {
+
+			if (ScriptError.reportIfPresent(t)) {
+				return null;
+			}
 
 			final String message = "Exception while evaluating read function in Function property '" + this.jsonName() + "' for node " + target.getUuid();
 
@@ -318,6 +325,7 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 				final ScriptConfig scriptConfig = ScriptConfig.builder()
 						.wrapJsInMain(this.writeFunctionWrapJS())
+						.frameFactory(PropertyFrame::new)
 						.build();
 
 				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func.trim()).concat("}"), "setProperty(" + jsonName + ")", sourceUuid, scriptConfig);
@@ -329,7 +337,10 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 			} catch (Throwable t) {
 
-				logger.warn("Exception while evaluating write function in Function property \"{}\": {}", this.jsonName(), t.getMessage());
+				if (!ScriptError.reportIfPresent(t)) {
+
+					logger.warn("Exception while evaluating write function in Function property \"{}\": {}", this.jsonName(), t.getMessage());
+				}
 			}
 
 		} else {

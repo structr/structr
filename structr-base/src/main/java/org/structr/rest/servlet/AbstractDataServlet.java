@@ -33,6 +33,7 @@ import org.structr.common.RequestParameters;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.JsonException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.IJsonInput;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -216,7 +217,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 					// ignore exception. it is probably caused by a canceled request/closed connection which caused the JsonWriter to tilt
 
-				} else {
+				} else if (!ScriptError.reportIfPresent(t)) {
 
 					logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
 					logger.warn(" => Error thrown: ", t);

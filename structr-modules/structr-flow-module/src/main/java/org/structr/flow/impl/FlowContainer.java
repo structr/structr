@@ -24,6 +24,7 @@ import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
@@ -127,10 +128,15 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 
 		if (flowResult.getError() != null) {
 
-			// Log in case of error
-			if (flowResult.getError().getCause() != null) {
+			final Throwable cause = flowResult.getError().getCause();
 
-				logger.error("Unexpected exception in flow [" + getEffectiveName() + "]:" , flowResult.getError().getCause());
+			// Log in case of error; a failing script is reported with its trace instead
+			if (cause != null) {
+
+				if (!ScriptError.reportIfPresent(cause)) {
+
+					logger.error("Unexpected exception in flow [" + getEffectiveName() + "]:" , cause);
+				}
 
 			} else {
 

@@ -29,6 +29,9 @@ import org.structr.api.service.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.CronFrame;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
@@ -122,69 +125,23 @@ public class CronService extends Thread implements RunnableService {
 
 									} else {
 
-										final SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance();
-
-										// the database can terminate the transaction to resolve a deadlock, so it is repeated like a REST request
-										RetryException.repeat(() -> {
-
-											try (final Tx tx = StructrApp.getInstance(superUserSecurityContext).tx()) {
-
-												if (!taskClassName.contains(".")) {
-
-													// check for user-defined function with the given name
-													final AbstractMethod method = Methods.resolveMethod(null, taskClassName);
-													if (method != null) {
-
-														method.execute(new ActionContext(superUserSecurityContext), null, new NamedArguments());
-
-													} else {
-
-														logger.warn("Unable to run cron task '{}'. No user-defined method '{}' found!", taskClassName, taskClassName);
-													}
-
-												} else {
-
-													final String[] parts = taskClassName.split("\\.");
-													if (parts.length == 2) {
-
-														final String typeName   = parts[0];
-														final String methodName = parts[1];
-
-														if (Traits.exists(typeName)) {
-
-															final AbstractMethod method = Methods.resolveMethod(Traits.of(typeName), methodName);
-															if (method != null) {
-
-																method.execute(new ActionContext(superUserSecurityContext), null, new NamedArguments());
-
-															} else {
-
-																logger.warn("Unable to run cron task '{}'. No method '{}' found on type/service class '{}'!", taskClassName, methodName, typeName);
-															}
-
-														} else {
-
-															logger.warn("Unable to run cron task '{}'. No type/service class '{}' found!", taskClassName, typeName);
-														}
-
-													} else {
-
-														logger.warn("Unable to run cron task '{}'. Expected only 2 parts!", taskClassName);
-													}
-												}
-
-												tx.success();
-											}
-										});
+										// the cron run is the root of its call flow, commit included
+										CallTrace.run(new CronFrame(taskClassName), () -> runMethodTask(taskClassName));
 									}
 
 								} catch (FrameworkException fex) {
 
-									logger.warn("Exception while executing cron task {}: {}", taskClassName, fex.toString());
+									if (!ScriptError.reportIfPresent(fex)) {
+
+										logger.warn("Exception while executing cron task {}: {}", taskClassName, fex.toString());
+									}
 
 								} catch (Throwable t) {
 
-									logger.warn("Exception while executing cron task {}: {}", taskClassName, t.getMessage());
+									if (!ScriptError.reportIfPresent(t)) {
+
+										logger.warn("Exception while executing cron task {}: {}", taskClassName, t.getMessage());
+									}
 
 								} finally {
 
@@ -286,6 +243,67 @@ public class CronService extends Thread implements RunnableService {
 	}
 
 	// ----- private methods -----
+	/**
+	 * Runs a cron task that names a user-defined function or a method of a type, as the superuser.
+	 */
+	private void runMethodTask(final String taskClassName) throws FrameworkException {
+
+		final SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance();
+
+		// the database can terminate the transaction to resolve a deadlock, so it is repeated like a REST request
+		RetryException.repeat(() -> {
+
+			try (final Tx tx = StructrApp.getInstance(superUserSecurityContext).tx()) {
+
+				if (!taskClassName.contains(".")) {
+
+					// check for user-defined function with the given name
+					final AbstractMethod method = Methods.resolveMethod(null, taskClassName);
+					if (method != null) {
+
+						method.execute(new ActionContext(superUserSecurityContext), null, new NamedArguments());
+
+					} else {
+
+						logger.warn("Unable to run cron task '{}'. No user-defined method '{}' found!", taskClassName, taskClassName);
+					}
+
+				} else {
+
+					final String[] parts = taskClassName.split("\\.");
+					if (parts.length == 2) {
+
+						final String typeName   = parts[0];
+						final String methodName = parts[1];
+
+						if (Traits.exists(typeName)) {
+
+							final AbstractMethod method = Methods.resolveMethod(Traits.of(typeName), methodName);
+							if (method != null) {
+
+								method.execute(new ActionContext(superUserSecurityContext), null, new NamedArguments());
+
+							} else {
+
+								logger.warn("Unable to run cron task '{}'. No method '{}' found on type/service class '{}'!", taskClassName, methodName, typeName);
+							}
+
+						} else {
+
+							logger.warn("Unable to run cron task '{}'. No type/service class '{}' found!", taskClassName, typeName);
+						}
+
+					} else {
+
+						logger.warn("Unable to run cron task '{}'. Expected only 2 parts!", taskClassName);
+					}
+				}
+
+				tx.success();
+			}
+		});
+	}
+
 	private Class instantiate(final String taskClass) {
 
 		try {

@@ -40,6 +40,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.PathHelper;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.HandOffFrame;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
@@ -642,7 +645,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					throwIfRetryable(fex);
 				}
 
-				logger.error("Exception while processing request: {}", fex.getMessage());
+				if (!ScriptError.reportIfPresent(fex)) {
+
+					logger.error("Exception while processing request: {}", fex.getMessage());
+				}
 			}
 
 			// written after the commit, so that a transaction that the database terminates can still be repeated, and in
@@ -693,7 +699,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				throwIfRetryable(fex);
 			}
 
-			logger.error("Exception while processing request: {}", fex.getMessage());
+			if (!ScriptError.reportIfPresent(fex)) {
+
+				logger.error("Exception while processing request: {}", fex.getMessage());
+			}
+
 			UiAuthenticator.writeFrameworkException(response, fex);
 
 		} catch (EOFException ex) {
@@ -967,7 +977,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			} catch (Throwable fex) {
 
-				logger.error("Exception while processing request", fex);
+				if (!ScriptError.reportIfPresent(fex)) {
+
+					logger.error("Exception while processing request", fex);
+				}
 			}
 
 		} catch (FrameworkException t) {
@@ -1024,7 +1037,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			}
 		};
 
-		threadPool.submit(new Runnable() {
+		// the render thread continues the request's call flow, which the filter ends on this thread
+		threadPool.submit(CallTrace.inFrame(new HandOffFrame(CallTrace.capture(), "asynchronous render"), new Runnable() {
 
 			@Override
 			public void run() {
@@ -1046,8 +1060,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				} catch (Throwable t) {
 
-					logger.warn("Error while rendering page {}: {}", name, t.getMessage());
-					logger.warn(ExceptionUtils.getStackTrace(t));
+					if (!ScriptError.reportIfPresent(t)) {
+
+						logger.warn("Error while rendering page {}: {}", name, t.getMessage());
+						logger.warn(ExceptionUtils.getStackTrace(t));
+					}
 
 					try {
 
@@ -1073,7 +1090,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				HtmlServlet.super.stats.recordStatsValue("html", name, System.currentTimeMillis() - requestStartTime);
 			}
 
-		});
+		}));
 
 		// start output write listener
 		out.setWriteListener(new WriteListener() {
@@ -2034,7 +2051,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				} catch (Throwable t) {
 
-					logger.warn("Unable to complete request: {}", t.getMessage());
+					if (!ScriptError.reportIfPresent(t)) {
+
+						logger.warn("Unable to complete request: {}", t.getMessage());
+					}
 
 				} finally {
 
@@ -2076,7 +2096,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("", fex);
+				if (!ScriptError.reportIfPresent(fex)) {
+
+					logger.warn("", fex);
+				}
 			}
 		}
 	}

@@ -28,6 +28,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.CaseHelper;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
@@ -1310,7 +1311,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			} catch (FrameworkException fex) {
 
-				LoggerFactory.getLogger(DOMNode.class).error("Could not retrieve data from graph data source {} in {} {}: {}", source.getClass().getSimpleName(), thisNode.getType(), thisNode.getUuid(), fex.getMessage());
+				if (!ScriptError.reportIfPresent(fex)) {
+
+					LoggerFactory.getLogger(DOMNode.class).error("Could not retrieve data from graph data source {} in {} {}: {}", source.getClass().getSimpleName(), thisNode.getType(), thisNode.getUuid(), fex.getMessage());
+				}
 			}
 		}
 

@@ -35,6 +35,9 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DatabaseServiceNotAvailableException;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.ScriptError;
+import org.structr.common.trace.WebSocketFrame;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.core.Services;
@@ -44,7 +47,6 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.script.AlreadyLoggedAssertException;
 import org.structr.core.traits.StructrTraits;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
@@ -265,143 +267,9 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 				logger.warn(uclex.getMessage());
 			}
 
-			// process message
-			try {
-
-				AbstractCommand abstractCommand = (AbstractCommand) type.getDeclaredConstructor().newInstance();
-
-				abstractCommand.setWebSocket(this);
-				abstractCommand.setSession(session);
-				abstractCommand.setCallback(webSocketData.getCallback());
-
-				if (!(abstractCommand instanceof PingCommand)) {
-
-					if (securityContext != null) {
-
-						final org.eclipse.jetty.server.Session session = SessionHelper.getSessionBySessionId(securityContext.getSessionId());
-						if (session != null) {
-
-							session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
-
-							try {
-
-								// Workaround to update lastAccessedTime() in Jetty's session via reflection
-								final Method accessMethod = session.getClass().getDeclaredMethod("access", long.class);
-								accessMethod.setAccessible(true);
-								accessMethod.invoke(session, System.currentTimeMillis());
-
-							} catch (Exception ex) {
-
-								logger.error("Access to method Session.access() via reflection failed: ", ex);
-							}
-						}
-					}
-				}
-
-				// The below blocks allow a websocket command to manage its own
-				// transactions in case of bulk processing commands etc.
-				if (abstractCommand.requiresEnclosingTransaction()) {
-
-					// The database can terminate the transaction to resolve a deadlock, so it is repeated like a REST request.
-					// The messages of an attempt are sent after it ends, so that the client does not receive the messages
-					// of a terminated attempt in addition to those of its repetition. If the last attempt fails, its
-					// messages are dropped as well, and the client receives only the error.
-					final List<String> messages = new ArrayList<>();
-
-					deferredMessages.set(messages);
-
-					try {
-
-						RetryException.repeat(() -> {
-
-							messages.clear();
-
-							try (final Tx tx = app.tx(true, true, true)) {
-
-								// enable prefetching for websockets
-								tx.prefetchHint("Websocket " + abstractCommand.getClass().getSimpleName() + " " + webSocketData.getCommand() + " " + webSocketData.getNodeDataStringValue("type"));
-
-								if (abstractCommand instanceof PingCommand) {
-
-									tx.setIsPing(true);
-								}
-
-								// store authenticated-Flag in webSocketData
-								// so the command can access it
-								webSocketData.setSessionValid(isAuthenticated());
-								webSocketData.setSecurityContext(securityContext);
-
-								abstractCommand.processMessage(webSocketData);
-
-								// commit transaction
-								tx.success();
-							}
-						});
-
-					} catch (Throwable t) {
-
-						messages.clear();
-
-						throw t;
-
-					} finally {
-
-						deferredMessages.remove();
-
-						sendDeferredMessages(messages);
-					}
-
-				} else {
-
-					try (final Tx tx = app.tx(true, true, true)) {
-
-						tx.prefetchHint("Websocket " + abstractCommand.getClass().getSimpleName() + " " + webSocketData.getCommand() + " " + webSocketData.getNodeDataStringValue("type"));
-
-						// store authenticated-Flag in webSocketData
-						// so the command can access it
-						webSocketData.setSessionValid(isAuthenticated());
-						webSocketData.setSecurityContext(securityContext);
-
-						// commit transaction
-						tx.success();
-					}
-
-					// process message without transaction context!
-					abstractCommand.processMessage(webSocketData);
-
-				}
-
-			} catch (UnknownClientException uclex) {
-
-				logger.warn(uclex.getMessage());
-
-			} catch (Throwable t) {
-
-				if (t instanceof NullPointerException) {
-
-//					t.printStackTrace();
-					logger.warn("", t);
-				}
-
-				if (!(t instanceof SyntaxErrorException) && !(t instanceof AlreadyLoggedAssertException)) {
-
-//					t.printStackTrace();
-					logger.warn("", t);
-				}
-
-				// send 400 Bad Request
-				if (t instanceof FrameworkException) {
-
-					final FrameworkException fex = (FrameworkException)t;
-
-					send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).jsonErrorObject(fex.toJSON()).callback(webSocketData.getCallback()).build(), true);
-
-				} else {
-
-					send(MessageBuilder.status().code(400).message(t.toString()).build(), true);
-
-				}
-			}
+			// the command is the root of its call flow
+			CallTrace.discardStaleFlow("websocket command " + command);
+			CallTrace.run(new WebSocketFrame(command, securityContext != null ? securityContext.getSessionId() : null), () -> processCommand(type, webSocketData, app));
 
 		} else {
 
@@ -409,6 +277,144 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 			// send 400 Bad Request
 			send(MessageBuilder.status().code(400).message("Unknown command '" + command + "'").build(), true);
+		}
+	}
+
+	/**
+	 * Runs one websocket command, in a transaction unless it manages its own, and answers a failure
+	 * with an error status.
+	 */
+	private void processCommand(final Class type, final WebSocketMessage webSocketData, final App app) {
+
+		// process message
+		try {
+
+			AbstractCommand abstractCommand = (AbstractCommand) type.getDeclaredConstructor().newInstance();
+
+			abstractCommand.setWebSocket(this);
+			abstractCommand.setSession(session);
+			abstractCommand.setCallback(webSocketData.getCallback());
+
+			if (!(abstractCommand instanceof PingCommand)) {
+
+				if (securityContext != null) {
+
+					final org.eclipse.jetty.server.Session session = SessionHelper.getSessionBySessionId(securityContext.getSessionId());
+					if (session != null) {
+
+						session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
+
+						try {
+
+							// Workaround to update lastAccessedTime() in Jetty's session via reflection
+							final Method accessMethod = session.getClass().getDeclaredMethod("access", long.class);
+							accessMethod.setAccessible(true);
+							accessMethod.invoke(session, System.currentTimeMillis());
+
+						} catch (Exception ex) {
+
+							logger.error("Access to method Session.access() via reflection failed: ", ex);
+						}
+					}
+				}
+			}
+
+			// The below blocks allow a websocket command to manage its own
+			// transactions in case of bulk processing commands etc.
+			if (abstractCommand.requiresEnclosingTransaction()) {
+
+				// The database can terminate the transaction to resolve a deadlock, so it is repeated like a REST request.
+				// The messages of an attempt are sent after it ends, so that the client does not receive the messages
+				// of a terminated attempt in addition to those of its repetition. If the last attempt fails, its
+				// messages are dropped as well, and the client receives only the error.
+				final List<String> messages = new ArrayList<>();
+
+				deferredMessages.set(messages);
+
+				try {
+
+					RetryException.repeat(() -> {
+
+						messages.clear();
+
+						try (final Tx tx = app.tx(true, true, true)) {
+
+							// enable prefetching for websockets
+							tx.prefetchHint("Websocket " + abstractCommand.getClass().getSimpleName() + " " + webSocketData.getCommand() + " " + webSocketData.getNodeDataStringValue("type"));
+
+							if (abstractCommand instanceof PingCommand) {
+
+								tx.setIsPing(true);
+							}
+
+							// store authenticated-Flag in webSocketData
+							// so the command can access it
+							webSocketData.setSessionValid(isAuthenticated());
+							webSocketData.setSecurityContext(securityContext);
+
+							abstractCommand.processMessage(webSocketData);
+
+							// commit transaction
+							tx.success();
+						}
+					});
+
+				} catch (Throwable t) {
+
+					messages.clear();
+
+					throw t;
+
+				} finally {
+
+					deferredMessages.remove();
+
+					sendDeferredMessages(messages);
+				}
+
+			} else {
+
+				try (final Tx tx = app.tx(true, true, true)) {
+
+					tx.prefetchHint("Websocket " + abstractCommand.getClass().getSimpleName() + " " + webSocketData.getCommand() + " " + webSocketData.getNodeDataStringValue("type"));
+
+					// store authenticated-Flag in webSocketData
+					// so the command can access it
+					webSocketData.setSessionValid(isAuthenticated());
+					webSocketData.setSecurityContext(securityContext);
+
+					// commit transaction
+					tx.success();
+				}
+
+				// process message without transaction context!
+				abstractCommand.processMessage(webSocketData);
+
+			}
+
+		} catch (UnknownClientException uclex) {
+
+			logger.warn(uclex.getMessage());
+
+		} catch (Throwable t) {
+
+			if (!(t instanceof SyntaxErrorException) && !ScriptError.reportIfPresent(t)) {
+
+				logger.warn("", t);
+			}
+
+			// send 400 Bad Request
+			if (t instanceof FrameworkException) {
+
+				final FrameworkException fex = (FrameworkException)t;
+
+				send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).jsonErrorObject(fex.toJSON()).callback(webSocketData.getCallback()).build(), true);
+
+			} else {
+
+				send(MessageBuilder.status().code(400).message(t.toString()).build(), true);
+
+			}
 		}
 	}
 

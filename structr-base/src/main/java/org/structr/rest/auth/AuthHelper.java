@@ -29,6 +29,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.common.LogThrottle;
@@ -568,7 +569,10 @@ public class AuthHelper {
 
 		} catch (FrameworkException | RuntimeException ex) {
 
-			logger.warn("Unable to send logout notification for user {}", id, ex);
+			if (!ScriptError.reportIfPresent(ex)) {
+
+				logger.warn("Unable to send logout notification for user {}", id, ex);
+			}
 		}
 	}
 

@@ -30,6 +30,9 @@ import org.structr.common.error.DatabaseServiceNotAvailableException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.trace.AfterCommitFrame;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.StructrTransactionListener;
@@ -496,7 +499,7 @@ public class TransactionCommand {
 		data.put("message", ex.getMessage());
 		data.put("stringvalue", ex.toString());
 
-		if (printStackTrace) {
+		if (printStackTrace && !ScriptError.reportIfPresent(ex)) {
 
 			logger.warn("", ex);
 		}
@@ -640,7 +643,8 @@ public class TransactionCommand {
 		final TransactionCommand transactionCommand = commands.get();
 		if (transactionCommand != null) {
 
-			transactionCommand.postProcessQueue.queueProcess(runnable);
+			// it runs once the transaction has committed, as part of the call flow that queued it
+			transactionCommand.postProcessQueue.queueProcess(CallTrace.inFrame(new AfterCommitFrame(CallTrace.capture(), "after commit"), runnable));
 		}
 	}
 

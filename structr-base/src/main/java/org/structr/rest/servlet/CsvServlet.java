@@ -35,6 +35,7 @@ import org.structr.common.RequestParameters;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
 import org.structr.core.Services;
@@ -218,7 +219,10 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 		} catch (Throwable t) {
 
-			logger.warn("Exception in GET", t);
+			if (!ScriptError.reportIfPresent(t)) {
+
+				logger.warn("Exception in GET", t);
+			}
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 

@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.CallFrame;
+import org.structr.common.trace.ImportJobFrame;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
@@ -62,6 +64,12 @@ abstract class FileImportJob extends ScheduledJob {
 		this.filePath = file.getPath();
 		this.fileName = file.getName();
 		this.fileSize = StorageProviderFactory.getStorageProvider(file).size();
+	}
+
+	@Override
+	protected CallFrame jobFrame() {
+
+		return new ImportJobFrame(getCreator(), jobName, fileName);
 	}
 
 	public String getFileUuid () {

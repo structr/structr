@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.api.NamedArguments;
@@ -86,8 +87,11 @@ public class MessageSubscriberTraitWrapper extends AbstractNodeTraitWrapper impl
 
 				} catch (FrameworkException e) {
 
-					final Logger logger = LoggerFactory.getLogger(MessageSubscriberTraitWrapper.class);
-					logger.error("Could not invoke subscribeTopic on MessageClient: " + e.getMessage());
+					if (!ScriptError.reportIfPresent(e)) {
+
+						final Logger logger = LoggerFactory.getLogger(MessageSubscriberTraitWrapper.class);
+						logger.error("Could not invoke subscribeTopic on MessageClient: " + e.getMessage());
+					}
 				}
 			});
 		}
@@ -115,7 +119,7 @@ public class MessageSubscriberTraitWrapper extends AbstractNodeTraitWrapper impl
 			ac.setConstant("message", message);
 
 			// The code source identifies the node the script came from, so that a scripting error names it
-			// (see Scripting.reportError). The callback is a property of this subscriber, not a separate
+			// (see ScriptErrorReporter). The callback is a property of this subscriber, not a separate
 			// schema method, so the subscriber itself is the source.
 			Scripting.evaluate(ac, this, script, "onMessage", getUuid());
 		}

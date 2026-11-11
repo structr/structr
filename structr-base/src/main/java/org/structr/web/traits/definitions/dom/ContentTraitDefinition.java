@@ -29,6 +29,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.trace.TemplateFrame;
 import org.structr.core.Adapter;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
@@ -669,8 +670,10 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 				} else {
 
+					// rendering goes on after a failing expression, so its errors are reported here
 					final ScriptConfig scriptConfig = ScriptConfig.builder()
 							.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+							.frameFactory(TemplateFrame::new)
 							.build();
 
 					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid(), scriptConfig);

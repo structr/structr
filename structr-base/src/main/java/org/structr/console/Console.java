@@ -27,6 +27,9 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.ConsoleFrame;
+import org.structr.common.trace.ScriptError;
 import org.structr.console.shell.AdminConsoleCommand;
 import org.structr.console.tabcompletion.*;
 import org.structr.core.GraphObject;
@@ -36,6 +39,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.NativeQueryCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.script.ScriptFailures;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.core.script.polyglot.config.ScriptConfig;
@@ -360,63 +364,71 @@ public class Console {
 
 		actionContext.setScriptingEngine(ActionContext.ScriptingEngine.STRUCTR_SCRIPT);
 
-		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
+		CallTrace.run(new ConsoleFrame("console"), () -> {
 
-			final Object result = Functions.evaluate(actionContext, null, new Snippet("console", line));
-			if (result != null) {
+			try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-				if (result instanceof Iterable) {
+				final Object result = Functions.evaluate(actionContext, null, new Snippet("console", line));
+				if (result != null) {
 
-					writable.println(Iterables.toList((Iterable)result).toString());
+					if (result instanceof Iterable) {
 
-				} else {
+						writable.println(Iterables.toList((Iterable)result).toString());
 
-					writable.println(result.toString());
+					} else {
+
+						writable.println(result.toString());
+					}
 				}
+
+				tx.success();
+
+			} catch (UnlicensedScriptException ex) {
+
+				throw new FrameworkException(422, "Unlicensed function called", ex);
+
+			} catch (Throwable t) {
+
+				ScriptFailures.attributeStructrScript(actionContext, t);
+
+				throw ScriptError.carry(t, new FrameworkException(422, t.getMessage()));
 			}
-
-			tx.success();
-
-		} catch (UnlicensedScriptException ex) {
-
-			throw new FrameworkException(422, "Unlicensed function called", ex);
-
-		} catch (Throwable t) {
-
-			throw new FrameworkException(422, t.getMessage());
-		}
+		});
 	}
 
 	private void runJavascript(final String line, final Writable writable) throws FrameworkException {
 
 		actionContext.setScriptingEngine(ActionContext.ScriptingEngine.JS);
 
-		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
+		final Snippet script = new Snippet("console, interactive script", line, false);
 
-			final ScriptConfig scriptConfig = ScriptConfig.builder()
-					.keepContextOpen(true)
-					.build();
+		CallTrace.run(new ConsoleFrame(script.getName()), () -> {
 
-			Snippet script = new Snippet("console, interactive script", line, false);
-			script.setCodeSource(line);
-			Object extractedValue = Scripting.evaluateScript(actionContext, null, "js", script, scriptConfig);
-			if (extractedValue != null && !extractedValue.toString().isEmpty()) {
+			try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-				writable.println(extractedValue.toString());
+				final ScriptConfig scriptConfig = ScriptConfig.builder()
+						.keepContextOpen(true)
+						.build();
+
+				script.setCodeSource(line);
+				Object extractedValue = Scripting.evaluateScript(actionContext, null, "js", script, scriptConfig);
+				if (extractedValue != null && !extractedValue.toString().isEmpty()) {
+
+					writable.println(extractedValue.toString());
+				}
+
+				tx.success();
+
+			} catch (final FrameworkException fex) {
+
+				// just throw the FrameworkException so we dont lose the information contained
+				throw fex;
+
+			} catch (final Throwable t) {
+
+				throw ScriptError.carry(t, new FrameworkException(422, t.getMessage()));
 			}
-
-			tx.success();
-
-		} catch (final FrameworkException fex) {
-
-			// just throw the FrameworkException so we dont lose the information contained
-			throw fex;
-
-		} catch (final Throwable t) {
-
-			throw new FrameworkException(422, t.getMessage());
-
-		}
+		});
 	}
 
 	private void runAdminShell(final String line, final Writable writable) throws FrameworkException, IOException {

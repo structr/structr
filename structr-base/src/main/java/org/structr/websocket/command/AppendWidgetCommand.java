@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
@@ -123,7 +124,10 @@ public class AppendWidgetCommand extends AbstractCommand {
 
 				} catch (Throwable fex) {
 
-					logger.warn(fex.toString());
+					if (!ScriptError.reportIfPresent(fex)) {
+
+						logger.warn(fex.toString());
+					}
 
 					// send exception
 					getWebSocket().send(MessageBuilder.status().code(422).message(fex.toString()).build(), true);

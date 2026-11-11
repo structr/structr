@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -192,7 +193,10 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 				} catch (FrameworkException | RuntimeException ex) {
 
 					// the next round reads the client again
-					logger.error("Exception in PulsarClient.ConsumerWorker. " + ex);
+					if (!ScriptError.reportIfPresent(ex)) {
+
+						logger.error("Exception in PulsarClient.ConsumerWorker. " + ex);
+					}
 				}
 
 				try {
@@ -329,6 +333,11 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 						consumer.acknowledge(msg);
 
 					} catch (Exception e) {
+
+						if (!ScriptError.reportIfPresent(e)) {
+
+							logger.warn("Unable to process Pulsar message on topic {}: {}", msg.getTopicName(), e.getMessage());
+						}
 
 						consumer.negativeAcknowledge(msg);
 					}

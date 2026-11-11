@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObject;
 import org.structr.core.traits.StructrTraits;
 import org.structr.flow.api.FlowHandler;
@@ -77,14 +79,27 @@ public class FlowEngine {
 
 				FlowNode next = null;
 
+				final CallTrace.Scope scope = CallTrace.enter(new FlowNodeFrame(current.getType(), current.getUuid()));
+
 				try {
 
-					next = handler.handle(context, current);
+					try {
 
-				} catch (FlowException ex) {
+						next = handler.handle(context, current);
 
-					return handleException(context, ex, current);
+					} catch (FlowException ex) {
 
+						return handleException(context, ex, current);
+					}
+
+				} catch (Throwable t) {
+
+					scope.failed(t);
+					throw t;
+
+				} finally {
+
+					scope.exit();
 				}
 
 				if (next != null) {
@@ -140,7 +155,9 @@ public class FlowEngine {
 			FlowExceptionHandler exceptionHandler = throwingElement.getExceptionHandler(context);
 			if (exceptionHandler != null) {
 
+				// the failure is the handler's to deal with, not an error to report
 				context.setData(exceptionHandler.getUuid(), exception);
+				ScriptError.handleIfPresent(exception);
 
 				return this.execute(context, exceptionHandler);
 
@@ -167,7 +184,9 @@ public class FlowEngine {
 
 						if (handledNodes == null || handledNodes.isEmpty()) {
 
+							// the failure is the handler's to deal with, not an error to report
 							context.setData(exceptionHandler.getUuid(), exception);
+							ScriptError.handleIfPresent(exception);
 
 							return this.execute(context, exceptionHandler);
 

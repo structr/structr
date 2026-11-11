@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.app.Query;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.ComparisonSearchAttribute;
@@ -150,7 +151,10 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 
 			} catch (FrameworkException ex) {
 
-				logger.warn("FlowTypeQuery: Could not evaluate given operation.", ex);
+				if (!ScriptError.reportIfPresent(ex)) {
+
+					logger.warn("FlowTypeQuery: Could not evaluate given operation.", ex);
+				}
 			}
 		}
 

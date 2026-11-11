@@ -28,6 +28,7 @@ import org.structr.common.error.AssertException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
@@ -155,7 +156,7 @@ public class Actions {
 
 		} catch (AssertException e) {
 
-			throw new FrameworkException(e.getStatus(), e.getMessage(), context.getErrorBuffer());
+			throw ScriptError.carry(e, new FrameworkException(e.getStatus(), e.getMessage(), context.getErrorBuffer()));
 
 		} finally {
 

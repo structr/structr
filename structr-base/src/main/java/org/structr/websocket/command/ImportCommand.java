@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.ScriptError;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
@@ -93,12 +94,19 @@ public class ImportCommand extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Error while importing content", fex);
+			if (!ScriptError.reportIfPresent(fex)) {
+
+				logger.warn("Error while importing content", fex);
+			}
+
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		} catch (Throwable t) {
 
-			logger.error(t.getMessage());
+			if (!ScriptError.reportIfPresent(t)) {
+
+				logger.error(t.getMessage());
+			}
 		}
 
 	}

@@ -127,6 +127,7 @@ module structr.base {
 	exports org.structr.common.geo;
 	exports org.structr.common.helper;
 	exports org.structr.common.mail;
+	exports org.structr.common.trace;
 	exports org.structr.console;
 	exports org.structr.console.shell;
 	exports org.structr.console.tabcompletion;

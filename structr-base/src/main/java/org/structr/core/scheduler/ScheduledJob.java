@@ -25,6 +25,9 @@ import org.structr.common.AccessMode;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.CallFrame;
+import org.structr.common.trace.CallTrace;
+import org.structr.common.trace.JobFrame;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.TransactionCommand;
@@ -77,6 +80,9 @@ public abstract class ScheduledJob {
 	protected ContextStore ctxStore = null;
 
 	private Object onFinishScript = null;
+
+	// the code that created the job, whose call flow the job continues
+	private final CallFrame creator = CallTrace.capture();
 
 	public ScheduledJob (final String jobName, final Principal user, final Map<String, Object> configuration, final ContextStore ctxStore) {
 
@@ -207,9 +213,22 @@ public abstract class ScheduledJob {
 	protected void startNewThread(final Runnable runnable) {
 
 		// named after its queue, so a thread dump says which lane is busy and with what
-		jobThread = new Thread(runnable, "structr-job-" + queueName + "-" + jobId);
+		jobThread = new Thread(CallTrace.inFrame(jobFrame(), runnable), "structr-job-" + queueName + "-" + jobId);
 
 		jobThread.start();
+	}
+
+	/**
+	 * The frame the job runs in, onFinish included, continuing the call flow of the code that created it.
+	 */
+	protected CallFrame jobFrame() {
+
+		return new JobFrame(creator, jobName);
+	}
+
+	protected CallFrame getCreator() {
+
+		return creator;
 	}
 
 	protected void shouldPause() {

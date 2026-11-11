@@ -1120,7 +1120,7 @@ public class Importer {
 
 							try {
 
-								Actions.execute(securityContext, null, source, null, null);
+								Actions.execute(securityContext, null, source, "imported script block", null);
 
 							} catch (UnlicensedScriptException ex) {
 
@@ -1138,7 +1138,7 @@ public class Importer {
 
 							try {
 
-								Actions.execute(securityContext, null, source, null, null);
+								Actions.execute(securityContext, null, source, "imported script block", null);
 
 							} catch (UnlicensedScriptException ex) {
 
