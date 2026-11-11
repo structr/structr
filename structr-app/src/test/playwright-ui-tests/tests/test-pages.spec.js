@@ -38,9 +38,9 @@ test('pages', async ({page}, testInfo) => {
 	await page.waitForTimeout(1000);
 	await page.screenshot({path: 'screenshots/pages.png'});
 
-	// enable page preview edit features
+	// the edit features of the page preview are on by default; check, not click, so the test does not depend on it
 	await page.locator('#ui-settings-popup button').click();
-	await page.getByText('Enable edit features in page').click();
+	await page.getByLabel('Enable edit features in page preview').check();
 
 	// Open import dialog and create a screenshot
 	{
@@ -171,7 +171,9 @@ test('pages', async ({page}, testInfo) => {
 	await title.click();
 	await expect(title).toHaveAttribute('contenteditable');
 	await title.fill('${localize("milestones", "table-header")}');
-	await page.locator('#pagesTree').click();
+	// Enter saves, leaving the element discards the change; the element still has the focus, but no longer the text
+	// its locator looks for
+	await page.keyboard.press('Enter');
 
 	// saving via in-page editing triggers reload that can take longer than the next click --> change tabs quickly
 	await page.getByRole('link', {name: 'General'}).click();
@@ -182,7 +184,9 @@ test('pages', async ({page}, testInfo) => {
 	await name.click();
 	await expect(name).toHaveAttribute('contenteditable');
 	await name.fill('${project.name}');
-	await page.locator('#pagesTree').click();
+	// Enter saves, leaving the element discards the change; the element still has the focus, but no longer the text
+	// its locator looks for
+	await page.keyboard.press('Enter');
 
 	// saving via in-page editing triggers reload that can take longer than the next click --> change tabs quickly
 	await page.getByRole('link', {name: 'General'}).click();
@@ -192,7 +196,9 @@ test('pages', async ({page}, testInfo) => {
 	await milestones.click();
 	await expect(milestones).toHaveAttribute('contenteditable');
 	await milestones.fill('${join(extract(project.milestones, "name"), ", ")}');
-	await page.locator('#pagesTree').click();
+	// Enter saves, leaving the element discards the change; the element still has the focus, but no longer the text
+	// its locator looks for
+	await page.keyboard.press('Enter');
 
 	// saving via in-page editing triggers reload that can take longer than the next click --> change tabs quickly
 	await page.getByRole('link', {name: 'General'}).click();
