@@ -143,7 +143,7 @@ public abstract class AbstractBinaryProcess<T> implements Callable<T> {
 		// debugging output
 		if (exitCode() != 0) {
 
-			logger.warn("Process '{}' exited with exit code {}, error stream:\n{}\n", getLogLine().toString(), exitCode(), stdErr.getTail(LOGGED_ERROR_LINES));
+			logger.warn("Process '{}' exited with exit code {}, error stream:\n{}\n", getLogLine().toString(), exitCode(), stdErr != null ? stdErr.getTail(LOGGED_ERROR_LINES) : "");
 		}
 
 		return processExited(exitCode());

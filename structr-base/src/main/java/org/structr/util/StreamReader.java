@@ -35,6 +35,9 @@ public class StreamReader extends Thread {
 
 	private static final Logger logger = LoggerFactory.getLogger(StreamReader.class.getName());
 
+	// the most characters getTail returns, not counting the line about omitted lines
+	public static final int LOGGED_CHARS = 8_192;
+
 	private final Queue<String> queue = new ConcurrentLinkedQueue<>();
 	private BufferedReader reader     = null;
 
@@ -62,22 +65,37 @@ public class StreamReader extends Thread {
 
 	/**
 	 * The last lines of what was read, for the log: a process can write far more than a log entry should
-	 * hold, and the cause of an error is usually at the end.
+	 * hold, and the cause of an error is usually at the end. At most {@value #LOGGED_CHARS} characters
+	 * are kept, so a few very long lines cannot flood the log either.
 	 */
 	public String getTail(final int lines) {
 
 		final String[] all      = queue.toArray(new String[0]);
-		final int skipped       = Math.max(0, all.length - lines);
 		final StringBuilder buf = new StringBuilder();
+		int first               = all.length;
+		int chars               = 0;
 
-		if (skipped > 0) {
+		while (first > 0 && all.length - first < lines && chars + all[first - 1].length() + 1 <= LOGGED_CHARS) {
 
-			buf.append("(").append(skipped).append(" earlier lines omitted)\n");
+			chars += all[--first].length() + 1;
 		}
 
-		for (int i = skipped; i < all.length; i++) {
+		// a last line longer than the limit is kept, cut to its end
+		final boolean cut = first == all.length && first > 0 && lines > 0;
 
-			buf.append(all[i]);
+		if (cut) {
+
+			first--;
+		}
+
+		if (first > 0) {
+
+			buf.append("(").append(first).append(" earlier lines omitted)\n");
+		}
+
+		for (int i = first; i < all.length; i++) {
+
+			buf.append(cut ? all[i].substring(all[i].length() - LOGGED_CHARS) : all[i]);
 			buf.append("\n");
 		}
 
