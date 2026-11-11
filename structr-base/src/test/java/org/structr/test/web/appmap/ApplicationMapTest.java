@@ -565,6 +565,15 @@ public class ApplicationMapTest extends StructrUiTest {
 			editors.addMember(securityContext, member.as(Principal.class));
 			staff.as(Group.class).addMember(securityContext, editors);
 
+			// a grant with access control alone, which the card of the group shows as well
+			final Traits grantTraits = Traits.of(StructrTraits.SCHEMA_GRANT);
+
+			app.create(StructrTraits.SCHEMA_GRANT,
+				new NodeAttribute<>(grantTraits.key(SchemaGrantTraitDefinition.PRINCIPAL_PROPERTY),            staff),
+				new NodeAttribute<>(grantTraits.key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY),          app.getNodeById(StructrTraits.SCHEMA_NODE, ids.get("Item"))),
+				new NodeAttribute<>(grantTraits.key(SchemaGrantTraitDefinition.ALLOW_ACCESS_CONTROL_PROPERTY), true)
+			);
+
 			ids.put("staff", staff.getUuid());
 			tx.success();
 
@@ -581,6 +590,7 @@ public class ApplicationMapTest extends StructrUiTest {
 		assertNull("A group must not be a node", map.get("result.nodes.find { it.id == '" + ids.get("group") + "' }"));
 		assertEquals("A group must name the rights of its grants", "r", map.getString("result.groups.find { it.id == '" + ids.get("group") + "' }.p['" + ids.get("Item") + "']"));
 		assertTrue("A group must list the groups it is a member of", map.getList("result.groups.find { it.id == '" + ids.get("group") + "' }.in").contains(ids.get("staff")));
+		assertEquals("A group must name access control among the rights of its grants", "a", map.getString("result.groups.find { it.id == '" + ids.get("staff") + "' }.p['" + ids.get("Item") + "']"));
 	}
 
 	@Test
@@ -821,6 +831,56 @@ public class ApplicationMapTest extends StructrUiTest {
 		assertEquals("An action mapping must name the user input it sends",                    List.of("category"), map.getList("result.nodes.find { it.id == '" + ids.get("saveAction") + "' }.use.in"));
 		assertTrue("The outline of a page must name the data key of a repeater",               map.getList("result.nodes.find { it.id == '" + ids.get("page") + "' }.d").toString().contains("choice"));
 		assertTrue("The evidence of a method must name the line of its code",                  evidence(map, ids.get("createItem"), ids.get("Item"), "creates").startsWith("ItemService.createItem, line 1: { const item = $.create('Item');"));
+	}
+
+	@Test
+	public void testFunctionPropertiesKnowTheirReaders() {
+
+		createApplication();
+
+		try (final Tx tx = app.tx()) {
+
+			final Traits propertyTraits = Traits.of(StructrTraits.SCHEMA_PROPERTY);
+			final NodeInterface item    = app.getNodeById(StructrTraits.SCHEMA_NODE, ids.get("Item"));
+			final Page page             = app.getNodeById(StructrTraits.PAGE, ids.get("page")).as(Page.class);
+			final DOMElement repeater   = app.getNodeById(StructrTraits.DOM_ELEMENT, ids.get("itemRepeater")).as(DOMElement.class);
+			final DOMElement span       = page.createElement("span");
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(propertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          "total"),
+				new NodeAttribute<>(propertyTraits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   item),
+				new NodeAttribute<>(propertyTraits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function"),
+				new NodeAttribute<>(propertyTraits.key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "{ return 1; }")
+			);
+
+			ids.put("reportItems",   createMethod("reportItems", app.getNodeById(StructrTraits.SCHEMA_NODE, ids.get("ItemService")), "{ for (const item of $.find('Item')) { $.log(item.total); } }").getUuid());
+			ids.put("describeTotal", createMethod("describeTotal", app.getNodeById(StructrTraits.SCHEMA_NODE, ids.get("DerivedItem")), "{ return $.this.total; }").getUuid());
+			ids.put("readsName",     createMethod("readsName", null, "{ const total = 1; return total.name; }").getUuid());
+
+			repeater.appendChild(span);
+			span.appendChild(page.createTextNode("${item.total}"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final JsonPath map                 = fetchMap();
+		final List<List<String>> readers   = map.getList("result.nodes.find { it.id == '" + ids.get("Item") + "' }.fr.total");
+		final Map<String, String> byCaller = new HashMap<>();
+
+		assertNotNull("A type must name who reads its function property", readers);
+
+		readers.forEach(reader -> byCaller.put(reader.get(0), reader.get(1)));
+
+		assertTrue("A method must read a function property on an object it found",      byCaller.containsKey(ids.get("reportItems")));
+		assertTrue("A method of a subtype must read a function property of its parent",  byCaller.containsKey(ids.get("describeTotal")));
+		assertTrue("A page must read a function property on the key of a repeater",      byCaller.getOrDefault(ids.get("page"), "").endsWith("shows item.total"));
+		assertFalse("A variable that is no object of the type must not read it",         byCaller.containsKey(ids.get("readsName")));
+		assertNull("A property that computes nothing must have no readers",              map.get("result.nodes.find { it.id == '" + ids.get("Category") + "' }.fr"));
 	}
 
 	@Test

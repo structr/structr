@@ -204,6 +204,8 @@ To configure schema-based permissions:
 3. In the General tab, find the schema grants table, which lists the existing groups
 4. Check read, write, delete, or accessControl for each group that should have the permission on all instances of this type
 
+To see and change all schema-based permissions of one group at once, open the properties dialog of the group in the Security area and switch to the "Type Permissions" tab.
+
 Schema-based permissions are evaluated efficiently and improve performance compared to individual object permissions, especially when you have many objects of the same type.
 
 ## User Categories

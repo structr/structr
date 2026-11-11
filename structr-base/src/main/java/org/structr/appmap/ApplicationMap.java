@@ -208,6 +208,20 @@ public class ApplicationMap {
 		return nodes.get(id);
 	}
 
+	/**
+	 * Records that a method or a page reads the function property of the given name that the given
+	 * type declares, on the node of that type, where it is on the map.
+	 */
+	public void addFunctionRead(final String type, final String property, final String callerId, final String evidence) {
+
+		final String typeId = schema.getTypeIds().get(type);
+		final MapNode node  = typeId != null ? nodes.get(typeId) : null;
+
+		if (node != null && callerId != null) {
+			node.addFunctionRead(property, callerId, evidence);
+		}
+	}
+
 	public boolean hasNode(final String id) {
 
 		return nodes.containsKey(id);
@@ -712,6 +726,7 @@ public class ApplicationMap {
 		private String contentType;
 		private Map<String, Object> use;
 		private long requests;
+		private final Map<String, Map<String, String>> functionReads = new TreeMap<>();
 
 		private MapNode(final String id, final String kind, final String name) {
 
@@ -1050,7 +1065,33 @@ public class ApplicationMap {
 				map.put("rest", Map.of("n", restRules, "pub", restPublic ? 1 : 0, "auth", restAuthenticated ? 1 : 0, "pubw", restPublicWrite ? 1 : 0, "authw", restAuthenticatedWrite ? 1 : 0));
 			}
 
+			// who reads the function properties of a type, as fr: { property: [[caller, evidence], ...] }, the callers that
+			// are on the map only
+			final Map<String, Object> reads = new TreeMap<>();
+
+			functionReads.forEach((property, callers) -> {
+
+				final List<Object> known = callers.entrySet().stream().filter(e -> kept.contains(e.getKey())).map(e -> (Object) List.of(e.getKey(), e.getValue())).toList();
+
+				if (!known.isEmpty()) {
+					reads.put(property, known);
+				}
+			});
+
+			if (!reads.isEmpty()) {
+				map.put("fr", reads);
+			}
+
 			return map;
+		}
+
+		/**
+		 * Records that a method or a page reads a function property of this type, with the first
+		 * evidence found for it; see CrudAnalysis and DataBindings.
+		 */
+		public void addFunctionRead(final String property, final String callerId, final String evidence) {
+
+			functionReads.computeIfAbsent(property, k -> new LinkedHashMap<>()).putIfAbsent(callerId, evidence);
 		}
 
 		// the use of the node, as hits, see the class comment
@@ -1127,10 +1168,10 @@ public class ApplicationMap {
 			this.members = members;
 		}
 
-		// what the group may do with every object of a type, as the letters r (read), w (write) and d (delete)
+		// what the group may do with every object of a type, as the letters r (read), w (write), d (delete) and a (access control)
 		public void addGrant(final String typeId, final String rights) {
 
-			grants.merge(typeId, rights, (a, b) -> Stream.of("r", "w", "d").filter(right -> a.contains(right) || b.contains(right)).collect(Collectors.joining()));
+			grants.merge(typeId, rights, (a, b) -> Stream.of("r", "w", "d", "a").filter(right -> a.contains(right) || b.contains(right)).collect(Collectors.joining()));
 		}
 
 		// a group the group is a member of: its members have the rights of that group too

@@ -119,7 +119,8 @@ class AppMapAccess {
 				const type = model.byId.get(typeId);
 
 				if (type) {
-					[...letters].forEach(right => give(type, right, `schema grant for ${groups.get(id).n}`));
+					// access control (a) decides nothing the lens asks, which is what a role may see, change and delete
+					[...letters].filter(right => right !== 'a').forEach(right => give(type, right, `schema grant for ${groups.get(id).n}`));
 				}
 			}
 		}

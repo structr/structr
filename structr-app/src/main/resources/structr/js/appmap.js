@@ -95,9 +95,10 @@ let _AppMap = {
 			return;
 		}
 
+		// Monaco takes its keys in Chromium through an EditContext on a plain div, neither a textarea nor contenteditable
 		let target = e.target;
 
-		if (target.closest?.('input, textarea, select, [contenteditable=""], [contenteditable="true"], dialog, [popover]')) {
+		if (target.closest?.('input, textarea, select, [contenteditable=""], [contenteditable="true"], dialog, [popover], .monaco-editor')) {
 			return;
 		}
 
@@ -202,12 +203,34 @@ let _AppMap = {
 			editor: _AppMap.codeEditor(container),
 			domEditor: _AppMap.elementEditor(container),
 			loadContent: id => _AppMap.loadContent(id),
+			// the text of a template, or the source of a method with what its card shows of it: whether it is static or private,
+			// the HTTP verb it answers, whether it returns its raw result, whether it is in the OpenAPI description, its summary
+			// and whether it belongs to a type
 			loadSource: async n => {
 
 				let response = await fetch(Structr.rootUrl + (n.tpl ? 'Template/' + n.tpl : 'SchemaMethod/' + n.id));
 				let result   = response.ok ? (await response.json()).result : null;
 
-				return result ? ((n.tpl ? result.content : result.source) ?? '') : null;
+				if (!result) {
+					return null;
+				}
+
+				if (n.tpl) {
+					return result.content ?? '';
+				}
+
+				return {
+					source: result.source ?? '',
+					meta:   {
+						isStatic:         !!result.isStatic,
+						isPrivate:        !!result.isPrivate,
+						httpVerb:         result.httpVerb ?? null,
+						returnRawResult:  !!result.returnRawResult,
+						includeInOpenAPI: !!result.includeInOpenAPI,
+						summary:          result.summary ?? null,
+						onType:           !!(result.schemaNode || result.staticSchemaNodeName)
+					}
+				};
 			},
 			openIn: open => _AppMap.openIn(open),
 			toggle: change => _AppMap.toggle(change),
@@ -225,6 +248,41 @@ let _AppMap = {
 				let result = (await response.json()).result;
 
 				return (Array.isArray(result) ? result[0] : result) ?? null;
+			},
+			// the schema relationships that start or end at the given types, for the boxes of their relationship properties, with
+			// what the relationship dialog in the Code area shows of them
+			loadRelationships: async ids => {
+
+				let size  = Structr.getRequestParameterName('pageSize') + '=1000';
+				let props = ['id', 'relationshipType', 'sourceNode', 'targetNode', 'sourceMultiplicity', 'targetMultiplicity', 'sourceJsonName', 'targetJsonName', 'cascadingDeleteFlag', 'autocreationFlag', 'permissionPropagation', 'readPropagation', 'writePropagation', 'deletePropagation', 'accessControlPropagation', 'propertyMask'];
+				let query = async side => {
+
+					let lists = await Promise.all(ids.map(async id => {
+
+						let response = await fetch(`${Structr.rootUrl}SchemaRelationshipNode?${side}=${id}&${size}`, {
+							headers: { Accept: `application/json; charset=utf-8; properties=${props.join(',')}` }
+						});
+
+						return response.ok ? ((await response.json()).result ?? []) : [];
+					}));
+
+					return lists.flat();
+				};
+
+				let all = [...await query('sourceNode'), ...await query('targetNode')];
+
+				return [...new Map(all.map(rel => [rel.id, rel])).values()];
+			},
+			// the code of the function properties of a type, for the boxes of its fields, as a list of { name, readFunction,
+			// writeFunction }
+			loadFunctions: async n => {
+
+				let size     = Structr.getRequestParameterName('pageSize') + '=1000';
+				let response = await fetch(`${Structr.rootUrl}SchemaProperty?schemaNode=${n.id}&propertyType=Function&${size}`, {
+					headers: { Accept: 'application/json; charset=utf-8; properties=name,readFunction,writeFunction' }
+				});
+
+				return response.ok ? ((await response.json()).result ?? []) : [];
 			},
 			// the resource access permissions, for the cards of the REST endpoints
 			loadGrants: async () => {
@@ -285,10 +343,9 @@ let _AppMap = {
 	// cannot be found as its type; in the Security area the resource access permissions or the users and groups, filtered
 	// by the name of what the card stands for
 	// switches a setting of an open box on the map (see AppMapView.flip and flipAccess) in the database: a setting of a field
-	// on its schema property, a right of a group on a type on its schema grant, whether a user is an admin or blocked on the
-	// user, after asking, and the flags and the visibility of a resource access permission on it, after asking where the
+	// on its schema property, whether a user is an admin or blocked on the user, after asking, and the flags and the visibility of a resource access permission on it, after asking where the
 	// change opens more than was clicked; says whether it was changed, and why not where it was not
-	toggle: async ({ kind, key, label, value, values, question, owner, name, group, type, id, name: principal }) => {
+	toggle: async ({ kind, key, label, value, values, question, owner, name, id, name: principal }) => {
 
 		let first = async url => {
 
@@ -303,10 +360,6 @@ let _AppMap = {
 		if (kind === 'property') {
 
 			target = await first(`SchemaProperty?schemaNode=${owner.id}&name=${encodeURIComponent(name)}`);
-
-		} else if (kind === 'grant') {
-
-			target = await first(`SchemaGrant?schemaNode=${type.id}&principal=${group.id}`);
 
 		} else if (kind === 'principal') {
 
@@ -329,7 +382,7 @@ let _AppMap = {
 
 		if (!target?.id) {
 
-			new ErrorMessage().text(`${label} could not be changed: ${kind === 'grant' ? 'the grant' : 'the property'} was not found`).show();
+			new ErrorMessage().text(`${label} could not be changed: the property was not found`).show();
 
 			return false;
 		}
@@ -370,6 +423,19 @@ let _AppMap = {
 			LSWrapper.setItem(_Security.securityTabKey, open.tab);
 
 			window.location.href = '#security';
+
+			// a group opens with its properties, at the tab the card stands for (see _UsersAndGroups.typePermissions)
+			if (open.dialog && open.id) {
+
+				await _Helpers.waitForElement('#groups-list');
+
+				let response = await fetch(Structr.rootUrl + open.id);
+				let group    = response.ok ? (await response.json()).result : null;
+
+				if (group) {
+					_Entities.showProperties(group, open.dialog);
+				}
+			}
 
 			return;
 		}
@@ -1195,47 +1261,34 @@ let _AppMap = {
 			view.setLens(role?.kind ? role : null);
 		});
 
-		// the activity lens, remembered: how much the entry points are used; Slow, which an earlier version offered, shows the
-		// use as well
-		let saved    = LSWrapper.getItem(_AppMap.settingsKey, {});
-		let activity = bar.querySelector('#appmap-activity');
-		let showUse  = on => {
+		// usage and hotspots show while the pointer or the keyboard focus rests on their button: usage the glow of how much the
+		// entry points are used, hotspots the map in grey around the most used elements; pointer and focus each hold them on
+		// their own, one that leaves does not end what the other still holds
+		let hold = (button, show) => {
 
-			activity.setAttribute('aria-pressed', String(on));
-			view.setActivity(on ? 'usage' : null);
+			let holders = new Set();
+
+			for (let [event, holder, on] of [['pointerenter', 'pointer', true], ['pointerleave', 'pointer', false], ['focus', 'focus', true], ['blur', 'focus', false]]) {
+
+				button.addEventListener(event, () => {
+
+					let was = holders.size > 0;
+
+					if (on) {
+						holders.add(holder);
+					} else {
+						holders.delete(holder);
+					}
+
+					if (was !== holders.size > 0) {
+						show(!was);
+					}
+				});
+			}
 		};
 
-		showUse(!!saved.activity);
-
-		// the hotspots show while the pointer or the keyboard focus rests on their button: the most used elements
-		let spotlight = bar.querySelector('#appmap-spotlight');
-
-		// pointer and focus each hold them on their own: one that leaves does not end what the other still holds
-		let holders = new Set();
-
-		for (let [event, holder, on] of [['pointerenter', 'pointer', true], ['pointerleave', 'pointer', false], ['focus', 'focus', true], ['blur', 'focus', false]]) {
-
-			spotlight.addEventListener(event, () => {
-
-				let was = holders.size > 0;
-
-				if (on) {
-					holders.add(holder);
-				} else {
-					holders.delete(holder);
-				}
-
-				if (was !== holders.size > 0) {
-					view.setSpotlight(!was);
-				}
-			});
-		}
-
-		activity.addEventListener('click', () => {
-
-			showUse(activity.getAttribute('aria-pressed') !== 'true');
-			_AppMap.saveSettings();
-		});
+		hold(bar.querySelector('#appmap-activity'), on => view.setActivity(on ? 'usage' : null));
+		hold(bar.querySelector('#appmap-spotlight'), on => view.setSpotlight(on));
 
 		// the introduction: open on a first visit, the question mark brings it back
 		let intro     = document.querySelector('#appmap-intro');
@@ -1308,7 +1361,7 @@ let _AppMap = {
 					<select id="appmap-lens" title="Shows what a role sees and may do, and where a page it sees does what it may not"></select>
 				</label>
 				<span class="appmap-segment" role="group" aria-label="Activity">
-					<button id="appmap-activity" aria-pressed="false" title="Shows how often pages, endpoints and types were requested and scheduled methods ran since the start">Usage</button>
+					<button id="appmap-activity" title="Hover to show how often pages, endpoints and types were requested and scheduled methods ran since the start">Usage</button>
 				</span>
 				<span class="appmap-segment" role="group" aria-label="Hotspots">
 					<button id="appmap-spotlight" title="Hover to grey out the map and show only the most used pages, endpoints, types and scheduled methods, with their number of requests or runs">Hotspots</button>

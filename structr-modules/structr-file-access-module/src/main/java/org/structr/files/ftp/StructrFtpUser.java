@@ -42,26 +42,25 @@ public class StructrFtpUser implements User {
 	private static final Logger logger = LoggerFactory.getLogger(StructrFtpUser.class.getName());
 
 	private final Principal structrUser;
+	private final String name;
 	private SecurityContext securityContext;
 
 	public StructrFtpUser(final SecurityContext securityContext, final Principal structrUser) {
 
 		this.securityContext = securityContext;
 		this.structrUser     = structrUser;
+		this.name            = readName();
 	}
 
+	/**
+	 * The name the user had when the session began. The FTP server counts the logins of a user under
+	 * this name and looks it up again on logout, when the user may be gone or renamed and the database
+	 * may be shutting down, so it must not change and must not need the database.
+	 */
 	@Override
 	public String getName() {
 
-		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-
-			final String name = structrUser.getName();
-			tx.success();
-
-			return name;
-		} catch (Exception fex) { }
-
-		return null;
+		return name;
 	}
 
 	@Override
@@ -174,4 +173,22 @@ public class StructrFtpUser implements User {
 		return structrUser;
 	}
 
+	// ----- private methods -----
+	private String readName() {
+
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
+			final String name = structrUser.getName();
+
+			tx.success();
+
+			return name;
+
+		} catch (Exception fex) {
+
+			logger.warn("Unable to read the name of an FTP user: {}", fex.getMessage());
+		}
+
+		return null;
+	}
 }

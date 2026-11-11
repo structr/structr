@@ -335,6 +335,172 @@ let _UsersAndGroups = {
 	userNodeClassPrefix:  'userid_',
 	groupNodeClassPrefix: 'groupid_',
 
+	/**
+	 * The "Type Permissions" tab in the properties dialog of a group: what its members may do with all objects of a type,
+	 * one row per type. These are the schema grants that the Code area shows per type, for all groups at once; here they
+	 * are shown per group. A change is saved at once. A grant is created when the first right is set, and the server
+	 * deletes it when the last one is cleared (see SchemaGrantTraitDefinition.checkRelationshipsAndDeleteSelf).
+	 */
+	typePermissions: {
+		tabName: 'type-permissions',
+		rights: [
+			['allowRead',          'Read',           'May read all objects of the type'],
+			['allowWrite',         'Write',          'May change all objects of the type'],
+			['allowDelete',        'Delete',         'May delete all objects of the type'],
+			['allowAccessControl', 'Access Control', 'May change who may access the objects of the type']
+		],
+		appendTab: (group, tabsEl, contentEl) => {
+
+			let tabContent = _Entities.appendPropTab(group, tabsEl, contentEl, _UsersAndGroups.typePermissions.tabName, 'Type Permissions', false);
+
+			_UsersAndGroups.typePermissions.render(group, tabContent);
+		},
+		render: async (group, container) => {
+
+			let rights = _UsersAndGroups.typePermissions.rights;
+			let size   = Structr.getRequestParameterName('pageSize') + '=10000';
+			let sort   = Structr.getRequestParameterName('sort') + '=name';
+
+			container.insertAdjacentHTML('beforeend', `
+				<p class="mb-4">What the members of this group may do with all objects of a type. These are the same permissions as in the "Permissions" section of the "General" tab of each type in the Code area, there for all groups at once. Changes are saved immediately.</p>
+				<div class="flex items-center gap-2 mb-4">
+					<input type="text" class="type-permissions-filter" placeholder="Filter types..." autocomplete="off">
+					<select class="type-permissions-add"><option value="">Add type...</option></select>
+					<label class="flex items-center gap-2"><input type="checkbox" class="type-permissions-all"> Show all types</label>
+				</div>
+				<table class="props type-permissions">
+					<thead><tr><th class="text-left">Type</th>${rights.map(([key, label, about]) => `<th class="text-center" title="${about}">${label}</th>`).join('')}</tr></thead>
+					<tbody></tbody>
+				</table>
+				<p class="type-permissions-empty hidden">This group has no permissions on any type yet. Add a type above, or show all types.</p>
+			`);
+
+			let [grants, types] = await Promise.all([
+				fetch(`${Structr.rootUrl}SchemaGrant?principal=${group.id}&${size}`, {
+					headers: _Helpers.getHeadersForCustomView(['id', 'schemaNode', 'staticSchemaNodeName', ...rights.map(([key]) => key)])
+				}).then(response => response.ok ? response.json() : { result: [] }).then(json => json.result ?? []),
+				fetch(`${Structr.rootUrl}SchemaNode?${size}&${sort}`, {
+					headers: _Helpers.getHeadersForCustomView(['id', 'name'])
+				}).then(response => response.ok ? response.json() : { result: [] }).then(json => json.result ?? [])
+			]);
+
+			// one row per type: the types of the schema, and the built-in types this group has a grant on by their name
+			let rows = new Map(types.map(type => [type.id, { name: type.name, schemaNode: type.id, grant: null }]));
+
+			for (let grant of grants) {
+
+				let key = grant.schemaNode?.id ?? `static:${grant.staticSchemaNodeName}`;
+				let row = rows.get(key) ?? { name: grant.schemaNode?.name ?? grant.staticSchemaNodeName, schemaNode: grant.schemaNode?.id ?? null, staticName: grant.staticSchemaNodeName ?? null };
+
+				row.grant = grant;
+				rows.set(key, row);
+			}
+
+			let list     = [...rows.values()].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+			let tbody    = container.querySelector('tbody');
+			let filterEl = container.querySelector('.type-permissions-filter');
+			let addEl    = container.querySelector('.type-permissions-add');
+			let allEl    = container.querySelector('.type-permissions-all');
+			let shown    = new Set(list.filter(row => row.grant));
+
+			let save = async (row, checkbox) => {
+
+				let values = Object.fromEntries(rights.map(([key]) => [key, !!row.tr.querySelector(`input[data-right="${key}"]`).checked]));
+				let any    = Object.values(values).some(v => v);
+				let response;
+
+				if (row.grant?.id) {
+
+					response = await fetch(Structr.rootUrl + row.grant.id, { method: 'PUT', body: JSON.stringify(values) });
+
+					// the server deletes a grant without any right
+					if (response.ok && !any) {
+						row.grant = null;
+					}
+
+				} else if (any) {
+
+					let target = row.schemaNode ? { schemaNode: row.schemaNode } : { staticSchemaNodeName: row.staticName };
+
+					response = await fetch(Structr.rootUrl + 'SchemaGrant', { method: 'POST', body: JSON.stringify({ principal: group.id, ...target, ...values }) });
+
+					if (response.ok) {
+						row.grant = { id: (await response.json()).result?.[0] };
+					}
+
+				} else {
+
+					return;
+				}
+
+				if (response.ok) {
+
+					_Helpers.blinkGreen(checkbox.closest('td'));
+
+				} else {
+
+					checkbox.checked = !checkbox.checked;
+					_Helpers.blinkRed(checkbox.closest('td'));
+
+					let message = await response.json().catch(() => ({}));
+					new ErrorMessage().text(`The permission could not be saved: ${message.message ?? response.status}`).show();
+				}
+			};
+
+			let draw = () => {
+
+				let filter = filterEl.value.trim().toLowerCase();
+
+				_Helpers.fastRemoveAllChildren(tbody);
+
+				for (let row of list) {
+
+					if (!(allEl.checked || shown.has(row)) || (filter && !(row.name ?? '').toLowerCase().includes(filter))) {
+						continue;
+					}
+
+					row.tr ??= _Helpers.createSingleDOMElementFromHTML(`
+						<tr>
+							<td class="text-left"></td>
+							${rights.map(([key, label]) => `<td class="text-center"><input type="checkbox" data-right="${key}" title="${label}" ${row.grant?.[key] ? 'checked' : ''}></td>`).join('')}
+						</tr>
+					`);
+
+					row.tr.querySelector('td').textContent = row.name;
+
+					for (let checkbox of row.tr.querySelectorAll('input[data-right]')) {
+
+						checkbox.onchange = () => save(row, checkbox);
+					}
+
+					tbody.appendChild(row.tr);
+				}
+
+				container.querySelector('.type-permissions-empty').classList.toggle('hidden', allEl.checked || shown.size > 0);
+
+				// the types that can be added are those not in the table yet
+				addEl.innerHTML = '<option value="">Add type...</option>' + list.filter(row => !shown.has(row)).map(row => `<option value="${list.indexOf(row)}">${_Helpers.escapeForHtmlAttributes(row.name ?? '')}</option>`).join('');
+				addEl.disabled  = allEl.checked;
+			};
+
+			filterEl.addEventListener('input', draw);
+			allEl.addEventListener('change', draw);
+			addEl.addEventListener('change', () => {
+
+				let row = list[Number(addEl.value)];
+
+				if (row) {
+
+					shown.add(row);
+					draw();
+					row.tr.querySelector('input').focus();
+				}
+			});
+
+			draw();
+		}
+	},
+
 	getUserId: (element) => {
 		return element.data('userId');
 	},

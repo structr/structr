@@ -50,6 +50,12 @@ See the User Management chapter for detailed explanations of these settings.
 
 Groups have names and members but fewer special properties. Click to edit the name inline. Use the context menu to access the Advanced dialog (all attributes), Security dialog (access control for the group object), or Delete Group. Groups of type LDAPGroup additionally offer the entry "LDAP Config", which opens the dialog for the LDAP path and filter settings of that group.
 
+#### Type Permissions
+
+The properties dialog of a group (double-click the group, or open the Advanced dialog) has a "Type Permissions" tab. It lists the types the members of the group may read, write or delete, or whose access control they may change, for all objects of the type at once. These are the schema-based permissions that the Code area shows for each type and all groups; here you see and change them for one group across all types.
+
+By default, the tab only lists the types the group already has permissions on. Use "Add type..." to add another type, or "Show all types" to list every type of the schema, and the filter field to find a type by its name. A change is saved as soon as you click a checkbox. When you clear the last checkbox of a type, its permission is removed.
+
 ## Resource Permissions
 
 The second tab, "Resource Permissions", controls which REST endpoints are accessible and to whom.

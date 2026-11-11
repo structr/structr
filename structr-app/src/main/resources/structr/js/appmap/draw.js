@@ -30,16 +30,32 @@
  */
 class AppMapRenderer {
 
-	// every area has its own hue for its name: the interface violet, the data model green and so on
-	static AREA_HUE = { ui: 265, components: 295, logic: 190, security: 28, data: 135, builtin: 215, scheduled: 330, integration: 50, api: 90 };
+	// every area has the hue of its aspect for its name (see AppMapView.LOOKS): the interface the purple of Screens, the
+	// logic the orange of Processes, security and the interfaces to the outside the blue of Permissions, the data model the
+	// green of Types
+	static AREA_HUE = { ui: 244, components: 244, logic: 15, security: 211, data: 85, builtin: 85, scheduled: 15, integration: 211, api: 211 };
+
+	// the dots of the grid on the canvas are this many pixels apart on the screen
+	static GRID = 22;
+
+	// an element is a ring this share of its radius wide, at most RING_MAX pixels, from RING_FROM pixels of radius on the
+	// screen, and filled below (see paintElement)
+	static RING      = 0.3;
+	static RING_MAX  = 3;
+	static RING_FROM = 5;
+
+	// filled below RING_FROM, an element is a few pixels of its colour on the light canvas, too pale in the light colours of
+	// the kinds; it is filled this much darker there (d3 darker, 0.7 to the power of it), the ring of a larger one is not
+	static SMALL_DARKER = 0.6;
 
 	// what an edge does to data shows in its colour: create, change, delete; reading stays neutral; [light, dark]
-	static OP_COLOR   = { creates: ['#2b8a3e', '#69db7c'], updates: ['#c77700', '#ffc94d'], deletes: ['#c92a5a', '#ff8fab'] };
+	// in the colours of status of the design system
+	static OP_COLOR   = { creates: ['#23763f', '#5fb87e'], updates: ['#b5480f', '#f28a4c'], deletes: ['#c22a2a', '#f4746e'] };
 
 	// the rights of the access lens around a type, the schema relationships that delete along or pass rights on, and a gap
 	// (light and dark look, see AppMapAccess)
-	static RIGHT_COLOR  = { r: ['#1c7ed6', '#74c0fc'], w: ['#c77700', '#ffc94d'], d: ['#c92a5a', '#ff8fab'] };
-	static SCHEMA_COLOR = { cascade: ['#d1253b', '#ff6b6b'], passes: ['#e67700', '#ffa94d'], gap: ['#d1253b', '#ff6b6b'] };
+	static RIGHT_COLOR  = { r: ['#2b6cb8', '#7fb0ff'], w: ['#b5480f', '#f28a4c'], d: ['#c22a2a', '#f4746e'] };
+	static SCHEMA_COLOR = { cascade: ['#c22a2a', '#f4746e'], passes: ['#b5480f', '#f28a4c'], gap: ['#c22a2a', '#f4746e'] };
 
 
 	// the access icons of the pages and shared components, as in the Pages area (visibility-lock-* in icon/sprites.svg), on a
@@ -64,7 +80,7 @@ class AppMapRenderer {
 
 	// the colour of the badge: public users see the page, only authenticated users, only admins and those with grants;
 	// [light, dark]
-	static ACCESS_COLOR = { pub: ['#e03131', '#ff6b6b'], auth: ['#1c7ed6', '#4dabf7'], none: ['#495057', '#adb5bd'] };
+	static ACCESS_COLOR = { pub: ['#c22a2a', '#f4746e'], auth: ['#2b6cb8', '#7fb0ff'], none: ['#56534b', '#bdb9ad'] };
 
 	// the glow of the activity lens reaches this many pixels beyond an element, plus this many more for the hottest one; its
 	// colour runs like a heat map from yellow through orange to red, warm colours no kind of element has, so the colour tells
@@ -79,7 +95,7 @@ class AppMapRenderer {
 	static SPOTLIGHT_NAMES = 12;
 
 	// the tags of a page below it: the start page green, the pages shown for errors red; [light, dark]
-	static ROUTING_COLOR = { start: ['#2f9e44', '#69db7c'], error: ['#e03131', '#ff6b6b'] };
+	static ROUTING_COLOR = { start: ['#23763f', '#5fb87e'], error: ['#c22a2a', '#f4746e'] };
 
 	// a method is a rectangle lying on its side, as wide and as high as these shares of its radius on each side, so it can
 	// show its code when it comes close (see AppMapPanels.codePanel); a page or shared component is a sheet standing upright
@@ -161,6 +177,21 @@ class AppMapRenderer {
 	colorOf(n) {
 
 		return this.colorCache.get(n) ?? this.view.look.kinds[n.k] ?? '#888888';
+	}
+
+	// the darker fill of a small element on the light canvas (see SMALL_DARKER), once per colour
+	smallColor(colour) {
+
+		this.smallColors ??= new Map();
+
+		let small = this.smallColors.get(colour);
+
+		if (!small) {
+			small = d3.color(colour).darker(AppMapRenderer.SMALL_DARKER).formatHex();
+			this.smallColors.set(colour, small);
+		}
+
+		return small;
 	}
 
 	opColor(l) {
@@ -256,6 +287,7 @@ class AppMapRenderer {
 		ctx.save();
 		ctx.fillStyle = look.bg;
 		ctx.fillRect(0, 0, view.width, view.height);
+		this.drawGrid();
 		ctx.translate(view.transform.x, view.transform.y);
 		ctx.scale(k, k);
 
@@ -423,19 +455,29 @@ class AppMapRenderer {
 		const expanded = [];
 		const pill     = (x, y, w, nameWidth, name, rest, colour, lit) => {
 
-			// filled in the colour of the kind, lifted off the map by a shadow; under the pointer it turns light
+			// as the floating chips of the design system: on the card, outlined in the colour of the kind and lifted off the map
+			// by a soft shadow; under the pointer tinted in it
+			const ink = view.look.dark ? colour : d3.color(colour).darker(0.8).formatHex();
+
 			ctx.beginPath();
-			ctx.roundRect(x, y, w, h, h / 2);
-			ctx.shadowColor   = 'rgba(0, 0, 0, 0.3)';
-			ctx.shadowBlur    = 6;
-			ctx.shadowOffsetY = 1;
-			ctx.fillStyle     = lit ? view.look.bg : colour;
+			ctx.roundRect(x, y, w, h, h * 0.3);
+			ctx.shadowColor   = 'rgba(0, 0, 0, 0.12)';
+			ctx.shadowBlur    = 8;
+			ctx.shadowOffsetY = 2;
+			ctx.fillStyle     = view.look.card;
 			ctx.fill();
 			ctx.shadowColor   = 'transparent';
-			ctx.lineWidth     = 2;
+
+			if (lit) {
+
+				ctx.fillStyle = d3.color(colour).copy({ opacity: 0.16 }).formatRgb();
+				ctx.fill();
+			}
+
+			ctx.lineWidth     = 1;
 			ctx.strokeStyle   = colour;
 			ctx.stroke();
-			ctx.fillStyle     = lit ? colour : '#ffffff';
+			ctx.fillStyle     = ink;
 			ctx.font          = nameFont;
 			ctx.fillText(name, x + pad, y + h / 2 + 0.5);
 			ctx.globalAlpha   = 0.8;
@@ -648,6 +690,46 @@ class AppMapRenderer {
 		});
 
 		ctx.restore();
+	}
+
+	// the faint grid of dots on the canvas, GRID pixels apart on the screen whatever the zoom; it moves with the map, so that
+	// panning is seen on an empty canvas, too. Drawn from a pattern of one cell, made anew when the look changes
+	drawGrid() {
+
+		const view = this.view;
+		const ctx  = this.ctx;
+		const look = view.look;
+		const size = AppMapRenderer.GRID;
+
+		if (this.grid?.look !== look) {
+
+			const cell = document.createElement('canvas');
+			const dpr  = window.devicePixelRatio || 1;
+
+			cell.width  = Math.round(size * dpr);
+			cell.height = Math.round(size * dpr);
+
+			const c = cell.getContext('2d');
+
+			c.fillStyle = look.grid;
+			c.beginPath();
+			c.arc(cell.width / 2, cell.height / 2, 1.15 * dpr, 0, 2 * Math.PI);
+			c.fill();
+
+			this.grid = { look, dpr, pattern: ctx.createPattern(cell, 'repeat') };
+		}
+
+		// a canvas that cannot make patterns has no grid
+		if (!this.grid.pattern?.setTransform) {
+			return;
+		}
+
+		const t = view.transform;
+
+		this.grid.pattern.setTransform(new DOMMatrix([1 / this.grid.dpr, 0, 0, 1 / this.grid.dpr, t.x % size, t.y % size]));
+
+		ctx.fillStyle = this.grid.pattern;
+		ctx.fillRect(0, 0, view.width, view.height);
 	}
 
 	// the relations from their picture, which is drawn anew when they change, when the elements move while the layout
@@ -1088,14 +1170,8 @@ class AppMapRenderer {
 			}
 
 			ctx.globalAlpha = this.presence(n, focus, around) * (1 - cover);
-			ctx.fillStyle   = this.colorOf(n);
 			this.shape(n, r);
-			ctx.fill();
-
-			// a fine outline sets every element off against the lines behind it
-			ctx.lineWidth   = 0.6 / k;
-			ctx.strokeStyle = look.outline;
-			ctx.stroke();
+			this.paintElement(n, r, k, look.outline, 0.6 / k);
 
 			// a type that resource access grants open to REST wears a ring in the colour of the REST API: solid when
 			// anonymous users may use it, dashed when only authenticated users may
@@ -1114,9 +1190,42 @@ class AppMapRenderer {
 		ctx.globalAlpha = 1;
 	}
 
-	// who may see a page or shared component, as a badge on the upper right corner of its square: a filled tile in the
-	// colour of who sees it (red for public users, blue for authenticated users, grey for nobody but admins and grants)
-	// with the icon of the Pages area in white; the pointer on the badge shows the rights (see AppMapView.describeAccess)
+	// the shape of an element, set as the current path: as the design system draws its nodes, a ring in the colour of its
+	// kind around the fill of a node, RING of its radius wide and at most RING_MAX pixels; below RING_FROM pixels the shape
+	// is filled with its colour, a ring that small could not be told from a dot. Outlined in the given colour and width,
+	// which sets it off against the lines behind it or marks it in focus
+	paintElement(n, r, k, outline, width) {
+
+		const ctx    = this.ctx;
+		const colour = this.colorOf(n);
+
+		if (r * k < AppMapRenderer.RING_FROM) {
+
+			ctx.fillStyle = this.view.look.dark ? colour : this.smallColor(colour);
+			ctx.fill();
+
+		} else {
+
+			ctx.fillStyle = this.view.look.node;
+			ctx.fill();
+
+			// the ring lies inside the shape: clipped to it, a line twice as wide shows half of its width
+			ctx.save();
+			ctx.clip();
+			ctx.lineWidth   = 2 * Math.min(r * AppMapRenderer.RING, AppMapRenderer.RING_MAX / k);
+			ctx.strokeStyle = colour;
+			ctx.stroke();
+			ctx.restore();
+		}
+
+		ctx.lineWidth   = width;
+		ctx.strokeStyle = outline;
+		ctx.stroke();
+	}
+
+	// who may see a page or shared component, as a badge on the upper right corner of its square: a tile in the colour of
+	// who sees it (red for public users, blue for authenticated users, grey for nobody but admins and grants) with the icon
+	// of the Pages area; the pointer on the badge shows the rights (see AppMapView.describeAccess)
 	drawAccess(k, rect, focus, near, around) {
 
 		const view = this.view;
@@ -1148,20 +1257,26 @@ class AppMapRenderer {
 
 			this.accessBoxes.push([n, x, y, x + size, y + size]);
 
-			// the tile, with a rim in the colour of the background so it stands off the page and the lines behind it
+			// the tile, with a rim in the colour of the background so it stands off the page and the lines behind it; as the
+			// badges of status of the design system, its colour in a faint tint, its border and its sign
 			ctx.beginPath();
 			ctx.roundRect(x, y, size, size, size * 0.22);
 			ctx.lineWidth   = 2 / k;
 			ctx.strokeStyle = view.look.halo;
 			ctx.stroke();
-			ctx.fillStyle   = colour;
+			ctx.fillStyle   = view.look.card;
 			ctx.fill();
+			ctx.fillStyle   = d3.color(colour).copy({ opacity: view.look.dark ? 0.2 : 0.14 }).formatRgb();
+			ctx.fill();
+			ctx.lineWidth   = 1 / k;
+			ctx.strokeStyle = colour;
+			ctx.stroke();
 
 			ctx.save();
 			ctx.translate(x + size * 0.17, y + size * 0.15);
 			ctx.scale(size * 0.66 / 24, size * 0.66 / 24);
 			ctx.lineWidth   = 2.6;
-			ctx.strokeStyle = '#ffffff';
+			ctx.strokeStyle = colour;
 			ctx.stroke(this.accessIcons[shape]);
 			ctx.restore();
 		}
@@ -1275,11 +1390,17 @@ class AppMapRenderer {
 
 			for (const tag of tags) {
 
-				ctx.fillStyle = tag.colour;
+				// a badge of status of the design system: its colour in a faint tint on the card, its border and its text
 				ctx.beginPath();
-				ctx.roundRect(x, y - 5.5 / k, tag.width, 11 / k, 5.5 / k);
+				ctx.roundRect(x, y - 5.5 / k, tag.width, 11 / k, 3 / k);
+				ctx.fillStyle   = view.look.card;
 				ctx.fill();
-				ctx.fillStyle = view.look.bg;
+				ctx.fillStyle   = d3.color(tag.colour).copy({ opacity: view.look.dark ? 0.2 : 0.14 }).formatRgb();
+				ctx.fill();
+				ctx.strokeStyle = tag.colour;
+				ctx.lineWidth   = 1 / k;
+				ctx.stroke();
+				ctx.fillStyle   = tag.colour;
 				ctx.fillText(tag.text, x + tag.width / 2, y);
 
 				x += tag.width + gap;
@@ -1348,12 +1469,10 @@ class AppMapRenderer {
 
 			const ringed = n === focus || targets.has(n);
 
-			this.focusShape(n, Math.max(this.view.shownRadius(n), 2 / k));
-			ctx.fillStyle   = look.kinds[n.k];
-			ctx.fill();
-			ctx.lineWidth   = (n === focus ? 2.2 : (ringed ? 1.6 : 1)) / k;
-			ctx.strokeStyle = ringed ? look.ring : look.outline;
-			ctx.stroke();
+			const r = Math.max(this.view.shownRadius(n), 2 / k);
+
+			this.focusShape(n, r);
+			this.paintElement(n, r, k, ringed ? look.ring : look.outline, (n === focus ? 2.2 : (ringed ? 1.6 : 1)) / k);
 		}
 	}
 
@@ -1447,14 +1566,14 @@ class AppMapRenderer {
 	}
 
 	// the width of a label on screen, measured once per text and weight
-	textWidth(text, weight) {
+	textWidth(text, weight, mono = false) {
 
-		const key = `${weight}|${text}`;
+		const key = `${weight}|${mono ? 'm' : ''}|${text}`;
 		let width = this.textWidths.get(key);
 
 		if (width === undefined) {
 
-			this.measure.font = this.font(weight, AppMapRenderer.LABEL_SIZE);
+			this.measure.font = this.font(weight, AppMapRenderer.LABEL_SIZE, mono);
 			width             = this.measure.measureText(text).width;
 
 			this.textWidths.set(key, width);

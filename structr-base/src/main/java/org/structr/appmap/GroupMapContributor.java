@@ -59,10 +59,11 @@ public class GroupMapContributor implements ApplicationMapContributor {
 			final SchemaGrant grant      = node.as(SchemaGrant.class);
 			final Principal principal    = grant.getPrincipal();
 			final SchemaNode schemaNode  = grant.getSchemaNode();
-			final boolean allowsAnything = grant.allowRead() || grant.allowWrite() || grant.allowDelete();
+			final boolean allowsAnything = grant.allowRead() || grant.allowWrite() || grant.allowDelete() || grant.allowAccessControl();
 
+			// read, write, delete and access control, as the card of the group shows them
 			if (principal != null && schemaNode != null && allowsAnything && principal.is(StructrTraits.GROUP)) {
-				map.addGroup(principal.getUuid(), principal.getName(), 0).addGrant(schemaNode.getUuid(), (grant.allowRead() ? "r" : "") + (grant.allowWrite() ? "w" : "") + (grant.allowDelete() ? "d" : ""));
+				map.addGroup(principal.getUuid(), principal.getName(), 0).addGrant(schemaNode.getUuid(), (grant.allowRead() ? "r" : "") + (grant.allowWrite() ? "w" : "") + (grant.allowDelete() ? "d" : "") + (grant.allowAccessControl() ? "a" : ""));
 			}
 		}
 	}

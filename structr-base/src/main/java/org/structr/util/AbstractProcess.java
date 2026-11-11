@@ -38,6 +38,9 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 
 	private static final long STREAM_DRAIN_MILLIS = 10_000;
 
+	// how many of the last lines of the error stream are logged when the process fails
+	private static final int LOGGED_ERROR_LINES   = 50;
+
 	protected SecurityContext securityContext = null;
 	private StreamReader stdOut               = null;
 	private StreamReader stdErr               = null;
@@ -154,7 +157,7 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 		// debugging output
 		if (exitCode() != 0) {
 
-			logger.warn("Process {} exited with exit code {}, error stream:\n{}\n", getLogLine().toString(), exitCode(), stdErr.getBuffer());
+			logger.warn("Process {} exited with exit code {}, error stream:\n{}\n", getLogLine().toString(), exitCode(), stdErr.getTail(LOGGED_ERROR_LINES));
 		}
 
 		return processExited(exitCode);

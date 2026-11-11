@@ -539,6 +539,11 @@ let _Entities = {
 						_Entities.accessControlDialog(entity, $(tabContent));
 					}
 
+					// what the members of a group may do with the objects of each type, see _UsersAndGroups.typePermissions
+					if (entity.isGroup && typeof _UsersAndGroups !== 'undefined') {
+						_UsersAndGroups.typePermissions.appendTab(entity, mainTabs, contentEl);
+					}
+
 					let requestedTabLi = mainTabs.querySelector(`#tab-${activeView}`);
 					if (requestedTabLi) {
 						requestedTabLi.click();

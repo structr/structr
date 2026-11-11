@@ -101,6 +101,7 @@ class DataBindings {
 			}
 		}
 
+		addFunctionReads();
 		describeViews();
 	}
 
@@ -557,6 +558,35 @@ class DataBindings {
 		}
 
 		return found;
+	}
+
+	/**
+	 * The function properties a page reads, as ${key.prop} or $.key.prop on a key whose type is
+	 * known where it stands: its page or shared component reads them, with the element that shows
+	 * them as the evidence; a text names the element it stands in.
+	 */
+	private void addFunctionReads() {
+
+		for (final HtmlNode html : all) {
+
+			final List<String[]> reads = keyProperties(html.text());
+
+			if (reads.isEmpty()) {
+				continue;
+			}
+
+			final Map<String, String> scope = scopeOf(html);
+			final HtmlNode shown            = html.tag != null || html.ancestors().isEmpty() ? html : html.ancestors().get(0);
+
+			for (final String[] read : reads) {
+
+				final String owner = schema.getFunctionPropertyOwner(scope.get(read[0]), read[1]);
+
+				if (owner != null) {
+					map.addFunctionRead(owner, read[1], html.home, labelOf(shown) + " shows " + read[0] + "." + read[1]);
+				}
+			}
+		}
 	}
 
 	private List<String[]> keyProperties(final String text) {

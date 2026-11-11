@@ -584,7 +584,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					// a page view, also when answered from the browser cache; the previews in the admin UI and partial reloads are not
 					if (EditMode.NONE.equals(edit) && rootElement.is(StructrTraits.PAGE) && request.getParameter(ENCODED_RENDER_STATE_PARAMETER_NAME) == null) {
 
-						UsageStatistics.record(UsageStatistics.PAGES, rootElement.getUuid());
+						UsageStatistics.record(request, UsageStatistics.PAGES, rootElement.getUuid());
 					}
 
 					if (!EditMode.WIDGET.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement, dontCache)) {

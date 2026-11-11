@@ -32,16 +32,24 @@
  */
 class AppMapView {
 
-	// two looks: a sober one on white and a dark one; on black overlaps glow, on white they are simply painted over each other:
-	// darkening them by multiplying took more than half of every frame and was hardly to be seen
+	// two looks, the light and the dark theme of the design system of the new UI ("Simple"): warm paper neutrals and the
+	// five colours of its aspects, Types green, Screens purple, Permissions blue, Processes orange and Data amber, which the
+	// kinds of the map share (external services stay neutral, as the app does there); kinds of one aspect differ in their
+	// shape. The canvas is soft grey with a faint grid of dots, the cards white; colour lives in strokes and rings, not in
+	// large fills. On black overlaps glow, on paper they are simply painted over each other: darkening them by multiplying
+	// took more than half of every frame and was hardly to be seen.
+	// bg is the canvas, card a card on it, node the inside of the ring of an element, tint the faint fill of a quiet surface, border and hair the two strengths of a
+	// line, text the strongest text, label the one of most text, faint the quietest, grid the dots of the canvas
 	static LOOKS = {
 		light: {
-			bg: '#ffffff', card: '#ffffff', veil: '#eef1f4', trace: '#7d8794', ring: '#1b2026', outline: '#ffffff', halo: '#ffffff', label: '#4f5862', labelNear: '#2a3038', labelFocus: '#111418', column: '#9aa3ad', found: '#ffd84d', warning: '#e8a400', error: '#e03131', blend: 'source-over', dark: false,
-			kinds: { page: '#5b2fe0', component: '#b0179b', type: '#1f8f12', method: '#0081a7', api: '#0b5ed7', external: '#123a9c', group: '#e04e00', dom: '#9a86f2', view: '#d18b00', action: '#e0123f' }
+			bg: '#f6f5f0', card: '#ffffff', node: '#ffffff', tint: '#eceae1', border: '#d8d5ca', hair: '#e9e7de', grid: '#e1dfd5', text: '#1d1c18', faint: '#8a8678',
+			veil: '#eceae1', trace: '#8a8678', ring: '#1d1c18', outline: '#ffffff', halo: '#f6f5f0', label: '#56534b', labelNear: '#1d1c18', labelFocus: '#1d1c18', column: '#8a8678', found: '#ffd84d', warning: '#8a6500', error: '#c22a2a', blend: 'source-over', dark: false,
+			kinds: { page: '#8b83e6', component: '#8b83e6', type: '#7ab02a', method: '#e06a40', api: '#4d97e8', external: '#8a8678', group: '#4d97e8', dom: '#8b83e6', view: '#ef9f27', action: '#e06a40' }
 		},
 		dark: {
-			bg: '#0b0e12', card: '#161b22', veil: '#000000', trace: '#8a96a3', ring: '#ffffff', outline: '#0b0e12', halo: '#0b0e12', label: '#aab3bd', labelNear: '#dfe4e9', labelFocus: '#ffffff', column: '#c3cbd3', found: '#d4a900', warning: '#ffc233', error: '#ff6b6b', blend: 'lighter', dark: true,
-			kinds: { page: '#a78bfa', component: '#f472d0', type: '#6ee05a', method: '#22d3ee', api: '#60a5fa', external: '#a5c8ff', group: '#ff8a3d', dom: '#b9a8ff', view: '#ffd04d', action: '#ff5c7c' }
+			bg: '#1b1a16', card: '#262420', node: '#2f2c27', tint: '#322f29', border: '#3a3832', hair: '#2c2a25', grid: '#2c2a25', text: '#f3f1ea', faint: '#8b887d',
+			veil: '#141310', trace: '#8b887d', ring: '#f3f1ea', outline: '#1b1a16', halo: '#1b1a16', label: '#bdb9ad', labelNear: '#f3f1ea', labelFocus: '#ffffff', column: '#8b887d', found: '#d4a900', warning: '#e6c13f', error: '#f4746e', blend: 'lighter', dark: true,
+			kinds: { page: '#8b83e6', component: '#8b83e6', type: '#7ab02a', method: '#e06a40', api: '#4d97e8', external: '#8b887d', group: '#4d97e8', dom: '#8b83e6', view: '#ef9f27', action: '#e06a40' }
 		}
 	};
 
@@ -106,6 +114,10 @@ class AppMapView {
 	// double-click on it: it opens when the element takes this share of the screen, and closes again below the second
 	static MAXIMIZED = [0.7, 0.55];
 
+	// the editor of a method stays open down to this share of the zoom at which it opened, as MAXIMIZED keeps that of a
+	// template
+	static OPEN_KEEP = 0.75;
+
 	// the size of the text in every editor that stands in an element filling the screen, in pixels
 	static EDITOR_FONT = 13;
 
@@ -125,7 +137,6 @@ class AppMapView {
 	constructor(container, model, options = {}) {
 
 		const settings = Object.assign({ look: 'light' }, options.settings);
-		const style    = getComputedStyle(document.documentElement);
 
 		this.container   = container;
 		this.model       = model;
@@ -195,8 +206,13 @@ class AppMapView {
 		// reads the texts of an HTML element, for its box once it opens, as a promise of a list of { content, code }
 		this.loadContent = options.loadContent ?? null;
 
-		// reads the schema of a type, for its card close up, as a promise of the type as the _schema endpoint gives it
-		this.loadType = options.loadType ?? null;
+		// reads the schema of a type, for its card close up, as a promise of the type as the _schema endpoint gives it, and
+		// the code of its function properties, as a promise of a list of { name, readFunction, writeFunction }
+		this.loadType      = options.loadType ?? null;
+		this.loadFunctions = options.loadFunctions ?? null;
+
+		// reads the schema relationships of types, for the boxes of their relationship properties, as a promise of a list
+		this.loadRelationships = options.loadRelationships ?? null;
 
 		// reads the resource access permissions, for the cards of the REST endpoints, and the members of a group, for its card
 		this.loadGrants  = options.loadGrants ?? null;
@@ -225,10 +241,20 @@ class AppMapView {
 		// screen (see followElement)
 		this.domEditor = options.domEditor ?? null;
 
+		// the fonts of the design system of the new UI: the sans serif font of the system, and JetBrains Mono for names
+		// of fields and code; the map is drawn again once the latter has loaded, it is not there before it is first used
 		this.fonts = {
-			main: style.getPropertyValue('--font-main').trim() || 'Inter, sans-serif',
-			mono: style.getPropertyValue('--font-monospace').trim() || 'monospace'
+			main: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+			mono: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace'
 		};
+
+		document.fonts?.load(`400 12px ${this.fonts.mono}`).then(() => {
+
+			// widths measured with the fallback are wrong now
+			this.renderer?.textWidths?.clear();
+			this.requestDraw();
+
+		}).catch(() => {});
 
 		this.canvas             = document.createElement('canvas');
 		this.canvas.className   = 'appmap-canvas';
@@ -314,7 +340,7 @@ class AppMapView {
 
 	get settings() {
 
-		return { look: this.look.dark ? 'dark' : 'light', activity: this.spotlightLens ? null : (this.activity?.mode ?? null) };
+		return { look: this.look.dark ? 'dark' : 'light' };
 	}
 
 	get counts() {
@@ -826,6 +852,17 @@ class AppMapView {
 	// its longer side
 	fillZoom(n) {
 
+		// the card of a type, a REST endpoint, a group or an external service, and the code of a method, open at the size of
+		// their text, whatever their size: the names of the rows at CARD_TEXT, the code at CODE_TEXT; a card taller than the
+		// screen stands with its top on it (see glideInto)
+		if (!n.page && AppMapPanels.INSIDE_KINDS.has(n.k)) {
+			return this.zoomWhere(k => this.panels.insidePanel(n, k, this.drawnRadiusAt(n, k)).em * AppMapPanels.ROW_NAME * k, AppMapView.CARD_TEXT);
+		}
+
+		if (!n.page && AppMapPanels.hasCode(n) && n.k === 'method') {
+			return this.zoomWhere(k => this.panels.codePanel(n, k, this.drawnRadiusAt(n, k)).font * k, AppMapView.CODE_TEXT);
+		}
+
 		const size   = n.page ? k => (p => [p.width, p.height])(this.panels.elementPanel(n, k))
 			: AppMapPanels.INSIDE_KINDS.has(n.k) ? k => (p => [p.width, p.height])(this.panels.insidePanel(n, k, this.drawnRadiusAt(n, k)))
 			: k => AppMapRenderer.boxOf(n).map(v => 2 * v * this.drawnRadiusAt(n, k));
@@ -873,10 +910,19 @@ class AppMapView {
 	}
 
 	// whether a method, a page of a single template or a template in a page fills the screen, see MAXIMIZED: to open its
-	// editor, or, when it has one already, to keep it
+	// editor, or, when it has one already, to keep it. A method opens at the size of its code (see fillZoom), not filling
+	// the screen, so it counts as filling it from that zoom on, and down to OPEN_KEEP of it once its editor is open
 	fills(n, keep) {
 
 		const t       = this.transform;
+
+		if (!n.page && n.k === 'method') {
+
+			const centred = Math.abs(t.applyX(n.x) - this.width / 2) < this.width / 4 && Math.abs(t.applyY(n.y) - this.height / 2) < this.height / 4;
+
+			return centred && t.k >= this.fillZoom(n) * (keep ? AppMapView.OPEN_KEEP : 0.999);
+		}
+
 		const [w, h]  = n.page ? (p => [p.width, p.height])(this.panels.elementPanel(n, t.k)) : (([bw, bh]) => [2 * bw * this.shownRadius(n), 2 * bh * this.shownRadius(n)])(AppMapRenderer.boxOf(n));
 		const [x, y]  = n.page ? (p => [p.x + p.width / 2, p.y + p.height / 2])(this.panels.elementPanel(n, t.k)) : [n.x, n.y];
 		const share   = Math.max(w * t.k / this.width, h * t.k / this.height);
@@ -1217,13 +1263,25 @@ class AppMapView {
 	// 'usage' for the number of requests or runs, or null
 	setActivity(mode) {
 
+		// the hotspots still showing keep the usage they need, and end it themselves (see setSpotlight)
+		if (!mode && this.spotlight && this.activity) {
+
+			this.spotlightLens = true;
+			return;
+		}
+
+		// usage asked for itself outlasts the hotspots that had turned it on
+		if (mode) {
+			this.spotlightLens = false;
+		}
+
 		this.activity = AppMapView.ACTIVITY[mode] ? { mode } : null;
 		this.measure();
 		this.watchActivity();
 	}
 
 	// the hotspots, while the pointer rests on their button: the map steps back into grey, the glow of the activity and the
-	// names of the most used elements stay; without the activity lens on, the usage shows meanwhile
+	// names of the most used elements stay; without the usage showing, it shows meanwhile
 	setSpotlight(on) {
 
 		this.spotlight = on;
@@ -1273,6 +1331,16 @@ class AppMapView {
 	}
 
 	static ACTIVITY_REFRESH = 30000;
+
+	// the size of the text on a card opened with a double click, in pixels: the names of its rows, and code; a card taller
+	// than the screen stands this many pixels below its top edge
+	static CARD_TEXT = 16;
+	static CODE_TEXT = 13;
+	static CARD_TOP  = 40;
+
+	// the rows of the tree of a page opened with a double click are this many pixels high, which gives the names of its
+	// elements about the size of code
+	static PAGE_ROW  = 36;
 
 	async refreshActivity() {
 
@@ -1423,12 +1491,9 @@ class AppMapView {
 			return this.fillZoom(n);
 		}
 
-		const [w, h] = AppMapRenderer.PAGE_BOX;
-		const across = this.zoomWhere(k => 2 * w * this.drawnRadiusAt(n, k) * k, AppMapView.GLIDE_FILL * this.width);
-		const down   = this.zoomWhere(k => 2 * h * this.drawnRadiusAt(n, k) * k, AppMapView.GLIDE_FILL * this.height);
-		const open   = this.zoomWhere(k => this.panels.pagePanel(n, tree, k, this.drawnRadiusAt(n, k)).row, AppMapPanels.OPEN_ROW * 1.2);
-
-		return Math.max(Math.min(across, down), open);
+		// the rows of its tree at PAGE_ROW, as the text of every other card has one size (see fillZoom), whatever the size of
+		// the tree; a page with a large tree is then larger than the screen (see glideInto)
+		return this.zoomWhere(k => this.panels.pagePanel(n, tree, k, this.drawnRadiusAt(n, k)).row, AppMapView.PAGE_ROW);
 	}
 
 	// the way exploring took, as a row of names above the map: a name leads back there, the cross ends exploring
@@ -1720,7 +1785,7 @@ class AppMapView {
 	}
 
 	// switches a setting in an open box: at once on the map, then in the database (see the option toggle); where that fails,
-	// it switches back. A grant of a group also changes the rights the map knows of the group, a required field its dot
+	// it switches back. A required field also changes its dot
 	async flip({ item, index, key }) {
 
 		const tile    = item.tile;
@@ -1732,21 +1797,6 @@ class AppMapView {
 
 			if (key === 'notNull') {
 				tile.dot = v;
-			}
-
-			if (tile.edit.kind === 'grant') {
-
-				const group   = (this.model.groups ?? []).find(g => g.id === tile.edit.group.id);
-				const letter  = { allowRead: 'r', allowWrite: 'w', allowDelete: 'd', allowAccessControl: 'a' }[key];
-				const letters = new Set(String(group?.p?.[tile.edit.type.id] ?? ''));
-
-				v ? letters.add(letter) : letters.delete(letter);
-
-				if (group?.p) {
-					group.p[tile.edit.type.id] = ['r', 'w', 'd', 'a'].filter(l => letters.has(l)).join('');
-				}
-
-				tile.chip = ['r', 'w', 'd', 'a'].filter(l => letters.has(l)).map(l => l.toUpperCase()).join(' · ');
 			}
 
 			this.requestDraw();
@@ -1821,8 +1871,10 @@ class AppMapView {
 	glideIntoTile(tile, ms = AppMapView.GLIDE_MS) {
 
 		const [x, y, w, h] = tile.item.box;
+		const width        = AppMapPanels.openWidth(tile.item, h);
 
-		this.glide(x + w / 2, y + h / 2, this.tileZoom(tile.item), ms);
+		// the middle of the box as it stands open, which is wider than its square (see AppMapPanels.openWidth and openLeft)
+		this.glide(AppMapPanels.openLeft(tile.item, x, w, width) + width / 2, y + h / 2, this.tileZoom(tile.item), ms);
 	}
 
 	// the zoom at which the box of a row stands open at its full size: as high as what it shows needs, its header, its
@@ -1830,10 +1882,7 @@ class AppMapView {
 	// more than TILE_OPEN; the box keeps its size on the map whatever the zoom
 	tileZoom(item) {
 
-		const rows = item.tile.access?.lines ?? item.tile.settings?.length ?? 0;
-		const need = AppMapPanels.HEAD.band + (rows + 0.6) * AppMapPanels.TILE_TEXT * 2.1 + AppMapPanels.HEAD.foot;
-
-		return Math.max(need, AppMapPanels.TILE_OPEN * 1.1) / item.box[3];
+		return AppMapPanels.openHeight(item.tile) / item.box[3];
 	}
 
 	// the boxes of properties drawn in the last frame whose middle lies near the middle of the screen
@@ -1878,19 +1927,34 @@ class AppMapView {
 			return;
 		}
 
-		// a type, a REST endpoint, a group or an external service: its card fills the screen as the box of a method does, in
-		// the middle; the card is only as high as what it holds, so the glide waits until that is there
+		// a type, a REST endpoint, a group or an external service: its card at the size of its text (see fillZoom), in the
+		// middle, or with its top on the screen where it is taller; the card is only as high as what it holds, so the glide
+		// waits until that is there
 		if (AppMapPanels.INSIDE_KINDS.has(n.k)) {
 
-			this.panels.requestInside(n).then(() => this.glide(n.x, n.y, this.fillZoom(n), ms));
+			this.panels.requestInside(n).then(() => {
+
+				const k     = this.fillZoom(n);
+				const panel = this.panels.insidePanel(n, k, this.drawnRadiusAt(n, k));
+				const tall  = panel.height * k > AppMapView.GLIDE_FILL * this.height;
+
+				this.glide(n.x, tall ? panel.y0 + (this.height / 2 - AppMapView.CARD_TOP) / k : n.y, k, ms);
+			});
 
 			return;
 		}
 
 		// a page as large as the screen allows, and at least so close that its tree opens
+		// a page at the size of the rows of its tree (see innerZoom), in the middle, or, where it is larger than the screen,
+		// as a document is read: from its top left corner, with its name and its strip on the screen
 		if (this.panels.trees.has(n)) {
 
-			this.glide(n.x, n.y, this.innerZoom(n));
+			const k     = this.innerZoom(n);
+			const panel = this.panels.pagePanel(n, this.panels.trees.get(n), k, this.drawnRadiusAt(n, k));
+			const wide  = 2 * panel.hw * k > AppMapView.GLIDE_FILL * this.width;
+			const tall  = 2 * panel.hh * k > AppMapView.GLIDE_FILL * this.height;
+
+			this.glide(wide ? n.x - panel.hw + (this.width / 2 - AppMapView.CARD_TOP) / k : n.x, tall ? n.y - panel.hh + (this.height / 2 - AppMapView.CARD_TOP) / k : n.y, k, ms);
 
 			return;
 		}
@@ -2581,6 +2645,24 @@ class AppMapView {
 			if (this.hovered || this.hoveredDom || this.hoveredStrand) {
 
 				this.hovered       = null;
+				this.hoveredDom    = null;
+				this.hoveredStrand = null;
+				this.requestDraw();
+			}
+
+			return;
+		}
+
+		// the kind on the header of a card says what the element is
+		const kind = this.panels.kindAt(wx, wy);
+
+		if (kind) {
+
+			this.canvas.style.cursor = '';
+			this.showTip(e, kind.kind, kind.about, 360);
+
+			if (this.hoveredDom || this.hoveredStrand) {
+
 				this.hoveredDom    = null;
 				this.hoveredStrand = null;
 				this.requestDraw();

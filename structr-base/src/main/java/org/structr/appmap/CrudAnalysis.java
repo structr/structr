@@ -62,6 +62,7 @@ class CrudAnalysis {
 	private static final Pattern SET           = Pattern.compile("\\$\\.set\\(\\s*(\\$\\.this|\\w+)\\s*,");
 	private static final Pattern DELETE        = Pattern.compile("\\$\\.delete\\(\\s*(\\$\\.this|\\w+)\\b");
 	private static final Pattern THIS_READ     = Pattern.compile("\\$\\.this\\.\\w+");
+	private static final Pattern PROP_READ     = Pattern.compile("(\\$\\.this|(?<![\\w.$])[A-Za-z_]\\w*)\\.(\\w+)\\b(?!\\s*\\()");
 	private static final Pattern CALL_TYPE     = Pattern.compile("\\$\\.(\\w+)\\.(\\w+)\\s*\\(");
 	private static final Pattern CALL_GLOBAL   = Pattern.compile("\\$\\.(\\w+)\\s*\\(");
 
@@ -279,6 +280,18 @@ class CrudAnalysis {
 
 		if (method.owner != null && THIS_READ.matcher(source).find()) {
 			note(id, method.owner, "R", name + ": reads $.this");
+		}
+
+		// the function properties it reads, on objects whose type is known: $.this.score, company.score
+		matcher = PROP_READ.matcher(source);
+
+		while (matcher.find()) {
+
+			final String owner = schema.getFunctionPropertyOwner(vars.get(matcher.group(1)), matcher.group(2));
+
+			if (owner != null) {
+				map.addFunctionRead(owner, matcher.group(2), id, lineOf(name, source, matcher.start()));
+			}
 		}
 
 		matcher = CALL_TYPE.matcher(source);

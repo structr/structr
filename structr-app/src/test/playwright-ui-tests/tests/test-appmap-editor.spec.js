@@ -122,6 +122,9 @@ async function typeIntoEditor(page, text) {
 	await editor(page).locator('.view-lines').click();
 	await page.keyboard.press('Control+End');
 	await page.keyboard.type(text);
+
+	// every key reaches the editor, none starts the search of the map
+	await expect(editor(page).locator('.view-lines')).toContainText(text.trim());
 	await expect(state(page)).toHaveText('Unsaved changes · Ctrl+S saves');
 }
 

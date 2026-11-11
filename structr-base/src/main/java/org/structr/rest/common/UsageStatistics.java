@@ -21,6 +21,7 @@ package org.structr.rest.common;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -55,6 +56,27 @@ public final class UsageStatistics {
 	private static final Map<String, Map<String, Usage>> usages  = new ConcurrentHashMap<>();
 
 	private UsageStatistics() {}
+
+	/**
+	 * Counts a use for the given request, once per category: a request that is repeated because the
+	 * database terminated its transaction is still one view of a page and one decision of a grant.
+	 */
+	public static void record(final HttpServletRequest request, final String category, final String source) {
+
+		if (request != null) {
+
+			final String attribute = UsageStatistics.class.getName() + "." + category;
+
+			if (request.getAttribute(attribute) != null) {
+
+				return;
+			}
+
+			request.setAttribute(attribute, source);
+		}
+
+		record(category, source);
+	}
 
 	public static void record(final String category, final String source) {
 

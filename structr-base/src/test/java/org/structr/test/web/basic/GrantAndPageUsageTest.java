@@ -19,6 +19,7 @@
 package org.structr.test.web.basic;
 
 import io.restassured.RestAssured;
+import org.structr.common.RequestParameters;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.rest.common.UsageStatistics;
@@ -100,7 +101,7 @@ public class GrantAndPageUsageTest extends StructrUiTest {
 		RestAssured.given().headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD).expect().statusCode(200).when().get("/usagePage");
 
 		// the preview in the pages area is not a view
-		RestAssured.given().headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD).expect().statusCode(200).when().get("/usagePage?edit=2");
+		RestAssured.given().headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD).expect().statusCode(200).when().get("/usagePage?" + RequestParameters.EditMode.getName() + "=2");
 
 		RestAssured.basePath = restUrl;
 

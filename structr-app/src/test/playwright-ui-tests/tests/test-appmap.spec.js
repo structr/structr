@@ -220,7 +220,7 @@ test('application map', async ({page}) => {
 	await page.locator('#appmap-lens').selectOption('');
 
 	// how much the application is used, and its hotspots
-	await page.locator('#appmap-activity').click();
+	await page.locator('#appmap-activity').hover();
 	await page.waitForFunction(() => _AppMap.view.activity?.heat?.size > 0);
 	await page.waitForTimeout(500);
 	await page.screenshot({ path: 'screenshots/appmap_usage.png' });
@@ -230,7 +230,6 @@ test('application map', async ({page}) => {
 	await page.screenshot({ path: 'screenshots/appmap_hotspots.png' });
 
 	await page.mouse.move(5, 300);
-	await page.locator('#appmap-activity').click();
 
 	// the dark look
 	await page.locator('[data-look="dark"]').click();

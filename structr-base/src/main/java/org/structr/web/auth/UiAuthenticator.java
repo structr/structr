@@ -397,7 +397,7 @@ public class UiAuthenticator implements Authenticator {
 			// grants that exist but are not visible to the user still decided this request
 			if (!permissions.isEmpty()) {
 
-				recordGrantUsage(rawResourceSignature, method, validUser, false);
+				recordGrantUsage(request, rawResourceSignature, method, validUser, false);
 			}
 
 			TransactionCommand.simpleBroadcastGenericMessage(Map.of(
@@ -416,12 +416,12 @@ public class UiAuthenticator implements Authenticator {
 
 		} else if (ResourceAccess.hasFlag(requiredFlag(method, validUser), combinedFlags)) {
 
-			recordGrantUsage(rawResourceSignature, method, validUser, true);
+			recordGrantUsage(request, rawResourceSignature, method, validUser, true);
 
 			return;
 		}
 
-		recordGrantUsage(rawResourceSignature, method, validUser, false);
+		recordGrantUsage(request, rawResourceSignature, method, validUser, false);
 
 		final String errorMessage = "Found " + permissionsFound + " resource access permission" + (permissionsFound > 1 ? "s" : "") + " for " + userInfo + " and signature '" + rawResourceSignature + "' (URI: " + escapedURI + "), but method '" + method + "' not allowed in any of them.";
 
@@ -470,9 +470,9 @@ public class UiAuthenticator implements Authenticator {
 	 * that have grants, so requests to made-up URLs cannot grow the statistics. Requests of administrators
 	 * are not counted, they do not need a grant.
 	 */
-	private static void recordGrantUsage(final String signature, final Method method, final boolean validUser, final boolean allowed) {
+	private static void recordGrantUsage(final HttpServletRequest request, final String signature, final Method method, final boolean validUser, final boolean allowed) {
 
-		UsageStatistics.record(UsageStatistics.GRANTS, signature + " " + (validUser ? "AUTH_USER_" : "NON_AUTH_USER_") + method.name() + " " + (allowed ? "allowed" : "denied"));
+		UsageStatistics.record(request, UsageStatistics.GRANTS, signature + " " + (validUser ? "AUTH_USER_" : "NON_AUTH_USER_") + method.name() + " " + (allowed ? "allowed" : "denied"));
 	}
 
 	@Override

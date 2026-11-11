@@ -60,6 +60,30 @@ public class StreamReader extends Thread {
 		return buf.toString();
 	}
 
+	/**
+	 * The last lines of what was read, for the log: a process can write far more than a log entry should
+	 * hold, and the cause of an error is usually at the end.
+	 */
+	public String getTail(final int lines) {
+
+		final String[] all      = queue.toArray(new String[0]);
+		final int skipped       = Math.max(0, all.length - lines);
+		final StringBuilder buf = new StringBuilder();
+
+		if (skipped > 0) {
+
+			buf.append("(").append(skipped).append(" earlier lines omitted)\n");
+		}
+
+		for (int i = skipped; i < all.length; i++) {
+
+			buf.append(all[i]);
+			buf.append("\n");
+		}
+
+		return buf.toString();
+	}
+
 	@Override
 	public void run() {
 

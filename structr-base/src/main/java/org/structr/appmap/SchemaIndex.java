@@ -61,6 +61,7 @@ public class SchemaIndex {
 	private final Map<String, Set<String>> properties       = new LinkedHashMap<>();
 	private final Map<String, Set<String>> typesByProperty  = new LinkedHashMap<>();
 	private final Map<String, String> relationshipTargets   = new LinkedHashMap<>();
+	private final Set<String> functionProperties            = new LinkedHashSet<>();
 	private final Map<String, Method> methods               = new LinkedHashMap<>();
 	private final Map<String, String> globalMethods         = new LinkedHashMap<>();
 	private final Map<String, String> typeMethods           = new LinkedHashMap<>();
@@ -85,7 +86,13 @@ public class SchemaIndex {
 			final Boolean builtin     = property.getProperty(propertyTraits.key(SchemaPropertyTraitDefinition.IS_BUILTIN_PROPERTY_PROPERTY));
 
 			if (owner != null && !Boolean.TRUE.equals(builtin)) {
+
 				propertiesOf(owner.getName()).add(property.getName());
+
+				// a property that computes its value with a script, see getFunctionPropertyOwner
+				if ("Function".equals(property.getProperty(propertyTraits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY)))) {
+					functionProperties.add(owner.getName() + "." + property.getName());
+				}
 			}
 		}
 
@@ -204,6 +211,30 @@ public class SchemaIndex {
 	public String getRelationshipTarget(final String type, final String property) {
 
 		return relationshipTargets.get(type + "." + property);
+	}
+
+	/**
+	 * The type that declares the function property of this name on a type, the type itself or one it inherits from, or
+	 * null where the property is none or the type does not have it.
+	 */
+	public String getFunctionPropertyOwner(final String type, final String property) {
+
+		if (type == null || property == null) {
+			return null;
+		}
+
+		if (functionProperties.contains(type + "." + property)) {
+			return type;
+		}
+
+		for (final String parent : getParents(type)) {
+
+			if (functionProperties.contains(parent + "." + property)) {
+				return parent;
+			}
+		}
+
+		return null;
 	}
 
 	/**
