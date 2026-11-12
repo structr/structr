@@ -1254,22 +1254,15 @@ let Command = {
 		return StructrWS.sendObj(obj, callback);
 	},
 	/**
-	 * Send a CONVERT_IMAGE command to the server.
+	 * Send a CONVERT_IMAGE command to the server: rotate, flip, crop, resize and convert an image.
 	 *
-	 * Depending on the mode the server will either add/remove the file to/from
-	 * the users favorite files.
+	 * With data.preview, the server returns the rotated and flipped image as a data URL without storing anything.
 	 */
-	createConvertedImage: function(originalImageId, width, height, format, offsetX, offsetY, callback) {
+	convertImage: function(imageId, data, callback) {
 		let obj  = {
 			command: 'CONVERT_IMAGE',
-			id: originalImageId,
-			data: {
-				format: format,
-				width: width,
-				height: height,
-				offsetX: offsetX,
-				offsetY: offsetY
-			}
+			id: imageId,
+			data: data
 		};
 		return StructrWS.sendObj(obj, callback);
 	},

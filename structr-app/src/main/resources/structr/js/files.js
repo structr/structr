@@ -1475,51 +1475,459 @@ let _Files = {
 
 		let { dialogText } = _Dialogs.custom.openDialog(image.name);
 
-		let imagePath = _Helpers.encodePathForURL(image.path);
+		let originalFormat = (image.contentType ?? '').split('/').pop().replace('jpg', 'jpeg');
 
 		dialogText.insertAdjacentHTML('beforeend', `
-			<div class="image-editor-menubar">
-				<div class="crop-action">
-					${_Icons.getSvgIcon(_Icons.iconCropImage)}
-					<br>Crop
+			<div class="image-editor">
+				<div class="image-editor-toolbar">
+					<span class="image-editor-group">
+						<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" data-action="rotate-left" title="Rotate left">${_Icons.getSvgIcon(_Icons.iconRotateLeft, 16, 16)}</button>
+						<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" data-action="rotate-right" title="Rotate right">${_Icons.getSvgIcon(_Icons.iconRotateRight, 16, 16)}</button>
+					</span>
+					<span class="image-editor-group">
+						<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" data-action="flip-x" title="Flip horizontally">${_Icons.getSvgIcon(_Icons.iconFlipHorizontal, 16, 16)}</button>
+						<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" data-action="flip-y" title="Flip vertically">${_Icons.getSvgIcon(_Icons.iconFlipVertical, 16, 16)}</button>
+					</span>
+					<span class="image-editor-group">
+						<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" data-action="crop" title="Crop: draw a selection on the image">${_Icons.getSvgIcon(_Icons.iconCropSelection, 16, 16)}</button>
+						<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green hidden" data-action="apply-crop" title="Apply the crop (Enter)" disabled>${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16)}</button>
+						<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green hidden" data-action="cancel-crop" title="Cancel cropping">${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16)}</button>
+					</span>
+					<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" data-action="reset" title="Reset all changes">${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16)}</button>
+					<span class="image-editor-group">
+						<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" data-action="zoom-out" title="Zoom out">${_Icons.getSvgIcon(_Icons.iconZoomOut, 16, 16)}</button>
+						<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green image-editor-zoom" data-action="zoom-fit" title="Fit to the window">Fit</button>
+						<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" data-action="zoom-in" title="Zoom in">${_Icons.getSvgIcon(_Icons.iconZoomIn, 16, 16)}</button>
+					</span>
+					<span class="image-editor-size"></span>
+				</div>
+				<div class="image-editor-stage">
+					<div class="image-editor-canvas">
+						<img alt="" draggable="false">
+						<div class="image-editor-crop hidden"><span class="nw"></span><span class="ne"></span><span class="sw"></span><span class="se"></span></div>
+					</div>
+				</div>
+				<div class="image-editor-options">
+					<label>Max. width <input type="number" min="1" name="maxWidth" placeholder="any"></label>
+					<label>Max. height <input type="number" min="1" name="maxHeight" placeholder="any"></label>
+					<label>Format
+						<select name="format">
+							<option value="">Original</option>
+							<option value="png">PNG</option>
+							<option value="jpeg">JPEG</option>
+							<option value="gif">GIF</option>
+						</select>
+					</label>
+					<label class="image-editor-quality">Quality <input type="range" min="10" max="100" step="1" value="85" name="quality"> <span>85</span></label>
+					<span class="image-editor-target">
+						<label><input type="radio" name="target" value="copy" checked> Save as copy</label>
+						<label><input type="radio" name="target" value="replace"> Replace original</label>
+					</span>
 				</div>
 			</div>
-			<div><img id="image-editor" class="orientation-${image.orientation}" src="${imagePath}"></div>
 		`);
 
-		let x,y,w,h;
+		let editor       = dialogText.querySelector('.image-editor');
+		let stage        = editor.querySelector('.image-editor-stage');
+		let canvas       = editor.querySelector('.image-editor-canvas');
+		let img          = canvas.querySelector('img');
+		let box          = canvas.querySelector('.image-editor-crop');
+		let sizeLabel    = editor.querySelector('.image-editor-size');
+		let formatSelect = editor.querySelector('select[name="format"]');
+		let qualityLabel = editor.querySelector('.image-editor-quality');
+		let qualityInput = qualityLabel.querySelector('input');
+		let cropButton   = editor.querySelector('button[data-action="crop"]');
+		let zoomButton   = editor.querySelector('button[data-action="zoom-fit"]');
+		let applyButton  = editor.querySelector('button[data-action="apply-crop"]');
+		let cancelButton = editor.querySelector('button[data-action="cancel-crop"]');
+
+		// rotate is applied before the flips, as on the server
+		let state   = { rotate: 0, flipX: false, flipY: false };
+		let crop    = null;
+		let region  = null;
+		let preview = null;
+
+		// crop mode: dragging draws a selection; otherwise dragging pans
+		let cropMode = false;
+
+		// zoom: factor on the fitted preview, which all selection coordinates refer to
+		let zoom          = 1;
+		let sharpZoom     = 1;
+		let sharpTimer    = null;
+		let previewRequest = 0;
+		let loading        = false;
 
 		let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
 		let saveAndClose     = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 
-		dialogSaveButton.addEventListener('click', (e) => {
-			e.preventDefault();
-			e.stopPropagation();
-			Command.createConvertedImage(image.id, Math.round(w), Math.round(h), null, Math.round(x), Math.round(y), () => {
-				_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
-			});
-		});
+		_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
 
-		saveAndClose.addEventListener('click', (e) => {
-			e.stopPropagation();
-			dialogSaveButton.click();
+		// region: the applied crop, in pixels of the whole rotated and flipped image; crop: the selection, in preview pixels
+		let shown = () => region ?? { x: 0, y: 0, w: preview.fullWidth, h: preview.fullHeight };
 
-			window.setTimeout(() => {
-				_Dialogs.custom.clickDialogCancelButton();
-			}, 500);
-		});
+		let selectionInFullPixels = () => {
+			let s  = shown();
+			let fx = s.w / preview.previewWidth;
+			let fy = s.h / preview.previewHeight;
+			let x  = s.x + Math.round(crop.x * fx);
+			let y  = s.y + Math.round(crop.y * fy);
+			return { x, y, w: Math.max(1, Math.min(Math.round(crop.w * fx), s.x + s.w - x)), h: Math.max(1, Math.min(Math.round(crop.h * fy), s.y + s.h - y)) };
+		};
 
-		dialogText.querySelector('.crop-action').addEventListener('click', () => {
+		let updateSizeLabel = () => {
+			if (!preview) {
+				sizeLabel.textContent = '';
+			} else if (crop) {
+				let c = selectionInFullPixels();
+				sizeLabel.textContent = `Selection: ${c.w} × ${c.h} px`;
+			} else {
+				let s = shown();
+				sizeLabel.textContent = `Image: ${s.w} × ${s.h} px`;
+			}
+		};
 
-			$('#image-editor').cropper({
-				crop: (e) => {
+		let showCrop = () => {
+			box.classList.toggle('hidden', !crop);
+			if (crop) {
+				Object.assign(box.style, { left: `${crop.x * zoom}px`, top: `${crop.y * zoom}px`, width: `${crop.w * zoom}px`, height: `${crop.h * zoom}px` });
+			}
+			editor.classList.toggle('cropping', cropMode);
+			cropButton.classList.toggle('active', cropMode);
+			applyButton.classList.toggle('hidden', !cropMode);
+			cancelButton.classList.toggle('hidden', !cropMode);
+			applyButton.disabled = !crop;
+			updateSizeLabel();
+		};
 
-					x = e.x, y = e.y, w = e.width, h = e.height;
+		let updateFormatOptions = () => {
+			let replace = editor.querySelector('input[name="target"]:checked').value === 'replace';
+			formatSelect.disabled = replace;
+			if (replace) {
+				formatSelect.value = '';
+			}
+			let format = formatSelect.value || originalFormat;
+			qualityLabel.classList.toggle('hidden', format !== 'jpeg');
+		};
 
-					_Helpers.disableElements(false, dialogSaveButton, saveAndClose);
+		let requestPreview = (width, height, callback) => {
+
+			let request = ++previewRequest;
+
+			Command.convertImage(image.id, {
+				preview:       true,
+				previewWidth:  width,
+				previewHeight: height,
+				...state,
+				...(region ? { offsetX: region.x, offsetY: region.y, width: region.w, height: region.h } : {})
+			}, (data) => {
+
+				// a newer request replaces this one
+				if (request === previewRequest) {
+					callback(data);
 				}
 			});
+		};
+
+		// up to 400 % of the real pixels
+		let maxZoom = () => preview ? Math.max(1, 4 * shown().w / preview.previewWidth) : 1;
+
+		// the zoom that fits the stage as it is now: the dialog may have been resized, and a small image is enlarged
+		let fitZoom = () => Math.min(maxZoom(), Math.min((stage.clientWidth - 16) / preview.previewWidth, (stage.clientHeight - 16) / preview.previewHeight));
+		let minZoom = () => Math.min(1, fitZoom());
+
+		let applyZoom = () => {
+			img.style.width  = `${preview.previewWidth * zoom}px`;
+			img.style.height = `${preview.previewHeight * zoom}px`;
+			img.style.imageRendering = (zoom * preview.previewWidth > shown().w) ? 'pixelated' : '';
+			zoomButton.textContent = Math.abs(zoom - fitZoom()) < 0.005 ? 'Fit' : `${Math.round(zoom * preview.previewWidth / shown().w * 100)} %`;
+			showCrop();
+		};
+
+		// once zooming pauses, replace the enlarged preview with one rendered at the zoomed size
+		let scheduleSharpPreview = () => {
+
+			window.clearTimeout(sharpTimer);
+
+			if (zoom <= sharpZoom) {
+				return;
+			}
+
+			sharpTimer = window.setTimeout(() => {
+
+				let wanted = zoom;
+
+				requestPreview(Math.round(preview.previewWidth * wanted), Math.round(preview.previewHeight * wanted), (data) => {
+					img.src   = data.preview;
+					sharpZoom = wanted;
+				});
+
+			}, 300);
+		};
+
+		// zooms to the given factor and keeps the image point under the client position where it is
+		let setZoom = (factor, clientX, clientY) => {
+
+			if (!preview || loading) {
+				return;
+			}
+
+			let next = Math.min(maxZoom(), Math.max(minZoom(), factor));
+			if (next === zoom) {
+				return;
+			}
+
+			let before = canvas.getBoundingClientRect();
+			let px     = (clientX - before.left) / zoom;
+			let py     = (clientY - before.top) / zoom;
+
+			zoom = next;
+			applyZoom();
+
+			let after = canvas.getBoundingClientRect();
+			stage.scrollLeft += after.left + px * zoom - clientX;
+			stage.scrollTop  += after.top + py * zoom - clientY;
+
+			scheduleSharpPreview();
+		};
+
+		let zoomAtCenter = (factor) => {
+			let rect = stage.getBoundingClientRect();
+			setZoom(zoom * factor, rect.left + rect.width / 2, rect.top + rect.height / 2);
+		};
+
+		let loadPreview = () => {
+
+			_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
+			window.clearTimeout(sharpTimer);
+			loading = true;
+
+			requestPreview(Math.max(100, stage.clientWidth - 16), Math.max(100, stage.clientHeight - 16), (data) => {
+
+				preview   = data;
+				crop      = null;
+				zoom      = 1;
+				sharpZoom = 1;
+				loading   = false;
+
+				img.src = data.preview;
+
+				applyZoom();
+				_Helpers.disableElements(false, dialogSaveButton, saveAndClose);
+			});
+		};
+
+		// the applied crop follows the image when it is turned or mirrored
+		let transformRegion = (fn) => {
+			if (region && preview) {
+				region = fn(region, preview.fullWidth, preview.fullHeight);
+			}
+		};
+
+		let rotate = (degrees) => {
+			transformRegion((r, w, h) => degrees > 0 ? { x: h - r.y - r.h, y: r.x, w: r.h, h: r.w } : { x: r.y, y: w - r.x - r.w, w: r.h, h: r.w });
+			// rotating a flipped image equals flipping the other axis of the rotated one
+			state = { rotate: (state.rotate + degrees + 360) % 360, flipX: state.flipY, flipY: state.flipX };
+			loadPreview();
+		};
+
+		let applyCrop = () => {
+			if (crop) {
+				region   = selectionInFullPixels();
+				cropMode = false;
+				loadPreview();
+			}
+		};
+
+		editor.querySelector('.image-editor-toolbar').addEventListener('click', (e) => {
+
+			let action = e.target.closest('button')?.dataset.action;
+
+			switch (action) {
+				case 'rotate-left':  rotate(-90); break;
+				case 'rotate-right': rotate(90);  break;
+				case 'flip-x':       transformRegion((r, w) => ({ ...r, x: w - r.x - r.w })); state.flipX = !state.flipX; loadPreview(); break;
+				case 'flip-y':       transformRegion((r, w, h) => ({ ...r, y: h - r.y - r.h })); state.flipY = !state.flipY; loadPreview(); break;
+				case 'crop':         cropMode = !cropMode; crop = null; showCrop(); break;
+				case 'apply-crop':   applyCrop(); break;
+				case 'cancel-crop':  cropMode = false; crop = null; showCrop(); break;
+				case 'reset':        state = { rotate: 0, flipX: false, flipY: false }; region = null; cropMode = false; loadPreview(); break;
+				case 'zoom-in':      zoomAtCenter(1.25); break;
+				case 'zoom-out':     zoomAtCenter(1 / 1.25); break;
+				case 'zoom-fit':     zoomAtCenter(fitZoom() / zoom); break;
+			}
 		});
+
+		// crop box: drag on the image to select, drag the selection to move it, drag a corner to resize it
+		let drag = null;
+
+		let clampCrop = (c) => {
+			let w = preview.previewWidth;
+			let h = preview.previewHeight;
+			let x = Math.max(0, Math.min(c.x, w - 1));
+			let y = Math.max(0, Math.min(c.y, h - 1));
+			return { x, y, w: Math.max(1, Math.min(c.w, w - x)), h: Math.max(1, Math.min(c.h, h - y)) };
+		};
+
+		// in pixels of the fitted preview, whatever the zoom
+		let pointerPosition = (e) => {
+			let rect = canvas.getBoundingClientRect();
+			return {
+				x: Math.max(0, Math.min(e.clientX - rect.left, rect.width)) / zoom,
+				y: Math.max(0, Math.min(e.clientY - rect.top, rect.height)) / zoom
+			};
+		};
+
+		stage.addEventListener('wheel', (e) => {
+			if (preview) {
+				e.preventDefault();
+				setZoom(zoom * Math.exp(-e.deltaY * 0.002), e.clientX, e.clientY);
+			}
+		}, { passive: false });
+
+		// Enter applies the crop
+		let onKey = (e) => {
+
+			if (!editor.isConnected) {
+				document.removeEventListener('keydown', onKey);
+				return;
+			}
+
+			if (cropMode && e.key === 'Enter' && crop && !e.target.closest('input, select, textarea')) {
+				e.preventDefault();
+				applyCrop();
+			}
+		};
+
+		document.addEventListener('keydown', onKey);
+
+		canvas.addEventListener('pointerdown', (e) => {
+
+			if (!preview || e.button !== 0) {
+				return;
+			}
+
+			e.preventDefault();
+			canvas.setPointerCapture(e.pointerId);
+
+			if (!cropMode) {
+				drag = { mode: 'pan', startX: e.clientX, startY: e.clientY, scrollLeft: stage.scrollLeft, scrollTop: stage.scrollTop };
+				stage.classList.add('panning');
+				return;
+			}
+
+			let p      = pointerPosition(e);
+			let corner = e.target.closest('.image-editor-crop span')?.className;
+
+			if (corner) {
+				// resize: the opposite corner stays where it is
+				let anchorX = corner.includes('w') ? crop.x + crop.w : crop.x;
+				let anchorY = corner.includes('n') ? crop.y + crop.h : crop.y;
+				drag = { mode: 'select', anchorX, anchorY };
+			} else if (e.target.closest('.image-editor-crop')) {
+				drag = { mode: 'move', startX: p.x, startY: p.y, start: { ...crop } };
+			} else {
+				drag = { mode: 'select', anchorX: p.x, anchorY: p.y };
+				crop = { x: p.x, y: p.y, w: 1, h: 1 };
+				showCrop();
+			}
+		});
+
+		canvas.addEventListener('pointermove', (e) => {
+
+			if (!drag) {
+				return;
+			}
+
+			if (drag.mode === 'pan') {
+				stage.scrollLeft = drag.scrollLeft - (e.clientX - drag.startX);
+				stage.scrollTop  = drag.scrollTop - (e.clientY - drag.startY);
+				return;
+			}
+
+			let p = pointerPosition(e);
+
+			if (drag.mode === 'move') {
+				let x = Math.max(0, Math.min(drag.start.x + p.x - drag.startX, preview.previewWidth - drag.start.w));
+				let y = Math.max(0, Math.min(drag.start.y + p.y - drag.startY, preview.previewHeight - drag.start.h));
+				crop = { x, y, w: drag.start.w, h: drag.start.h };
+			} else {
+				crop = clampCrop({ x: Math.min(drag.anchorX, p.x), y: Math.min(drag.anchorY, p.y), w: Math.abs(p.x - drag.anchorX), h: Math.abs(p.y - drag.anchorY) });
+			}
+
+			showCrop();
+		});
+
+		let endDrag = () => {
+			if (drag && crop && (crop.w < 4 || crop.h < 4)) {
+				crop = null;
+				showCrop();
+			}
+			drag = null;
+			stage.classList.remove('panning');
+		};
+
+		canvas.addEventListener('pointerup', endDrag);
+		canvas.addEventListener('pointercancel', endDrag);
+
+		editor.querySelector('.image-editor-options').addEventListener('change', updateFormatOptions);
+		qualityInput.addEventListener('input', () => qualityLabel.querySelector('span').textContent = qualityInput.value);
+
+		let save = async () => {
+
+			let replace = editor.querySelector('input[name="target"]:checked').value === 'replace';
+
+			if (replace && !(await _Dialogs.confirmation.showPromise(`Replace the original image <b>${_Helpers.escapeForHtmlAttributes(image.name)}</b>? This cannot be undone.`))) {
+				return false;
+			}
+
+			let maxWidth  = parseInt(editor.querySelector('input[name="maxWidth"]').value) || null;
+			let maxHeight = parseInt(editor.querySelector('input[name="maxHeight"]').value) || null;
+			let data      = { ...state, maxWidth, maxHeight, replace, format: formatSelect.value || null, quality: qualityInput.value / 100 };
+
+			let cut = crop ? selectionInFullPixels() : region;
+			if (cut) {
+				Object.assign(data, { offsetX: cut.x, offsetY: cut.y, width: cut.w, height: cut.h });
+			}
+
+			_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
+
+			return new Promise((resolve) => {
+
+				Command.convertImage(image.id, data, (result) => {
+
+					new SuccessMessage().text(replace ? `Replaced ${result.name} (${result.width} × ${result.height} px)` : `Saved as ${result.name} (${result.width} × ${result.height} px)`).show();
+
+					if (replace) {
+						// the original is now the edited image, so start over from it
+						state  = { rotate: 0, flipX: false, flipY: false };
+						region = null;
+						loadPreview();
+					} else {
+						_Helpers.disableElements(false, dialogSaveButton, saveAndClose);
+					}
+
+					resolve(true);
+				});
+			});
+		};
+
+		dialogSaveButton.addEventListener('click', async (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			await save();
+		});
+
+		saveAndClose.addEventListener('click', async (e) => {
+			e.stopPropagation();
+			if (await save()) {
+				_Dialogs.custom.clickDialogCancelButton();
+			}
+		});
+
+		updateFormatOptions();
+
+		// the stage needs its final size before the first preview
+		window.requestAnimationFrame(loadPreview);
 	},
 	editFile: (file, hasBeenWarned = false) => {
 
@@ -2628,7 +3036,6 @@ let _Files = {
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/files.css">
-			<link rel="stylesheet" type="text/css" media="screen" href="css/lib/cropper.min.css">
 
 			<div class="tree-main" id="files-main">
 

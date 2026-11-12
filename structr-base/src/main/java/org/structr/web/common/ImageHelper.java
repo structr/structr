@@ -656,18 +656,21 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	/**
-	 * Scales and optionally crops an already decoded, upright image and encodes the result, see the method above.
+	 * Transforms an already decoded, upright image and encodes the result, see the method above.
 	 *
-	 * @param source the decoded image
+	 * The steps run in this order: rotate, flip, cut out the region, scale into the box or by the factor, crop to the box.
+	 *
+	 * @param input the decoded image
 	 * @param options the scale options; options.format is ignored in favour of the format parameter
 	 * @param format the normalized output format: png, jpeg or gif
 	 * @param label a name for the image in error messages
 	 * @return the encoded image, never empty
 	 * @throws FrameworkException 422 if the options are invalid or the result cannot be written
 	 */
-	public static Thumbnail scaleImage(final BufferedImage source, final ScaleOptions options, final String format, final String label) throws FrameworkException {
+	public static Thumbnail scaleImage(final BufferedImage input, final ScaleOptions options, final String format, final String label) throws FrameworkException {
 
-		final int sourceWidth  = source.getWidth();
+		final BufferedImage source = cutRegion(rotateAndFlip(input, normalizeRotation(options.rotate, label), options.flipX, options.flipY), options);
+		final int sourceWidth      = source.getWidth();
 		final int sourceHeight = source.getHeight();
 		final Integer maxWidth  = positiveOrNull(options.maxWidth);
 		final Integer maxHeight = positiveOrNull(options.maxHeight);
@@ -729,11 +732,20 @@ public abstract class ImageHelper extends FileHelper {
 	/**
 	 * Options for scaleImage(), all optional.
 	 *
+	 * rotate turns the image clockwise by 0, 90, 180 or 270 degrees, flipX and flipY mirror it afterwards. The region
+	 * (regionX, regionY, regionWidth, regionHeight, in pixels of the rotated and flipped image) is cut out before scaling.
 	 * maxWidth and maxHeight form the bounding box, scale is a factor used instead of the box. crop cuts the result to the
 	 * box at offsetX/offsetY. format is png, jpeg or gif, quality the JPEG quality between 0.0 and 1.0.
 	 */
 	public static class ScaleOptions {
 
+		public int rotate;
+		public boolean flipX;
+		public boolean flipY;
+		public Integer regionX;
+		public Integer regionY;
+		public Integer regionWidth;
+		public Integer regionHeight;
 		public Integer maxWidth;
 		public Integer maxHeight;
 		public Double scale;
@@ -747,6 +759,138 @@ public abstract class ImageHelper extends FileHelper {
 	public static final float DEFAULT_JPEG_QUALITY = 0.85f;
 
 	/**
+	 * Reads the image and turns it upright according to its EXIF orientation, as the base for scaleImage(BufferedImage, ...).
+	 *
+	 * @param image the image
+	 * @return the upright image as RGB or ARGB
+	 * @throws FrameworkException 422 if the image cannot be read
+	 */
+	public static BufferedImage readUprightImage(final Image image) throws FrameworkException {
+
+		final BufferedImage source = getRotatedImage(image);
+		if (source == null) {
+
+			throw new FrameworkException(422, "Unable to read image '" + image.getName() + "' (" + image.getUuid() + ")");
+		}
+
+		return source;
+	}
+
+	/**
+	 * The rotation as 0, 90, 180 or 270, accepting negative and larger multiples of 90.
+	 *
+	 * @param rotate the rotation in degrees, clockwise
+	 * @param label a name for the image in error messages
+	 * @return the normalized rotation
+	 * @throws FrameworkException 422 if the rotation is not a multiple of 90
+	 */
+	private static int normalizeRotation(final int rotate, final String label) throws FrameworkException {
+
+		if (rotate % 90 != 0) {
+
+			throw new FrameworkException(422, "Invalid rotation " + rotate + " for image " + label + ", must be a multiple of 90");
+		}
+
+		return ((rotate % 360) + 360) % 360;
+	}
+
+	/**
+	 * Rotates the image clockwise by 0, 90, 180 or 270 degrees, then mirrors it, pixel by pixel without interpolation.
+	 *
+	 * @param input the image
+	 * @param rotate the normalized rotation
+	 * @param flipX whether to mirror left and right
+	 * @param flipY whether to mirror top and bottom
+	 * @return the image itself if nothing changes, else a new RGB(A) image
+	 */
+	private static BufferedImage rotateAndFlip(final BufferedImage input, final int rotate, final boolean flipX, final boolean flipY) {
+
+		if (rotate == 0 && !flipX && !flipY) {
+			return input;
+		}
+
+		final BufferedImage src = toRgb(input);
+		final int w             = src.getWidth();
+		final int h             = src.getHeight();
+		final boolean swap      = rotate == 90 || rotate == 270;
+		final int outWidth      = swap ? h : w;
+		final int outHeight     = swap ? w : h;
+		final int[] in          = src.getRGB(0, 0, w, h, null, 0, w);
+		final int[] out         = new int[outWidth * outHeight];
+
+		for (int y = 0; y < outHeight; y++) {
+
+			for (int x = 0; x < outWidth; x++) {
+
+				// position in the rotated image before mirroring
+				final int rx = flipX ? outWidth - 1 - x : x;
+				final int ry = flipY ? outHeight - 1 - y : y;
+
+				final int sx;
+				final int sy;
+
+				switch (rotate) {
+					case 90  -> { sx = ry;         sy = h - 1 - rx; }
+					case 180 -> { sx = w - 1 - rx; sy = h - 1 - ry; }
+					case 270 -> { sx = w - 1 - ry; sy = rx; }
+					default  -> { sx = rx;         sy = ry; }
+				}
+
+				out[y * outWidth + x] = in[sy * w + sx];
+			}
+		}
+
+		final BufferedImage result = new BufferedImage(outWidth, outHeight, src.getType());
+
+		result.setRGB(0, 0, outWidth, outHeight, out, 0, outWidth);
+
+		return result;
+	}
+
+	/**
+	 * Cuts the region of the options out of the image, clamped to the image; the image itself if no region is set.
+	 *
+	 * @param image the image
+	 * @param options the options with regionX, regionY, regionWidth and regionHeight
+	 * @return the region
+	 */
+	private static BufferedImage cutRegion(final BufferedImage image, final ScaleOptions options) {
+
+		final Integer width  = positiveOrNull(options.regionWidth);
+		final Integer height = positiveOrNull(options.regionHeight);
+
+		if (width == null || height == null) {
+			return image;
+		}
+
+		final int x = clamp(options.regionX != null ? options.regionX : 0, 0, image.getWidth() - 1);
+		final int y = clamp(options.regionY != null ? options.regionY : 0, 0, image.getHeight() - 1);
+
+		return image.getSubimage(x, y, Math.min(width, image.getWidth() - x), Math.min(height, image.getHeight() - y));
+	}
+
+	/**
+	 * A file name for a variant of the given image: the base name, the dimensions and the extension of the format,
+	 * e.g. photo_1024x683.jpg.
+	 *
+	 * @param originalName the name of the original image
+	 * @param width the width of the variant
+	 * @param height the height of the variant
+	 * @param format the format of the variant
+	 * @return the file name
+	 */
+	public static String getVariantFileName(final String originalName, final int width, final int height, final Thumbnail.Format format) {
+
+		final String extension = switch (format) {
+			case jpg, jpeg -> "jpg";
+			case gif       -> "gif";
+			default        -> "png";
+		};
+
+		return org.apache.commons.io.FilenameUtils.getBaseName(originalName) + "_" + width + "x" + height + "." + extension;
+	}
+
+	/**
 	 * The output format: the requested one, else the original's format if it can be written, else png.
 	 *
 	 * @param requested the requested format, may be null
@@ -755,7 +899,7 @@ public abstract class ImageHelper extends FileHelper {
 	 * @return the normalized format: png, jpeg or gif
 	 * @throws FrameworkException 422 if the requested format is not supported
 	 */
-	private static String resolveFormat(final String requested, final Image originalImage, final String label) throws FrameworkException {
+	public static String resolveFormat(final String requested, final Image originalImage, final String label) throws FrameworkException {
 
 		if (requested != null) {
 
@@ -779,7 +923,7 @@ public abstract class ImageHelper extends FileHelper {
 	 * @param format a format name, case insensitive, may be null
 	 * @return the normalized name, or null if the format cannot be written
 	 */
-	private static String normalizeFormat(final String format) {
+	public static String normalizeFormat(final String format) {
 
 		if (format == null) {
 			return null;

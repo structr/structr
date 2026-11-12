@@ -139,7 +139,6 @@
 
 	--structr-green:                   #84ba39;
 	--config-structr-green:            #81ce25;
-	--cropper-outline:                 color-mix(in srgb, var(--config-structr-green), transparent 25%);
 	--structr-light-green:             #b5e27f;
 	--structr-light-green-2:           #c5ff69;
 	--structr-light-green-transparent: rgba(114,177,26,.15);
@@ -3007,53 +3006,131 @@ table.dataTable thead th, table.dataTable thead td {
 /**
  * Image Editor
  */
-.image-editor-menubar {
-	background-color: var(--medium-light-gray-e0);
-	height: 48px;
-	padding: 2px;
+.image-editor {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	height: 100%;
 }
 
-.image-editor-menubar > div {
-	display: inline-block;
-	width: 48px;
-	text-align: center;
-}
-.image-editor-menubar i, .image-editor-menubar svg {
-	margin-right: 2px;
-	padding: 8px;
-	color: var(--gray-333);
-	background-color: var(--gray-ccc);
+.image-editor-toolbar, .image-editor-options {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem 1rem;
 }
 
-.image-editor-menubar i:hover, .image-editor-menubar svg:hover {
-	cursor: pointer;
-	color: var(--gray-666);
-	background-color: var(--gray-ddd);
+.image-editor-options {
+	gap: 0.75rem 2rem;
+	padding: 0 0.25rem 0.5rem;
 }
 
-img#image-editor {
-	max-width: 100%;
+.image-editor-options label {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin: 0;
+	white-space: nowrap;
 }
 
-img#image-editor.orientation-3 {
-	transform: rotate(-90deg);
+.image-editor-options .image-editor-target {
+	display: inline-flex;
+	align-items: center;
+	gap: 1.25rem;
 }
 
-img#image-editor.orientation-6 {
-	transform: rotate(90deg);
+.image-editor-options input, .image-editor-options select {
+	margin: 0;
 }
 
-img#image-editor.orientation-8 {
-	transform: rotate(180deg);
+.image-editor-quality span {
+	min-width: 2.5ch;
+	text-align: right;
 }
 
-.cropper-line, .cropper-point {
-	background-color: var(--cta-hover) ! important;
+.image-editor-stage {
+	flex: 1 1 0;
+	min-height: 200px;
+	display: flex;
+	background-image: linear-gradient(45deg, #e5e7eb 25%, transparent 25%), linear-gradient(-45deg, #e5e7eb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e5e7eb 75%), linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
+	background-size: 16px 16px;
+	background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+	background-attachment: local;
+	overflow: auto;
 }
 
-.cropper-view-box {
-	outline: 1px solid var(--cta-hover) ! important;
-	outline-color: var(--cropper-outline) ! important;
+.image-editor.cropping .image-editor-canvas {
+	cursor: crosshair;
+}
+
+.image-editor-stage.panning .image-editor-canvas {
+	cursor: grabbing;
+}
+
+.image-editor-toolbar {
+	gap: 0.5rem 1.5rem;
+}
+
+.image-editor-group {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+}
+
+.image-editor-toolbar button {
+	margin: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.image-editor-toolbar button.active {
+	background-color: var(--gray-eee);
+	border-color: var(--structr-green);
+}
+
+.image-editor-zoom {
+	min-width: 4.5rem;
+}
+
+.image-editor-canvas {
+	position: relative;
+	flex-shrink: 0;
+	margin: auto;
+	overflow: hidden;
+	cursor: grab;
+	touch-action: none;
+	user-select: none;
+}
+
+.image-editor-canvas img {
+	display: block;
+	pointer-events: none;
+}
+
+.image-editor-crop {
+	position: absolute;
+	border: 1px dashed #fff;
+	outline: 1px dashed #000;
+	box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+	cursor: move;
+}
+
+.image-editor-crop span {
+	position: absolute;
+	width: 10px;
+	height: 10px;
+	background: #fff;
+	border: 1px solid #000;
+}
+
+.image-editor-crop .nw { left: -6px;  top: -6px;    cursor: nwse-resize; }
+.image-editor-crop .ne { right: -6px; top: -6px;    cursor: nesw-resize; }
+.image-editor-crop .sw { left: -6px;  bottom: -6px; cursor: nesw-resize; }
+.image-editor-crop .se { right: -6px; bottom: -6px; cursor: nwse-resize; }
+
+.image-editor-options input[type="number"] {
+	width: 6rem;
 }
 
 /**

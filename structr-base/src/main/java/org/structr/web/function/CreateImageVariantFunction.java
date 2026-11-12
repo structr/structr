@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-import org.apache.commons.io.FilenameUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
@@ -75,6 +74,9 @@ public class CreateImageVariantFunction extends UiAdvancedFunction {
 		options.offsetY   = toInteger(config.get("offsetY"));
 		options.format    = config.get("format") != null ? config.get("format").toString() : null;
 		options.quality   = config.get("quality") != null ? toDouble(config.get("quality")).floatValue() : null;
+		options.rotate    = config.get("rotate") != null ? toInteger(config.get("rotate")) : 0;
+		options.flipX     = toBoolean(config.get("flipX"));
+		options.flipY     = toBoolean(config.get("flipY"));
 
 		final Thumbnail result = ImageHelper.scaleImage(original, options, false);
 		final Object parent    = config.get("parent");
@@ -132,6 +134,8 @@ public class CreateImageVariantFunction extends UiAdvancedFunction {
 		| offsetX, offsetY | With `crop`, the top left corner of the cut-out in pixels of the scaled image. Default: centered. With `scale: 1` and `crop: true`, this cuts a region out of the unscaled original. |
 		| format | `png`, `jpeg` or `gif`. Default: the format of the original if it can be written, else `png`. Transparent areas become white in JPEG. |
 		| quality | JPEG quality between `0.0` and `1.0`. Default: `0.85`. |
+		| rotate | Clockwise rotation in degrees: `90`, `180` or `270` (negative values turn counter-clockwise). Applied before scaling, so the box and offsets refer to the rotated image. |
+		| flipX, flipY | `true` mirrors the image left to right or top to bottom, after the rotation. |
 		| name | File name of the variant. Default: the name of the original with the dimensions, e.g. `photo_1024x768.jpg`. |
 		| parent | Folder of the variant. Default: the folder of the original. |
 
@@ -220,14 +224,7 @@ public class CreateImageVariantFunction extends UiAdvancedFunction {
 
 	private String getDefaultName(final Image original, final Thumbnail result) {
 
-		final String baseName  = FilenameUtils.getBaseName(original.getName());
-		final String extension = switch (result.getFormat()) {
-			case jpg, jpeg -> "jpg";
-			case gif       -> "gif";
-			default        -> "png";
-		};
-
-		return baseName + "_" + result.getWidth() + "x" + result.getHeight() + "." + extension;
+		return ImageHelper.getVariantFileName(original.getName(), result.getWidth(), result.getHeight(), result.getFormat());
 	}
 
 	private Integer toInteger(final Object value) throws FrameworkException {

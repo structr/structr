@@ -212,7 +212,9 @@ The options are `maxWidth` and `maxHeight` (bounding box), `scale` (a factor ins
 
 #### Image Editing
 
-Images can be cropped directly in the editor. The cropped image is saved as a new image next to the original, in the original's format. This is currently the only image editing function available – other transformations like rotation or filters are not supported.
+The image editor in the Files area rotates an image in 90 degree steps, flips it horizontally or vertically and crops it to a selection drawn on the image. It can also limit the size of the result with a maximum width and height, and convert it to PNG, JPEG (with a quality setting) or GIF.
+
+The result is saved as a new image next to the original, named after the original and its new dimensions, or it replaces the original. A replaced original keeps its name and format, and its thumbnails are recreated. All transformations run on the server, the editor shows a preview rendered by the server, so the preview matches the result, including the EXIF orientation of photos. Filters such as brightness or contrast are not supported.
 
 #### Supported Formats and Transformations
 
@@ -223,6 +225,7 @@ Images can be cropped directly in the editor. The cropped image is saved as a ne
 **Transformations:**
 - Scaling to a bounding box or by a factor: `Thumbnail` properties and `createImageVariant()`
 - Cropping: `crop` option of both, and the image editor
+- Rotation in 90 degree steps and flipping: `createImageVariant()` with `rotate`, `flipX` and `flipY`, and the image editor
 - Format conversion between the writable formats: `createImageVariant()` with the `format` option
 
 ### Video Processing

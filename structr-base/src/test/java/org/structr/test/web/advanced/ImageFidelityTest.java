@@ -356,6 +356,84 @@ public class ImageFidelityTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testRotateAndFlip() throws Exception {
+
+		final BufferedImage upright = pattern(W, H);
+		final Image image           = store("pattern.png", encode(upright, "png"));
+
+		try (final Tx tx = app.tx()) {
+
+			for (final int rotate : new int[] { 0, 90, 180, 270, -90 }) {
+
+				for (final boolean flipX : new boolean[] { false, true }) {
+
+					for (final boolean flipY : new boolean[] { false, true }) {
+
+						final ScaleOptions options = options(null, null, null, "png");
+
+						options.rotate = rotate;
+						options.flipX  = flipX;
+						options.flipY  = flipY;
+
+						// rotation in EXIF terms: 6 is 90 degrees clockwise, 3 is 180, 8 is 270; 2 mirrors left to right, 4 top to bottom
+						final int normalized   = ((rotate % 360) + 360) % 360;
+						BufferedImage expected = transform(upright, normalized == 90 ? 6 : normalized == 180 ? 3 : normalized == 270 ? 8 : 1);
+
+						if (flipX) expected = transform(expected, 2);
+						if (flipY) expected = transform(expected, 4);
+
+						final String label         = "rotate " + rotate + (flipX ? " flipX" : "") + (flipY ? " flipY" : "");
+						final BufferedImage result = scale(image, options);
+
+						assertSize(result, expected.getWidth(), expected.getHeight());
+						assertSimilar(label, expected, result, 0.0);
+					}
+				}
+			}
+
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testRegionOfRotatedImage() throws Exception {
+
+		final Image image = store("pattern.png", encode(pattern(W, H), "png"));
+
+		try (final Tx tx = app.tx()) {
+
+			// rotated 90 degrees clockwise, the 200 x 400 image has the gradient on the left, then blue over yellow, then red over green on the right
+			final ScaleOptions options = options(null, null, null, "png");
+
+			options.rotate       = 90;
+			options.regionX      = 140;
+			options.regionY      = 20;
+			options.regionWidth  = 50;
+			options.regionHeight = 60;
+
+			final BufferedImage red = scale(image, options);
+
+			assertSize(red, 50, 60);
+			assertSolid("region of rotated image", red, RED, LOSSLESS);
+
+			// the region is cut out before scaling, so a box then scales the region, not the whole image
+			options.regionX      = 45;
+			options.regionY      = 250;
+			options.regionWidth  = 70;
+			options.regionHeight = 70;
+			options.maxWidth     = 20;
+			options.maxHeight    = 20;
+
+			final BufferedImage yellow = scale(image, options);
+
+			assertSize(yellow, 20, 20);
+			assertSolid("scaled region of rotated image", yellow, YELLOW, LOSSLESS);
+
+			tx.success();
+		}
+	}
+
+	@Test
 	public void testCmykJpeg() throws Exception {
 
 		final byte[] cmyk = encodeCmykJpeg(pattern(W, H));
