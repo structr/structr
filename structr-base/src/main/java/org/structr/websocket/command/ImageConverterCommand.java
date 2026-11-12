@@ -64,7 +64,7 @@ public class ImageConverterCommand extends AbstractCommand {
 					final String thumbnailName = ImageHelper.getVariantName(originalImage.getName(), tnWidth, tnHeight, "_cropped_");
 
 					// create image variant
-					final NodeInterface imageVariant = ImageHelper.createImageNode(originalImage.getSecurityContext(), data, "image/" + Thumbnail.Format.png, StructrTraits.IMAGE, thumbnailName, false);
+					final NodeInterface imageVariant = ImageHelper.createImageNode(originalImage.getSecurityContext(), data, thumbnailData.getContentType(), StructrTraits.IMAGE, thumbnailName, false);
 
 					// store in same parent folder
 					imageVariant.as(Image.class).setParent(originalImage.getParent());

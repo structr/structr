@@ -593,6 +593,7 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new UnarchiveFunction());
 		Functions.put(licenseManager, new MaintenanceFunction());
 		Functions.put(licenseManager, new BarcodeFunction());
+		Functions.put(licenseManager, new CreateImageVariantFunction());
 		Functions.put(licenseManager, new JobInfoFunction());
 		Functions.put(licenseManager, new JobListFunction());
 		Functions.put(licenseManager, new CreateAccessTokenFunction());

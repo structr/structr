@@ -35,6 +35,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.PathHelper;
@@ -56,8 +57,12 @@ import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.structr.web.traits.relationships.ImageTHUMBNAILImage;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.ImageOutputStream;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -66,6 +71,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 public abstract class ImageHelper extends FileHelper {
@@ -420,171 +426,290 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final String formatString, final boolean crop, final Integer reqOffsetX, final Integer reqOffsetY) {
 
-		final Thumbnail.Format format    = Thumbnail.defaultFormat;
-		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		final Thumbnail tn               = new Thumbnail();
+		final ScaleOptions options = new ScaleOptions();
+
+		options.maxWidth  = maxWidth;
+		options.maxHeight = maxHeight;
+		options.crop      = crop;
+		options.offsetX   = reqOffsetX;
+		options.offsetY   = reqOffsetY;
+		options.format    = formatString != null ? formatString : ("original".equals(Settings.ThumbnailFormat.getValue()) ? null : Thumbnail.defaultFormat.name());
 
 		try {
 
-			final long start = System.nanoTime();
-			BufferedImage source = getRotatedImage(originalImage);
-
-			if (source != null) {
-
-				final int sourceWidth  = source.getWidth();
-				final int sourceHeight = source.getHeight();
-
-				// Update image dimensions
-				final PropertyMap properties = new PropertyMap();
-				final Traits traits          = Traits.of(StructrTraits.IMAGE);
-
-				properties.put(traits.key(ImageTraitDefinition.WIDTH_PROPERTY), sourceWidth);
-				properties.put(traits.key(ImageTraitDefinition.HEIGHT_PROPERTY), sourceHeight);
-
-				originalImage.setProperties(originalImage.getSecurityContext(), properties);
-
-				// float aspectRatio = sourceWidth/sourceHeight;
-				final float scale = getScaleRatio(sourceWidth, sourceHeight, maxWidth, maxHeight, crop);
-
-				// Don't scale up
-				if (scale > 1.0) {
-
-					final int destWidth  = getThumbnailWidth(sourceWidth, scale);
-					final int destHeight = getThumbnailHeight(sourceHeight, scale);
-
-					if (crop) {
-
-						final int offsetX = reqOffsetX != null ? reqOffsetX : Math.abs(maxWidth - destWidth) / 2;
-						final int offsetY = reqOffsetY != null ? reqOffsetY : Math.abs(maxHeight - destHeight) / 2;
-						final Integer[] dims = finalImageDimensions(offsetX, offsetY, maxWidth, maxHeight, sourceWidth, sourceHeight);
-
-						logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", dims[0], dims[1], dims[2], dims[3]);
-
-						scaleAndWrite(source, dims[2], dims[3], baos, format.name());
-
-						tn.setWidth(dims[2]);
-						tn.setHeight(dims[3]);
-
-					} else {
-
-						scaleAndWrite(source, destWidth, destHeight, baos, format.name());
-
-						tn.setWidth(destWidth);
-						tn.setHeight(destHeight);
-
-					}
-
-				} else {
-
-					scaleAndWrite(source, sourceWidth, sourceHeight, baos, format.name());
-
-					tn.setWidth(sourceWidth);
-					tn.setHeight(sourceHeight);
-				}
-
-			} else {
-
-				logger.debug("Thumbnail could not be created");
-
-				return null;
-
-			}
-
-			final long end  = System.nanoTime();
-			final long time = (end - start) / 1000000;
+			final long start   = System.nanoTime();
+			final Thumbnail tn = scaleImage(originalImage, options, true);
+			final long time    = (System.nanoTime() - start) / 1000000;
 
 			logger.info("Thumbnail ({}, {}, {}) created for image {} ({}). Reading, scaling and writing took {} ms", maxWidth, maxHeight, crop, originalImage.getName(), originalImage.getUuid(), time);
 
-			tn.setBytes(baos.toByteArray());
-
 			return tn;
 
 		} catch (Throwable t) {
 
-			logger.warn("Unable to create thumbnail for image with ID {}.", originalImage.getUuid(), t);
+			logger.warn("Unable to create thumbnail for image with ID {}: {}", originalImage.getUuid(), t.getMessage());
 		}
 
 		return null;
 	}
 
-	public static Thumbnail createCroppedImage(final Image originalImage, final int maxWidth, final int maxHeight, final Integer reqOffsetX, final Integer reqOffsetY, final String formatString) {
+	/** Cuts the given region (in pixels of the upright original) out of the image without scaling it. */
+	public static Thumbnail createCroppedImage(final Image originalImage, final int width, final int height, final Integer offsetX, final Integer offsetY, final String formatString) {
 
-		Thumbnail tn;
+		final ScaleOptions options = new ScaleOptions();
 
-		try (final InputStream in = originalImage.getInputStream()) {
+		options.maxWidth  = width;
+		options.maxHeight = height;
+		options.scale     = 1.0;
+		options.crop      = true;
+		options.offsetX   = offsetX != null ? offsetX : 0;
+		options.offsetY   = offsetY != null ? offsetY : 0;
+		options.format    = formatString;
 
-			if (in == null || in.available() <= 0) {
+		try {
 
-				logger.debug("InputStream of original image {} ({}) is null or not available ({} bytes)", originalImage.getName(), originalImage.getUuid(), in != null ? in.available() : -1);
-
-				return null;
-			}
-
-			final long start = System.nanoTime();
-			final BufferedImage source = getRotatedImage(originalImage);
-
-			tn = createThumbnailFromBufferedImage(source, originalImage, reqOffsetX, reqOffsetX, maxWidth, maxHeight, formatString);
-
-			final long end  = System.nanoTime();
-			final long time = (end - start) / 1000000;
-
-			logger.debug("Cropped image created. Reading, scaling and writing took {} ms", time);
-
-			return tn;
+			return scaleImage(originalImage, options, true);
 
 		} catch (Throwable t) {
 
-			logger.warn("Unable to create cropped image for image with ID {}.", originalImage.getUuid(), t);
+			logger.warn("Unable to create cropped image for image with ID {}: {}", originalImage.getUuid(), t.getMessage());
 		}
 
 		return null;
 	}
 
-	private static Thumbnail createThumbnailFromBufferedImage(final BufferedImage source, final Image originalImage, final Integer reqOffsetX, final Integer reqOffsetY, final Integer maxWidth, final Integer maxHeight, final String formatString) throws FrameworkException {
+	/**
+	 * Scales and optionally crops the given image and encodes the result.
+	 *
+	 * The size comes from scale (a factor) or from the bounding box maxWidth x maxHeight; neither scales up. With crop, the image is
+	 * scaled to cover the box and the box is cut out at offsetX/offsetY (in pixels of the scaled image, centered by default).
+	 * The format defaults to the original's format if it can be written, else PNG; quality applies to JPEG only.
+	 *
+	 * @param originalImage the image to scale
+	 * @param options the scale options
+	 * @param updateDimensions whether to store the width and height of the original on the original image node
+	 * @return the encoded image, never empty
+	 * @throws FrameworkException 422 if the image cannot be read or the result cannot be written
+	 */
+	public static Thumbnail scaleImage(final Image originalImage, final ScaleOptions options, final boolean updateDimensions) throws FrameworkException {
 
-		final String imageFormatString = getImageFormatString(originalImage);
-		final Thumbnail.Format format = formatString != null ? Thumbnail.Format.valueOf(formatString) : (imageFormatString != null ? Thumbnail.Format.valueOf(imageFormatString) : Thumbnail.defaultFormat);
-		final Thumbnail tn = new Thumbnail();
-		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		final String label   = "'" + originalImage.getName() + "' (" + originalImage.getUuid() + ")";
+		final String format  = resolveFormat(options.format, originalImage, label);
+		BufferedImage source = getRotatedImage(originalImage);
 
-		if (source != null) {
+		if (source == null) {
 
-			final int sourceWidth  = source.getWidth();
-			final int sourceHeight = source.getHeight();
+			throw new FrameworkException(422, "Unable to read image " + label);
+		}
 
-			// Update image dimensions
+		if (updateDimensions) {
+
 			final PropertyMap properties = new PropertyMap();
 			final Traits traits          = Traits.of(StructrTraits.IMAGE);
 
-			properties.put(traits.key(ImageTraitDefinition.WIDTH_PROPERTY), sourceWidth);
-			properties.put(traits.key(ImageTraitDefinition.HEIGHT_PROPERTY), sourceHeight);
+			properties.put(traits.key(ImageTraitDefinition.WIDTH_PROPERTY),  source.getWidth());
+			properties.put(traits.key(ImageTraitDefinition.HEIGHT_PROPERTY), source.getHeight());
 
-			if (originalImage != null) {
-
-				originalImage.setProperties(originalImage.getSecurityContext(), properties);
-			}
-
-			final int offsetX = reqOffsetX != null ? reqOffsetX : 0;
-			final int offsetY = reqOffsetY != null ? reqOffsetY : 0;
-			final Integer[] dims = finalImageDimensions(offsetX, offsetY, maxWidth, maxHeight, sourceWidth, sourceHeight);
-
-			logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", dims[0], dims[1], dims[2], dims[3]);
-
-			scaleAndWrite(source, dims[2], dims[3], baos, format.name());
-
-			tn.setWidth(dims[2]);
-			tn.setHeight(dims[3]);
-
-			tn.setBytes(baos.toByteArray());
-
-			return tn;
-
-		} else {
-
-			logger.warn("Cropped image could not be created for '{}'", originalImage.getPath());
+			originalImage.setProperties(originalImage.getSecurityContext(), properties);
 		}
 
-		return null;
+		return scaleImage(source, options, format, label);
+	}
+
+	public static Thumbnail scaleImage(final BufferedImage source, final ScaleOptions options, final String format, final String label) throws FrameworkException {
+
+		final int sourceWidth  = source.getWidth();
+		final int sourceHeight = source.getHeight();
+		final Integer maxWidth  = positiveOrNull(options.maxWidth);
+		final Integer maxHeight = positiveOrNull(options.maxHeight);
+		int width              = sourceWidth;
+		int height             = sourceHeight;
+
+		if (options.scale != null) {
+
+			if (options.scale <= 0) {
+
+				throw new FrameworkException(422, "Invalid scale " + options.scale + " for image " + label);
+			}
+
+			final double factor = Math.min(options.scale, 1.0);
+
+			width  = Math.max(1, (int)Math.round(sourceWidth * factor));
+			height = Math.max(1, (int)Math.round(sourceHeight * factor));
+
+		} else if (maxWidth != null || maxHeight != null) {
+
+			// same ratio and rounding as before, so existing thumbnails keep their names
+			final float ratioX = maxWidth  != null ? 1.0f * sourceWidth  / maxWidth  : 0;
+			final float ratioY = maxHeight != null ? 1.0f * sourceHeight / maxHeight : 0;
+			final float ratio  = (maxWidth == null) ? ratioY : (maxHeight == null) ? ratioX : (options.crop ? Math.min(ratioX, ratioY) : Math.max(ratioX, ratioY));
+
+			if (ratio > 1.0f) {
+
+				width  = getThumbnailWidth(sourceWidth, ratio);
+				height = getThumbnailHeight(sourceHeight, ratio);
+			}
+		}
+
+		final boolean alpha  = !"jpeg".equals(format);
+		BufferedImage result = resize(source, width, height, alpha);
+
+		if (options.crop) {
+
+			final int cropWidth  = maxWidth  != null ? Math.min(maxWidth, width)   : width;
+			final int cropHeight = maxHeight != null ? Math.min(maxHeight, height) : height;
+			final int offsetX    = clamp(options.offsetX != null ? options.offsetX : (width - cropWidth) / 2, 0, width - cropWidth);
+			final int offsetY    = clamp(options.offsetY != null ? options.offsetY : (height - cropHeight) / 2, 0, height - cropHeight);
+
+			result = result.getSubimage(offsetX, offsetY, cropWidth, cropHeight);
+		}
+
+		final byte[] bytes = encode(result, format, options.quality);
+		if (bytes == null || bytes.length == 0) {
+
+			throw new FrameworkException(422, "Unable to write image " + label + " as " + format);
+		}
+
+		final Thumbnail tn = new Thumbnail(bytes, result.getWidth(), result.getHeight());
+
+		tn.setFormat(Thumbnail.Format.valueOf(format));
+
+		return tn;
+	}
+
+	/** Options for scaleImage(), all optional. */
+	public static class ScaleOptions {
+
+		public Integer maxWidth;
+		public Integer maxHeight;
+		public Double scale;
+		public boolean crop;
+		public Integer offsetX;
+		public Integer offsetY;
+		public String format;
+		public Float quality;
+	}
+
+	public static final float DEFAULT_JPEG_QUALITY = 0.85f;
+
+	private static String resolveFormat(final String requested, final Image originalImage, final String label) throws FrameworkException {
+
+		if (requested != null) {
+
+			final String format = normalizeFormat(requested);
+			if (format == null) {
+
+				throw new FrameworkException(422, "Unsupported image format '" + requested + "' for image " + label + ", supported are png, jpeg and gif");
+			}
+
+			return format;
+		}
+
+		final String original = normalizeFormat(getImageFormatString(originalImage));
+
+		return original != null ? original : Thumbnail.defaultFormat.name();
+	}
+
+	private static String normalizeFormat(final String format) {
+
+		if (format == null) {
+			return null;
+		}
+
+		return switch (format.trim().toLowerCase()) {
+			case "png"         -> "png";
+			case "jpg", "jpeg" -> "jpeg";
+			case "gif"         -> "gif";
+			default            -> null;
+		};
+	}
+
+	private static Integer positiveOrNull(final Integer value) {
+
+		return (value != null && value > 0) ? value : null;
+	}
+
+	private static int clamp(final int value, final int min, final int max) {
+
+		return Math.max(min, Math.min(max, value));
+	}
+
+	/** Bicubic resize, halving step by step for strong downscaling; without alpha, transparent pixels become white. */
+	private static BufferedImage resize(final BufferedImage source, final int width, final int height, final boolean alpha) {
+
+		final int type        = alpha ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
+		BufferedImage current = source;
+		int currentWidth      = source.getWidth();
+		int currentHeight     = source.getHeight();
+
+		do {
+
+			currentWidth  = (currentWidth  > width  * 2) ? currentWidth  / 2 : width;
+			currentHeight = (currentHeight > height * 2) ? currentHeight / 2 : height;
+
+			final BufferedImage next = new BufferedImage(currentWidth, currentHeight, type);
+			final Graphics2D g       = next.createGraphics();
+
+			if (!alpha) {
+
+				g.setColor(Color.WHITE);
+				g.fillRect(0, 0, currentWidth, currentHeight);
+			}
+
+			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+			g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g.drawImage(current, 0, 0, currentWidth, currentHeight, null);
+			g.dispose();
+
+			current = next;
+
+		} while (currentWidth != width || currentHeight != height);
+
+		return current;
+	}
+
+	private static byte[] encode(final BufferedImage image, final String format, final Float quality) throws FrameworkException {
+
+		final Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(format);
+		if (!writers.hasNext()) {
+
+			return null;
+		}
+
+		final ImageWriter writer               = writers.next();
+		final java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+
+		try (final ImageOutputStream ios = ImageIO.createImageOutputStream(out)) {
+
+			final ImageWriteParam param = writer.getDefaultWriteParam();
+
+			if ("jpeg".equals(format)) {
+
+				final float q = quality != null ? quality : DEFAULT_JPEG_QUALITY;
+				if (q < 0.0f || q > 1.0f) {
+
+					throw new FrameworkException(422, "Invalid quality " + q + ", must be between 0.0 and 1.0");
+				}
+
+				param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+				param.setCompressionQuality(q);
+			}
+
+			writer.setOutput(ios);
+			writer.write(null, new IIOImage(image, null, null), param);
+
+		} catch (IOException ex) {
+
+			logger.warn("Unable to write image as {}: {}", format, ex.getMessage());
+			return null;
+
+		} finally {
+
+			writer.dispose();
+		}
+
+		return out.toByteArray();
 	}
 
 	private static BufferedImage getRotatedImage(final File originalImage) {
@@ -1059,27 +1184,6 @@ public abstract class ImageHelper extends FileHelper {
 		return getVariantName(originalImageName, tnWidth, tnHeight, "_thumb_");
 	}
 
-	private static void scaleAndWrite(final BufferedImage image, final int width, final int height, final OutputStream out, final String format) {
-
-		try {
-
-			final java.awt.Image scaled = image.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
-			final BufferedImage img     = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
-			img.getGraphics().drawImage(scaled, 0, 0, width, height, null);
-
-			scaled.flush();
-			img.flush();
-
-			ImageIO.write(img, format, out);
-
-		} catch (Throwable t) {
-
-			logger.warn("Unable to create thumbnail of source image", t);
-		}
-
-	}
-
 	public static class Base64URIData {
 
 		private final String contentType;
@@ -1189,6 +1293,13 @@ public abstract class ImageHelper extends FileHelper {
 		public void setFormat(final Format format) {
 
 			this.format = format;
+		}
+
+		public String getContentType() {
+
+			final Format f = format != null ? format : defaultFormat;
+
+			return "image/" + (f == Format.jpg ? "jpeg" : f.name());
 		}
 	}
 }

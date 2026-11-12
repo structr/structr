@@ -188,25 +188,42 @@ For images, Structr automatically reads and stores:
 
 #### Automatic Thumbnails
 
-Every image automatically gets two thumbnails that are:
+Every image has two thumbnail properties, `tnSmall` (100 x 100 pixels) and `tnMid` (300 x 300 pixels). The thumbnails are:
 
-- Generated on first access (not at upload time)
+- Created asynchronously on first access, not at upload time: the first read returns `null`, a later read returns the thumbnail
 - Stored in a hidden folder `._structr_thumbnails`
-- Linked to the original image via a thumbnail relationship in the database
+- Linked to the original image via a thumbnail relationship in the database, and recreated when the original changes
+- Written as PNG by default. With `application.thumbnails.format = original`, they keep the format of the original, so a JPEG photo gets a JPEG thumbnail
+
+For other sizes, add a property of type `Thumbnail` to a type that extends Image, for example `tnLarge` with the format `2048, 2048, false` (maximum width, maximum height, crop to fit). It behaves like the built-in thumbnails.
+
+#### Image Variants
+
+To create a scaled, cropped or re-encoded copy of an image right away, use the `createImageVariant()` function. Unlike a thumbnail, the variant is created synchronously in the current transaction and is an ordinary, standalone image: you name it, place it in a folder and set its visibility, and Structr never recreates or deletes it.
+
+```javascript
+// downloads in three sizes, longest edge 1024, 2048 and 3840 pixels, as JPEG
+for (const edge of [1024, 2048, 3840]) {
+    $.createImageVariant(image, { maxWidth: edge, maxHeight: edge, format: 'jpeg', quality: 0.8 });
+}
+```
+
+The options are `maxWidth` and `maxHeight` (bounding box), `scale` (a factor instead of a box), `crop` with `offsetX` and `offsetY`, `format` (`png`, `jpeg` or `gif`), `quality` (JPEG, `0.0` to `1.0`, default `0.85`), `name` and `parent`. A variant is never larger than the original, the EXIF orientation is applied, and no metadata is written to it.
 
 #### Image Editing
 
-Images can be cropped directly in the editor. This is currently the only image editing function available – other transformations like rotation or filters are not supported.
+Images can be cropped directly in the editor. The cropped image is saved as a new image next to the original, in the original's format. This is currently the only image editing function available – other transformations like rotation or filters are not supported.
 
 #### Supported Formats and Transformations
 
-**Supported formats:** JPEG, PNG, GIF, WebP, TIFF
+**Readable formats:** JPEG, PNG, GIF, WebP, TIFF
+
+**Writable formats** (thumbnails, variants, cropped images): JPEG, PNG, GIF. Images in other formats are written as PNG.
 
 **Transformations:**
-- Scaling to specific dimensions
-- Cropping to aspect ratios
-- Format conversion between supported types
-- Thumbnail generation
+- Scaling to a bounding box or by a factor: `Thumbnail` properties and `createImageVariant()`
+- Cropping: `crop` option of both, and the image editor
+- Format conversion between the writable formats: `createImageVariant()` with the `format` option
 
 ### Video Processing
 

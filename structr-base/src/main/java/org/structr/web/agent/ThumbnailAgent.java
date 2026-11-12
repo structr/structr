@@ -134,7 +134,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 					final String thumbnailName = ImageHelper.getThumbnailName(originalImage.getName(), tnWidth, tnHeight);
 
 					// create thumbnail node
-					thumbnail = ImageHelper.createImageNode(securityContext, data, "image/" + ImageHelper.Thumbnail.defaultFormat, StructrTraits.IMAGE, thumbnailName, true);
+					thumbnail = ImageHelper.createImageNode(securityContext, data, thumbnailData.getContentType(), StructrTraits.IMAGE, thumbnailName, true);
 
 				} catch (IOException ex) {
 
