@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	document.body.addEventListener('keydown', (event) => {
 
-		Structr.globalKeydownHandlers.checkKeydownEvent(event);
+		Structr.shortcuts.checkKeydownEvent(event);
 
 	}, { capture: true });
 
@@ -251,7 +251,7 @@ let Structr = {
 	init: () => {
 		_Helpers.fastRemoveAllChildren(document.querySelector('#errorText'));
 		
-		Structr.globalKeydownHandlers.init();
+		Structr.shortcuts.init();
 	},
 	clearMain: () => {
 
@@ -2431,66 +2431,66 @@ let Structr = {
 		internalTimestamp: 'internalTimestamp',
 	},
 	
-	globalKeydownHandlers: {
+	shortcuts: {
 		init: () => {
-			Structr.globalKeydownHandlers.populateShortcutMenu();
+			Structr.shortcuts.populateShortcutMenu();
 		},
-		handlers: [
-			{ // ctrl-s / cmd-s
+		handlers: {
+			save: { // ctrl-s / cmd-s
 				applies: (event) => (event.code === 'KeyS' || event.keyCode === 83) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey)),
 				action: (event) => {
 					event.preventDefault();
 					_Dialogs.custom.clickSaveButton();
 				}
 			},
-			{
+			toggleConsole: {
 				displayName: 'Toggle Console',
-				shortcut: 'Ctrl-Alt-C',
+				shortcut: ['Ctrl', 'Alt', 'C'],
 				applies: (event) => (event.code === 'KeyC' || event.keyCode === 67) && event.altKey && event.ctrlKey,
 				action: (event) => {
 					event.preventDefault();
 					_Console.toggleConsole();
 				}
 			},
-			{
+			showFavorites: {
 				displayName: 'Show Favorites',
-				shortcut: 'Ctrl-Alt-F',
+				shortcut: ['Ctrl', 'Alt', 'F'],
 				applies: (event) => (event.code === 'KeyF' || event.keyCode === 70) && event.altKey && event.ctrlKey,
 				action: (event) => {
 					event.preventDefault();
 					_Favorites.showFavorites();
 				}
 			},
-			{
+			openProperties: {
 				displayName: 'Open Properties Dialog for arbitrary node',
-				shortcut: 'Ctrl-Alt-P',
+				shortcut: ['Ctrl', 'Alt', 'P'],
 				applies: (event) => (event.code === 'KeyP' || event.keyCode === 80) && event.altKey && event.ctrlKey,
 				action: (event) => {
 					event.preventDefault();
 					Structr.openPropertiesDialogForUserProvidedUUID();
 				}
 			},
-			{
+			navigateToDOMNode: {
 				displayName: 'Navigate to arbitrary DOM element',
-				shortcut: 'Ctrl-Alt-O',
+				shortcut: ['Ctrl', 'Alt', 'O'],
 				applies: (event) => ((event.code === 'KeyO' || event.keyCode === 79) && event.altKey && event.ctrlKey),
 				action: (event) => {
 					event.preventDefault();
 					Structr.navigateToDOMElementDialogForUserProvidedUUID();
 				}
 			},
-			{
+			openTemplateEditor: {
 				displayName: 'Open Editor for arbitrary Template',
-				shortcut: 'Ctrl-Alt-M',
+				shortcut: ['Ctrl', 'Alt', 'M'],
 				applies: (event) => ((event.code === 'KeyM' || event.keyCode === 77) && event.altKey && event.ctrlKey),
 				action: (event) => {
 					event.preventDefault();
 					Structr.openEditorDialogForUserProvidedUUID();
 				}
 			},
-			{ // Ctrl-Alt-e
+			bulkEditingHelper: {
 				displayName: 'Open Bulk Editing Helper',
-				shortcut: 'Ctrl-Alt-E',
+				shortcut: ['Ctrl', 'Alt', 'E'],
 				applies: (event) => ((event.code === 'KeyE' || event.keyCode === 69) && event.altKey && event.ctrlKey),
 				action: (event) => {
 					event.preventDefault();
@@ -2500,17 +2500,17 @@ let Structr = {
 					}
 				}
 			},
-			{ // ctrl-alt-a (structr developer-only)
+			showAvailableSymbols: { // ctrl-alt-a (structr developer-only)
 				applies: (event) => ((event.code === 'KeyA' || event.keyCode === 65) && event.altKey && event.ctrlKey),
 				action: (event) => {
 					event.preventDefault();
 					_Icons.showAllAvailableSymbols();
 				}
 			}
-		],
+		},
 		checkKeydownEvent: (event) => {
 
-			for (let handler of Structr.globalKeydownHandlers.handlers) {
+			for (let handler of Object.values(Structr.shortcuts.handlers)) {
 				if (handler.applies(event)) {
 					handler.action(event);
 				}
@@ -2522,14 +2522,14 @@ let Structr = {
 
 			_Helpers.fastRemoveAllChildren(target);
 
-			for (let handler of Structr.globalKeydownHandlers.handlers) {
+			for (let handler of Object.values(Structr.shortcuts.handlers)) {
 
 				if (handler.displayName) {
 
 					let el = _Helpers.createSingleDOMElementFromHTML(`
 						<div class="flex items-center justify-between gap-4 p-1 hover-bg-green:hover cursor-pointer">
 							<div class="whitespace-nowrap">${handler.displayName}</div>
-							<div class="flex gap-1 whitespace-nowrap">${_Helpers.formatShortcutAsKeys(handler.shortcut)}</div>
+							<div class="flex gap-1 whitespace-nowrap">${Structr.shortcuts.formatShortcutAsKeys(handler.shortcut)}</div>
 						</div>
 					`);
 
@@ -2538,7 +2538,21 @@ let Structr = {
 					target.insertAdjacentElement('beforeend', el);
 				}
 			}
-		}
+		},
+		// transforms an array of shortcut keys into the key names of the current platform ('Mod' is Cmd on macOS, Ctrl elsewhere)
+		toPlatformKeys: (shortcut) => {
+
+			let isMac = _Helpers.isMac();
+
+			return shortcut.map(key => {
+				if (key === 'Mod') {
+					key = (isMac ? 'Cmd' : 'Ctrl');
+				}
+				return (isMac ? ({ Ctrl: 'Control ⌃', Alt: 'Option ⌥', Shift: 'Shift ⇧', Cmd: 'Command ⌘' }[key] ?? key) : key);
+			});
+		},
+		formatShortcut: (shortcut) => Structr.shortcuts.toPlatformKeys(shortcut).join(' + '),
+		formatShortcutAsKeys: (shortcut) => Structr.shortcuts.toPlatformKeys(shortcut).map(key => `<kbd class="keyboard-key">${key}</kbd>`).join(''),
 	},
 
 	templates: {
@@ -2613,23 +2627,23 @@ let Structr = {
 							<div id="keyboard-shortcuts-menu" class="bg-canvas border border-gray-ddd mt px-3 py-2 rounded-b-xl">
 							</div>
 						</div>
-						
+
 					</div>
 
 					<div>
-						<a target="_blank" href="${_Helpers.getPrefixedRootUrl('/structr/config')}" title="System Settings (opens the Configuration Interface)">
-							${_Icons.getSvgIconWithID('settings-icon', _Icons.iconSettingsWrench, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'System Settings')}
+						<a class="block" target="_blank" href="${_Helpers.getPrefixedRootUrl('/structr/config')}" title="System Settings (opens the Configuration Interface)">
+							${_Icons.getSvgIconWithID('settings-icon', _Icons.iconSettingsWrench, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'System Settings (opens the Configuration Interface)')}
 						</a>
 					</div>
 
 					<div>
-						<a href="#docs" title="Documentation">
+						<a class="block" href="#docs" title="Documentation">
 							${_Icons.getSvgIcon(_Icons.iconDocumentation, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1.5']), 'Documentation')}
 						</a>
 					</div>
 
-					<div title="Toggle Console (${_Helpers.formatShortcut('Ctrl-Alt-C')})">
-						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), `Toggle Console (${_Helpers.formatShortcut('Ctrl-Alt-C')})`)}
+					<div title="Toggle Console (${Structr.shortcuts.formatShortcut(Structr.shortcuts.handlers.toggleConsole.shortcut)})">
+						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), `Toggle Console (${Structr.shortcuts.formatShortcut(Structr.shortcuts.handlers.toggleConsole.shortcut)})`)}
 					</div>
 
 					<div id="${Structr.notificationIconId}" class="relative cursor-pointer" title="Show notifications">
