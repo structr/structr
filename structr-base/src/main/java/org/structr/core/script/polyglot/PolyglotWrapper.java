@@ -783,7 +783,7 @@ public abstract class PolyglotWrapper {
 	 */
 	public static PolyglotException guestException(final Value value) {
 
-		if (value != null && value.isException() && !value.isHostObject()) {
+		if (value != null && value.isException()) {
 
 			try {
 

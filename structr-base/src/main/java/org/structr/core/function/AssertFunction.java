@@ -20,6 +20,8 @@ package org.structr.core.function;
 
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.trace.CallFrame;
+import org.structr.common.trace.CallTrace;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.docs.Example;
@@ -55,12 +57,12 @@ public class AssertFunction extends AdvancedScriptingFunction {
 		// only the Boolean true passes, so a broken call fails closed instead of skipping the check
 		if (sources.length != 3 || !(status instanceof Number) || message == null) {
 
-			logger.warn("{}: called with {} instead of a condition, a status code and a message in '{}'. {}", getDisplayName(false), describeArguments(sources), caller, usage());
+			logger.warn("{}: called with {} instead of a condition, a status code and a message in '{}'. {}", getDisplayName(false), describeArguments(sources), where(caller), usage());
 		}
 
 		if (!(condition instanceof Boolean)) {
 
-			logger.warn("{}: the condition is {}, not a boolean, and counts as false in '{}'. Compare it explicitly, e.g. assert(x != null, ...).", getDisplayName(false), describe(condition), caller);
+			logger.warn("{}: the condition is {}, not a boolean, and counts as false in '{}'. Compare it explicitly, e.g. assert(x != null, ...).", getDisplayName(false), describe(condition), where(caller));
 		}
 
 		if (!Boolean.TRUE.equals(condition)) {
@@ -177,5 +179,13 @@ public class AssertFunction extends AdvancedScriptingFunction {
 		}
 
 		return "a " + value.getClass().getSimpleName();
+	}
+
+	// the running script, e.g. Item[id]:lend; the caller only names the object it runs on
+	private static Object where(final Object caller) {
+
+		final CallFrame frame = CallTrace.current();
+
+		return frame != null ? frame.describe() : caller;
 	}
 }

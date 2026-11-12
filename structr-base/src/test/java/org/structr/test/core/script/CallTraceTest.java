@@ -193,6 +193,58 @@ public class CallTraceTest extends StructrTest {
 	}
 
 	@Test
+	public void testFailedAssertionInAnInstanceMethodCalledFromJavaIsReportedAtItsLine() throws FrameworkException {
+
+		final String id;
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("TraceItem");
+
+			// the shape of an event action's method: a block, a blank line, then the code
+			type.addMethod("lend", "{\n\n\tconst a = 1;\n\tconst b = 2;\n\t$.assert(a === 1, 422, 'first');\n\t$.assert('text', 422, 'lend-marker');\n}");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			id = app.create("TraceItem", "item").getUuid();
+
+			tx.success();
+		}
+
+		final List<String> warnings = LogCapture.mentions("counts as false", () -> {
+
+			final List<String> errors = capture(() -> {
+
+				// called from Java, as an event action calls it
+				try (final Tx tx = app.tx()) {
+
+					invokeMethod(securityContext, app.getNodeById("TraceItem", id), "lend", Map.of(), true);
+
+					fail("expected the assertion to fail");
+
+				} catch (FrameworkException | AssertException expected) {
+				}
+
+				return null;
+			});
+
+			assertEquals(errors.toString(), 1, errors.size());
+			assertTrue(errors.get(0), errors.get(0).matches("(?s)TraceItem\\[" + id + "\\]:lend:6:\\d+: .*lend-marker.*"));
+
+			return null;
+		});
+
+		assertEquals(warnings.toString(), 1, warnings.size());
+		assertTrue("the warning names the method, not only the object: " + warnings.get(0), warnings.get(0).contains("TraceItem[" + id + "]:lend"));
+	}
+
+	@Test
 	public void testCallStackListsCallersInnermostFirst() throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
