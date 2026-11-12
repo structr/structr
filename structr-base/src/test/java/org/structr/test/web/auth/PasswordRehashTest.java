@@ -147,7 +147,7 @@ public class PasswordRehashTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface principal = AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), userName, password);
+			final NodeInterface principal = AuthHelper.getUserForPassword(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), userName, password);
 
 			assertNotNull(principal);
 

@@ -242,7 +242,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 				try {
 
 					final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-					Principal principal = AuthHelper.getPrincipalForPassword(nameKey, username, password);
+					Principal principal = AuthHelper.getUserForPassword(nameKey, username, password);
 
 					if (principal != null) {
 

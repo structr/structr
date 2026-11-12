@@ -479,7 +479,7 @@ public class UiAuthenticator implements Authenticator {
 	public Principal doLogin(final HttpServletRequest request, final String userProvidedValueForAuthenticationKey, final String password) throws FrameworkException {
 
 		final LinkedHashSet<PropertyKey<String>> authenticationPropertyKeySet = getAuthenticationPropertyKeySet();
-		final Principal user = AuthHelper.getPrincipalForKeysAndPassword(authenticationPropertyKeySet, userProvidedValueForAuthenticationKey, password);
+		final Principal user = AuthHelper.getUserForPassword(authenticationPropertyKeySet, userProvidedValueForAuthenticationKey, password);
 
 		if  (user != null) {
 
@@ -1025,7 +1025,7 @@ public class UiAuthenticator implements Authenticator {
 					try {
 
 						final LinkedHashSet<PropertyKey<String>> authenticationPropertyKeySet = getAuthenticationPropertyKeySet();
-						user = AuthHelper.getPrincipalForKeysAndPassword(authenticationPropertyKeySet, userName, password, request.getHeader(RequestHeaders.XTwoFactorCode.getName()), "header authentication from " + request.getRemoteAddr() + " for " + request.getMethod() + " " + request.getRequestURI());
+						user = AuthHelper.getUserForPassword(authenticationPropertyKeySet, userName, password, request.getHeader(RequestHeaders.XTwoFactorCode.getName()), "header authentication from " + request.getRemoteAddr() + " for " + request.getMethod() + " " + request.getRequestURI());
 
 					} catch (final AuthenticationException e) {
 

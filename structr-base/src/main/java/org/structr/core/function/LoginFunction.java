@@ -80,7 +80,7 @@ public class LoginFunction extends AdvancedScriptingFunction {
 
 			try {
 
-				if (AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.PRINCIPAL).key("id"), user.getUuid(), password) == null) {
+				if (AuthHelper.getUserForPassword(Traits.of(StructrTraits.PRINCIPAL).key("id"), user.getUuid(), password) == null) {
 
 					return false;
 				}

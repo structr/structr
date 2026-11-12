@@ -128,7 +128,7 @@ public class LoginFailureUniformityTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), userName, WRONG_PASSWORD);
+			AuthHelper.getUserForPassword(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), userName, WRONG_PASSWORD);
 
 			fail("Signing in with " + label + " must fail");
 

@@ -119,51 +119,87 @@ public class AuthHelper {
 	}
 
 	/**
-	 * Find a {@link Principal} with matching password and one of the given keys or name
+	 * Finds the user whose value for the key, or whose name, equals the given value, and whose password
+	 * matches.
 	 *
-	 * @param keys
-	 * @param value
-	 * @param password
-	 * @return
-	 * @throws FrameworkException
+	 * Only users are looked up, never groups or other principals. Names are not unique: when several users
+	 * share the value, the password decides which of them logs in. The configured superuser credentials
+	 * return a {@link SuperUser}, which is not a User node.
 	 */
-	public static Principal getPrincipalForKeysAndPassword(final LinkedHashSet<PropertyKey<String>> keys, final String value, final String password) throws FrameworkException {
+	public static Principal getUserForPassword(final PropertyKey<String> key, final String value, final String password) throws AuthenticationException, TooManyFailedLoginAttemptsException, PasswordChangeRequiredException {
 
-		return getPrincipalForPassword(keys, value, password);
+		return getUserForPassword(Set.of(key), value, password);
 	}
 
-	/** Header authentication, the only way besides the configuration interface that can carry the superuser's second factor. */
+	/**
+	 * Finds the user whose value for one of the keys, or whose name, equals the given value, and whose
+	 * password matches. Like {@link #getUserForPassword(PropertyKey, String, String)}, the superuser
+	 * credentials return a {@link SuperUser}.
+	 *
+	 * One lookup and one check, however many keys: trying the keys one after another looked the same
+	 * account up by name every time, verified the same wrong password once per key and counted each of
+	 * those as a failed attempt (ticket 1544).
+	 */
+	public static Principal getUserForPassword(final Set<PropertyKey<String>> keys, final String value, final String password) throws AuthenticationException, TooManyFailedLoginAttemptsException, PasswordChangeRequiredException {
+
+		return findForPassword(StructrTraits.USER, keys, value, password, null, "password authentication");
+	}
+
+	/**
+	 * Header authentication, the only way besides the configuration interface that can carry the
+	 * superuser's second factor.
+	 */
+	public static Principal getUserForPassword(final Set<PropertyKey<String>> keys, final String value, final String password, final String twoFactorCode, final String source) throws AuthenticationException, TooManyFailedLoginAttemptsException, PasswordChangeRequiredException {
+
+		return findForPassword(StructrTraits.USER, keys, value, password, twoFactorCode, source);
+	}
+
+	/**
+	 * Find a {@link Principal} with matching password and one of the given keys or name
+	 *
+	 * @deprecated looks up all principals, groups included; use {@link #getUserForPassword(Set, String, String)}
+	 */
+	@Deprecated
+	public static Principal getPrincipalForKeysAndPassword(final LinkedHashSet<PropertyKey<String>> keys, final String value, final String password) throws FrameworkException {
+
+		return findForPassword(StructrTraits.PRINCIPAL, keys, value, password, null, "password authentication");
+	}
+
+	/**
+	 * Header authentication, the only way besides the configuration interface that can carry the
+	 * superuser's second factor.
+	 *
+	 * @deprecated looks up all principals, groups included; use {@link #getUserForPassword(Set, String, String, String, String)}
+	 */
+	@Deprecated
 	public static Principal getPrincipalForKeysAndPassword(final LinkedHashSet<PropertyKey<String>> keys, final String value, final String password, final String twoFactorCode, final String source) throws FrameworkException {
 
-		return getPrincipalForPassword(keys, value, password, twoFactorCode, source);
+		return findForPassword(StructrTraits.PRINCIPAL, keys, value, password, twoFactorCode, source);
 	}
 
 	/**
 	 * Find a {@link Principal} with matching password and given key or name
 	 *
-	 * @param key
-	 * @param value
-	 * @param password
-	 * @return principal
-	 * @throws AuthenticationException
+	 * @deprecated looks up all principals, groups included; use {@link #getUserForPassword(PropertyKey, String, String)}
 	 */
+	@Deprecated
 	public static Principal getPrincipalForPassword(final PropertyKey<String> key, final String value, final String password) throws AuthenticationException, TooManyFailedLoginAttemptsException, PasswordChangeRequiredException {
 
-		return getPrincipalForPassword(Set.of(key), value, password);
+		return findForPassword(StructrTraits.PRINCIPAL, Set.of(key), value, password, null, "password authentication");
 	}
 
 	/**
-	 * Finds the principal whose value for one of the keys, or whose name, equals the given value, and
-	 * checks the password against that account. One lookup and one check, however many keys: trying the
-	 * keys one after another looked the same account up by name every time, verified the same wrong
-	 * password once per key and counted each of those as a failed attempt (ticket 1544).
+	 * Find a {@link Principal} with matching password and one of the given keys or name
+	 *
+	 * @deprecated looks up all principals, groups included; use {@link #getUserForPassword(Set, String, String)}
 	 */
+	@Deprecated
 	public static Principal getPrincipalForPassword(final Set<PropertyKey<String>> keys, final String value, final String password) throws AuthenticationException, TooManyFailedLoginAttemptsException, PasswordChangeRequiredException {
 
-		return getPrincipalForPassword(keys, value, password, null, "password authentication");
+		return findForPassword(StructrTraits.PRINCIPAL, keys, value, password, null, "password authentication");
 	}
 
-	private static Principal getPrincipalForPassword(final Set<PropertyKey<String>> keys, final String value, final String password, final String twoFactorCode, final String source) throws AuthenticationException, TooManyFailedLoginAttemptsException, PasswordChangeRequiredException {
+	private static Principal findForPassword(final String lookupType, final Set<PropertyKey<String>> keys, final String value, final String password, final String twoFactorCode, final String source) throws AuthenticationException, TooManyFailedLoginAttemptsException, PasswordChangeRequiredException {
 
 		Principal principal  = null;
 		final String superuserName = Settings.SuperUserName.getValue();
@@ -250,45 +286,50 @@ public class AuthHelper {
 
 		} else {
 
+			final Map<String, Principal> candidates = new LinkedHashMap<>();
+
 			if (isSuperuserName) {
 
 				SuperUserLoginGuard.registerFailure(source);
 			}
 
-			try {
+			/* One query per key, and not one OR query over all of them: a key adds the label of its
+			   declaring type to the MATCH, and labels are ANDed, so a key from a subtype (Member.memberID)
+			   restricted the whole lookup to that type and nobody else was found by name. Looking up per key
+			   is harmless for ticket 1544, because the password is still checked once, below. */
+			final List<PropertyKey<String>> lookupKeys = new LinkedList<>();
 
-				/* One query per key, and not one OR query over all of them: a key adds the label of its
-				   declaring type to the MATCH, and labels are ANDed, so a key from a subtype (Member.memberID)
-				   restricted the whole lookup to that type and nobody else was found by name. Looking up per key
-				   is harmless for ticket 1544, because the password is still checked once, below. */
-				final List<PropertyKey<String>> lookupKeys = new LinkedList<>();
+			lookupKeys.add(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 
-				lookupKeys.add(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+			for (final PropertyKey<String> key : keys) {
 
-				for (final PropertyKey<String> key : keys) {
+				if (!NodeInterfaceTraitDefinition.NAME_PROPERTY.equals(key.jsonName())) {
 
-					if (!NodeInterfaceTraitDefinition.NAME_PROPERTY.equals(key.jsonName())) {
-
-						lookupKeys.add(key);
-					}
+					lookupKeys.add(key);
 				}
-
-				for (final PropertyKey<String> key : lookupKeys) {
-
-					final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).key(key, value).disableSorting().getFirst();
-					if (node != null) {
-
-						principal = node.as(Principal.class);
-						break;
-					}
-				}
-
-			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
 			}
 
-			if (principal == null) {
+			// the first key with hits wins, with all of its hits: names are not unique, so the password decides between them
+			for (final PropertyKey<String> key : lookupKeys) {
+
+				try {
+
+					for (final NodeInterface node : StructrApp.getInstance().nodeQuery(lookupType).key(key, value).disableSorting().getAsList()) {
+
+						candidates.putIfAbsent(node.getUuid(), node.as(Principal.class));
+					}
+
+				} catch (FrameworkException fex) {
+
+					logger.warn("Unable to look up principals by {}: {}", key.jsonName(), fex.getMessage());
+				}
+
+				if (!candidates.isEmpty()) {
+					break;
+				}
+			}
+
+			if (candidates.isEmpty()) {
 
 				final String keyMessage = describeLookupKeys(keys);
 
@@ -307,107 +348,155 @@ public class AuthHelper {
 				RuntimeEventLog.failedLogin("No principal found", Map.of("keyMessage", keyMessage, "value", value));
 
 				throw new AuthenticationException(STANDARD_ERROR_MSG);
-
-			} else {
-
-				if (principal.isBlocked()) {
-
-					/* Same reasoning as the missing-principal branch above: refusing a blocked account
-					   must not be cheaper than checking a password, or the account is identifiable by
-					   how quickly it is turned away. This branch answers before any verification, so
-					   it has to spend that work itself. */
-					HashHelper.spendVerificationTime(password);
-
-					if (failedLoginLog.allow("blocked")) {
-
-						logger.info("Principal {} is blocked", principal);
-					}
-
-					RuntimeEventLog.failedLogin("Principal is blocked", Map.of("id", principal.getUuid(), "name", principal.getName()));
-
-					throw new AuthenticationException(STANDARD_ERROR_MSG);
-				}
-
-				try {
-
-					// let Principal decide how to check password
-					final boolean passwordValid = principal.isValidPassword(password);
-					if (!passwordValid) {
-
-						AuthHelper.incrementFailedLoginAttemptsCounter(principal);
-
-						RuntimeEventLog.failedLogin("Wrong password", Map.of("id", principal.getUuid(), "name", principal.getName()));
-
-						/* checkTooManyFailedLoginAttempts is deliberately NOT called here. It throws
-						   TooManyFailedLoginAttemptsException, which the login endpoints report to the
-						   caller with its own message and a "reason" header. Only an account that
-						   EXISTS has a failed-attempt counter, so giving that answer to someone who did
-						   not supply the right password confirms the account is real - precisely what
-						   the shared error message exists to hide, and cheap to exploit because the
-						   counter threshold is small and enabled by default. A caller who DOES supply
-						   the right password is told, in the branch below: having proven they know the
-						   credentials, the reason discloses nothing they could not already establish.
-						   The lockout itself is unaffected, because that branch is the only way in. */
-						throw new AuthenticationException(STANDARD_ERROR_MSG);
-
-					} else {
-
-						AuthHelper.checkTooManyFailedLoginAttempts(principal);
-						AuthHelper.handleForcePasswordChange(principal);
-						AuthHelper.resetFailedLoginAttemptsCounter(principal);
-
-						// allow external users (LDAP etc.) to update group membership
-						principal.onAuthenticate();
-
-						RuntimeEventLog.login("Authenticate", Map.of("id", principal.getUuid(), "name", principal.getName()));
-					}
-
-				} catch (DeleteInvalidUserException iuex) {
-
-					// we need to delete the user in a separate transaction
-					new Thread(() -> {
-
-						final App app     = StructrApp.getInstance();
-						final String uuid = iuex.getUuid();
-
-						// delete user, return null
-						if (uuid != null) {
-
-							try (final Tx tx = app.tx()) {
-
-								try {
-
-									final NodeInterface toDelete = app.getNodeById(uuid);
-									if (toDelete != null) {
-
-										app.delete(toDelete);
-									}
-
-								} catch (FrameworkException fex) {
-
-									fex.printStackTrace();
-								}
-
-								tx.success();
-
-							} catch (FrameworkException fex) {
-
-								logger.warn("Unable to delete user {}: {}", uuid, fex.getMessage());
-							}
-
-						} else {
-
-							logger.warn("Unable to delete user {}, not found", uuid);
-						}
-
-					}).start();
-
-					return null;
-				}
 			}
+
+			principal = resolveByPassword(candidates.values(), value, password);
+			if (principal == null) {
+
+				// the only candidates were invalid external users, deleted in the background
+				return null;
+			}
+
+			AuthHelper.checkTooManyFailedLoginAttempts(principal);
+			AuthHelper.handleForcePasswordChange(principal);
+			AuthHelper.resetFailedLoginAttemptsCounter(principal);
+
+			// allow external users (LDAP etc.) to update group membership
+			principal.onAuthenticate();
+
+			RuntimeEventLog.login("Authenticate", Map.of("id", principal.getUuid(), "name", principal.getName()));
 		}
 
 		return principal;
+	}
+
+	/**
+	 * Checks the password against every principal found for the login value and returns the one it
+	 * matches, or null if all of them were invalid external users.
+	 *
+	 * Names are not unique, so several principals can share the value. Every candidate costs one
+	 * password verification, blocked ones included, so a blocked account is not identifiable by how
+	 * quickly it is turned away. Outcomes:
+	 *
+	 * - one unblocked match: that principal logs in;
+	 * - several unblocked matches: refused, because the accounts cannot be told apart;
+	 * - only blocked matches, or only blocked candidates: refused as blocked, nothing is counted;
+	 * - no match: a failed attempt is counted on every unblocked user among the candidates, so trying
+	 *   a shared name stays throttled.
+	 *
+	 * checkTooManyFailedLoginAttempts is deliberately NOT called on a failure. It throws
+	 * TooManyFailedLoginAttemptsException, which the login endpoints report to the caller with its own
+	 * message and a "reason" header. Only an account that EXISTS has a failed-attempt counter, so giving
+	 * that answer to someone who did not supply the right password confirms the account is real. A
+	 * caller who DOES supply the right password is told by the caller of this method: having proven they
+	 * know the credentials, the reason discloses nothing they could not already establish.
+	 */
+	private static Principal resolveByPassword(final Collection<Principal> candidates, final String value, final String password) throws AuthenticationException {
+
+		final List<Principal> valid         = new LinkedList<>();
+		final List<Principal> matches       = new LinkedList<>();
+		final List<Principal> blockedMatches = new LinkedList<>();
+
+		for (final Principal candidate : candidates) {
+
+			try {
+
+				// let Principal decide how to check password
+				final boolean match = candidate.isValidPassword(password);
+
+				valid.add(candidate);
+
+				if (match) {
+
+					(candidate.isBlocked() ? blockedMatches : matches).add(candidate);
+				}
+
+			} catch (DeleteInvalidUserException iuex) {
+
+				// an external user that no longer exists: removed, and not a candidate any more
+				deleteInvalidUser(iuex.getUuid());
+			}
+		}
+
+		if (valid.isEmpty()) {
+
+			return null;
+		}
+
+		if (matches.size() == 1) {
+
+			return matches.get(0);
+		}
+
+		if (matches.size() > 1) {
+
+			logger.warn("Login refused: {} users with the login '{}' have the same password, so they cannot be told apart. Rename one of them or change one of the passwords.", matches.size(), value);
+
+			RuntimeEventLog.failedLogin("Ambiguous principal", Map.of("value", value, "candidates", matches.size()));
+
+			throw new AuthenticationException(STANDARD_ERROR_MSG);
+		}
+
+		final List<Principal> unblocked = valid.stream().filter(p -> !p.isBlocked()).toList();
+
+		if (!blockedMatches.isEmpty() || unblocked.isEmpty()) {
+
+			final Principal blocked = blockedMatches.isEmpty() ? valid.get(0) : blockedMatches.get(0);
+
+			if (failedLoginLog.allow("blocked")) {
+
+				logger.info("Principal {} is blocked", blocked);
+			}
+
+			RuntimeEventLog.failedLogin("Principal is blocked", Map.of("id", blocked.getUuid(), "name", blocked.getName()));
+
+			throw new AuthenticationException(STANDARD_ERROR_MSG);
+		}
+
+		for (final Principal candidate : unblocked) {
+
+			if (!candidate.is(StructrTraits.GROUP)) {
+
+				AuthHelper.incrementFailedLoginAttemptsCounter(candidate);
+
+				RuntimeEventLog.failedLogin("Wrong password", Map.of("id", candidate.getUuid(), "name", candidate.getName()));
+			}
+		}
+
+		throw new AuthenticationException(STANDARD_ERROR_MSG);
+	}
+
+	/**
+	 * Deletes an external user that no longer exists, in a separate transaction.
+	 */
+	private static void deleteInvalidUser(final String uuid) {
+
+		if (uuid == null) {
+
+			logger.warn("Unable to delete invalid user, no id given");
+			return;
+		}
+
+		new Thread(() -> {
+
+			final App app = StructrApp.getInstance();
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface toDelete = app.getNodeById(uuid);
+				if (toDelete != null) {
+
+					app.delete(toDelete);
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("Unable to delete user {}: {}", uuid, fex.getMessage());
+			}
+
+		}).start();
 	}
 
 	/**
@@ -656,7 +745,7 @@ public class AuthHelper {
 
 		synchronized (lock) {
 
-			/* Callers of getPrincipalForPassword() throw an AuthenticationException right after this
+			/* Callers of getUserForPassword() throw an AuthenticationException right after this
 			   method returns, e.g. header authentication (X-User/X-Password), whose transaction is
 			   opened and committed by servlet code far away from here and simply rolls back when that
 			   exception propagates. Structr transactions are thread-local and reentrant (only the

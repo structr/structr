@@ -370,7 +370,7 @@ public class TwoFactorAuthenticationTest extends StructrUiTest {
 
 	/**
 	 * The same function's return value, which its own description promises: "Returns true on successful
-	 * login". A wrong password never produces false - getPrincipalForPassword() throws, the exception
+	 * login". A wrong password never produces false - getUserForPassword() throws, the exception
 	 * runs out of apply() and reaches the caller as a 401, so an application cannot tell a wrong
 	 * password from any other failure and can never render its own error.
 	 */

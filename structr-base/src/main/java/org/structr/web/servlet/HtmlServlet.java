@@ -2333,7 +2333,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					try {
 
-						return AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), username, password);
+						return AuthHelper.getUserForPassword(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), username, password);
 
 					} catch (Throwable t) {
 
