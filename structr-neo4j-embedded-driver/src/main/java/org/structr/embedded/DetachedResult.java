@@ -50,9 +50,9 @@ class DetachedResult implements Iterable<Map<String, Object>> {
 
 		try (result) {
 
-			while (result.hasNext()) {
+			while (EmbeddedTransaction.hasNext(result)) {
 
-				rows.add(detach(result.next()));
+				rows.add(detach(EmbeddedTransaction.next(result)));
 			}
 		}
 	}

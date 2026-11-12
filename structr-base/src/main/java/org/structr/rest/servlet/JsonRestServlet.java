@@ -29,7 +29,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.ConstraintViolationException;
+import org.structr.api.DataFormatException;
 import org.structr.api.RetryException;
+import org.structr.api.SyntaxErrorException;
 import org.structr.api.UnknownClientException;
 import org.structr.api.util.ResultStream;
 import org.structr.common.PropertyView;
@@ -177,12 +180,19 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (Throwable t) {
 
-			if (!ScriptError.reportIfPresent(t)) {
+			if (isCallerError(t)) {
 
-				logger.warn("Exception in DELETE", t);
+				writeCallerError(request, response, "DELETE", t);
+
+			} else {
+
+				if (!ScriptError.reportIfPresent(t)) {
+
+					logger.warn("Exception in DELETE", t);
+				}
+
+				writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in DELETE: " + t.getMessage());
 			}
-
-			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in DELETE: " + t.getMessage());
 
 		} finally {
 
@@ -508,12 +518,19 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (Throwable t) {
 
-			if (!ScriptError.reportIfPresent(t)) {
+			if (isCallerError(t)) {
 
-				logger.warn("Exception in POST", t);
+				writeCallerError(request, response, "POST", t);
+
+			} else {
+
+				if (!ScriptError.reportIfPresent(t)) {
+
+					logger.warn("Exception in POST", t);
+				}
+
+				writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in POST: " + t.getMessage());
 			}
-
-			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in POST: " + t.getMessage());
 
 		} finally {
 
@@ -641,13 +658,20 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (Throwable t) {
 
-			if (!ScriptError.reportIfPresent(t)) {
+			if (isCallerError(t)) {
 
-				logger.warn("Exception in PUT", t);
-				logger.warn(" => Error thrown: ", t);
+				writeCallerError(request, response, "PUT", t);
+
+			} else {
+
+				if (!ScriptError.reportIfPresent(t)) {
+
+					logger.warn("Exception in PUT", t);
+					logger.warn(" => Error thrown: ", t);
+				}
+
+				writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in PUT: " + t.getMessage());
 			}
-
-			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in PUT: " + t.getMessage());
 
 		} finally {
 
@@ -795,12 +819,19 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (Throwable t) {
 
-			if (!ScriptError.reportIfPresent(t)) {
+			if (isCallerError(t)) {
 
-				logger.warn("Exception in PATCH", t);
+				writeCallerError(request, response, "PATCH", t);
+
+			} else {
+
+				if (!ScriptError.reportIfPresent(t)) {
+
+					logger.warn("Exception in PATCH", t);
+				}
+
+				writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in PATCH: " + t.getMessage());
 			}
-
-			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in PATCH: " + t.getMessage());
 
 		} finally {
 
@@ -908,17 +939,24 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (Throwable t) {
 
-			if (t instanceof QuietException || t.getCause() instanceof QuietException || t instanceof UnknownClientException) {
+			if (isCallerError(t)) {
 
-				// ignore exceptions which (by jettys standards) should be handled less verbosely
+				writeCallerError(request, response, "GET", t);
 
-			} else if (!ScriptError.reportIfPresent(t)) {
+			} else {
 
-				logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
-				logger.warn(" => Error thrown: ", t);
+				if (t instanceof QuietException || t.getCause() instanceof QuietException || t instanceof UnknownClientException) {
+
+					// ignore exceptions which (by jettys standards) should be handled less verbosely
+
+				} else if (!ScriptError.reportIfPresent(t)) {
+
+					logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
+					logger.warn(" => Error thrown: ", t);
+				}
+
+				writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in GET: " + t.getMessage());
 			}
-
-			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in GET: " + t.getMessage());
 
 		} finally {
 
@@ -1002,5 +1040,33 @@ public class JsonRestServlet extends AbstractDataServlet {
 		}
 
 		return new LinkedHashMap<>();
+	}
+
+	/**
+	 * Whether the database rejected the request as invalid: a syntax error, a type or argument error, a
+	 * constraint violation or a value it cannot store. Operational client errors, such as a transaction
+	 * timeout or a read-only database, are not the caller's fault and stay server errors.
+	 */
+	public static boolean isCallerError(final Throwable t) {
+
+		if (t instanceof SyntaxErrorException || t instanceof ConstraintViolationException || t instanceof DataFormatException) {
+			return true;
+		}
+
+		return t instanceof UnknownClientException uce && uce.getErrorCode() != null && uce.getErrorCode().startsWith("Neo.ClientError.Statement.");
+	}
+
+	// the caller's error: 422 with the database's message, one log line, no stack trace
+	private void writeCallerError(final HttpServletRequest request, final HttpServletResponse response, final String method, final Throwable t) throws IOException {
+
+		final String message = t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName();
+
+		logger.info("{} {}: the database rejected the request: {}", method, request.getRequestURI(), message.lines().findFirst().orElse(""));
+
+		// rows already sent cannot be taken back, so the status cannot change any more
+		if (!response.isCommitted()) {
+
+			writeException(response, new FrameworkException(422, message));
+		}
 	}
 }

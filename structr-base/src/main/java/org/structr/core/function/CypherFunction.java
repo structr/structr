@@ -18,6 +18,8 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.ConstraintViolationException;
+import org.structr.api.DataFormatException;
 import org.structr.api.SyntaxErrorException;
 import org.structr.api.UnknownClientException;
 import org.structr.common.error.ArgumentCountException;
@@ -119,6 +121,10 @@ public class CypherFunction extends CoreFunction {
 		} catch (UnknownClientException ex) {
 
 			throw new FrameworkException(422, "%s: UnknownClientException (Cause: %s)".formatted(getDisplayName(), ex.getMessage()));
+
+		} catch (DataFormatException | ConstraintViolationException ex) {
+
+			throw new FrameworkException(422, "%s: %s (Cause: %s)".formatted(getDisplayName(), ex.getClass().getSimpleName(), ex.getMessage()));
 		}
     }
 

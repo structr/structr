@@ -20,12 +20,17 @@ package org.structr.embedded;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.neo4j.gqlstatus.ErrorGqlStatusObject;
 import org.neo4j.graphdb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.ConstraintViolationException;
+import org.structr.api.DataFormatException;
 import org.structr.api.RetryException;
 import org.structr.api.SchemaChangedException;
+import org.structr.api.SyntaxErrorException;
 import org.structr.api.Transaction;
+import org.structr.api.UnknownClientException;
 import org.structr.api.graph.Identity;
 import org.structr.api.util.CloseableIterator;
 import org.structr.api.util.Iterables;
@@ -357,8 +362,52 @@ public class EmbeddedTransaction implements Transaction<String> {
 				throw terminated(new SchemaChangedException(rex));
 			}
 
-			throw rex;
+			throw translate(rex);
 		}
+	}
+
+	/**
+	 * Translates an error the query caused, a Neo.ClientError, into the exception the bolt driver throws for
+	 * it, so callers see the same failure on both drivers. Any other exception is returned unchanged.
+	 */
+	static RuntimeException translate(final RuntimeException rex) {
+
+		for (Throwable cause = rex; cause != null; cause = cause.getCause()) {
+
+			if (cause instanceof QueryExecutionException qex && qex.getStatusCode() != null && qex.getStatusCode().startsWith("Neo.ClientError.")) {
+
+				final String code = qex.getStatusCode();
+
+				if ("Neo.ClientError.Schema.ConstraintValidationFailed".equals(code)) {
+					return new ConstraintViolationException(qex, code, qex.getMessage());
+				}
+
+				if ("Neo.ClientError.Statement.SyntaxError".equals(code)) {
+					return new SyntaxErrorException(qex, code, qex.getMessage());
+				}
+
+				if (isDataError(qex)) {
+					return new DataFormatException(qex, code, qex.getMessage());
+				}
+
+				return new UnknownClientException(qex, code, qex.getMessage());
+			}
+		}
+
+		return rex;
+	}
+
+	// GQL status class 22 is a data exception, e.g. a function argument of the wrong type; the bolt driver uses the same rule
+	static boolean isDataError(final Throwable t) {
+
+		for (Throwable cause = t; cause != null; cause = cause.getCause()) {
+
+			if (cause instanceof ErrorGqlStatusObject status && status.gqlStatus() != null && status.gqlStatus().startsWith("22")) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	// Cypher gives up compiling a query while freshly created indexes come online, and only a repetition can succeed
@@ -675,9 +724,9 @@ public class EmbeddedTransaction implements Transaction<String> {
 	// ----- private methods -----
 	private Object getFirstObject(final Result result) {
 
-		if (result != null && result.hasNext()) {
+		if (result != null && hasNext(result)) {
 
-			final Map<String, Object> next = result.next();
+			final Map<String, Object> next = next(result);
 			if (!next.keySet().isEmpty()) {
 
 				final Object value = next.values().toArray()[0];
@@ -774,14 +823,39 @@ public class EmbeddedTransaction implements Transaction<String> {
 			@Override
 			public boolean hasNext() {
 
-				return iterator.hasNext();
+				return EmbeddedTransaction.hasNext(iterator);
 			}
 
 			@Override
 			public Map<String, Object> next() {
 
-				return iterator.next();
+				return EmbeddedTransaction.next(iterator);
 			}
 		};
+	}
+
+	// Cypher raises some errors only while the rows are read, so reading translates them too
+	static boolean hasNext(final Result result) {
+
+		try {
+
+			return result.hasNext();
+
+		} catch (RuntimeException rex) {
+
+			throw translate(rex);
+		}
+	}
+
+	static Map<String, Object> next(final Result result) {
+
+		try {
+
+			return result.next();
+
+		} catch (RuntimeException rex) {
+
+			throw translate(rex);
+		}
 	}
 }
