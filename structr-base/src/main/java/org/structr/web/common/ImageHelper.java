@@ -79,17 +79,17 @@ public abstract class ImageHelper extends FileHelper {
 	private static final Logger logger = LoggerFactory.getLogger(ImageHelper.class.getName());
 
 	/**
-	 * Create a new image node from the given image data
+	 * Creates a new image node and stores the data from the given stream as its content.
 	 *
-	 * @param securityContext
-	 * @param imageStream
-	 * @param contentType
-	 * @param imageType defaults to Image.class if null
-	 * @param name
-	 * @param markAsThumbnail
-	 * @return image
-	 * @throws FrameworkException
-	 * @throws IOException
+	 * @param securityContext the security context to create the node with
+	 * @param imageStream the image data, read completely and not closed
+	 * @param contentType the content type of the image data, e.g. image/png
+	 * @param imageType the type of the new node, Image if null
+	 * @param name the name of the new node
+	 * @param markAsThumbnail whether to mark the new node as a thumbnail
+	 * @return the new image node
+	 * @throws FrameworkException if the node cannot be created
+	 * @throws IOException if the data cannot be read or stored
 	 */
 	public static NodeInterface createImage(final SecurityContext securityContext, final InputStream imageStream, final String contentType, final String imageType, final String name, final boolean markAsThumbnail)
 			throws FrameworkException, IOException {
@@ -108,17 +108,17 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	/**
-	 * Create a new image node from the given image data
+	 * Creates a new image node and stores the given bytes as its content, if there are any.
 	 *
-	 * @param securityContext
-	 * @param imageData
-	 * @param contentType
-	 * @param imageType defaults to Image.class if null
-	 * @param name
-	 * @param markAsThumbnail
-	 * @return image
-	 * @throws FrameworkException
-	 * @throws IOException
+	 * @param securityContext the security context to create the node with
+	 * @param imageData the image data, may be null or empty for a node without content
+	 * @param contentType the content type of the image data, e.g. image/png
+	 * @param imageType the type of the new node, Image if null
+	 * @param name the name of the new node
+	 * @param markAsThumbnail whether to mark the new node as a thumbnail
+	 * @return the new image node
+	 * @throws FrameworkException if the node cannot be created
+	 * @throws IOException if the data cannot be stored
 	 */
 	public static NodeInterface createImageNode(final SecurityContext securityContext, final byte[] imageData, final String contentType, final String imageType, final String name, final boolean markAsThumbnail)
 		throws FrameworkException, IOException {
@@ -141,19 +141,28 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	/**
-	 * Write image data to the given image node and set checksum and size.
+	 * Writes the given bytes as the content of the image and sets its content type, checksum and size.
 	 *
-	 * @param img
-	 * @param imageData
-	 * @param contentType
-	 * @throws FrameworkException
-	 * @throws IOException
+	 * @param img the image to write to
+	 * @param imageData the new content
+	 * @param contentType the content type of the new content
+	 * @throws FrameworkException if the properties cannot be set
+	 * @throws IOException if the data cannot be stored
 	 */
 	public static void setImageData(final Image img, final byte[] imageData, final String contentType) throws FrameworkException, IOException {
 
 		setFileData(img, imageData, contentType);
 	}
 
+	/**
+	 * Connects existing thumbnail files to the given original image again, e.g. after a deployment import, which restores
+	 * the files but not the THUMBNAIL relationships.
+	 *
+	 * Looks for files named like the built-in thumbnails (tnSmall, tnMid) of the image, in the thumbnail folder and next to
+	 * the original, and links each one with the specs it was created for. Does nothing if the image's dimensions are unknown.
+	 *
+	 * @param originalImage the original image
+	 */
 	public static void findAndReconnectThumbnails(final Image originalImage) {
 
 		final String thumbnailRel         = StructrTraits.IMAGE_THUMBNAIL_IMAGE;
@@ -210,6 +219,14 @@ public abstract class ImageHelper extends FileHelper {
 		}
 	}
 
+	/**
+	 * Connects the given thumbnail to its original image again, the counterpart of findAndReconnectThumbnails().
+	 *
+	 * The original is looked up by name in the folder the thumbnail folder mirrors, and next to the thumbnail for older data.
+	 * If the thumbnail matches no built-in thumbnail spec, the two are linked without specs and the thumbnail is recreated once.
+	 *
+	 * @param thumbnail the thumbnail image
+	 */
 	public static void findAndReconnectOriginalImage(final Image thumbnail) {
 
 		final String thumbnailRel         = StructrTraits.IMAGE_THUMBNAIL_IMAGE;
@@ -260,9 +277,12 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	/**
-	 * The built-in thumbnail specs, i.e. the sizes Image.tnSmall and Image.tnMid are created for, smallest
-	 * first. The order matters and must stay deterministic: an image smaller than both sizes is not scaled
-	 * up, so one thumbnail serves both specs and only the first one gets connected (see below).
+	 * The built-in thumbnail specs, i.e. the sizes Image.tnSmall and Image.tnMid are created for, smallest first.
+	 *
+	 * The order matters and must stay deterministic: an image smaller than both sizes is not scaled up, so one thumbnail serves
+	 * both specs and only the first one gets connected.
+	 *
+	 * @return the thumbnail properties of the Image type
 	 */
 	private static List<ThumbnailProperty> getThumbnailSpecs() {
 
@@ -275,10 +295,15 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	/**
-	 * The name a thumbnail of the given original image has when created for the given spec, or null if it
-	 * cannot be derived. Mirrors how createThumbnail() determines the thumbnail's dimensions, because the
-	 * name is built from them - a name derived any other way would either not match anything, or match the
-	 * thumbnail of a different spec and connect the wrong image.
+	 * The name a thumbnail of the given original image has when created for the given spec, or null if it cannot be derived.
+	 *
+	 * Mirrors how scaleImage() determines the dimensions, because the name is built from them: a name derived any other way
+	 * would match nothing, or the thumbnail of a different spec. Cropped specs return null, so a cropped thumbnail is never
+	 * confused with the uncropped one of the same size.
+	 *
+	 * @param originalImage the original image, with known width and height
+	 * @param spec the thumbnail spec
+	 * @return the expected thumbnail name, or null
 	 */
 	private static String getExpectedThumbnailName(final Image originalImage, final ThumbnailProperty spec) {
 
@@ -292,9 +317,7 @@ public abstract class ImageHelper extends FileHelper {
 
 		if (spec.getCrop()) {
 
-			// With cropToFit the dimensions come from finalImageDimensions() rather than from the scale
-			// ratio, and the ratio-based name is the name of the NON-cropped thumbnail of the same size.
-			// Deriving it here would connect that thumbnail and label it as cropped, so don't guess.
+			// a cropped thumbnail can have the name of the uncropped one of the same size, so don't guess
 
 			return null;
 		}
@@ -308,7 +331,13 @@ public abstract class ImageHelper extends FileHelper {
 		return getThumbnailName(originalImage.getName(), tnWidth, tnHeight);
 	}
 
-	/** The spec a thumbnail of the given name was created for, or null if it matches none of them. */
+	/**
+	 * The spec a thumbnail of the given name was created for, or null if it matches none of them.
+	 *
+	 * @param originalImage the original image
+	 * @param thumbnailName the name of the thumbnail
+	 * @return the matching spec, or null
+	 */
 	private static ThumbnailProperty findMatchingThumbnailSpec(final Image originalImage, final String thumbnailName) {
 
 		for (final ThumbnailProperty spec : getThumbnailSpecs()) {
@@ -323,10 +352,15 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	/**
-	 * The properties a THUMBNAIL relationship needs to carry so that getExistingThumbnail() can match it:
-	 * the specs the thumbnail was created for, plus the original's checksum to detect a changed original.
-	 * The thumbnail's actual dimensions are deliberately not stored here - they live on the thumbnail node,
-	 * and the relationship type declares no keys that could read them back.
+	 * The properties a THUMBNAIL relationship carries so that getExistingThumbnail() can match it: the specs the thumbnail
+	 * was created for, plus the original's checksum to detect a changed original.
+	 *
+	 * The thumbnail's actual dimensions are not stored here: they live on the thumbnail node, and the relationship type
+	 * declares no keys that could read them back.
+	 *
+	 * @param originalImage the original image
+	 * @param spec the spec the thumbnail was created for
+	 * @return the relationship properties
 	 */
 	private static PropertyMap getThumbnailRelationshipProperties(final Image originalImage, final ThumbnailProperty spec) {
 
@@ -341,7 +375,12 @@ public abstract class ImageHelper extends FileHelper {
 		return relProperties;
 	}
 
-	/** The given path with the thumbnail folder prefix removed, or the path itself if it has none. */
+	/**
+	 * The given path with the thumbnail folder prefix removed, or the path itself if it has none.
+	 *
+	 * @param path an absolute folder path
+	 * @return the path without the thumbnail folder prefix
+	 */
 	private static String stripThumbnailFolder(final String path) {
 
 		final String thumbnailFolder = PathHelper.PATH_SEP + PathHelper.clean(Image.STRUCTR_THUMBNAIL_FOLDER);
@@ -358,7 +397,12 @@ public abstract class ImageHelper extends FileHelper {
 		return path;
 	}
 
-	/** Joins path segments into an absolute path, tolerating missing and duplicated separators. */
+	/**
+	 * Joins path segments into an absolute path, tolerating missing and duplicated separators.
+	 *
+	 * @param parts the path segments, null and blank segments are skipped
+	 * @return the absolute path, the root path if no segment is left
+	 */
 	private static String joinPath(final String... parts) {
 
 		final StringBuilder buf = new StringBuilder();
@@ -375,6 +419,19 @@ public abstract class ImageHelper extends FileHelper {
 		return buf.isEmpty() ? PathHelper.PATH_SEP : buf.toString();
 	}
 
+	/**
+	 * The factor by which the source is larger than the bounding box: source size divided by box size.
+	 *
+	 * A value above 1 means the image has to be scaled down by that factor; at or below 1 it already fits. Without crop the
+	 * larger of the two axis ratios is used, so the image fits into the box; with crop the smaller one, so it covers the box.
+	 *
+	 * @param sourceWidth the width of the source
+	 * @param sourceHeight the height of the source
+	 * @param maxWidth the width of the bounding box
+	 * @param maxHeight the height of the bounding box
+	 * @param crop whether the image is cropped to the box
+	 * @return the scale ratio
+	 */
 	public static float getScaleRatio(final int sourceWidth, final int sourceHeight, final int maxWidth, final int maxHeight, final boolean crop) {
 
 		final float scaleX = 1.0f * sourceWidth / maxWidth;
@@ -394,36 +451,105 @@ public abstract class ImageHelper extends FileHelper {
 		return scale;
 	}
 
+	/**
+	 * The width after scaling down by the given ratio, at least 4 pixels.
+	 *
+	 * @param sourceWidth the width of the source
+	 * @param scale the ratio from getScaleRatio()
+	 * @return the scaled width
+	 */
 	public static int getThumbnailWidth(final int sourceWidth, final float scale) {
 
 		return Math.max(4, Math.round(sourceWidth / scale));
 	}
 
+	/**
+	 * The height after scaling down by the given ratio, at least 4 pixels.
+	 *
+	 * @param sourceHeight the height of the source
+	 * @param scale the ratio from getScaleRatio()
+	 * @return the scaled height
+	 */
 	public static int getThumbnailHeight(final int sourceHeight, final float scale) {
 
 		return Math.max(4, Math.round(sourceHeight / scale));
 	}
 
+	/**
+	 * The width of the given image after scaling it into the bounding box, from its stored dimensions.
+	 *
+	 * Unlike scaleImage(), this does not cap the result at the original size.
+	 *
+	 * @param originalImage the image, with known width and height
+	 * @param maxWidth the width of the bounding box
+	 * @param maxHeight the height of the bounding box
+	 * @param crop whether the image is cropped to the box
+	 * @return the scaled width
+	 */
 	public static int getThumbnailWidth(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
 
 		return getThumbnailWidth(originalImage.getWidth(), getScaleRatio(originalImage.getWidth(), originalImage.getHeight(), maxWidth, maxHeight, crop));
 	}
 
+	/**
+	 * The height of the given image after scaling it into the bounding box, from its stored dimensions.
+	 *
+	 * Unlike scaleImage(), this does not cap the result at the original size.
+	 *
+	 * @param originalImage the image, with known width and height
+	 * @param maxWidth the width of the bounding box
+	 * @param maxHeight the height of the bounding box
+	 * @param crop whether the image is cropped to the box
+	 * @return the scaled height
+	 */
 	public static int getThumbnailHeight(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
 
 		return getThumbnailHeight(originalImage.getHeight(), getScaleRatio(originalImage.getWidth(), originalImage.getHeight(), maxWidth, maxHeight, crop));
 	}
 
+	/**
+	 * Creates a thumbnail that fits into the given bounding box, in the format set by application.thumbnails.format.
+	 *
+	 * @param originalImage the original image
+	 * @param maxWidth the width of the bounding box
+	 * @param maxHeight the height of the bounding box
+	 * @return the thumbnail, or null if it cannot be created
+	 */
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight) {
 
 		return createThumbnail(originalImage, maxWidth, maxHeight, false);
 	}
 
+	/**
+	 * Creates a thumbnail that fits into, or with crop covers and is cut to, the given bounding box, in the format set by
+	 * application.thumbnails.format.
+	 *
+	 * @param originalImage the original image
+	 * @param maxWidth the width of the bounding box
+	 * @param maxHeight the height of the bounding box
+	 * @param crop whether to cut the thumbnail to the box
+	 * @return the thumbnail, or null if it cannot be created
+	 */
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
 
 		return createThumbnail(originalImage, maxWidth, maxHeight, null, crop, null, null);
 	}
 
+	/**
+	 * Creates a thumbnail of the given image and stores the original's width and height on it.
+	 *
+	 * The thumbnail fits into the bounding box, or with crop covers it and is cut to it at the given offset, centered by
+	 * default. It is never larger than the original. Errors are logged, not thrown.
+	 *
+	 * @param originalImage the original image
+	 * @param maxWidth the width of the bounding box
+	 * @param maxHeight the height of the bounding box
+	 * @param formatString png, jpeg or gif; null uses application.thumbnails.format
+	 * @param crop whether to cut the thumbnail to the box
+	 * @param reqOffsetX the left edge of the cut-out in pixels of the scaled image, null to center it
+	 * @param reqOffsetY the top edge of the cut-out in pixels of the scaled image, null to center it
+	 * @return the thumbnail, or null if it cannot be created
+	 */
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final String formatString, final boolean crop, final Integer reqOffsetX, final Integer reqOffsetY) {
 
 		final ScaleOptions options = new ScaleOptions();
@@ -453,7 +579,19 @@ public abstract class ImageHelper extends FileHelper {
 		return null;
 	}
 
-	/** Cuts the given region (in pixels of the upright original) out of the image without scaling it. */
+	/**
+	 * Cuts the given region out of the image without scaling it, as the image editor does.
+	 *
+	 * The region is given in pixels of the upright original and is clamped to the image. Errors are logged, not thrown.
+	 *
+	 * @param originalImage the original image
+	 * @param width the width of the region
+	 * @param height the height of the region
+	 * @param offsetX the left edge of the region, 0 if null
+	 * @param offsetY the top edge of the region, 0 if null
+	 * @param formatString png, jpeg or gif; null keeps the original's format if it can be written, else png
+	 * @return the cropped image, or null if it cannot be created
+	 */
 	public static Thumbnail createCroppedImage(final Image originalImage, final int width, final int height, final Integer offsetX, final Integer offsetY, final String formatString) {
 
 		final ScaleOptions options = new ScaleOptions();
@@ -481,9 +619,10 @@ public abstract class ImageHelper extends FileHelper {
 	/**
 	 * Scales and optionally crops the given image and encodes the result.
 	 *
-	 * The size comes from scale (a factor) or from the bounding box maxWidth x maxHeight; neither scales up. With crop, the image is
-	 * scaled to cover the box and the box is cut out at offsetX/offsetY (in pixels of the scaled image, centered by default).
-	 * The format defaults to the original's format if it can be written, else PNG; quality applies to JPEG only.
+	 * The size comes from scale (a factor) or from the bounding box maxWidth x maxHeight; neither scales up. With crop, the
+	 * image is scaled to cover the box and the box is cut out at offsetX/offsetY (in pixels of the scaled image, centered by
+	 * default). The EXIF orientation is applied first. The format defaults to the original's format if it can be written,
+	 * else PNG; quality applies to JPEG only.
 	 *
 	 * @param originalImage the image to scale
 	 * @param options the scale options
@@ -516,6 +655,16 @@ public abstract class ImageHelper extends FileHelper {
 		return scaleImage(source, options, format, label);
 	}
 
+	/**
+	 * Scales and optionally crops an already decoded, upright image and encodes the result, see the method above.
+	 *
+	 * @param source the decoded image
+	 * @param options the scale options; options.format is ignored in favour of the format parameter
+	 * @param format the normalized output format: png, jpeg or gif
+	 * @param label a name for the image in error messages
+	 * @return the encoded image, never empty
+	 * @throws FrameworkException 422 if the options are invalid or the result cannot be written
+	 */
 	public static Thumbnail scaleImage(final BufferedImage source, final ScaleOptions options, final String format, final String label) throws FrameworkException {
 
 		final int sourceWidth  = source.getWidth();
@@ -577,7 +726,12 @@ public abstract class ImageHelper extends FileHelper {
 		return tn;
 	}
 
-	/** Options for scaleImage(), all optional. */
+	/**
+	 * Options for scaleImage(), all optional.
+	 *
+	 * maxWidth and maxHeight form the bounding box, scale is a factor used instead of the box. crop cuts the result to the
+	 * box at offsetX/offsetY. format is png, jpeg or gif, quality the JPEG quality between 0.0 and 1.0.
+	 */
 	public static class ScaleOptions {
 
 		public Integer maxWidth;
@@ -592,6 +746,15 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static final float DEFAULT_JPEG_QUALITY = 0.85f;
 
+	/**
+	 * The output format: the requested one, else the original's format if it can be written, else png.
+	 *
+	 * @param requested the requested format, may be null
+	 * @param originalImage the original image
+	 * @param label a name for the image in error messages
+	 * @return the normalized format: png, jpeg or gif
+	 * @throws FrameworkException 422 if the requested format is not supported
+	 */
 	private static String resolveFormat(final String requested, final Image originalImage, final String label) throws FrameworkException {
 
 		if (requested != null) {
@@ -610,6 +773,12 @@ public abstract class ImageHelper extends FileHelper {
 		return original != null ? original : Thumbnail.defaultFormat.name();
 	}
 
+	/**
+	 * The normalized name of a writable format: png, jpeg (also for jpg) or gif.
+	 *
+	 * @param format a format name, case insensitive, may be null
+	 * @return the normalized name, or null if the format cannot be written
+	 */
 	private static String normalizeFormat(final String format) {
 
 		if (format == null) {
@@ -624,17 +793,42 @@ public abstract class ImageHelper extends FileHelper {
 		};
 	}
 
+	/**
+	 * The given value if it is positive, else null, so that 0 or a negative size means no limit.
+	 *
+	 * @param value the value
+	 * @return the value or null
+	 */
 	private static Integer positiveOrNull(final Integer value) {
 
 		return (value != null && value > 0) ? value : null;
 	}
 
+	/**
+	 * The value limited to the given range.
+	 *
+	 * @param value the value
+	 * @param min the lower limit
+	 * @param max the upper limit
+	 * @return the limited value
+	 */
 	private static int clamp(final int value, final int min, final int max) {
 
 		return Math.max(min, Math.min(max, value));
 	}
 
-	/** Bicubic resize, halving step by step for strong downscaling; without alpha, transparent pixels become white. */
+	/**
+	 * Resizes the image with bicubic interpolation, halving it step by step while it is more than twice the target size,
+	 * which is faster and sharper than one big step.
+	 *
+	 * Without alpha, the result has no alpha channel and transparent pixels become white, as JPEG requires.
+	 *
+	 * @param source the image to resize
+	 * @param width the target width
+	 * @param height the target height
+	 * @param alpha whether the result keeps an alpha channel
+	 * @return the resized image
+	 */
 	private static BufferedImage resize(final BufferedImage source, final int width, final int height, final boolean alpha) {
 
 		final int type        = alpha ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
@@ -669,6 +863,15 @@ public abstract class ImageHelper extends FileHelper {
 		return current;
 	}
 
+	/**
+	 * Encodes the image in the given format, JPEG with the given quality.
+	 *
+	 * @param image the image to encode
+	 * @param format png, jpeg or gif
+	 * @param quality the JPEG quality between 0.0 and 1.0, DEFAULT_JPEG_QUALITY if null
+	 * @return the encoded bytes, or null if no writer exists or writing fails
+	 * @throws FrameworkException 422 if the quality is out of range
+	 */
 	private static byte[] encode(final BufferedImage image, final String format, final Float quality) throws FrameworkException {
 
 		final Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(format);
@@ -712,6 +915,40 @@ public abstract class ImageHelper extends FileHelper {
 		return out.toByteArray();
 	}
 
+	/**
+	 * Draws the image into a standard RGB or ARGB image unless it already is one.
+	 *
+	 * Drawing keeps the stored colour values as they are; a colour-converting operation would gamma-correct grey images.
+	 * Converts CMYK, indexed and other images that Java cannot create a copy of with the same type.
+	 *
+	 * @param source the image
+	 * @return the image itself, or an RGB(A) copy
+	 */
+	private static BufferedImage toRgb(final BufferedImage source) {
+
+		final int type = source.getColorModel().hasAlpha() ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
+
+		if (source.getType() == type) {
+			return source;
+		}
+
+		final BufferedImage rgb = new BufferedImage(source.getWidth(), source.getHeight(), type);
+		final Graphics2D g      = rgb.createGraphics();
+
+		g.drawImage(source, 0, 0, null);
+		g.dispose();
+
+		return rgb;
+	}
+
+	/**
+	 * Reads the image and turns it upright according to its EXIF orientation.
+	 *
+	 * The result is always a standard RGB or ARGB image, whatever the stored colour model.
+	 *
+	 * @param originalImage the image file
+	 * @return the upright image, or null if it cannot be read
+	 */
 	private static BufferedImage getRotatedImage(final File originalImage) {
 
 		try {
@@ -770,14 +1007,17 @@ public abstract class ImageHelper extends FileHelper {
 						break;
 				}
 
+				// standard RGB(A) first: the source may be TYPE_CUSTOM (CMYK, grey with alpha) or indexed with its own palette
+				final BufferedImage rgb = toRgb(source);
+
+				if (affineTransform.isIdentity()) {
+					return rgb;
+				}
+
 				final AffineTransformOp op     = new AffineTransformOp(affineTransform, AffineTransformOp.TYPE_BICUBIC);
-				BufferedImage destinationImage = new BufferedImage(swapWidthAndHeight ? source.getHeight() : source.getWidth(), swapWidthAndHeight ? source.getWidth() : source.getHeight(), source.getType());
-				final Graphics2D g = destinationImage.createGraphics();
+				BufferedImage destinationImage = new BufferedImage(swapWidthAndHeight ? rgb.getHeight() : rgb.getWidth(), swapWidthAndHeight ? rgb.getWidth() : rgb.getHeight(), rgb.getType());
 
-				//g.setBackground(Color.WHITE);
-				g.clearRect(0, 0, destinationImage.getWidth(), destinationImage.getHeight());
-
-				destinationImage = op.filter(source, destinationImage);
+				destinationImage = op.filter(rgb, destinationImage);
 
 				return destinationImage;
 			}
@@ -790,38 +1030,15 @@ public abstract class ImageHelper extends FileHelper {
 		return null;
 	}
 
-	private static BufferedImage getScaledImage(final BufferedImage source, final double sx, final double sy) {
-
-		try {
-
-			final AffineTransform affineTransform = AffineTransform.getScaleInstance(sx, sy);
-			final AffineTransformOp op            = new AffineTransformOp(affineTransform, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-			BufferedImage destinationImage        = op.createCompatibleDestImage(source, source.getColorModel());
-
-			destinationImage = op.filter(source, destinationImage);
-
-			return destinationImage;
-
-		} catch (Throwable t) {
-
-			logger.debug("Unable to scale image", t);
-		}
-
-		return null;
-	}
-
 	/**
-	 * Let ImageIO read and write a JPEG image. This should normalize all types of weird
-	 * image sub formats, e.g. when extracting images from a flash file.
+	 * Reads and writes a JPEG image with ImageIO, which normalizes unusual JPEG sub formats, e.g. images extracted from a
+	 * Flash file.
 	 *
-	 * Some images can not be read by ImageIO (or the browser) because they
-	 * have an JPEG EOI and SOI marker at the beginning of the file.
+	 * Some images cannot be read by ImageIO or a browser because they start with an EOI and an SOI marker; these four bytes
+	 * are removed first.
 	 *
-	 * This method detects and removes the bytes, so that the image
-	 * can be read again.
-	 *
-	 * @param original
-	 * @return normalized image
+	 * @param original the JPEG data
+	 * @return the normalized JPEG data, the original if ImageIO cannot read it, an empty array if the input is null
 	 */
 	public static byte[] normalizeJpegImage(final byte[] original) {
 
@@ -871,10 +1088,11 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	/**
-	 * Update width and height
+	 * Reads the image and stores its width, height and EXIF orientation on the node.
 	 *
-	 * @param image the image
-	 * @throws FrameworkException
+	 * @param image the image file
+	 * @throws FrameworkException if the properties cannot be set
+	 * @throws IOException if the content cannot be opened
 	 */
 	public static void updateMetadata(final File image) throws FrameworkException, IOException {
 
@@ -882,11 +1100,11 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	/**
-	 * Update width and height
+	 * Reads the image from the given stream and stores its width, height and EXIF orientation on the node.
 	 *
-	 * @param image the image
-	 * @param fis file input stream
-	 * @throws FrameworkException
+	 * @param image the image file
+	 * @param fis the content of the image, closed afterwards
+	 * @throws FrameworkException if the properties cannot be set
 	 */
 	public static void updateMetadata(final File image, final InputStream fis) throws FrameworkException {
 
@@ -914,24 +1132,12 @@ public abstract class ImageHelper extends FileHelper {
 		}
 	}
 
-	public static Integer[] finalImageDimensions(final int offsetX, final int offsetY, final int requestedWidth, final int requestedHeight, final int sourceWidth, final int sourceHeight) {
-
-		final Integer[] finalDimensions = new Integer[4];
-		final int overhangLeftX   = Math.min(offsetX, 0); // negative value
-		final int overhangRightX  = Math.max(offsetX + requestedWidth - sourceWidth, 0); // positive value
-		final int overhangTopY    = Math.min(offsetY, 0); // negative value
-		final int overhangBottomY = Math.max(offsetY + requestedHeight - sourceHeight, 0); // positive value
-
-		finalDimensions[0] = Math.min(Math.max(offsetX, 0), sourceWidth);
-
-		finalDimensions[1] = Math.min(Math.max(offsetY, 0), sourceHeight);
-		finalDimensions[2] = requestedWidth + overhangLeftX - overhangRightX;
-		finalDimensions[3] = requestedHeight + overhangTopY - overhangBottomY;
-
-		return finalDimensions;
-
-	}
-
+	/**
+	 * The content of the file, Base64 encoded.
+	 *
+	 * @param file the file
+	 * @return the encoded content, or null if it cannot be read
+	 */
 	public static String getBase64String(final File file) {
 
 		try (final InputStream dataStream = file.getInputStream()) {
@@ -950,13 +1156,12 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	/**
-	 * Check if url points to an image by extension
+	 * Whether the URL or file name ends with the extension of an image format: png, gif, jpg, jpeg, bmp, tif or tiff.
 	 *
-	 * TODO: Improve method to check file type by peeping at the
-	 * content
+	 * Only the extension is checked, not the content.
 	 *
-	 * @param urlString
-	 * @return true if is of image type
+	 * @param urlString the URL or file name
+	 * @return true for an image extension
 	 */
 	public static boolean isImageType(final String urlString) {
 
@@ -983,10 +1188,10 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	/**
-	 * Return image format string derived from last part of content type.
+	 * The image format from the last part of the content type, e.g. jpeg for image/jpeg.
 	 *
-	 * @param img The image to get the format of.
-	 * @return the image format string
+	 * @param img the image
+	 * @return the format in lower case, or null if the image has no content type
 	 */
 	public static String getImageFormatString(final Image img) {
 
@@ -998,13 +1203,10 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	/**
-	 * Check if url points to an Flash object by extension
+	 * Whether the URL or file name has the extension of a Flash file (swf). Only the extension is checked, not the content.
 	 *
-	 * TODO: Improve method to check file type by peeping at the
-	 * content
-	 *
-	 * @param urlString
-	 * @return true if is swf file
+	 * @param urlString the URL or file name
+	 * @return true for a Flash extension
 	 */
 	public static boolean isSwfType(final String urlString) {
 
@@ -1028,6 +1230,12 @@ public abstract class ImageHelper extends FileHelper {
 		return false;
 	}
 
+	/**
+	 * Reads the metadata (EXIF, GPS and others) of the image.
+	 *
+	 * @param originalImage the image file
+	 * @return the metadata, empty for templates and unreadable content
+	 */
 	private static Metadata getMetadata(final File originalImage) {
 
 		Metadata metadata = new Metadata();
@@ -1052,6 +1260,12 @@ public abstract class ImageHelper extends FileHelper {
 		return metadata;
 	}
 
+	/**
+	 * The EXIF orientation of the image, 1 (upright) if there is none; stores it on the node as a side effect.
+	 *
+	 * @param originalImage the image file
+	 * @return the orientation, 1 to 8
+	 */
 	public static int getOrientation(final File originalImage) {
 
 		if (originalImage.isTemplate()) {
@@ -1080,6 +1294,12 @@ public abstract class ImageHelper extends FileHelper {
 		return 1;
 	}
 
+	/**
+	 * Reads the EXIF IFD0, EXIF SubIFD and GPS data of the image and stores each on the node as JSON.
+	 *
+	 * @param originalImage the image file
+	 * @return the data as JSON, keyed by property name, or null for templates, deleted images and on error
+	 */
 	public static JSONObject getExifData(final File originalImage) {
 
 		if (originalImage.isTemplate()) {
@@ -1154,6 +1374,12 @@ public abstract class ImageHelper extends FileHelper {
 		return null;
 	}
 
+	/**
+	 * The EXIF data of the image as a JSON string, see getExifData().
+	 *
+	 * @param originalImage the image file
+	 * @return the JSON string, or null
+	 */
 	public static String getExifDataString(final File originalImage) {
 
 		JSONObject data = getExifData(originalImage);
@@ -1162,11 +1388,13 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	/**
-	 * @param originalImageName The filename of the original image
-	 * @param width The width of the new image variant
-	 * @param height The height of the new image variant
-	 * @param variant The variant type of the new image, e.g. _thumb_, _cropped_, _scaled_
-	 * @return the name for the new image variant with the given dimensions
+	 * The name of an image variant: the original name, the variant marker and the dimensions, e.g. photo.jpg_thumb_100x75.
+	 *
+	 * @param originalImageName the name of the original image
+	 * @param width the width of the variant
+	 * @param height the height of the variant
+	 * @param variant the variant marker, e.g. _thumb_ or _cropped_
+	 * @return the name of the variant
 	 */
 	public static String getVariantName(final String originalImageName, final Integer width, final Integer height, final String variant) {
 
@@ -1174,10 +1402,12 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	/**
-	 * @param originalImageName The filename of the image which this thumbnail belongs to
-	 * @param tnWidth The width of the thumbnail
-	 * @param tnHeight The height of the thumbnail
-	 * @return the thumbnail name for the thumbnail with the given dimensions
+	 * The name of a thumbnail of the given size, e.g. photo.jpg_thumb_100x75.
+	 *
+	 * @param originalImageName the name of the original image
+	 * @param tnWidth the width of the thumbnail
+	 * @param tnHeight the height of the thumbnail
+	 * @return the name of the thumbnail
 	 */
 	public static String getThumbnailName(final String originalImageName, final Integer tnWidth, final Integer tnHeight) {
 
