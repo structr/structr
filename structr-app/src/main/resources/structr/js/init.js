@@ -2527,7 +2527,7 @@ let Structr = {
 				if (handler.displayName) {
 
 					let el = _Helpers.createSingleDOMElementFromHTML(`
-						<div class="flex items-center justify-between gap-4 p-1 hover-bg-green:hover cursor-pointer">
+						<div class="flex items-center justify-between gap-4 px-3 py-1 hover-bg-green:hover hover:text-white cursor-pointer">
 							<div class="whitespace-nowrap">${handler.displayName}</div>
 							<div class="flex gap-1 whitespace-nowrap">${Structr.shortcuts.formatShortcutAsKeys(handler.shortcut)}</div>
 						</div>
@@ -2624,7 +2624,7 @@ let Structr = {
 						${_Icons.getSvgIcon(_Icons.iconKeyboardShortcuts, 24, 24, _Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Keyboard Shortcuts')}
 
 						<div id="keyboard-shortcuts-popup" class="absolute hidden pt-4 cursor-default" style="z-index: 1002; right: -2rem;" title="">
-							<div id="keyboard-shortcuts-menu" class="bg-canvas border border-gray-ddd mt px-3 py-2 rounded-b-xl">
+							<div id="keyboard-shortcuts-menu" class="bg-canvas border border-gray-ddd mt py-2 rounded-b-xl">
 							</div>
 						</div>
 
@@ -3794,7 +3794,7 @@ let UISettings = {
 				systemMainFontKey: {
 					text: 'Main font',
 					storageKey: 'systemMainFont' + location.port,
-					defaultValue: 'inter',
+					defaultValue: 'system',
 					type: 'select',
 					infoText: 'The main font that this UI uses.',
 					onUpdate: () => {
@@ -3802,6 +3802,7 @@ let UISettings = {
 					},
 					inputCssClass: 'w-40 truncate',
 					possibleValues: {
+						System:        { value: 'system',         text: 'Use system default' },
 						Arial:         { value: 'arial',          text: 'Arial'          },
 						Helvetica:     { value: 'helvetica',      text: 'Helvetica'      },
 						HelveticaNeue: { value: 'helvetica-neue', text: 'Helvetica Neue' },
@@ -3842,7 +3843,7 @@ let UISettings = {
 				systemMonoFontKey: {
 					text: '<pre>Monospace font</pre>',
 					storageKey: 'systemMonoFont' + location.port,
-					defaultValue: 'monaco',
+					defaultValue: 'system',
 					type: 'select',
 					infoText: 'The monospace font that this UI uses.',
 					onUpdate: () => {
@@ -3850,6 +3851,7 @@ let UISettings = {
 					},
 					inputCssClass: 'w-40 truncate',
 					possibleValues: {
+						System:         { value: 'system',      text: 'Use system default' },
 						Consolas:       { value: 'consolas',    text: 'Consolas'    },
 						Courier:        { value: 'courier',     text: 'Courier'     },
 						CourierNew:     { value: 'courier-new', text: 'Courier New' },

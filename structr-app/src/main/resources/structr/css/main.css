@@ -36,8 +36,8 @@
 :root {
 
 	/** Defaults */
-	--font-main:            Inter, Arial, Helvetica, Sans-serif;
-	--font-monospace:       Monaco, monospace;
+	--font-main:            ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	--font-monospace:       ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 	--font-main-size:       10pt;
 	--font-monospace-size:  9.5pt;
 
@@ -54,12 +54,14 @@
 	--font-public-sans:    PublicSans, Arial, Helvetica, Sans-serif;
 	--font-roboto:         Roboto, Arial, Helvetica, Sans-serif;
 	--font-sora:           Sora, Arial, Helvetica, Sans-serif;
+	--font-system:         ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
 	--font-monospace-consolas:        Consolas, monospace;
 	--font-monospace-courier:         Courier, monospace;
 	--font-monospace-courier-new:     "Courier New", monospace;
 	--font-monospace-fira-code:       FiraCode, monospace;
 	--font-monospace-monaco:          Monaco, monospace;
+	--font-monospace-system:          ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 
 	--header-height: 4rem;
 
@@ -5128,6 +5130,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .hover-bg-green\:hover:hover {
 	background-color: var(--structr-green);
 }
+.hover\:text-white:hover {
+	color: #fff;
+}
 .focus\:border-gray-666:focus {
 	border: 1px solid var(--gray-666);
 }
@@ -5513,6 +5518,7 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	font-family: inherit;
 	font-size: 0.7rem;
 	text-align: center;
+	color: #000;
 	background-color: #f9fafb;
 	border: 1px solid #d1d5db;
 	border-radius: 0.25rem;
