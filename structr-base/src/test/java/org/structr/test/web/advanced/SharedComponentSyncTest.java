@@ -18,7 +18,10 @@
  */
 package org.structr.test.web.advanced;
 
+import org.structr.common.AccessControllable;
+import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -26,11 +29,15 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.testng.annotations.Test;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.structr.web.entity.dom.DOMNode.SHARED_COMPONENT_SYNC_MODE;
 import static org.testng.AssertJUnit.assertEquals;
@@ -248,6 +255,195 @@ public class SharedComponentSyncTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	@Test
+	public void testGrantOnAnInstanceIsNotSynced() {
+
+		try {
+
+			final String[] ids = createSyncTriple("V0", "V0", "V0");
+			final String staffId;
+			final String otherId;
+
+			// prior permissions on the master and instance 2, set before the sync can run
+			try (final Tx tx = app.tx()) {
+
+				final Principal staff = app.create(StructrTraits.GROUP, "staff").as(Principal.class);
+				final Principal other = app.create(StructrTraits.GROUP, "other").as(Principal.class);
+
+				app.getNodeById(StructrTraits.CONTENT, ids[0]).as(AccessControllable.class).grant(Permission.read, other);
+				app.getNodeById(StructrTraits.CONTENT, ids[2]).as(AccessControllable.class).grant(Permission.read, other);
+
+				staffId = staff.getUuid();
+				otherId = other.getUuid();
+
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				app.getNodeById(StructrTraits.CONTENT, ids[1]).as(AccessControllable.class).grant(Permission.read, app.getNodeById(StructrTraits.GROUP, staffId).as(Principal.class));
+
+				tx.success();
+			}
+
+			assertEquals("instance 1 holds the new grant",           Set.of(staffId), granteesOf(ids[1]));
+			assertEquals("master keeps its own grant",               Set.of(otherId), granteesOf(ids[0]));
+			assertEquals("instance 2 keeps its own grant",           Set.of(otherId), granteesOf(ids[2]));
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	@Test
+	public void testRevokeOnAnInstanceIsNotSynced() {
+
+		try {
+
+			final String[] ids    = createSyncTriple("V0", "V0", "V0");
+			final String groupId  = createGroupWithGrantOn("readers", ids[0], ids[1], ids[2]);
+
+			try (final Tx tx = app.tx()) {
+
+				app.getNodeById(StructrTraits.CONTENT, ids[1]).as(AccessControllable.class).revoke(Permission.read, app.getNodeById(StructrTraits.GROUP, groupId).as(Principal.class));
+
+				tx.success();
+			}
+
+			assertEquals("instance 1 lost the revoked grant", Set.of(),        granteesOf(ids[1]));
+			assertEquals("master keeps its grant",            Set.of(groupId), granteesOf(ids[0]));
+			assertEquals("instance 2 keeps its grant",        Set.of(groupId), granteesOf(ids[2]));
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	@Test
+	public void testGrantInByValueModeIsNotSynced() {
+
+		try {
+
+			// identical grants everywhere, so BY_VALUE would treat every peer as still holding the previous value
+			final String[] ids    = createSyncTriple("V0", "V0", "V0");
+			final String otherId  = createGroupWithGrantOn("viewers", ids[0], ids[1], ids[2]);
+			final String staffId  = createGroupWithGrantOn("staff");
+
+			try (final Tx tx = app.tx()) {
+
+				securityContext.setAttribute(DOMNode.SHARED_COMPONENT_SYNC_MODE_ATTRIBUTE, SHARED_COMPONENT_SYNC_MODE.BY_VALUE);
+
+				app.getNodeById(StructrTraits.CONTENT, ids[1]).as(AccessControllable.class).grant(Permission.read, app.getNodeById(StructrTraits.GROUP, staffId).as(Principal.class));
+
+				tx.success();
+
+			} finally {
+
+				securityContext.removeAttribute(DOMNode.SHARED_COMPONENT_SYNC_MODE_ATTRIBUTE);
+			}
+
+			assertEquals("instance 1 holds both grants", Set.of(otherId, staffId), granteesOf(ids[1]));
+			assertEquals("master keeps its own grant",   Set.of(otherId),          granteesOf(ids[0]));
+			assertEquals("instance 2 keeps its own grant", Set.of(otherId),        granteesOf(ids[2]));
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	@Test
+	public void testOwnerIsNotSynced() {
+
+		try {
+
+			final String[] ids = createSyncTriple("V0", "V0", "V0");
+			final PropertyKey<NodeInterface> ownerKey = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY);
+			final String firstId;
+			final String secondId;
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface first  = app.create(StructrTraits.USER, "first-owner");
+				final NodeInterface second = app.create(StructrTraits.USER, "second-owner");
+
+				for (final String id : ids) {
+
+					app.getNodeById(StructrTraits.CONTENT, id).setProperty(ownerKey, first);
+				}
+
+				firstId  = first.getUuid();
+				secondId = second.getUuid();
+
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				app.getNodeById(StructrTraits.CONTENT, ids[1]).setProperty(ownerKey, app.getNodeById(StructrTraits.USER, secondId));
+
+				tx.success();
+			}
+
+			assertEquals("instance 1 has the new owner", secondId, ownerOf(ids[1]));
+			assertEquals("master keeps its owner",       firstId,  ownerOf(ids[0]));
+			assertEquals("instance 2 keeps its owner",   firstId,  ownerOf(ids[2]));
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	/** Creates a group and grants it read on the given nodes, in one transaction. */
+	private String createGroupWithGrantOn(final String name, final String... nodeIds) throws FrameworkException {
+
+		try (final Tx tx = app.tx()) {
+
+			final Principal group = app.create(StructrTraits.GROUP, name).as(Principal.class);
+
+			for (final String id : nodeIds) {
+
+				app.getNodeById(StructrTraits.CONTENT, id).as(AccessControllable.class).grant(Permission.read, group);
+			}
+
+			tx.success();
+
+			return group.getUuid();
+		}
+	}
+
+	private String ownerOf(final String id) throws FrameworkException {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface owner = app.getNodeById(StructrTraits.CONTENT, id).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).<NodeInterface>key(NodeInterfaceTraitDefinition.OWNER_PROPERTY));
+
+			tx.success();
+
+			return owner != null ? owner.getUuid() : null;
+		}
+	}
+
+	private Set<String> granteesOf(final String id) throws FrameworkException {
+
+		try (final Tx tx = app.tx()) {
+
+			final Set<String> result = new HashSet<>();
+
+			for (final NodeInterface grantee : app.getNodeById(StructrTraits.CONTENT, id).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).<Iterable<NodeInterface>>key(NodeInterfaceTraitDefinition.GRANTEES_PROPERTY))) {
+
+				result.add(grantee.getUuid());
+			}
+
+			tx.success();
+
+			return result;
 		}
 	}
 }
