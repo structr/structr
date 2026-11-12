@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<included>
+
+	<!-- no log lines on stdout; the appender exists so the root logger's reference resolves -->
+	<appender name="STDOUT" class="ch.qos.logback.core.helpers.NOPAppender" />
+
+</included>

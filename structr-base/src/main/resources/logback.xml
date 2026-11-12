@@ -16,11 +16,11 @@
 	-->
 	<include resource="logback-rotation-${LOG_ROTATION:-structr}.xml" />
 
-	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-		<encoder>
-			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread]%X{structrScratchMDC}%X{test} %-5level %logger{0} - %msg%n%prefixedEx{structrScratchMDC}</pattern>
-		</encoder>
-	</appender>
+	<!--
+		LOG_CONSOLE selects whether log lines also go to stdout: "on" (default) or "off", for a launcher that
+		redirects stdout into the server log itself, which would write every line twice.
+	-->
+	<include resource="logback-console-${LOG_CONSOLE:-on}.xml" />
 
 	<logger name="org.structr" level="INFO"/>
 	<logger name="org.apache.commons.beanutils" level="WARN" />
