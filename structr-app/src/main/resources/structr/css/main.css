@@ -3311,43 +3311,6 @@ div.toggle-button-container button:last-child {
 	}
 }
 
-/**
- * Refactoring Helper
- */
-input.refactoring-helper {
-	box-sizing: border-box;
-	width: 33%;
-}
-
-table.refactoring-helper {
-	width: 100%;
-	border-collapse: collapse;
-	margin-top: 12px;
-	margin-bottom: 12px;
-}
-
-table.refactoring-helper th {
-	background-color: var(--medium-light-gray-e0);
-	padding: 2px;
-}
-
-table.refactoring-helper tr:nth-child(odd) {
-	background-color: var(--light-gray-bg-f3);
-}
-
-table.refactoring-helper td:first-child {
-	width: 20%;
-}
-
-table.refactoring-helper td {
-	padding: 0px;
-}
-
-table.refactoring-helper td input {
-	width: 100%;
-	box-sizing: border-box;
-}
-
 .select2-container--default .select2-selection--single,
 .select2-container--default .select2-search--dropdown .select2-search__field {
 	height: initial;
@@ -5270,6 +5233,15 @@ ul.combined-input-select-field li:not(.nohover):hover {
 }
 .bg-gray-f8 {
 	background-color: #f8f8f8;
+}
+.bg-gray-100 {
+	background-color: var(--light-gray-bg-f3);
+}
+.odd\:bg-gray-100:nth-child(odd) {
+	background-color: var(--light-gray-bg-f3);
+}
+.bg-gray-200 {
+	background-color: var(--medium-light-gray-e0);
 }
 .bg-red {
 	background-color: var(--red);

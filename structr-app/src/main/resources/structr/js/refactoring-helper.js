@@ -19,183 +19,264 @@
 class RefactoringHelper {
 
 	constructor(container) {
+
 		this.container = container;
+
+		this.prepareMarkup();
+		this.show().then(/*ignore*/);
 	}
 
-	show() {
-
-		this.container.insertAdjacentHTML('beforeend', `
-			<p>
-				This helper allows you to find and edit the attributes of HTML elements in Structr pages and Shared Components based on a type and some common attributes.
-				Enter a type selector and one or more attributes to show all DOM nodes that contain a value in at least one of the fields.
-			</p>
-			<div id="select-container" class="flex flex-row items-center justify-between">
-				<select class="refactoring-helper" id="page-input" placeholder="Page in which to search"></select>
-				<input class="refactoring-helper" id="selector-input" placeholder="HTML tag, e.g. div, button">
-				<input class="refactoring-helper" id="property-input" placeholder="Property keys to display, e.g. id, class, name, onclick">
-				<input type="checkbox" id="empty-checkbox"><label for="empty-checkbox"> Show empty results</label>
-			</div>
-			<div id="result-container"></div>
-			<div><pre id="error-container"></pre></div>
-		`);
+	async show() {
 
 		let selectedPageId = LSWrapper.getItem(_Entities.selectedObjectIdKey);
 		if (_Entities.selectedObject && _Entities.selectedObject.type) {
 
 			if (_Entities.selectedObject.type !== 'Page') {
-				selectedPageId  = _Entities.selectedObject.pageId;
+				selectedPageId = _Entities.selectedObject.pageId;
 			}
 		}
 
-		fetch(`${Structr.rootUrl}Page?hidden=false&${Structr.getRequestParameterName('sort')}=name`).then(async response => {
+		let response = await fetch(`${Structr.rootUrl}Page?hidden=false&${Structr.getRequestParameterName('sort')}=name`);
+
+		if (response.ok) {
 
 			let data = await response.json();
+			let html = data.result.map(page => `<option ${(page.id === selectedPageId  ? 'selected' : '')} value="${page.id}">${page.name}</option>`);
 
-			let pageSelect = $('#page-input');
+			this.pageSelect.insertAdjacentHTML('beforeend', html);
 
-			for (let page of data.result) {
-				let selected = (page.id === selectedPageId  ? 'selected' : '');
-				pageSelect.append(`<option ${selected} value="${page.id}">${page.name}</option>`);
-			}
-		});
+			this.tagOrTypeInput.focus();
 
-		window.setTimeout(() => {
-			$('#selector-input').focus();
-		}, 100);
+			let loadFunction = _Helpers.debounce(this.loadResults, 300);
 
-		let loadFunction = _Helpers.debounce(this.loadResults, 300);
+			this.pageSelect.addEventListener('change', loadFunction);
+			this.tagOrTypeInput.addEventListener('input', loadFunction);
+			this.attributeKeysInput.addEventListener('input', loadFunction);
+			this.emptyCheckbox.addEventListener('input', loadFunction);
 
-		$('#property-input').on('keyup', loadFunction);
-		$('#empty-checkbox').on('click', loadFunction);
+		} else {
+
+			let responseText = await response.text();
+
+			this.errorContainer.textContent = 'Loading pages failed - unable to populate bulk editing helper dialog.\n' + responseText;
+		}
 	}
 
-	loadResults() {
+	loadResults = async () => {
 
-		let pageSelector    = $('#page-input');
-		let typeSelector    = $('#selector-input');
-		let keysSelector    = $('#property-input');
-		let emptyCheckbox   = $('#empty-checkbox');
-		let resultContainer = $('#result-container');
-		let errorContainer  = $('#error-container');
+		let typeQuery     = this.tagOrTypeInput.value.trim().toLowerCase();
+		let properties    = this.attributeKeysInput.value.trim();
+		let showEmptyRows = this.container.querySelector('#empty-checkbox').checked;
 
-		if (typeSelector.length === 0 || keysSelector.length === 0) {
+		if (!typeQuery || !properties) {
 			return;
 		}
 
-		let typeQuery     = typeSelector.val().trim();
-		let properties    = keysSelector.val().trim();
-		let showEmptyRows = emptyCheckbox.is(':checked');
+		if (typeQuery.contains(' ') || typeQuery.contains(',')) {
 
-		if (typeQuery && properties) {
+			this.errorContainer.textContent = 'Only one tag/type can be queried at a time. For all types, use "*" (can take a while, depending on number of page elements).';
+
+			_Helpers.blinkRed(this.tagOrTypeInput);
+
+			return;
+		}
+
+		if (typeQuery === '*') {
+
+			typeQuery = 'DOMNode';
+
+		} else {
 
 			typeQuery = typeQuery[0].toUpperCase() + typeQuery.slice(1);
+		}
 
-			resultContainer.empty();
-			errorContainer.empty();
+		_Helpers.fastRemoveAllChildren(this.resultContainer);
+		_Helpers.fastRemoveAllChildren(this.errorContainer);
 
-			fetch(Structr.rootUrl + typeQuery + '/all?pageId=' + pageSelector.val()).then(async response => {
+		let response = await fetch(Structr.rootUrl + typeQuery + '/all?pageId=' + this.pageSelect.value);
 
-				let data = await response.json();
+		if (!response.ok) {
 
-				if (data && data.result && data.result.length) {
+			this.errorContainer.textContent = await response.text();
 
-					resultContainer.append('<table class="refactoring-helper" id="result-table"><thead><tr id="header-row"></tr></thead></table>');
-					let keyMap        = {};
-					let keyCandidates = [];
-					let table         = $('#result-table');
-					let header        = $('#header-row');
-					let list          = properties.split(',');
-					let keys          = [];
-					let i             = 0;
+			return;
+		}
 
-					for (let r of data.result) {
-						for (let k in r) {
-							keyMap[k] = true;
+		let data = await response.json();
+
+		if (data && data.result && data.result.length) {
+
+			let keys = [];
+
+			let keyCandidatesSet = new Set();
+			for (let node of data.result) {
+				keyCandidatesSet = keyCandidatesSet.union(new Set(Object.keys(node)));
+			}
+
+			for (let p of properties.split(',')) {
+
+				let name = p.trim();
+
+				if (keyCandidatesSet.has(name) && name !== 'id' && name !== 'type') {
+					keys.push({ name: name, title: name });
+				}
+
+				if (keyCandidatesSet.has('_html_' + name)) {
+					keys.push({ name: '_html_' + name, title: 'HTML ' + name });
+				}
+
+				if (keyCandidatesSet.has('_custom_html_' + name)) {
+					keys.push({ name: '_custom_html_' + name, title: 'HTML ' + name });
+				}
+
+				if (keyCandidatesSet.has('_custom_html_data-' + name)) {
+					keys.push({ name: '_custom_html_data-' + name, title: 'data-' + name });
+				}
+			}
+
+			let table = _Helpers.createSingleDOMElementFromHTML(`
+				<table class="w-full my-3" id="result-table">
+					<thead>
+						<tr id="header-row">
+							<th style="width: 20%;" class="p-1 bg-gray-200">Source</th>
+							${keys.map(k => `<th class="p-1 bg-gray-200">${k.title}</th>`).join('')}
+						</tr>
+					</thead>
+				</table>
+			`);
+			this.resultContainer.appendChild(table);
+
+			_Helpers.sort(data.result, 'internalEntityContextPath');
+
+			for (let node of data.result) {
+
+				let row      = _Helpers.createSingleDOMElementFromHTML(`<tr class="odd:bg-gray-100"></tr>`);
+				let hasValue = false;
+				let src      = node.type;
+
+				if (node.internalEntityContextPath) {
+					src = node.internalEntityContextPath;
+				} else if (node.parent && node.parent.name) {
+					src = node.parent.name;
+				} else if (node.ownerDocument && node.ownerDocument.name) {
+					src = node.ownerDocument.name;
+				} else if (node.name) {
+					src = node.name;
+				}
+
+				row.insertAdjacentHTML('beforeend', `<td>${src}</td>`);
+
+				for (let k of keys) {
+
+					let htmlId = `edit-${node.id}-${k.name}`;
+					let value  = '';
+
+					if (node.hasOwnProperty(k.name)) {
+
+						if (node[k.name] || node[k.name] === 0) {
+							value = node[k.name];
+							hasValue = true;
 						}
-					}
 
-					keyCandidates = Object.keys(keyMap);
-
-					for (let p of list) {
-
-						let name = p.trim();
-
-						if (keyCandidates.includes(name) && name !== 'id' && name !== 'type') {
-							keys.push({ name: name, title: name });
+						if (value.includes('\n')) {
+							row.insertAdjacentHTML('beforeend', `<td><textarea id="${htmlId}"></textarea></td>`);
+						} else {
+							row.insertAdjacentHTML('beforeend', `<td><input type="text" id="${htmlId}" class="w-full box-border"></td>`);
 						}
 
-						if (keyCandidates.includes('_html_' + name)) {
-							keys.push({ name: '_html_' + name, title: 'HTML ' + name });
-						}
+						let element = row.querySelector('#' + htmlId);
+						element.value = value;
 
-						if (keyCandidates.includes('_custom_html_' + name)) {
-							keys.push({ name: '_custom_html_' + name, title: 'HTML ' + name });
-						}
-
-						if (keyCandidates.includes('_custom_html_data-' + name)) {
-							keys.push({ name: '_custom_html_data-' + name, title: 'data-' + name });
-						}
-					}
-
-					header.append(`<th>Source</th>${keys.map(k => `<th>${k.title}</th>`).join('')}`);
-
-					_Helpers.sort(data.result, 'internalEntityContextPath');
-
-					for (let v of data.result) {
-
-						table.append(`<tr id="row${i}"></tr>`);
-
-						let hasValue = false;
-						let row      = $('#row' + i);
-						let src      = v.type;
-
-						if (v.internalEntityContextPath) {
-							src = v.internalEntityContextPath;
-						} else if (v.parent && v.parent.name) {
-							src = v.parent.name;
-						} else if (v.ownerDocument && v.ownerDocument.name) {
-							src = v.ownerDocument.name;
-						} else if (v.name) {
-							src = v.name;
-						}
-
-						row.append(`<td>${src}</td>`);
-
-						for (let k of keys) {
-
-							let htmlId = 'edit-' + v.id + '-' + k.name;
-							let value  = '';
-
-							if (v[k.name] || v[k.name] === 0) {
-								value = v[k.name];
-								hasValue = true;
-							}
-
-							if (value.includes('\n')) {
-								row.append(`<td><textarea id="${htmlId}"></textarea></td>`);
-							} else {
-								row.append(`<td><input type="text" id="${htmlId}" /></td>`);
-							}
-
-							let element = $('#' + htmlId, row);
-							element.val(value);
-							$(element).on('blur', e => {
-								let val = element.val();
-								Command.setProperty(v.id, k.name, val, false, () => {
-									_Helpers.blinkGreen(element);
-								});
+						element.addEventListener('blur', e => {
+							Command.setProperty(node.id, k.name, element.value, false, () => {
+								_Helpers.blinkGreen(element);
 							});
-						}
+						});
 
-						i++;
+					} else {
 
-						if (!hasValue && !showEmptyRows) {
-
-							row.remove();
-						}
+						row.insertAdjacentHTML('beforeend', `<td><span class="flex justify-around">-</span></td>`);
 					}
 				}
-			});
+
+				if (hasValue || showEmptyRows) {
+
+					table.appendChild(row);
+				}
+			}
+
+		} else {
+
+			this.errorContainer.textContent = 'No matching elements found';
 		}
+	}
+
+	prepareMarkup() {
+
+		this.container.insertAdjacentHTML('beforeend', `
+			<div class="relative">
+
+				<div class="inline-info">
+					<div class="inline-info-icon top-1 right-1">
+						${_Icons.getSvgIcon('info-icon', 20, 20)}
+					</div>
+					<div class="inline-info-text">
+						<p>This helper allows you to find and edit the attributes of elements in Structr pages based on a tag or type and some common attributes.</p>
+						<p>Enter a tag or type name and one or more attributes to show all DOM nodes that contain a value in at least one of the fields.</p>
+						<div class="flex flex-col gap-2">
+							<div>
+								<span class="font-bold">Example</span>: div + id,class &rarr; All divs with their id and class attributes
+							</div>
+							<div>
+								<span class="font-bold">Example</span>: Template + name,content &rarr; All Template elements with their name and content attributes
+							</div>
+							<div>
+								<span class="font-bold">Example</span>: * + name,class &rarr; All elements with their name and class attributes
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div id="select-container" class="flex flex-row items-center gap-x-4 justify-between pt-5">
+
+					<div class="flex-grow flex flex-col gap-y-1">
+						<label class="font-semibold ml-px">Page</label>
+						<select class="w-full" id="page-select"></select>
+					</div>
+
+					<div class="flex-grow flex flex-col gap-y-1">
+						<label class="font-semibold ml-px">HTML tag / type</label>
+						<input class="w-full box-border" id="tag-or-type-input" placeholder="HTML Tag or Type">
+					</div>
+
+					<div class="flex-grow flex flex-col gap-y-1">
+						<label class="font-semibold ml-px">Attribute key(s)</label>
+						<input class="w-full box-border" id="attributes-input" placeholder="Comma-separated list of attribute keys">
+					</div>
+
+					<div class="flex flex-col gap-y-1">
+						<div>&nbsp;</div>
+						<div class="flex items-center gap-x-2">
+							<input type="checkbox" id="empty-checkbox" class="mr-0">
+							<label for="empty-checkbox">Show empty results</label>
+						</div>
+					</div>
+				</div>
+
+				<div id="result-container"></div>
+
+				<div class="mt-5">
+					<pre id="error-container"></pre>
+				</div>
+
+			</div>
+		`);
+
+		this.pageSelect         = this.container.querySelector('#page-select');
+		this.tagOrTypeInput     = this.container.querySelector('#tag-or-type-input');
+		this.attributeKeysInput = this.container.querySelector('#attributes-input');
+		this.emptyCheckbox      = this.container.querySelector('#empty-checkbox');
+		this.resultContainer    = this.container.querySelector('#result-container');
+		this.errorContainer     = this.container.querySelector('#error-container');
 	}
 }
