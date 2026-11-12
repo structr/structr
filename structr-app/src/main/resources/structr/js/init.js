@@ -2496,7 +2496,7 @@ let Structr = {
 					event.preventDefault();
 					if (!_Dialogs.custom.isDialogOpen()) {
 						let { dialogText } = _Dialogs.custom.openDialog('Bulk Editing Helper');
-						new RefactoringHelper(dialogText).show();
+						new RefactoringHelper(dialogText);
 					}
 				}
 			},
