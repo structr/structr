@@ -24,7 +24,7 @@ import com.google.gson.Gson;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Cookie;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -74,9 +74,9 @@ public class ConfigServlet extends AbstractServletBase {
 	/* Concurrent, like the loginAttempts cache below: authenticateSession() and invalidateSession() write
 	   this from request threads while isAuthenticated() reads it, and what it holds are the sessions
 	   that may edit the configuration, each with the time it was last seen. A lost put or a torn read
-	   here is an authentication answer. The timestamp is what ends a config session: Jetty is told
-	   never to expire sessions itself (HttpService sets maxInactiveInterval to -1), so without it a
-	   session that once logged in here stayed valid until the next restart (ticket 1581). */
+	   here is an authentication answer. The timestamp is what ends a config session: the ids live in
+	   this map and the servlet's own cookie only, nothing else expires them, so without it a session
+	   that once logged in here stayed valid until the next restart (ticket 1581). */
 	private static final Map<String, Long> sessions   = new ConcurrentHashMap<>();
 	private static final String setupToken            = generateSetupToken();
 	private static final AtomicBoolean certificateRetrievalRunning = new AtomicBoolean(false);
@@ -106,6 +106,8 @@ public class ConfigServlet extends AbstractServletBase {
 
 	private static final String ConfigServletLocation = "/structr/config";
 	private static final String AdminBackendLocation  = "/structr/";
+	public static final String SessionCookieName      = "JCONFIGSESSIONID";
+	private static final SecureRandom secureRandom    = new SecureRandom();
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -153,27 +155,27 @@ public class ConfigServlet extends AbstractServletBase {
 
 		if ("login".equals(action)) {
 
-			sendRedirectHeader(response, ConfigServletLocation + login(request, activeSection));
+			sendRedirectHeader(response, ConfigServletLocation + login(request, response, activeSection));
 
 			return;
 		}
 
 		if ("twoFactorSetup".equals(action)) {
 
-			sendRedirectHeader(response, ConfigServletLocation + confirmSetup(request, activeSection));
+			sendRedirectHeader(response, ConfigServletLocation + confirmSetup(request, response, activeSection));
 			return;
 		}
 
 		if ("setup".equals(action)) {
 
-			sendRedirectHeader(response, ConfigServletLocation + setup(request, activeSection));
+			sendRedirectHeader(response, ConfigServletLocation + setup(request, response, activeSection));
 
 			return;
 		}
 
 		if ("logout".equals(action)) {
 
-			invalidateSession(request);
+			invalidateSession(request, response);
 			sendRedirectHeader(response, ConfigServletLocation + activeSection);
 
 			return;
@@ -362,7 +364,7 @@ public class ConfigServlet extends AbstractServletBase {
 	 *
 	 * @return the redirect target relative to the servlet location
 	 */
-	private String login(final HttpServletRequest request, final String activeSection) {
+	private String login(final HttpServletRequest request, final HttpServletResponse response, final String activeSection) {
 
 		final String remoteIp        = request.getRemoteAddr();
 		final AttemptState state     = getOrCreateAttemptState(remoteIp);
@@ -391,7 +393,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 		if (check == SuperUserLoginGuard.CodeCheck.VALID) {
 
-			authenticateSession(request);
+			authenticateSession(request, response);
 			loginAttempts.invalidate(remoteIp);
 
 			return activeSection;
@@ -410,12 +412,12 @@ public class ConfigServlet extends AbstractServletBase {
 			// switched on but not set up yet: the password is proven, the session is not logged in until a code is confirmed
 			if (SuperUserLoginGuard.isTwoFactorEnabled()) {
 
-				pendingSetups.put(getSessionId(request), new PendingSetup(TimeBasedOneTimePasswordHelper.generateBase32Secret(), System.currentTimeMillis()));
+				pendingSetups.put(newSession(request, response), new PendingSetup(TimeBasedOneTimePasswordHelper.generateBase32Secret(), System.currentTimeMillis()));
 
 				return "?twoFactorSetup" + activeSection;
 			}
 
-			authenticateSession(request);
+			authenticateSession(request, response);
 
 			return activeSection;
 		}
@@ -439,7 +441,7 @@ public class ConfigServlet extends AbstractServletBase {
 	 *
 	 * @return the redirect target relative to the servlet location
 	 */
-	private String setup(final HttpServletRequest request, final String activeSection) {
+	private String setup(final HttpServletRequest request, final HttpServletResponse response, final String activeSection) {
 
 		if (Settings.SetupWizardCompleted.getValue()) {
 
@@ -457,7 +459,7 @@ public class ConfigServlet extends AbstractServletBase {
 		final String submittedToken = StringUtils.trim(request.getParameter("setupToken"));
 		if (StringUtils.isNotBlank(submittedToken) && constantTimeEquals(getSetupToken(), submittedToken)) {
 
-			authenticateSession(request);
+			authenticateSession(request, response);
 			loginAttempts.invalidate(remoteIp);
 
 			return activeSection;
@@ -714,7 +716,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 	// ----- second factor -----
 	/** Saves the secret only once a code from it is accepted, so a mistyped secret cannot lock anyone out. */
-	private String confirmSetup(final HttpServletRequest request, final String activeSection) throws IOException {
+	private String confirmSetup(final HttpServletRequest request, final HttpServletResponse response, final String activeSection) throws IOException {
 
 		final String remoteIp      = request.getRemoteAddr();
 		final AttemptState state   = getOrCreateAttemptState(remoteIp);
@@ -740,7 +742,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 			pendingSetups.remove(sessionId);
 			loginAttempts.invalidate(remoteIp);
-			authenticateSession(request);
+			authenticateSession(request, response);
 
 			logger.warn("Second factor of the superuser login set up from {}", remoteIp);
 			RuntimeEventLog.login("Configuration interface second factor set up", Map.of("ip", remoteIp));
@@ -1075,21 +1077,19 @@ public class ConfigServlet extends AbstractServletBase {
 
 	private String getSessionId(final HttpServletRequest request) {
 
-		final HttpSession session = request.getSession();
-		if (session == null) {
+		final Cookie[] cookies = request.getCookies();
+		if (cookies != null) {
 
-			logger.warn("Cannot check HTTP request, no session.");
+			for (final Cookie cookie : cookies) {
 
-			return null;
+				if (SessionCookieName.equals(cookie.getName()) && StringUtils.isNotBlank(cookie.getValue())) {
+
+					return cookie.getValue();
+				}
+			}
 		}
 
-		final String sessionId = session.getId();
-		if (sessionId == null) {
-
-			logger.warn("Cannot check HTTP session without session ID, ignoring.");
-		}
-
-		return sessionId;
+		return null;
 	}
 
 	private void welcomeTab(final Tag menu, final Tag tabs) {
@@ -1246,41 +1246,68 @@ public class ConfigServlet extends AbstractServletBase {
 		return main;
 	}
 
-	private void authenticateSession(final HttpServletRequest request) {
+	/** Logs the browser in under an id it has never held before, so that an id planted before the login is worthless afterwards. */
+	private void authenticateSession(final HttpServletRequest request, final HttpServletResponse response) {
 
-		final HttpSession session = request.getSession();
-		if (session == null) {
-
-			logger.warn("Cannot authenticate HTTP request, no session.");
-
-			return;
-		}
-
-		String sessionId = session.getId();
-
-		if (Settings.ConfigServletSessionFixationProtection.getValue()) {
-
-			// regenerate session ID so that an id planted before the login is worthless afterwards
-			sessionId = request.changeSessionId();
-		}
-
-		if (sessionId == null) {
-
-			logger.warn("Cannot authenticate HTTP session without session ID, ignoring.");
-
-			return;
-		}
-
-		sessions.put(sessionId, System.currentTimeMillis());
+		sessions.put(newSession(request, response), System.currentTimeMillis());
 	}
 
-	private void invalidateSession(final HttpServletRequest request) {
+	/**
+	 * Gives the browser a new config session id and forgets the one it came with.
+	 *
+	 * <p>The configuration interface used to share the JSESSIONID of the application, and rotating
+	 * that on login took the session away from a user who was logged into the Admin UI in another
+	 * tab. Its own cookie, scoped to its own path, leaves the application session alone in both
+	 * directions.</p>
+	 */
+	private String newSession(final HttpServletRequest request, final HttpServletResponse response) {
+
+		forgetSession(getSessionId(request));
+
+		final byte[] bytes = new byte[32];
+
+		secureRandom.nextBytes(bytes);
+
+		final String sessionId = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+
+		response.addCookie(createSessionCookie(sessionId, -1));
+
+		return sessionId;
+	}
+
+	private void invalidateSession(final HttpServletRequest request, final HttpServletResponse response) {
 
 		final String sessionId = getSessionId(request);
 		if (sessionId != null) {
 
-			sessions.remove(sessionId);
+			forgetSession(sessionId);
+
+			response.addCookie(createSessionCookie("", 0));
 		}
+	}
+
+	private void forgetSession(final String sessionId) {
+
+		if (sessionId != null) {
+
+			sessions.remove(sessionId);
+			pendingSetups.remove(sessionId);
+		}
+	}
+
+	private Cookie createSessionCookie(final String value, final int maxAge) {
+
+		final Cookie cookie = new Cookie(SessionCookieName, value);
+
+		cookie.setPath(prefixLocation(ConfigServletLocation));
+		cookie.setHttpOnly(true);
+		cookie.setSecure(Settings.CookieSecure.getValue());
+		cookie.setMaxAge(maxAge);
+
+		// every request that needs the session comes from the servlet's own pages
+		cookie.setAttribute("SameSite", "Strict");
+
+		return cookie;
 	}
 
 	private String getFirstElement(final String[] values) {

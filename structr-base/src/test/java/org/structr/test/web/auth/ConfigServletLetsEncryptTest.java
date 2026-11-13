@@ -19,9 +19,12 @@
 package org.structr.test.web.auth;
 
 import io.restassured.RestAssured;
+import io.restassured.config.RestAssuredConfig;
+import io.restassured.config.SessionConfig;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.structr.api.config.Settings;
+import org.structr.rest.servlet.ConfigServlet;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
@@ -36,6 +39,9 @@ import static org.testng.AssertJUnit.assertTrue;
 public class ConfigServletLetsEncryptTest extends StructrUiTest {
 
 	private static final String CONFIG_PATH = "/structr/config";
+
+	// the configuration interface has its own session cookie, which sessionId() and getSessionId() are to use
+	private static final RestAssuredConfig CONFIG_SESSION = RestAssured.config().sessionConfig(new SessionConfig().sessionIdName(ConfigServlet.SessionCookieName));
 
 	@Test
 	public void testLetsEncryptActionNeedsASession() {
@@ -95,6 +101,7 @@ public class ConfigServletLetsEncryptTest extends StructrUiTest {
 
 		RequestSpecification request = RestAssured
 			.given()
+				.config(CONFIG_SESSION)
 				.basePath(CONFIG_PATH)
 				.redirects().follow(false)
 				.header("Origin", "http://" + host + ":" + httpPort);
