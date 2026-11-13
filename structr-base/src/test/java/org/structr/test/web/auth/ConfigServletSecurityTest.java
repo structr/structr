@@ -19,6 +19,9 @@
 package org.structr.test.web.auth;
 
 import io.restassured.RestAssured;
+import io.restassured.config.RestAssuredConfig;
+import io.restassured.config.SessionConfig;
+import io.restassured.http.Cookie;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.structr.api.config.Settings;
@@ -26,6 +29,7 @@ import org.structr.rest.auth.SuperUserLoginGuard;
 import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
 import org.structr.rest.servlet.ConfigServlet;
 import org.structr.test.web.StructrUiTest;
+import org.structr.web.auth.UiAuthenticator;
 import org.testng.annotations.Test;
 
 import java.util.regex.Matcher;
@@ -34,6 +38,7 @@ import java.util.regex.Pattern;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
@@ -50,6 +55,9 @@ import static org.testng.AssertJUnit.assertTrue;
 public class ConfigServletSecurityTest extends StructrUiTest {
 
 	private static final String CONFIG_PATH = "/structr/config";
+
+	// the configuration interface has its own session cookie, which sessionId() and getSessionId() are to use
+	private static final RestAssuredConfig CONFIG_SESSION = RestAssured.config().sessionConfig(new SessionConfig().sessionIdName(ConfigServlet.SessionCookieName));
 
 	@Test
 	public void testStateChangingGetParametersAreIgnored() {
@@ -193,6 +201,99 @@ public class ConfigServletSecurityTest extends StructrUiTest {
 		} finally {
 
 			Settings.SessionTimeout.setValue(Settings.SessionTimeout.getDefaultValue());
+			Settings.SetupWizardCompleted.setValue(false);
+		}
+	}
+
+	/**
+	 * The configuration interface used to share the JSESSIONID of the application and rotated it on
+	 * login, which logged out a user who was logged into the Admin UI in another tab of the same browser.
+	 */
+	@Test
+	public void testConfigLoginLeavesTheApplicationSessionAlone() {
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+
+		grant("_login", UiAuthenticator.NON_AUTH_USER_POST, true);
+
+		final String applicationSessionId = RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ 'name': 'admin', 'password': 'admin' }")
+			.expect()
+				.statusCode(200)
+			.when()
+				.post("/login")
+			.getSessionId();
+
+		assertNotNull("REST login did not answer with a session", applicationSessionId);
+
+		Settings.SetupWizardCompleted.setValue(true);
+
+		try {
+
+			final Response configLogin = RestAssured
+				.given()
+					.config(CONFIG_SESSION)
+					.basePath(CONFIG_PATH)
+					.redirects().follow(false)
+					.header("Origin", "http://" + host + ":" + httpPort)
+					.cookie("JSESSIONID", applicationSessionId)
+					.formParam("action", "login")
+					.formParam("superuserName", Settings.SuperUserName.getValue())
+					.formParam("superuserPassword", Settings.SuperUserPassword.getValue())
+				.when()
+					.post();
+
+			assertEquals(302, configLogin.getStatusCode());
+			assertNotNull("config login must issue its own session cookie", configLogin.getSessionId());
+			assertNull("config login must not touch the application session cookie", configLogin.getCookie("JSESSIONID"));
+
+			// the application session still authenticates
+			RestAssured
+				.given()
+					.sessionId(applicationSessionId)
+				.expect()
+					.statusCode(200)
+				.when()
+					.get("/me");
+
+		} finally {
+
+			Settings.SetupWizardCompleted.setValue(false);
+		}
+	}
+
+	/** Every login issues a config session id the browser has never held, so an id planted beforehand is worthless afterwards. */
+	@Test
+	public void testConfigLoginIssuesANewSessionId() {
+
+		Settings.SetupWizardCompleted.setValue(true);
+
+		try {
+
+			final Response first = postSameOrigin(null, "action", "login", "superuserName", Settings.SuperUserName.getValue(), "superuserPassword", Settings.SuperUserPassword.getValue());
+			final String planted = first.getSessionId();
+
+			assertNotNull("login must issue a session cookie", planted);
+
+			final Response second = postSameOrigin(planted, "action", "login", "superuserName", Settings.SuperUserName.getValue(), "superuserPassword", Settings.SuperUserPassword.getValue());
+			final String renewed  = second.getSessionId();
+
+			assertNotNull("login must issue a session cookie", renewed);
+			assertFalse("login kept the config session id the browser sent", planted.equals(renewed));
+
+			assertLoginPage(get(planted));
+			assertConfigPage(get(renewed));
+
+			final Cookie cookie = second.getDetailedCookie(ConfigServlet.SessionCookieName);
+
+			assertTrue("the config session cookie must be HttpOnly", cookie.isHttpOnly());
+			assertEquals("Strict", cookie.getSameSite());
+			assertEquals(CONFIG_PATH, cookie.getPath());
+
+		} finally {
+
 			Settings.SetupWizardCompleted.setValue(false);
 		}
 	}
@@ -451,6 +552,7 @@ public class ConfigServletSecurityTest extends StructrUiTest {
 
 		RequestSpecification request = RestAssured
 			.given()
+				.config(CONFIG_SESSION)
 				.basePath(CONFIG_PATH)
 				.redirects().follow(false)
 				.header("Origin", "http://" + host + ":" + httpPort);
@@ -482,6 +584,7 @@ public class ConfigServletSecurityTest extends StructrUiTest {
 
 		RequestSpecification request = RestAssured
 			.given()
+				.config(CONFIG_SESSION)
 				.basePath(CONFIG_PATH)
 				.redirects().follow(false);
 
