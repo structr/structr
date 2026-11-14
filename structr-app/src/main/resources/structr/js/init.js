@@ -141,6 +141,10 @@ document.addEventListener("DOMContentLoaded", () => {
 	Structr.changeSystemMainFont();
 	Structr.changeSystemMonoFont();
 	Structr.changeLook();
+
+	// Structr Desktop adds its room for the window buttons after the page has loaded
+	window.addEventListener('load', Structr.noteWindowButtons);
+	setTimeout(Structr.noteWindowButtons, 800);
 });
 
 let Structr = {
@@ -672,6 +676,20 @@ let Structr = {
 		return entity;
 	},
 	slideouts: {
+		// the new look takes its time and moves the centre along with a panel, the classic look keeps its quick step
+		duration: () => _Theme.isNext() ? 220 : 100,
+		moveAlong: () => {
+
+			if (_Theme.isNext()) {
+
+				document.body.classList.add('slideout-moving');
+
+				clearTimeout(Structr.slideouts.movingTimer);
+				Structr.slideouts.movingTimer = setTimeout(() => document.body.classList.remove('slideout-moving'), Structr.slideouts.duration() + 100);
+
+				Structr.resize();
+			}
+		},
 		leftSlideoutTrigger: (triggerEl, slideoutElement, allLeftSlideouts, openCallback, closeCallback) => {
 
 			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
@@ -697,11 +715,12 @@ let Structr = {
 			triggerEl.classList.add('active');
 			slideoutElement.width(psw);
 
-			slideoutElement.animate({ left: 0 }, 100, () => {
+			slideoutElement.animate({ left: 0 }, Structr.slideouts.duration(), () => {
 				callback?.();
 			});
 
 			slideoutElement.addClass('open');
+			Structr.slideouts.moveAlong();
 		},
 		closeLeftSlideOuts: (slideouts, callback) => {
 
@@ -717,7 +736,9 @@ let Structr = {
 
 					let slideoutWidth = slideout[0].getBoundingClientRect().width;
 
-					slideout.animate({ left: -slideoutWidth }, 100, () => {
+					Structr.slideouts.moveAlong();
+
+					slideout.animate({ left: -slideoutWidth }, Structr.slideouts.duration(), () => {
 						_Pages[subSection]?.onSlideoutClose?.();
 						callback?.();
 					}).zIndex(2);
@@ -749,12 +770,13 @@ let Structr = {
 			triggerEl.classList.add('active');
 			slideoutElement.width(rsw);
 
-			slideoutElement.animate({right: 0}, 100, () => {
+			slideoutElement.animate({right: 0}, Structr.slideouts.duration(), () => {
 				callback?.();
 				document.querySelector('.column-resizer-right')?.classList.toggle('hidden', false);
 			});
 
 			slideoutElement.addClass('open');
+			Structr.slideouts.moveAlong();
 		},
 		closeRightSlideOuts: (slideouts, callback) => {
 
@@ -767,7 +789,9 @@ let Structr = {
 
 					let slideoutWidth = slideout[0].getBoundingClientRect().width;
 
-					slideout.animate({ right: -slideoutWidth }, 100, () => {
+					Structr.slideouts.moveAlong();
+
+					slideout.animate({ right: -slideoutWidth }, Structr.slideouts.duration(), () => {
 						callback?.();
 						document.querySelector('.column-resizer-right')?.classList.toggle('hidden', true);
 					}).zIndex(2);
@@ -1978,6 +2002,13 @@ let Structr = {
 
 		const selectedMainFontSize = UISettings.getValueForSetting(UISettings.settingGroups.style.settings.systemMainFontSizeKey);
 		document.documentElement.style.setProperty('--font-main-size', `${selectedMainFontSize}`);
+	},
+	// a window without a title bar (Structr Desktop) pads the header to make room for its buttons; the look takes note of it
+	noteWindowButtons: () => {
+
+		const padding = parseFloat(getComputedStyle(Structr.header).paddingLeft) || 0;
+
+		document.documentElement.classList.toggle('window-buttons-in-header', padding >= 50);
 	},
 	changeLook: () => {
 		_Theme.set(UISettings.getValueForSetting(UISettings.settingGroups.style.settings.lookKey), UISettings.getValueForSetting(UISettings.settingGroups.style.settings.colorSchemeKey));
