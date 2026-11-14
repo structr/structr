@@ -20,8 +20,363 @@
 /* The new look of Documentation. */
 
 :root.ui-next {
-	--docs-blockquote-background: color-mix(in srgb, var(--color-accent-yellow) 14%, transparent);
-	--docs-link:                  var(--color-text-brand);
-	--docs-link-hover:            var(--color-brand);
+	--docs-blockquote-background: var(--color-background-info);
+	--docs-link:                  var(--color-text-info);
+	--docs-link-hover:            var(--color-text-info);
 	--docs-image-shadow:          var(--color-border-secondary);
+}
+
+/* the three columns: cards on the canvas, with the room around them the other areas have */
+:root.ui-next #docs-area {
+	box-sizing: border-box;
+	padding: 0 2rem 1.5rem;
+	background: transparent;
+}
+
+:root.ui-next #docs-area nav,
+:root.ui-next #docs-area iframe,
+:root.ui-next #docs-area .index {
+	border-radius: var(--radius-dialog);
+	outline: 1px solid var(--color-border-secondary);
+	outline-offset: -1px;
+	background: var(--card-ground);
+	box-shadow: var(--shadow-card);
+}
+
+:root.ui-next #docs-area nav {
+	box-sizing: border-box;
+	height: calc(100vh - 9.5rem);
+	padding-top: 1rem;
+}
+
+:root.ui-next #docs-area .index {
+	box-sizing: border-box;
+	height: calc(100vh - 9.5rem);
+}
+
+/* between the cards a narrow column for each toggle, open or collapsed: the toggle stands in its middle */
+:root.ui-next #docs-nav-column:not(.collapsed) {
+	padding-right: 1.75rem;
+}
+
+:root.ui-next #docs-index-column:not(.collapsed) {
+	padding-left: 1.75rem;
+}
+
+/* a button brings a margin on its right, which moved the toggle out of its column */
+:root.ui-next #docs-area .docs-column-toggle {
+	margin: 0;
+}
+
+:root.ui-next #docs-nav-column .docs-column-toggle {
+	right: 0;
+}
+
+:root.ui-next #docs-index-column .docs-column-toggle {
+	left: 0;
+}
+
+:root.ui-next #docs-nav-column.collapsed,
+:root.ui-next #docs-index-column.collapsed {
+	border: none;
+}
+
+/* a toggle takes the whole height of its column, open or collapsed, and shows it under the pointer */
+:root.ui-next #docs-area .docs-column-toggle,
+:root.ui-next #docs-area .docs-column.collapsed .docs-column-toggle {
+	top: 0;
+	width: 1.75rem;
+	height: 100%;
+	transform: none;
+	border-radius: var(--radius-control);
+}
+
+:root.ui-next #docs-area .docs-column.collapsed .docs-column-toggle {
+	left: 0;
+	right: auto;
+}
+
+:root.ui-next #docs-area .docs-column-toggle:hover {
+	background-color: color-mix(in srgb, var(--color-text-primary) 6%, transparent);
+}
+
+/* the article is a document of its own inside its card: it shows the card, not a ground of its own */
+html.documentation.ui-next,
+html.documentation.ui-next body {
+	background: transparent;
+}
+
+/* the article fits its card: the least width of the admin UI's body is not meant for it */
+html.documentation.ui-next body {
+	min-width: 0;
+}
+
+/* the dots of the navigation carry their colour in an image */
+:root.ui-next #docs-area nav li li:hover:before {
+	content: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='10px' height='10px' viewBox='0 0 10 10'><circle cx='4' cy='5' r='3.5' stroke='none' fill='%23d8d5ca'/></svg>");
+}
+
+:root.ui-next.theme-dark #docs-area nav li li:hover:before {
+	content: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='10px' height='10px' viewBox='0 0 10 10'><circle cx='4' cy='5' r='3.5' stroke='none' fill='%233a3832'/></svg>");
+}
+
+:root.ui-next #docs-area nav li li:has(a.active):before {
+	content: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='10px' height='10px' viewBox='0 0 10 10'><circle cx='4' cy='5' r='3.5' stroke='none' fill='%237ab02a'/></svg>");
+}
+
+/* the article: the type of the design system over the full width of its card, as reference tables need the room */
+:root.ui-next .article {
+	box-sizing: border-box;
+	padding: 1.5rem 2.5rem 5rem;
+	background-color: transparent;
+	color: var(--color-text-primary);
+	font-size: 1.05rem;
+	line-height: 1.65;
+}
+
+/* the line above the title names the chapter: small and quiet, as the headings of the navigation */
+:root.ui-next .article .subtitle,
+:root.ui-next .article > p:first-child:has(+ h1) {
+	margin: 0;
+	padding-top: .5rem;
+	color: var(--color-text-tertiary);
+	font-size: .8rem;
+	font-weight: 600;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+}
+
+:root.ui-next .article :is(h1, h2, h3, h4, h5) {
+	color: var(--color-text-primary);
+	font-weight: 600;
+	line-height: 1.25;
+}
+
+:root.ui-next .article h1 {
+	margin: .5rem 0 1rem;
+	padding: 0;
+	color: var(--color-brand);
+	font-size: 2.1rem;
+	letter-spacing: -.015em;
+}
+
+:root.ui-next .article h2 {
+	margin: 2.5rem 0 .75rem;
+	padding: 1.75rem 0 0;
+	border-top: 1px solid var(--color-border-tertiary);
+	font-size: 1.5rem;
+	letter-spacing: -.01em;
+}
+
+:root.ui-next .article h3 {
+	margin: 1.75rem 0 .5rem;
+	padding: 0;
+	font-size: 1.2rem;
+}
+
+:root.ui-next .article h4 {
+	margin: 1.5rem 0 .4rem;
+	padding: 0;
+	font-size: 1.05rem;
+}
+
+:root.ui-next .article h5 {
+	margin: 1.25rem 0 .4rem;
+	padding: 0;
+	color: var(--color-text-tertiary);
+	font-size: .8rem;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+}
+
+:root.ui-next .article p {
+	padding: 0;
+	margin: .75rem 0;
+	line-height: inherit;
+}
+
+:root.ui-next .article p a,
+:root.ui-next .article li a {
+	text-decoration-thickness: 1px;
+	text-underline-offset: .2em;
+	text-decoration-color: color-mix(in srgb, var(--docs-link) 45%, transparent);
+}
+
+:root.ui-next .article p a:hover,
+:root.ui-next .article li a:hover {
+	text-decoration-color: currentColor;
+}
+
+:root.ui-next .article ul,
+:root.ui-next .article ol {
+	margin: .75rem 0 .75rem .5rem;
+}
+
+:root.ui-next .article ol li,
+:root.ui-next .article ul li {
+	margin-top: .2rem;
+	margin-bottom: .2rem;
+	line-height: inherit;
+}
+
+:root.ui-next .article li::marker {
+	color: var(--color-text-tertiary);
+}
+
+:root.ui-next .article pre,
+:root.ui-next .article code {
+	color: var(--color-text-primary);
+	font-size: .88em;
+	border-radius: var(--radius-control);
+}
+
+:root.ui-next .article code {
+	padding: .1em .35em;
+}
+
+:root.ui-next .article pre {
+	margin: 1rem 0;
+	padding: .9rem 1rem;
+	border-radius: var(--radius-surface);
+	line-height: 1.55;
+}
+
+:root.ui-next .article pre code {
+	padding: 0;
+	font-size: 1em;
+}
+
+:root.ui-next .article blockquote {
+	margin: 1rem 0;
+	padding: .75rem 1rem;
+	border-left: 3px solid var(--color-text-info);
+	border-radius: var(--radius-control);
+}
+
+:root.ui-next .article blockquote > :first-child {
+	margin-top: 0;
+}
+
+:root.ui-next .article blockquote > :last-child {
+	margin-bottom: 0;
+}
+
+:root.ui-next .article img:not([src*="svg"]) {
+	border-radius: var(--radius-surface);
+	outline: 1px solid var(--color-border-secondary);
+	box-shadow: var(--shadow-card);
+}
+
+:root.ui-next .article table {
+	margin: 1rem 0;
+}
+
+:root.ui-next .article table th {
+	padding: .5rem 2rem .5rem 0;
+	border-bottom: 1px solid var(--color-border-secondary);
+	color: var(--color-text-tertiary);
+	font-size: .8rem;
+	font-weight: 600;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+}
+
+:root.ui-next .article table td {
+	padding: .6rem 2rem .6rem 0;
+}
+
+:root.ui-next .article .badge-passage {
+	border-radius: var(--radius-surface);
+}
+
+/* the navigation and the index: the text size of the UI, their headings small and quiet */
+:root.ui-next #docs-area,
+:root.ui-next #docs-area aside {
+	font-size: 1rem;
+}
+
+:root.ui-next #docs-area nav ul#docs-main-navigation > li,
+:root.ui-next .index .index-heading {
+	color: var(--color-text-tertiary);
+	font-size: .8rem;
+	font-weight: 600;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+}
+
+/* the entries below a heading of the navigation are plain text again */
+:root.ui-next #docs-area nav li li {
+	font-size: 1rem;
+	letter-spacing: normal;
+	text-transform: none;
+}
+
+:root.ui-next #docs-area nav li li:not(:last-child) {
+	margin-bottom: .9rem;
+}
+
+:root.ui-next #docs-area nav > ul > li > ul {
+	margin-top: .9rem;
+	border-left-width: 1px;
+	border-left-color: var(--color-border-secondary);
+}
+
+/* the colours of the design system: its green for the title and the place in the navigation, its blue for links, notes and badges */
+:root.ui-next #docs-area nav a.active,
+:root.ui-next #docs-area nav li li:has(a.active),
+:root.ui-next .index a.active {
+	color: var(--color-brand);
+}
+
+:root.ui-next .article .badge-enterprise {
+	--badge-color: var(--color-accent-blue);
+}
+
+/* the search: its icons take the text colour (they carry a fixed one, or none, which is black) */
+:root.ui-next #search-field svg path,
+:root.ui-next #search-overlay svg path {
+	fill: currentColor;
+}
+
+/* the search over the page: a veil in the colour of the other dialogs, the field and its results as two cards */
+:root.ui-next #search-overlay {
+	background: var(--color-background-backdrop);
+	backdrop-filter: blur(6px);
+}
+
+:root.ui-next #search-overlay input {
+	border-color: var(--color-border-secondary);
+	border-radius: var(--radius-dialog);
+	box-shadow: 0 12px 34px var(--color-shadow);
+}
+
+:root.ui-next #search-overlay input:focus-visible {
+	border-color: var(--color-text-info);
+	box-shadow: var(--focus-ring), 0 12px 34px var(--color-shadow);
+}
+
+:root.ui-next #search-results {
+	margin-top: .5rem;
+	padding-top: 0;
+	border-radius: var(--radius-dialog);
+}
+
+:root.ui-next #search-results:has(li) {
+	outline: 1px solid var(--color-border-secondary);
+	outline-offset: -1px;
+	box-shadow: 0 12px 34px var(--color-shadow);
+}
+
+:root.ui-next #search-results ul,
+:root.ui-next .search-result {
+	border-radius: 0;
+	background-color: transparent;
+}
+
+:root.ui-next .search-result + .search-result {
+	border-top: 1px solid var(--color-border-tertiary);
+}
+
+:root.ui-next .search-result:hover {
+	background-color: var(--color-background-hover);
 }
