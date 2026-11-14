@@ -961,7 +961,7 @@ public class SchemaTest extends StructrTest {
 	public void testInitializationOfNonStructrNodesWithTenantIdentifier() {
 
 		// don't run tests that depend on Cypher being available in the backend
-		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+		if (Services.getInstance().getDatabaseService().supportsCypher()) {
 
 			final String tenantId = Services.getInstance().getDatabaseService().getTenantIdentifier();
 

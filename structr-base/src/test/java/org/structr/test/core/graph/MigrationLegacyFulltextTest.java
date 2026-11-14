@@ -49,7 +49,7 @@ public class MigrationLegacyFulltextTest extends StructrTest {
 	public void testLegacyFulltextDataIsRemoved() throws FrameworkException {
 
 		// the migration step is Cypher, and the legacy data can only be written with Cypher
-		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+		if (!app.getDatabaseService().supportsCypher()) {
 
 			throw new SkipException("The migration step needs Cypher, skipping test with " + Settings.DatabaseDriver.getValue());
 		}

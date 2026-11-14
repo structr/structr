@@ -62,7 +62,7 @@ public class ConsoleTest extends StructrUiTest {
 	@Test
 	public void testCypherMode() {
 
-		if (!Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+		if (!Services.getInstance().getDatabaseService().supportsCypher()) {
 
 			return;
 		}

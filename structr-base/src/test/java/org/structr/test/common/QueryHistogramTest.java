@@ -47,7 +47,7 @@ public class QueryHistogramTest extends StructrTest {
 	public void testQueriesAreRecordedPerStatement() {
 
 		final DatabaseService<?> db = Services.getInstance().getDatabaseService();
-		if (!db.supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+		if (!db.supportsCypher()) {
 
 			return;
 		}

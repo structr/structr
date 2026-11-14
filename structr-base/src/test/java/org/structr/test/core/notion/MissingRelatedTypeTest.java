@@ -179,7 +179,7 @@ public class MissingRelatedTypeTest extends StructrTest {
 	// ----- private methods -----
 	private boolean supportsCypher() {
 
-		return Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query");
+		return Services.getInstance().getDatabaseService().supportsCypher();
 	}
 
 	private void createTestSchema() {

@@ -171,5 +171,10 @@ public interface DatabaseService<IDType> {
 	<T> NativeQuery<T> query(final Object query, final Class<T> resultType);
 	boolean supportsFeature(final DatabaseFeature feature, final Object...  parameters);
 
+	default boolean supportsCypher() {
+
+		return supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query");
+	}
+
 	void flushCaches();
 }

@@ -25,11 +25,13 @@ import ch.qos.logback.core.read.ListAppender;
 import io.restassured.RestAssured;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DataFormatException;
+import org.structr.api.DatabaseFeature;
 import org.structr.api.SyntaxErrorException;
 import org.structr.api.UnknownClientException;
 import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
@@ -57,27 +59,33 @@ public class CypherEndpointErrorTest extends StructrUiTest {
 	@Test
 	public void testTypeErrorWhileReadingTheResultIs422() {
 
-		createTarget();
+		if (Services.getInstance().getDatabaseService().supportsCypher()) {
 
-		final List<ILoggingEvent> events = capture(() -> post("MATCH (n:CypherErrorTarget) RETURN toString(n.tags) AS s", "toString"));
+			createTarget();
 
-		assertLoggedOnce(events);
+			final List<ILoggingEvent> events = capture(() -> post("MATCH (n:CypherErrorTarget) RETURN toString(n.tags) AS s", "toString"));
+
+			assertLoggedOnce(events);
+		}
 	}
 
 	@Test
 	public void testTypeErrorInTheCypherFunctionIs422() {
 
-		createTarget();
+		if (Services.getInstance().getDatabaseService().supportsCypher()) {
 
-		try (final Tx tx = app.tx()) {
+			createTarget();
 
-			Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.cypher('MATCH (n:CypherErrorTarget) RETURN toString(n.tags) AS s') }}", "test");
+			try (final Tx tx = app.tx()) {
 
-			fail("expected the query to be rejected");
+				Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.cypher('MATCH (n:CypherErrorTarget) RETURN toString(n.tags) AS s') }}", "test");
 
-		} catch (FrameworkException fex) {
+				fail("expected the query to be rejected");
 
-			assertEquals(fex.toString(), 422, fex.getStatus());
+			} catch (FrameworkException fex) {
+
+				assertEquals(fex.toString(), 422, fex.getStatus());
+			}
 		}
 	}
 
@@ -98,30 +106,38 @@ public class CypherEndpointErrorTest extends StructrUiTest {
 	@Test
 	public void testSyntaxErrorIs422() {
 
-		final List<ILoggingEvent> events = capture(() -> post("MATCH (n RETURN n", "Invalid input"));
+		if (Services.getInstance().getDatabaseService().supportsCypher()) {
 
-		assertLoggedOnce(events);
+			final List<ILoggingEvent> events = capture(() -> post("MATCH (n RETURN n", "Invalid input"));
+
+			assertLoggedOnce(events);
+		}
 	}
 
 	@Test
 	public void testSyntaxErrorInGetIs422() {
 
-		final List<ILoggingEvent> events = capture(() -> {
+		final boolean supportsCypher = Services.getInstance().getDatabaseService().supportsCypher();
 
-			RestAssured.basePath = "/structr/rest";
+		if (supportsCypher) {
 
-			RestAssured
-				.given()
-					.header(X_USER_HEADER, Settings.SuperUserName.getValue())
-					.header(X_PASSWORD_HEADER, Settings.SuperUserPassword.getValue())
-					.queryParam("query", "MATCH (n RETURN n")
-				.expect()
-					.statusCode(422)
-				.when()
-					.get("/cypher");
-		});
+			final List<ILoggingEvent> events = capture(() -> {
 
-		assertLoggedOnce(events);
+				RestAssured.basePath = "/structr/rest";
+
+				RestAssured
+						.given()
+						.header(X_USER_HEADER, Settings.SuperUserName.getValue())
+						.header(X_PASSWORD_HEADER, Settings.SuperUserPassword.getValue())
+						.queryParam("query", "MATCH (n RETURN n")
+						.expect()
+						.statusCode(422)
+						.when()
+						.get("/cypher");
+			});
+
+			assertLoggedOnce(events);
+		}
 	}
 
 	// ----- private methods -----

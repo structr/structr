@@ -1947,7 +1947,7 @@ public class SearchAndSortingTest extends StructrTest {
 	public void testSortFunctionForGraphObjectMaps() {
 
 		// don't run tests that depend on Cypher being available in the backend
-		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+		if (Services.getInstance().getDatabaseService().supportsCypher()) {
 
 			final String groupType            = StructrTraits.GROUP;
 			final PropertyKey<String> nameKey = Traits.of(groupType).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);

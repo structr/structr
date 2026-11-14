@@ -346,7 +346,7 @@ public class MigrationService {
 
 		if (Services.getInstance().hasExclusiveDatabaseAccess()) {
 
-			final boolean cypher     = Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query");
+			final boolean cypher     = Services.getInstance().getDatabaseService().supportsCypher();
 
 			// the indexes of a fresh database are created and populated while Structr starts, and the queries of the
 			// steps fail when they are compiled during the population; waiting inside a transaction could block the
