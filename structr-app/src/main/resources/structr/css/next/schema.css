@@ -1,0 +1,41 @@
+/**
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* The new look of Schema. */
+
+:root.ui-next {
+	--schema-row-hover-background: color-mix(in srgb, var(--color-accent-yellow) 12%, var(--color-background-primary));
+	--schema-selected-background:  var(--color-accent-yellow);
+	--schema-selected-border:      var(--color-accent-yellow);
+	--schema-rel-selected-border:  color-mix(in srgb, var(--color-accent-yellow) 80%, var(--color-text-primary));
+	--schema-code-hover-glow:      var(--color-accent-yellow);
+	--schema-code-hover-shadow:    var(--color-text-tertiary);
+	--schema-diagram-fill: var(--color-background-primary);
+	--schema-diagram-label: var(--color-text-primary);
+	--schema-diagram-label-muted: var(--color-text-secondary);
+	--schema-diagram-port: var(--color-text-tertiary);
+	--schema-diagram-relation: var(--color-brand);
+	--schema-diagram-inheritance: var(--color-border-secondary);
+}
+
+/* a type stands out by a line where the shadow no longer shows */
+:root.ui-next #schema-graph .node {
+	border: 1px solid var(--color-border-secondary);
+	box-shadow: none;
+}

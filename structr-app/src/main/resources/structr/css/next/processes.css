@@ -1,0 +1,50 @@
+/**
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* The new look of Processes. */
+
+:root.ui-next {
+	--processes-diagram-background:          var(--color-background-secondary);
+	--processes-panel-background:            var(--color-background-secondary);
+	--processes-status-active-background:    color-mix(in srgb, var(--color-text-success) 16%, var(--color-background-primary));
+	--processes-status-active-text:          var(--color-text-success);
+	--processes-status-completed-background: color-mix(in srgb, var(--color-text-info) 16%, var(--color-background-primary));
+	--processes-status-completed-text:       var(--color-text-info);
+	--processes-status-created-background:   color-mix(in srgb, var(--color-accent-violet) 16%, var(--color-background-primary));
+	--processes-status-created-text:         var(--color-accent-violet);
+	--processes-status-error-background:     color-mix(in srgb, var(--color-text-danger) 16%, var(--color-background-primary));
+	--processes-status-error-text:           var(--color-text-danger);
+	--processes-status-reserved-background:  color-mix(in srgb, var(--color-accent-yellow) 20%, var(--color-background-primary));
+	--processes-status-reserved-text:        var(--color-text-warning);
+	--processes-delete-text:                 var(--color-text-danger);
+	--processes-state-note-text:             var(--color-text-warning);
+	--processes-tab-active-border:           var(--color-text-info);
+	--processes-shape-active-fill:           color-mix(in srgb, var(--color-accent-yellow) 20%, var(--color-background-primary));
+	--processes-shape-completed-fill:        color-mix(in srgb, var(--color-text-success) 16%, var(--color-background-primary));
+	--processes-shape-error-fill:            color-mix(in srgb, var(--color-text-danger) 16%, var(--color-background-primary));
+	--processes-shape-selected-stroke:       var(--color-text-info);
+	--processes-ink: var(--color-text-primary);
+	--processes-paper: var(--color-background-primary);
+	--processes-handle: var(--color-text-info);
+	--processes-lane-line: var(--color-text-tertiary);
+	--processes-pool-line: var(--color-text-secondary);
+	--processes-lane-label: var(--color-text-secondary);
+	--processes-grid: var(--color-border-tertiary);
+	--processes-finished: var(--color-text-success);
+}

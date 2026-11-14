@@ -1,0 +1,95 @@
+/**
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* The new look of the Dashboard. */
+
+:root.ui-next {
+	--dashboard-http-get:         var(--color-accent-blue);
+	--dashboard-http-head:        color-mix(in srgb, var(--color-accent-blue) 60%, var(--color-background-primary));
+	--dashboard-http-post:        var(--color-text-success);
+	--dashboard-http-put:         var(--color-accent-orange);
+	--dashboard-http-delete:      var(--color-text-danger);
+	--dashboard-http-options:     var(--color-text-tertiary);
+	--dashboard-switch-highlight: transparent;
+	--dashboard-switch-shadow:    var(--color-shadow);
+}
+
+/* the entries of the menu configuration: chips, as the header no longer is dark */
+:root.ui-next .menu-item {
+	background-color: var(--color-background-tertiary);
+	color: var(--color-text-primary);
+	border-radius: var(--radius-control);
+}
+
+:root.ui-next .menu-item:hover {
+	background-color: var(--color-background-brand-light);
+}
+
+/* the HTTP statistics chart: vis brings its own colours in its script */
+:root.ui-next .vis-timeline,
+:root.ui-next .vis-panel.vis-bottom,
+:root.ui-next .vis-panel.vis-center,
+:root.ui-next .vis-panel.vis-left,
+:root.ui-next .vis-panel.vis-right,
+:root.ui-next .vis-panel.vis-top {
+	border-color: var(--color-border-secondary);
+}
+
+:root.ui-next .vis-time-axis .vis-text,
+:root.ui-next .vis-data-axis .vis-y-axis.vis-major {
+	color: var(--color-text-secondary);
+}
+
+:root.ui-next .vis-data-axis .vis-y-axis.vis-minor {
+	color: var(--color-text-tertiary);
+}
+
+:root.ui-next .vis-time-axis .vis-grid.vis-minor,
+:root.ui-next .vis-panel.vis-background.vis-horizontal .vis-grid.vis-minor {
+	border-color: var(--color-border-tertiary);
+}
+
+:root.ui-next .vis-time-axis .vis-grid.vis-major,
+:root.ui-next .vis-panel.vis-background.vis-horizontal .vis-grid.vis-major {
+	border-color: var(--color-border-secondary);
+}
+
+:root.ui-next .vis-legend {
+	background-color: color-mix(in srgb, var(--color-background-primary) 85%, transparent);
+	border: var(--line);
+	border-radius: var(--radius-control);
+	box-shadow: 0 4px 12px var(--color-shadow);
+	color: var(--color-text-primary);
+}
+
+:root.ui-next .vis-legend .vis-outline {
+	fill: var(--color-background-primary);
+	stroke: var(--color-border-secondary);
+}
+
+/* the switches of the deployment: the option not chosen stays readable */
+:root.ui-next .options-switch label {
+	color: var(--color-text-secondary);
+	box-shadow: inset 0 0 0 1px var(--color-border-secondary);
+}
+
+:root.ui-next .options-switch input:checked + label {
+	color: var(--color-text-inverse);
+	box-shadow: none;
+}

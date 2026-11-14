@@ -1,0 +1,510 @@
+/**
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* The new look of the shell: what a colour token cannot say, such as radius, lines and depth. */
+
+:root.ui-next {
+	--radius-control: 6px;
+	--radius-surface: 8px;
+	--radius-dialog:  12px;
+	--line:           1px solid var(--color-border-tertiary);
+	--focus-ring:     0 0 0 2px color-mix(in srgb, var(--color-text-info) 45%, transparent);
+	--diagram-marker: var(--color-text-secondary);
+	--shadow-card:    0 2px 10px rgba(0, 0, 0, .08);
+	--card-ground:    color-mix(in srgb, var(--color-background-primary) 50%, transparent);
+}
+
+:root.ui-next.theme-dark {
+	--shadow-card: 0 2px 10px rgba(0, 0, 0, .35);
+}
+
+/* quiet scrollbars on every scroll surface */
+:root.ui-next * {
+	scrollbar-width: thin;
+	scrollbar-color: var(--color-border-secondary) transparent;
+}
+
+/* the canvas of structr.cloud and the Desktop app: dots on the page colour */
+:root.ui-next body {
+	background: var(--color-background-page) radial-gradient(var(--color-border-secondary) 1px, transparent 1.3px) 0 0 / 22px 22px;
+}
+
+/* icons from the sprite inherit their line width; a place may ask for finer lines */
+:root.ui-next svg:has(> use) {
+	stroke-width: 2;
+}
+
+/* header: the bright bar of the Desktop app with a hairline, the active module a quiet pill */
+:root.ui-next #header {
+	border-bottom: 1px solid var(--color-border-secondary);
+	box-sizing: border-box;
+}
+
+/* the logo keeps its height; the mark brings its own colours, the word takes the text colour */
+:root.ui-next #header .logo {
+	position: relative;
+	top: 1px;
+	width: 110px;
+	height: 24px;
+	margin-bottom: 0;
+	color: var(--color-text-primary);
+}
+
+/* a window without a title bar has made room for its buttons, so the logo needs no inset of its own */
+:root.ui-next.window-buttons-in-header #header .logo {
+	margin-left: 0;
+}
+
+:root.ui-next #login .logo-login {
+	width: 123px;
+	color: var(--color-text-primary);
+}
+
+:root.ui-next #header .structr-instance-info {
+	font-size: 1.04rem;
+	color: var(--color-text-primary);
+}
+
+/* the tools on the right: small icons in a frame, as buttons */
+:root.ui-next #header > .flex.gap-4 {
+	gap: .6rem;
+}
+
+/* the frames stand on one line, whatever element holds them */
+:root.ui-next #header > .flex.gap-4 > div:not(.hidden),
+:root.ui-next #header > .flex.gap-4 > div > a,
+:root.ui-next #header > .flex.gap-4 > div > button {
+	display: flex;
+	align-items: center;
+}
+
+:root.ui-next #header > .flex.gap-4 svg:has(> use) {
+	box-sizing: content-box;
+	width: 16px;
+	height: 16px;
+	margin: 0;
+	padding: 5px;
+	border: 1px solid var(--color-border-secondary);
+	border-radius: var(--radius-surface);
+	background: var(--color-background-primary);
+	color: var(--color-text-secondary);
+	stroke-width: 1.5;
+	cursor: pointer;
+}
+
+:root.ui-next #header > .flex.gap-4 svg:has(> use):hover {
+	background: var(--color-background-tertiary);
+	color: var(--color-text-primary);
+}
+
+/* the menu of the further modules: an icon of the size of the menu text */
+:root.ui-next #header .submenu-trigger > svg {
+	position: relative;
+	top: -1.5px;
+	width: 18px;
+	height: 18px;
+	vertical-align: middle;
+	color: var(--color-text-secondary);
+}
+
+/* the size of the titles in the headers of the Companion and the Desktop app: 13.9px at the default font size */
+:root.ui-next .menu a {
+	font-size: 1.04rem;
+	color: var(--color-text-secondary);
+}
+
+/* the menu stands on the centre line of the header, as the logo and the tools do */
+:root.ui-next #header #menu {
+	margin-top: 0;
+}
+
+/* in whole pixels; the text stands a pixel above the middle, where lowercase letters look centred */
+:root.ui-next .menu > ul > li {
+	margin: 0 .1rem;
+	padding: 2px .75rem 4px;
+	line-height: 20px;
+	border: 1px solid transparent;
+	border-radius: var(--radius-surface);
+}
+
+:root.ui-next .menu > ul > li:hover a {
+	color: var(--color-text-primary);
+}
+
+/* the active module: lit as the active chip in the Companion's header */
+:root.ui-next .menu > ul > li.active,
+:root.ui-next .menu > ul > li.active:hover {
+	border-color: color-mix(in srgb, var(--color-brand) 45%, transparent);
+	background-color: color-mix(in srgb, var(--color-brand) 12%, var(--color-background-primary));
+}
+
+:root.ui-next .menu > ul > li.active a {
+	color: var(--color-text-primary) ! important;
+	font-weight: 600;
+}
+
+:root.ui-next .menu > ul > li.submenu-trigger:hover {
+	color: var(--color-text-primary);
+}
+
+/* the menu of the keyboard shortcuts opens below its button, not around it as the centring of the row would have it */
+:root.ui-next #keyboard-shortcuts-popup {
+	top: 100%;
+}
+
+/* the switch between light and dark shows where a click leads */
+:root.ui-next #color-scheme-toggle {
+	display: block;
+	line-height: 0;
+}
+
+:root.ui-next.theme-dark #color-scheme-toggle .to-dark,
+:root.ui-next.theme-light #color-scheme-toggle .to-light {
+	display: none;
+}
+
+/* the module menu: a floating card */
+:root.ui-next ul#submenu {
+	padding: .25rem;
+	margin-top: 1rem;
+	background-color: var(--color-background-primary);
+	border: var(--line);
+	border-radius: var(--radius-surface);
+	box-shadow: 0 12px 34px var(--color-shadow);
+}
+
+:root.ui-next #submenu li {
+	background-color: transparent;
+	border-radius: var(--radius-control);
+}
+
+:root.ui-next #submenu li a {
+	color: var(--color-text-secondary);
+}
+
+:root.ui-next #submenu li:not(.active):hover {
+	background-color: var(--color-background-hover);
+}
+
+:root.ui-next #submenu li:not(.active):hover a {
+	color: var(--color-text-primary);
+}
+
+:root.ui-next #submenu li.active {
+	background-color: var(--color-background-tertiary);
+}
+
+:root.ui-next #submenu li.active a {
+	color: var(--color-text-primary) ! important;
+	font-weight: 500;
+}
+
+/* the canvas shows wherever an area puts nothing on it */
+/* a card that starts at the top of the main area keeps its shadow where the browser knows the clip margin */
+:root.ui-next #main {
+	background: transparent;
+	overflow: clip;
+	overflow-clip-margin: 6px;
+}
+
+/* the login stands on the canvas as a card, without the veil other dialogs lie on */
+:root.ui-next .non-block-ui-wrapper:has(#login) > div:first-child {
+	background-color: transparent ! important;
+}
+
+:root.ui-next #login {
+	border: 1px solid var(--color-border-secondary);
+	border-radius: var(--radius-dialog);
+	box-shadow: 0 12px 34px var(--color-shadow);
+}
+
+/* the columns of an area: cards on the canvas; the line is an outline inside the card, so nothing clips it or changes a size */
+:root.ui-next #main .tree,
+:root.ui-next #main .tree-contents,
+:root.ui-next #main .resourceBox,
+:root.ui-next #main .tab-content,
+:root.ui-next #main .content-container,
+:root.ui-next #mail-templates-detail-container,
+:root.ui-next #localization-detail-container {
+	border: none;
+	border-radius: var(--radius-dialog);
+	outline: 1px solid var(--color-border-secondary);
+	outline-offset: -1px;
+	background: var(--card-ground) ! important;
+	box-shadow: var(--shadow-card);
+}
+
+/* the panels that slide in from the edge of the window: the card begins beside the strip of their big buttons */
+:root.ui-next .slideOut {
+	--slideout-strip: 4rem;
+	background-color: transparent ! important;
+}
+
+:root.ui-next .slideOut.open {
+	box-shadow: none;
+}
+
+/* the card stays with a panel that slides out; only its shadow goes at once, as a closed panel waits just beyond the edge */
+:root.ui-next .slideOut::before {
+	content: '';
+	position: absolute;
+	z-index: -1;
+	inset: 0;
+	border-radius: var(--radius-dialog);
+	background: var(--card-ground);
+	box-shadow: inset 0 0 0 1px var(--color-border-secondary);
+}
+
+:root.ui-next .slideOut.open::before {
+	box-shadow: inset 0 0 0 1px var(--color-border-secondary), var(--shadow-card);
+}
+
+:root.ui-next .slideOutLeft::before {
+	left: var(--slideout-strip);
+}
+
+:root.ui-next .slideOutRight::before {
+	right: var(--slideout-strip);
+}
+
+/* while a panel slides, the centre and the tabs above it move along, at the pace of the panel */
+:root.ui-next body.slideout-moving #center-pane,
+:root.ui-next body.slideout-moving #function-bar .tabs-menu {
+	transition: margin .22s cubic-bezier(.445, .05, .55, .95), left .22s cubic-bezier(.445, .05, .55, .95);
+}
+
+/* the big buttons stand on the canvas; only the one of the open panel has a ground, the card's */
+:root.ui-next .slideout-activator:not(.active):hover {
+	background-color: transparent;
+}
+
+:root.ui-next .slideout-activator.active {
+	box-shadow: inset 0 0 0 1px var(--color-border-secondary), var(--shadow-card);
+}
+
+:root.ui-next .slideout-activator.active.left {
+	border-radius: var(--radius-surface) 0 0 var(--radius-surface);
+}
+
+:root.ui-next .slideout-activator.active.right {
+	border-radius: 0 var(--radius-surface) var(--radius-surface) 0;
+}
+
+/* function bar: no bar, its controls stand on the canvas above the content */
+:root.ui-next #function-bar {
+	background: transparent;
+	box-shadow: none;
+}
+
+/* its right end: the settings, compact, then the help, which ends where the cards below end */
+:root.ui-next #ui-settings-popup > button.dropdown-select {
+	margin-right: 1.9rem;
+	padding-left: .5rem;
+	padding-right: 1.5rem;
+	background-size: .9rem;
+	background-position: calc(100% - .3rem) 50%;
+}
+
+:root.ui-next #main-help {
+	top: 5.4rem;
+	right: 2.1rem;
+	line-height: 0;
+}
+
+/* without a help for the area, the settings end where the cards below end */
+:root.ui-next body:has(#main-help a.hidden) #ui-settings-popup > button.dropdown-select {
+	margin-right: .1rem;
+}
+
+/* its tabs: text on the canvas, the active one lit as the active chip in the Companion's header */
+:root.ui-next #function-bar .tabs-menu {
+	display: inline-flex;
+	gap: .4rem;
+	margin-top: 0;
+}
+
+/* in whole pixels; the text stands a pixel above the middle, as in the menu of the header */
+:root.ui-next #function-bar .tabs-menu > li {
+	height: auto;
+	margin: 0;
+	padding: 0 0 2px ! important;
+	line-height: 24px;
+	border: 1px solid transparent;
+	border-radius: var(--radius-surface);
+	background: transparent;
+	color: var(--color-text-secondary);
+	font-weight: 400;
+}
+
+:root.ui-next #function-bar .tabs-menu > li a {
+	padding: 0 .8rem;
+	color: inherit;
+}
+
+:root.ui-next #function-bar .tabs-menu > li:not(.active):hover {
+	border: 1px solid transparent;
+	background: var(--color-background-tertiary);
+	color: var(--color-text-primary) ! important;
+}
+
+:root.ui-next #function-bar .tabs-menu > li.active {
+	border: 1px solid color-mix(in srgb, var(--color-brand) 45%, transparent);
+	background: color-mix(in srgb, var(--color-brand) 12%, var(--color-background-primary));
+	color: var(--color-text-primary) ! important;
+	font-weight: 600;
+}
+
+/* controls */
+:root.ui-next button,
+:root.ui-next textarea,
+:root.ui-next input,
+:root.ui-next select {
+	border-radius: var(--radius-control);
+	border-color: var(--color-border-secondary);
+}
+
+:root.ui-next input,
+:root.ui-next textarea,
+:root.ui-next select {
+	background-color: var(--color-background-primary);
+}
+
+:root.ui-next button:hover:not(.disabled):not(.action):not(.default-action) {
+	background-color: var(--color-background-hover);
+}
+
+:root.ui-next button:focus-visible,
+:root.ui-next input:focus-visible,
+:root.ui-next textarea:focus-visible,
+:root.ui-next select:focus-visible {
+	outline: none;
+	border-color: var(--color-text-info);
+	box-shadow: var(--focus-ring);
+}
+
+:root.ui-next select,
+:root.ui-next .dropdown-select {
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2356534b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6l6 -6'/></svg>");
+	background-size: 1rem;
+	background-position: calc(100% - .5rem) 50%;
+}
+
+:root.ui-next.theme-dark select,
+:root.ui-next.theme-dark .dropdown-select {
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bdb9ad' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6l6 -6'/></svg>");
+}
+
+:root.ui-next input[type="checkbox"],
+:root.ui-next input[type="radio"] {
+	accent-color: var(--color-brand);
+}
+
+/* a type and its Create button are one control: one outline in one colour, no round corners where they meet */
+:root.ui-next input.combined-input-create,
+:root.ui-next select.combined-select-create {
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+	border-color: var(--color-brand-strong);
+}
+
+:root.ui-next button.combined-input-create,
+:root.ui-next button.combined-select-create {
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+	border-color: var(--color-brand-strong);
+}
+
+/* tabs: a thinner marker */
+:root.ui-next #tabs li.active,
+:root.ui-next .data-tabs li.active,
+:root.ui-next .files-tabs li.active,
+:root.ui-next .code-tabs li.active,
+:root.ui-next .favs-tabs li.active,
+:root.ui-next .widgets-tabs li.active,
+:root.ui-next .tabs-menu li.active {
+	border-bottom-width: 2px;
+}
+
+:root.ui-next #tabs li:not(.active):hover,
+:root.ui-next .data-tabs li:not(.active):hover,
+:root.ui-next .files-tabs > ul > li:not(.active):hover,
+:root.ui-next .code-tabs > ul > li:not(.active):hover,
+:root.ui-next .favs-tabs li:not(.active):hover,
+:root.ui-next .widgets-tabs > ul > li:not(.active):hover,
+:root.ui-next .tabs-menu li:not(.active):hover {
+	border-bottom: 2px solid var(--color-border-secondary);
+	color: var(--color-text-primary) ! important;
+}
+
+/* a tab's content outside the main area, in a dialog: a quiet frame */
+:root.ui-next .tab-content {
+	box-shadow: none;
+	border: var(--line);
+	border-radius: var(--radius-surface);
+}
+
+/* dialogs and dropdowns: cards with depth */
+:root.ui-next #dialogBox {
+	background-color: var(--color-background-primary);
+	border: var(--line);
+	border-radius: var(--radius-dialog);
+	box-shadow: 0 12px 34px var(--color-shadow);
+}
+
+:root.ui-next .dropdown-menu-large .dropdown-menu-container {
+	border: var(--line);
+	border-radius: var(--radius-surface);
+	box-shadow: 0 12px 34px var(--color-shadow);
+	overflow: hidden;
+}
+
+:root.ui-next .dropdown-menu-container > .separator {
+	border-top: var(--line);
+}
+
+:root.ui-next .dropdown-menu-container > .row:hover {
+	background-color: var(--color-background-hover);
+}
+
+/* tree carets: the classic ones carry a fixed colour */
+:root.ui-next .svg-collapsed {
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%2356534b'><polygon points='0,0 0,100 50,50'/></svg>");
+}
+
+:root.ui-next .svg-expanded {
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%2356534b'><polygon points='0,0 100,0 50,50'/></svg>");
+}
+
+:root.ui-next.theme-dark .svg-collapsed {
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%23bdb9ad'><polygon points='0,0 0,100 50,50'/></svg>");
+}
+
+:root.ui-next.theme-dark .svg-expanded {
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%23bdb9ad'><polygon points='0,0 100,0 50,50'/></svg>");
+}
+
+/* jstree draws its arrows from a dark image */
+:root.ui-next.theme-dark .jstree-default .jstree-ocl {
+	filter: invert(.85);
+}
+
+/* the selected row of a tree: a tint, not a block */
+:root.ui-next .jstree-default .jstree-wholerow-clicked {
+	background: var(--color-background-brand-light) ! important;
+}

@@ -1,0 +1,60 @@
+/**
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* The new look of Pages. */
+
+:root.ui-next {
+	--pages-drag-highlight-background: color-mix(in srgb, var(--color-accent-yellow) 22%, var(--color-background-primary));
+	--pages-drop-inactive-background:  color-mix(in srgb, var(--color-text-tertiary) 66%, transparent);
+	--pages-drop-inactive-border:      color-mix(in srgb, var(--color-text-tertiary) 66%, transparent);
+	--pages-drop-active-border:        var(--color-brand);
+	--pages-dropzone-text:             var(--color-border-secondary);
+	--pages-dropzone-border:           var(--color-border-secondary);
+	--pages-active-element-action:     var(--color-accent-orange);
+	--pages-active-element-datasource: var(--color-accent-violet);
+	--pages-active-element-text-hover: var(--color-text-tertiary);
+	--pages-diagram-label: var(--color-text-secondary);
+	--pages-diagram-line: var(--color-border-secondary);
+	--pages-diagram-line-strong: var(--color-text-tertiary);
+	--pages-diagram-marker: var(--color-text-primary);
+	--pages-diagram-page-fill: var(--color-background-primary);
+	--pages-diagram-element-fill: var(--color-background-tertiary);
+	--pages-diagram-symbol-fill: var(--color-border-secondary);
+	--pages-diagram-default-fill: var(--color-background-secondary);
+}
+
+/* the labels of the diagram are filled by default, which is black */
+:root.ui-next .active-elements-container svg text {
+	fill: var(--color-text-primary);
+	stroke: none;
+}
+
+/* the actions above the page tree begin where its card begins, and take no room, so their width moves nothing */
+:root.ui-next #function-bar #pages-actions {
+	position: absolute;
+	top: 50%;
+	left: 4rem;
+	transform: translateY(-50%);
+}
+
+/* the tabs begin where the card below them begins, whatever the width of the page tree */
+:root.ui-next body:has(.slideOutLeft.open) #function-bar .tabs-menu {
+	position: relative;
+	left: 8rem;
+}

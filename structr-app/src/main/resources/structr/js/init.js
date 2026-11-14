@@ -41,6 +41,12 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	});
 
+	document.querySelector('#color-scheme-toggle').addEventListener('click', () => {
+
+		LSWrapper.setItem(UISettings.settingGroups.style.settings.colorSchemeKey.storageKey, _Theme.isDark() ? 'light' : 'dark');
+		Structr.changeLook();
+	});
+
 	document.querySelector('#logout_').addEventListener('click', (e) => {
 		e.stopPropagation();
 		Structr.doLogout();
@@ -134,6 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	Structr.changeSystemMainFont();
 	Structr.changeSystemMonoFont();
+	Structr.changeLook();
 });
 
 let Structr = {
@@ -1972,6 +1979,9 @@ let Structr = {
 		const selectedMainFontSize = UISettings.getValueForSetting(UISettings.settingGroups.style.settings.systemMainFontSizeKey);
 		document.documentElement.style.setProperty('--font-main-size', `${selectedMainFontSize}`);
 	},
+	changeLook: () => {
+		_Theme.set(UISettings.getValueForSetting(UISettings.settingGroups.style.settings.lookKey), UISettings.getValueForSetting(UISettings.settingGroups.style.settings.colorSchemeKey));
+	},
 	changeSystemMonoFont: () => {
 		const selectedMonoFont = UISettings.getValueForSetting(UISettings.settingGroups.style.settings.systemMonoFontKey);
 		document.documentElement.style.setProperty('--font-monospace', `var(--font-monospace-${selectedMonoFont})`);
@@ -2651,6 +2661,11 @@ let Structr = {
 						<div class="absolute flex items-center rounded-full h-4 -top-1 -right-3 text-white bg-red">
 							<div data-notification-count class="px-2 text-xs empty:hidden"></div>
 						</div>
+					</div>
+
+					<div id="color-scheme-toggle" class="cursor-pointer" title="Switch between light and dark">
+						${_Icons.getSvgIcon(_Icons.iconThemeMoon, 22, 22, ['to-dark'])}
+						${_Icons.getSvgIcon(_Icons.iconThemeSun, 22, 22, ['to-light'])}
 					</div>
 				</div>
 
@@ -3791,6 +3806,37 @@ let UISettings = {
 		style: {
 			title: 'Style',
 			settings: {
+				lookKey: {
+					text: 'Look',
+					storageKey: 'uiLook' + location.port,
+					defaultValue: 'classic',
+					type: 'select',
+					infoText: 'The look of this UI. The new look follows the Structr Design system and is still being completed.',
+					onUpdate: () => {
+						Structr.changeLook();
+					},
+					inputCssClass: 'w-40 truncate',
+					possibleValues: {
+						Classic: { value: 'classic', text: 'Classic' },
+						Next:    { value: 'next',    text: 'New (preview)' }
+					}
+				},
+				colorSchemeKey: {
+					text: 'Color scheme',
+					storageKey: 'uiColorScheme' + location.port,
+					defaultValue: 'auto',
+					type: 'select',
+					infoText: 'Light or dark, in the new look only.',
+					onUpdate: () => {
+						Structr.changeLook();
+					},
+					inputCssClass: 'w-40 truncate',
+					possibleValues: {
+						Auto:  { value: 'auto',  text: 'Follow the system' },
+						Light: { value: 'light', text: 'Light' },
+						Dark:  { value: 'dark',  text: 'Dark' }
+					}
+				},
 				systemMainFontKey: {
 					text: 'Main font',
 					storageKey: 'systemMainFont' + location.port,

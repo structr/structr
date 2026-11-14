@@ -1,0 +1,208 @@
+/**
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* The new look: the role tokens of main.css in the Structr Design system; dark redefines only the base values. */
+
+:root.ui-next {
+	color-scheme: light;
+
+	/* base: surfaces, text, lines */
+	--color-background-primary:   #ffffff;
+	--color-background-secondary: #f6f5f0;
+	--color-background-tertiary:  #eceae1;
+	--color-text-primary:         #1d1c18;
+	--color-text-secondary:       #56534b;
+	--color-text-tertiary:        #8a8678;
+	--color-border-secondary:     #d8d5ca;
+	--color-border-tertiary:      #e9e7de;
+
+	/* base: brand and status */
+	--color-brand:                #7ab02a;
+	--color-brand-strong:         #6a9a24;
+	--color-text-brand:           #5f8c1f;
+	--color-text-info:            #2b6cb8;
+	--color-text-success:         #2f8f4e;
+	--color-text-warning:         #8a6500;
+	--color-text-danger:          #c2452f;
+	--color-background-info:      #e8f0fb;
+
+	/* base: accents */
+	--color-accent-violet:        #8b83e6;
+	--color-accent-blue:          #4d97e8;
+	--color-accent-orange:        #ef9f27;
+	--color-accent-red:           #e06a40;
+	--color-accent-yellow:        #e3b341;
+
+	/* base: code, read by the editor (js/editors.js) */
+	--code-keyword:               #6f63d9;
+	--code-string:                var(--color-text-brand);
+	--code-number:                #b5600a;
+	--code-type:                  #2b6cb8;
+	--code-regexp:                #c2452f;
+	--code-comment:               #8a8678;
+
+	/* base: depth */
+	--color-shadow:                rgba(40, 38, 30, .10);
+	--color-shadow-strong:         rgba(40, 38, 30, .22);
+	--color-background-backdrop:   rgba(40, 38, 30, .35);
+
+	/* backgrounds */
+	--color-background-page:             var(--color-background-secondary);
+	--color-background-header:           var(--color-background-primary);
+	--color-background-hover:            color-mix(in srgb, var(--color-text-primary) 5%, var(--color-background-primary));
+	--color-background-faint:            var(--color-background-secondary);
+	--color-background-disabled:         var(--color-background-secondary);
+	--color-background-dialog:           var(--color-background-secondary);
+	--color-background-control:          var(--color-background-tertiary);
+	--color-background-node:             var(--color-background-tertiary);
+	--color-background-stage:            var(--color-background-tertiary);
+	--color-background-separator:        var(--color-border-secondary);
+	--color-background-strong:           var(--color-border-secondary);
+	--color-background-deleted:          color-mix(in srgb, var(--color-text-tertiary) 45%, var(--color-background-primary));
+	--color-background-draggable-hover:  var(--color-text-tertiary);
+	--color-background-black:            #000000;
+	--color-background-brand:            var(--color-brand);
+	--color-background-brand-bright:     var(--color-brand);
+	--color-background-brand-hover:      var(--color-brand-strong);
+	--color-background-cta-hover:        var(--color-brand-strong);
+	--color-background-brand-light:      color-mix(in srgb, var(--color-brand) 35%, var(--color-background-primary));
+	--color-background-editing:          color-mix(in srgb, var(--color-brand) 45%, var(--color-background-primary));
+	--color-background-brand-subtle:     color-mix(in srgb, var(--color-brand) 10%, var(--color-background-primary));
+	--color-background-selected:         color-mix(in srgb, var(--color-brand) 16%, transparent);
+	--color-background-drop-active:      color-mix(in srgb, var(--color-brand) 50%, var(--color-background-primary));
+	--color-background-search-highlight: color-mix(in srgb, var(--color-accent-yellow) 45%, var(--color-background-primary));
+	--color-background-node-selected:    color-mix(in srgb, var(--color-accent-yellow) 18%, var(--color-background-primary));
+	--color-background-image-folder:     color-mix(in srgb, var(--color-accent-yellow) 18%, var(--color-background-primary));
+	--color-background-success:          color-mix(in srgb, var(--color-text-success) 14%, var(--color-background-primary));
+	--color-background-added:            var(--color-text-success);
+	--color-background-warning:          color-mix(in srgb, var(--color-accent-yellow) 22%, var(--color-background-primary));
+	--color-background-danger:           color-mix(in srgb, var(--color-text-danger) 16%, var(--color-background-primary));
+	--color-background-invalid:          color-mix(in srgb, var(--color-text-danger) 8%, var(--color-background-primary));
+	--color-background-danger-hover:     var(--color-text-danger);
+	--color-background-danger-strong:    var(--color-text-danger);
+	--search-attr-custom-background:     var(--color-accent-violet);
+	--search-attr-html-background:       var(--color-accent-blue);
+	--search-attr-id-background:         var(--color-accent-red);
+
+	/* text */
+	--color-text-black:            var(--color-text-primary);
+	--color-text-strong:           var(--color-text-primary);
+	--color-text-dark:             var(--color-text-primary);
+	--color-text-heading:          var(--color-text-primary);
+	--color-text-medium:           var(--color-text-secondary);
+	--color-text-link:             var(--color-text-secondary);
+	--color-text-muted:            var(--color-text-tertiary);
+	--color-text-faint:            var(--color-text-tertiary);
+	--color-text-placeholder:      var(--color-text-tertiary);
+	--color-text-disabled:         var(--color-text-tertiary);
+	--color-text-option-disabled:  var(--color-text-tertiary);
+	--color-text-inactive:         var(--color-text-tertiary);
+	--color-text-ghost:            color-mix(in srgb, var(--color-text-tertiary) 60%, var(--color-background-primary));
+	--color-text-hover-light:      var(--color-border-secondary);
+	--color-text-rule:             var(--color-border-tertiary);
+	--color-text-inverse:          #ffffff;
+	--color-text-brand-dark:       var(--color-text-brand);
+	--color-text-alert:            var(--color-text-danger);
+	--color-text-danger-dark:      var(--color-text-danger);
+	--search-attr-content-text:    var(--color-text-primary);
+	--color-icon-red:              var(--color-text-danger);
+	--color-icon-green:            var(--color-text-success);
+	--color-icon-blue:             var(--color-text-info);
+	--color-icon-tree-blue:        var(--color-text-info);
+	--color-icon-dark-blue:        var(--color-accent-violet);
+	--color-icon-lightblue:        var(--color-accent-blue);
+	--color-icon-lightgrey:        var(--color-text-tertiary);
+	--color-icon-orange:           var(--color-accent-orange);
+	--color-icon-yellow:           var(--color-accent-yellow);
+
+	/* borders */
+	--color-border-primary:             var(--color-border-secondary);
+	--color-border-strong:              var(--color-border-secondary);
+	--color-border-control:             var(--color-border-secondary);
+	--color-border-key:                 var(--color-border-secondary);
+	--color-border-tooltip:             var(--color-border-secondary);
+	--color-border-medium:              var(--color-text-tertiary);
+	--color-border-muted:               var(--color-text-tertiary);
+	--color-border-outline:             var(--color-text-tertiary);
+	--color-border-dashed:              var(--color-text-tertiary);
+	--color-border-dark:                var(--color-text-secondary);
+	--color-border-emphasis:            var(--color-text-secondary);
+	--color-border-black:               var(--color-text-primary);
+	--color-border-inverse:             var(--color-background-primary);
+	--color-border-translucent:         color-mix(in srgb, var(--color-text-primary) 12%, transparent);
+	--color-border-translucent-strong:  color-mix(in srgb, var(--color-text-primary) 25%, transparent);
+	--color-border-brand:               var(--color-brand);
+	--color-border-brand-light:         color-mix(in srgb, var(--color-brand) 45%, var(--color-background-primary));
+	--color-border-active-green:        var(--color-text-success);
+	--color-border-success:             var(--color-text-success);
+	--color-border-info:                var(--color-text-info);
+	--color-border-warning:             var(--color-text-warning);
+	--color-border-danger:              var(--color-text-danger);
+	--color-border-required:            var(--color-text-danger);
+	--color-border-invalid:             var(--color-text-danger);
+
+	/* fills and strokes */
+	--color-fill-grey:       var(--color-text-secondary);
+	--color-fill-green:      var(--color-brand);
+	--color-fill-red:        var(--color-text-danger);
+	--color-fill-blue:       var(--color-text-info);
+	--color-fill-lightblue:  var(--color-accent-blue);
+	--color-fill-orange:     var(--color-accent-orange);
+	--color-fill-yellow:     var(--color-accent-yellow);
+	--color-fill-white:      #ffffff;
+
+	/* shadows */
+	--color-shadow-button:      var(--color-shadow);
+	--color-shadow-tile:        var(--color-shadow);
+	--color-shadow-tile-hover:  var(--color-shadow-strong);
+	--color-shadow-popover:     var(--color-shadow-strong);
+	--color-shadow-dialog:      var(--color-shadow-strong);
+	--color-shadow-crop:        rgba(0, 0, 0, .45);
+	--color-shadow-focus:       var(--color-brand);
+}
+
+:root.ui-next.theme-dark {
+	color-scheme: dark;
+
+	--color-background-primary:   #262420;
+	--color-background-secondary: #1b1a16;
+	--color-background-tertiary:  #322f29;
+	--color-text-primary:         #f3f1ea;
+	--color-text-secondary:       #bdb9ad;
+	--color-text-tertiary:        #8b887d;
+	--color-border-secondary:     #3a3832;
+	--color-border-tertiary:      #2c2a25;
+
+	--color-text-brand:           #8fc43a;
+	--color-text-info:            #7fb0ff;
+	--color-text-success:         #5fb87e;
+	--color-text-warning:         #e6c13f;
+	--color-text-danger:          #e07a64;
+	--color-background-info:      #22304a;
+
+	--code-keyword:               #a59ef0;
+	--code-number:                #ef9f27;
+	--code-type:                  #7fb0ff;
+	--code-regexp:                #e07a64;
+	--code-comment:               #8b887d;
+
+	--color-shadow:                rgba(0, 0, 0, .45);
+	--color-shadow-strong:         rgba(0, 0, 0, .6);
+	--color-background-backdrop:   rgba(0, 0, 0, .6);
+}

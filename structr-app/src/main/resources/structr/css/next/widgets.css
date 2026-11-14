@@ -1,0 +1,146 @@
+/**
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* The new look of the third-party widgets: select2 and jQuery UI bring fixed colours in their own stylesheets. */
+
+/* select2 */
+:root.ui-next .select2-dropdown,
+:root.ui-next .select2-container--default .select2-selection--single,
+:root.ui-next .select2-container--default .select2-selection--multiple,
+:root.ui-next .select2-container--default .select2-search--dropdown .select2-search__field {
+	background-color: var(--color-background-primary);
+	border-color: var(--color-border-secondary);
+	border-radius: var(--radius-control);
+	color: var(--color-text-primary);
+}
+
+:root.ui-next .select2-dropdown {
+	box-shadow: 0 12px 34px var(--color-shadow);
+}
+
+:root.ui-next .select2-container--default .select2-selection--single .select2-selection__rendered {
+	color: var(--color-text-primary);
+}
+
+:root.ui-next .select2-container--default .select2-selection--single .select2-selection__placeholder,
+:root.ui-next .select2-container--default .select2-results__option[aria-disabled=true],
+:root.ui-next .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+	color: var(--color-text-tertiary);
+}
+
+:root.ui-next .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+	color: var(--color-text-primary);
+}
+
+:root.ui-next .select2-container--default .select2-selection--single .select2-selection__arrow b {
+	border-top-color: var(--color-text-secondary);
+}
+
+:root.ui-next .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+	border-top-color: transparent;
+	border-bottom-color: var(--color-text-secondary);
+}
+
+:root.ui-next .select2-container--default.select2-container--disabled .select2-selection--single,
+:root.ui-next .select2-container--default.select2-container--disabled .select2-selection--multiple {
+	background-color: var(--color-background-secondary);
+}
+
+:root.ui-next .select2-container--default .select2-selection--multiple .select2-selection__choice {
+	background-color: var(--color-background-tertiary);
+	border-color: var(--color-border-secondary);
+	color: var(--color-text-primary);
+}
+
+:root.ui-next .select2-container--default .select2-results__option[aria-selected=true] {
+	background-color: var(--color-background-tertiary);
+}
+
+:root.ui-next .select2-container--default .select2-results__option--highlighted[aria-selected] {
+	background-color: var(--color-background-brand-light);
+	color: var(--color-text-primary);
+}
+
+/* jQuery UI: date pickers, autocomplete, tooltips */
+:root.ui-next .ui-widget-content {
+	background: var(--color-background-primary);
+	color: var(--color-text-primary);
+}
+
+:root.ui-next .ui-widget-content a,
+:root.ui-next .ui-widget-header a {
+	color: var(--color-text-primary);
+}
+
+:root.ui-next .ui-widget-header {
+	color: var(--color-text-primary);
+}
+
+:root.ui-next .ui-state-hover,
+:root.ui-next .ui-widget-content .ui-state-hover,
+:root.ui-next .ui-widget-header .ui-state-hover,
+:root.ui-next .ui-state-focus,
+:root.ui-next .ui-widget-content .ui-state-focus,
+:root.ui-next .ui-widget-header .ui-state-focus {
+	background: var(--color-background-hover);
+	border-color: var(--color-border-secondary);
+	color: var(--color-text-primary);
+}
+
+:root.ui-next .ui-state-active,
+:root.ui-next .ui-widget-content .ui-state-active,
+:root.ui-next .ui-widget-header .ui-state-active {
+	background: var(--color-background-brand-light);
+	border-color: var(--color-border-brand);
+	color: var(--color-text-primary);
+}
+
+:root.ui-next .ui-datepicker,
+:root.ui-next .ui-autocomplete,
+:root.ui-next .ui-tooltip {
+	border: var(--line);
+	border-radius: var(--radius-surface);
+	box-shadow: 0 12px 34px var(--color-shadow);
+}
+
+/* the icons of jQuery UI are a dark image */
+:root.ui-next.theme-dark .ui-icon {
+	filter: invert(.85);
+}
+
+/* the code editor: framed as a text field, with its ring when it has the focus */
+:root.ui-next .monaco-editor,
+:root.ui-next .monaco-editor .overflow-guard {
+	border-radius: var(--radius-control);
+}
+
+:root.ui-next .monaco-editor::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 10;
+	border: 1px solid var(--color-border-secondary);
+	border-radius: var(--radius-control);
+	pointer-events: none;
+}
+
+:root.ui-next .monaco-editor.focused::after {
+	border-color: var(--color-text-info);
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-text-info) 45%, transparent);
+}
