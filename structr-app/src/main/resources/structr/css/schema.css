@@ -16,12 +16,35 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/* Role tokens of this area, see main.css */
+:root {
+	/* Backgrounds */
+	--schema-row-hover-background: var(--very-very-light-yellow);
+	--schema-selected-background:  var(--color-folder);
+
+	/* Borders */
+	--schema-rel-selected-border:  var(--light-ocker);
+	--schema-selected-border:      var(--color-folder);
+
+	/* Shadows */
+	--schema-code-hover-glow:      yellow;
+	--schema-code-hover-shadow:    var(--gray-888);
+
+	/* The diagram of the types, drawn by schema-nodes-formatter.js */
+	--schema-diagram-fill:         #ffffff;
+	--schema-diagram-label:        #333333;
+	--schema-diagram-label-muted:  #666666;
+	--schema-diagram-port:         #999999;
+	--schema-diagram-relation:     #81ce25;
+	--schema-diagram-inheritance:  #dddddd;
+}
 #schema-container {
 	height: calc(100vh - 8rem);
 }
 
 #schema-graph {
-	background-color: var(--main-background);
+	background-color: var(--color-background-page);
 	position: relative;
 	top: 2rem;
 }
@@ -45,25 +68,25 @@
 
 #schema-graph .node {
 	position: absolute;
-	background-color: var(--solid-white);
-	box-shadow: 0 0 .625rem 0 rgba(0, 0, 0, 0.1);
+	background-color: var(--color-background-primary);
+	box-shadow: 0 0 .625rem 0 var(--color-shadow);
 	padding: .5rem;
 	margin: 0 ! important;
 	cursor: move;
 }
 
 #schema-graph .node.selected {
-	border-color: var(--color-folder);
-	background-color: var(--color-folder) !important;
+	border-color: var(--schema-selected-border);
+	background-color: var(--schema-selected-background) !important;
 }
 
 #schema-graph .label.rel-type.selected {
-	border-color: var(--light-ocker);
-	background-color: var(--color-folder) !important;
+	border-color: var(--schema-rel-selected-border);
+	background-color: var(--schema-selected-background) !important;
 }
 
 #schema-graph .label.schema-reltype-warning {
-	background: var(--error-bg-light-red) !important;
+	background: var(--color-background-danger) !important;
 }
 
 .schema {
@@ -80,8 +103,8 @@
 }
 
 #zoom-slider, #zoom-slider span {
-	border: .1rem solid var(--input-field-border);
-	background-color: var(--input-background);
+	border: .1rem solid var(--color-border-primary);
+	background-color: var(--color-background-disabled);
 }
 
 #node-type-selector, #rel-type-selector, #saved-layout-selector {
@@ -95,7 +118,7 @@
 }
 
 .schema-props {
-	background-color: var(--solid-white);
+	background-color: var(--color-background-primary);
 	width: 100%;
 	border-collapse: collapse;
 }
@@ -108,12 +131,12 @@
 }
 
 .actions.schema-props .schema-grid-row.editing > div {
-	background: var(--very-light-structr-green);
+	background: var(--color-background-editing);
 }
 
 .related-attrs .no-rels {
 	text-align: center;
-	color: grey;
+	color: var(--color-text-placeholder);
 	font-style: italic;
 	padding-top: 5px;
 	padding-bottom: 6px;
@@ -175,7 +198,7 @@
 	min-width: 1rem;
 	text-align: center;
 	padding: .5rem;
-	box-shadow: 0 0 .625rem 0 rgba(0, 0, 0, 0.1);
+	box-shadow: 0 0 .625rem 0 var(--color-shadow);
 }
 
 #schema-graph .label svg {
@@ -212,7 +235,7 @@
 }
 
 #schema-graph .node:hover {
-	filter: drop-shadow(0 0 0.625rem rgba(0, 0, 0, 0.1));
+	filter: drop-shadow(0 0 0.625rem var(--color-shadow));
 }
 
 #schema-graph ._jsPlumb_endpoint_anchor {
@@ -220,7 +243,7 @@
 }
 
 #schema-graph rect {
-	filter: drop-shadow(0 0 0.625rem rgba(0, 0, 0, 0.1));
+	filter: drop-shadow(0 0 0.625rem var(--color-shadow));
 }
 
 .schema b,
@@ -234,19 +257,19 @@
 .schema-props .property-default:hover,
 .schema-details .property-code:hover {
 	cursor: text;
-	color: var(--gray-222);
-	background-color: var(--very-very-light-yellow);
-	-webkit-box-shadow: 0 0 5px yellow;
-	-moz-box-shadow: 0 0 5px var(--gray-888);
-	box-shadow: 0 0 5px var(--gray-888);
+	color: var(--color-text-strong);
+	background-color: var(--schema-row-hover-background);
+	-webkit-box-shadow: 0 0 5px var(--schema-code-hover-glow);
+	-moz-box-shadow: 0 0 5px var(--schema-code-hover-shadow);
+	box-shadow: 0 0 5px var(--schema-code-hover-shadow);
 }
 
 .schema-props > tr:hover {
-	background-color: var(--very-very-light-yellow);
+	background-color: var(--schema-row-hover-background);
 }
 
 .schema-details .edit-schema-object span {
-	border-bottom: .1rem dashed var(--gray-999);
+	border-bottom: .1rem dashed var(--color-border-outline);
 }
 
 .schema-visibility-table .toggle-column-header {
@@ -277,12 +300,12 @@
 
 .edge-style.active {
 	font-weight: 500;
-	color: var(--solid-black);
+	color: var(--color-text-black);
 }
 
 .edge-style.active::before {
 	content: '✓ ';
-	color: var(--structr-green);
+	color: var(--color-text-brand);
 }
 
 #inheritance-tree.slideOut {

@@ -16,6 +16,36 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/* Role tokens of this area, see main.css */
+:root {
+	/* Backgrounds */
+	--pages-drag-highlight-background: var(--hover-node-background-highlight-color);
+	--pages-drop-inactive-background:  var(--hover-highlight-color-inactive);
+
+	/* Text */
+	--pages-dropzone-text:             lightgray;
+
+	/* Borders */
+	--pages-drop-active-border:        var(--hover-highlight-color-active);
+	--pages-drop-inactive-border:      var(--hover-highlight-color-inactive);
+	--pages-dropzone-border:           lightgray;
+
+	/* Fills and strokes */
+	--pages-active-element-action:     #ff8800;
+	--pages-active-element-datasource: #2222aa;
+	--pages-active-element-text-hover: #bbbbbb;
+
+	/* The diagram of the active elements, drawn by active-elements-formatter.js */
+	--pages-diagram-label:             #333333;
+	--pages-diagram-line:              #cccccc;
+	--pages-diagram-line-strong:       #999999;
+	--pages-diagram-marker:            #000000;
+	--pages-diagram-page-fill:         #ffffff;
+	--pages-diagram-element-fill:      #eeeeee;
+	--pages-diagram-symbol-fill:       #dddddd;
+	--pages-diagram-default-fill:      #f8f8f8;
+}
 #pages {
 	display: flex;
 	flex-direction: column;
@@ -61,23 +91,23 @@
 }
 
 .node.drag-over > .node-container:not(.page):not(.drop-not-possible) {
-	border-left: .5rem solid var(--hover-highlight-color-inactive);
+	border-left: .5rem solid var(--pages-drop-inactive-border);
 }
 
 .node.drag-over > .node-container:not(.page):not(.drop-not-possible).drag-hover {
-	border-left: .5rem solid var(--hover-highlight-color-active);
+	border-left: .5rem solid var(--pages-drop-active-border);
 }
 
 .node.show-drop-target-before > div.before-node,
 .node.show-drop-target-after > div.after-node {
 	display: block;
-	background: var(--hover-highlight-color-inactive);
+	background: var(--pages-drop-inactive-background);
 }
 
 .node.show-drop-target-before > div.before-node.drag-over,
 .node.show-drop-target-after > div.after-node.drag-over,
 .element-dropzone.allow-drop.drag-over.drag-hover {
-	background: var(--hover-highlight-color-active);
+	background: var(--color-background-drop-active);
 }
 
 .node-container.drag-background-drop-forbidden {
@@ -86,12 +116,12 @@
 }
 
 .node.drag-background-node-highlight {
-	background: var(--hover-node-background-highlight-color);
+	background: var(--pages-drag-highlight-background);
 }
 /* end dragndrop classes in pages */
 
 .previewBox {
-	background: var(--solid-white);
+	background: var(--color-background-primary);
 	padding: 0;
 	margin: 0;
 	overflow: hidden ! important;
@@ -100,7 +130,7 @@
 	-webkit-transform-origin: 0 0;
 	width: 100%;
 	height: 100%;
-	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+	box-shadow: 0 0 .625rem 0 var(--color-shadow);
 }
 
 .previewBox iframe {
@@ -135,7 +165,7 @@
 }
 
 #pagesTree .node.nodeSelected {
-	background-color: var(--structr-light-green);
+	background-color: var(--color-background-brand-light);
 }
 
 /**
@@ -147,8 +177,8 @@
 }
 .content-container {
 	margin-top: 0;
-	background-color: var(--solid-white);
-	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+	background-color: var(--color-background-primary);
+	box-shadow: 0 0 .625rem 0 var(--color-shadow);
 	overflow: auto;
 	height: calc(100vh - 10rem);
 	position: relative;
@@ -268,9 +298,9 @@
 }
 
 .element-dropzone {
-	border: .15rem dashed lightgray;
+	border: .15rem dashed var(--pages-dropzone-border);
 	border-radius: .25rem;
-	color: lightgray;
+	color: var(--pages-dropzone-text);
 	margin-bottom: 1rem;
 }
 
@@ -279,7 +309,7 @@
 }
 
 .element-dropzone.allow-drop {
-	color: black;
+	color: var(--color-text-black);
 }
 
 .element-dropzone .info-icon .sprite {
@@ -305,13 +335,13 @@
 	Linkable Tab
 */
 .linkable-container .linkBox {
-	border: 1px solid var(--gray-ccc);
-	background-color: var(--solid-white);
+	border: 1px solid var(--color-border-strong);
+	background-color: var(--color-background-primary);
 }
 
 .linkable-container .linkBox .pager {
-	border-bottom: 1px solid var(--gray-ccc);
-	background-color: var(--gray-bg);
+	border-bottom: 1px solid var(--color-border-strong);
+	background-color: var(--color-background-control);
 	padding: 3px 0px 3px 6px;
 }
 
@@ -343,8 +373,8 @@
 	flex-direction: column;
 	align-items: center;
 	width: 70px;
-	color: #333;
-	background-color: var(--solid-white);
+	color: var(--color-text-dark);
+	background-color: var(--color-background-primary);
 	border: 1px solid transparent;
 	border-radius: 5px;
 	cursor: pointer;
@@ -360,7 +390,7 @@
 }
 
 .widget:hover {
-	border: 1px solid #999;
+	border: 1px solid var(--color-border-outline);
 }
 
 .widget span {
@@ -391,26 +421,26 @@
 	margin-bottom: -5px;
 }
 .active-elements-container svg > * {
-	filter: drop-shadow(0 0 .625rem rgba(0, 0, 0, .1));
+	filter: drop-shadow(0 0 .625rem var(--color-shadow));
 }
 
 .active-elements-container svg *:hover,
 .active-elements-container svg * text:hover {
-	stroke: #bbbbbb;
+	stroke: var(--pages-active-element-text-hover);
 }
 svg g.diagram-element[data-type="ActionMapping"] rect {
-	fill: #ff8800;
+	fill: var(--pages-active-element-action);
 }
 
 svg *[data-type="ListDataSource"] {
-	fill: #2222aa;
+	fill: var(--pages-active-element-datasource);
 }
 
 /*
 URL Routing custom styles
  */
 div[data-structr-path-parameters-container] > div[data-structr-id]:nth-child(2n+1) {
-	background-color: var(--light-gray-bg-f7);
+	background-color: var(--color-background-secondary);
 }
 
 /*

@@ -16,6 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/* Role tokens of this area, see main.css */
+:root {
+	/* Borders */
+	--graph-props-border: var(--medium-light-gray-c0);
+}
 @charset "UTF-8";
 
 .large {
@@ -45,11 +51,11 @@
 
 #graph-canvas .node {
 	position: absolute;
-	background-color: var(--medium-light-gray-e0);
+	background-color: var(--color-background-node);
 }
 
 #graph-canvas .node:hover {
-	background-color: var(--gray-eee);
+	background-color: var(--color-background-tertiary);
 }
 
 .node .head h2 {
@@ -116,20 +122,20 @@
 }
 
 .node .body table.props {
-	border: 1px solid var(--gray-ccc);
+	border: 1px solid var(--color-border-strong);
 	border-collapse: collapse;
 	float: left;
 }
 
 .node .body table.props th {
-	background-color: var(--medium-light-gray-e0);
-	border: 1px solid var(--medium-light-gray-c0);
+	background-color: var(--color-background-node);
+	border: 1px solid var(--graph-props-border);
 	padding: 2px;
 }
 
 .node .body table.props td {
-	background-color: var(--solid-white);
-	border: 1px solid var(--medium-light-gray-c0);
+	background-color: var(--color-background-primary);
+	border: 1px solid var(--graph-props-border);
 	padding: 2px 4px;
 }
 
@@ -198,7 +204,7 @@ ul.relBox li, ul.nodeBox li {
 }
 
 #function-bar .query-box .icon {
-	color: var(--icon-stroke);
+	color: var(--color-text-link);
 	top: 0;
 	margin: .375rem 0 0 .5rem;
 }
@@ -209,15 +215,15 @@ ul.relBox li, ul.nodeBox li {
 
 .saved-query {
 	padding: .5em;
-	border: 1px solid var(--gray-ccc);
-	background: var(--solid-white);
+	border: 1px solid var(--color-border-strong);
+	background: var(--color-background-primary);
 	position: relative;
 	margin-bottom: 12px;
 }
 
 .saved-query:hover {
-	border: 1px solid var(--gray-ddd);
-	background: var(--light-gray-bg-f7);
+	border: 1px solid var(--color-border-secondary);
+	background: var(--color-background-secondary);
 	cursor: pointer;
 }
 
@@ -267,7 +273,7 @@ ul.relBox li, ul.nodeBox li {
 #graph-canvas .node {
 	padding: 2px 6px;
 	margin: 4px 0 4px 0;
-	border: 1px solid var(--black-opacity-125);
+	border: 1px solid var(--color-border-translucent);
 }
 
 
@@ -313,7 +319,7 @@ ul.relBox li, ul.nodeBox li {
 	min-height: 30px;
 	text-align: center;
 	/*font-size: 9pt;*/
-	color: white ! important;
+	color: var(--color-text-inverse) ! important;
 }
 
 #graphSelectionTools {
@@ -327,5 +333,5 @@ ul.relBox li, ul.nodeBox li {
 
 #forceAtlas-controlElement.active::before {
 	content: '✓ ';
-	color: var(--structr-green);
+	color: var(--color-text-brand);
 }

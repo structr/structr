@@ -41,13 +41,13 @@
 }
 
 #code-contents #property-buttons button {
-	border: 1px solid var(--gray-ddd);
+	border: 1px solid var(--color-border-secondary);
 }
 
 #code-contents .action-button {
 	position: relative;
-	color: var(--gray-222);
-	border: 1px solid var(--gray-bbb);
+	color: var(--color-text-strong);
+	border: 1px solid var(--color-border-control);
 	margin: 0 12px 12px 0;
 	height: inherit;
 	box-sizing: content-box;
@@ -63,16 +63,16 @@
 	display: flex;
 	gap: .5rem;
 	margin: .5rem;
-	border: 1px solid var(--gray-eee);
+	border: 1px solid var(--color-border-tertiary);
 	cursor: pointer;
 }
 
 #code-context .code-favorite:hover {
-	background-color: var(--main-background);
+	background-color: var(--color-background-page);
 }
 
 #code-context .code-favorite.active {
-	background-color: var(--gray-eee);
+	background-color: var(--color-background-tertiary);
 }
 
 #code-contents .schema-props {
@@ -155,11 +155,11 @@ table#schema-grants {
 }
 
 table#schema-grants tr:nth-child(even) {
-	background-color: var(--light-gray-bg-f7);
+	background-color: var(--color-background-secondary);
 }
 
 table#schema-grants tr:nth-child(odd) {
-	background-color: var(--solid-white);
+	background-color: var(--color-background-primary);
 }
 
 table#schema-grants th:first-child, table#schema-grants td:first-child {
@@ -178,8 +178,8 @@ table#schema-grants th, table#schema-grants td {
 .tree-context {
     height: 100%;
     vertical-align: top;
-    background-color: var(--solid-white);
-    box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+    background-color: var(--color-background-primary);
+    box-shadow: 0 0 .625rem 0 var(--color-shadow);
     padding: 1.5rem;
     margin-top: 0;
     overflow: auto;
@@ -198,7 +198,7 @@ h2.has-changes::after {
 }
 
 #type-actions, #create-type-actions {
-	background-color: white;
+	background-color: var(--color-background-primary);
 }
 
 li.highlight-name > a {
@@ -208,8 +208,8 @@ li.highlight-name > a {
 /* BEGIN Scratchpad */
 [data-is-scratchpad]:not([open]) summary { flex-grow: 1; }
 [data-is-scratchpad] summary             { border-left: .5rem solid transparent; }
-[data-is-scratchpad]:hover summary       { border-left: .5rem solid var(--structr-light-green); }
-[data-is-scratchpad]:hover summary:hover { border-left: .5rem solid var(--structr-green ); }
+[data-is-scratchpad]:hover summary       { border-left: .5rem solid var(--color-border-brand-light); }
+[data-is-scratchpad]:hover summary:hover { border-left: .5rem solid var(--color-border-brand); }
 [data-is-scratchpad][open] summary       {padding-bottom: 1rem; }
 [data-is-scratchpad]:not([open]) summary input { display: none; }
 [data-is-scratchpad]::details-content { flex: 1; }
@@ -234,8 +234,8 @@ li.highlight-name > a {
  */
 fieldset {
 	border-radius: .5rem;
-	border: 1px solid #ddd;
-	color: #666;
+	border: 1px solid var(--color-border-secondary);
+	color: var(--color-text-medium);
 
 	& legend {
 		padding: 0 .5rem;

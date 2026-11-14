@@ -73,7 +73,7 @@
 }
 
 .security-module-table tbody tr:hover {
-	background-color: var(--structr-light-green-transparent) ! important;
+	background-color: var(--color-background-selected) ! important;
 }
 
 .security-module-table td, .security-module-table th {
@@ -106,16 +106,16 @@
 }
 
 .security-module-table tr:nth-child(odd) {
-	background: var(--light-gray-bg-f7) ! important;
+	background: var(--color-background-secondary) ! important;
 }
 
 .security-module-table tr:nth-child(even) {
-	background: var(--solid-white) ! important;
+	background: var(--color-background-primary) ! important;
 }
 
 .security-module-table th {
-	background: var(--input-background);
-	color: var(--gray-333);
+	background: var(--color-background-disabled);
+	color: var(--color-text-dark);
 	vertical-align: top;
 }
 

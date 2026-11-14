@@ -17,6 +17,20 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* Role tokens of this area, see main.css */
+:root {
+	/* Backgrounds */
+	--export-diff-panel-background:         #fafafa;
+	--export-diff-selected-background:      #e5efe5;
+
+	/* Borders */
+	--export-diff-different-apps-border:    #e53935;
+	--export-diff-different-lineage-border: #ffb300;
+	--export-diff-profile-border:           #e5e5e5;
+	--export-diff-same-lineage-border:      #4caf50;
+	--export-diff-verdict-border:           #bdbdbd;
+}
+
 .export-diff-tree-entry {
 	padding: .35rem .5rem;
 	cursor: pointer;
@@ -27,11 +41,11 @@
 }
 
 .export-diff-tree-entry:hover {
-	background-color: #f3f3f3;
+	background-color: var(--color-background-hover);
 }
 
 .export-diff-tree-entry.selected {
-	background-color: #e5efe5;
+	background-color: var(--export-diff-selected-background);
 	font-weight: 600;
 }
 
@@ -40,8 +54,8 @@
 .export-diff-verdict {
 	padding: .75rem 1rem;
 	margin-bottom: 1rem;
-	background-color: #fafafa;
-	border-left: 4px solid #bdbdbd;
+	background-color: var(--export-diff-panel-background);
+	border-left: 4px solid var(--export-diff-verdict-border);
 }
 
 .export-diff-verdict-title {
@@ -51,7 +65,7 @@
 
 .export-diff-verdict-detail {
 	font-size: .85rem;
-	color: #666;
+	color: var(--color-text-medium);
 	margin-top: .35rem;
 }
 
@@ -62,15 +76,15 @@
 
 /* the verdict is the first thing read, so it carries the colour rather than the table below it */
 .export-diff-verdict.export-diff-same_lineage {
-	border-left: 4px solid #4caf50;
+	border-left: 4px solid var(--export-diff-same-lineage-border);
 }
 
 .export-diff-verdict.export-diff-same_app_different_lineage {
-	border-left: 4px solid #ffb300;
+	border-left: 4px solid var(--export-diff-different-lineage-border);
 }
 
 .export-diff-verdict.export-diff-different_apps {
-	border-left: 4px solid #e53935;
+	border-left: 4px solid var(--export-diff-different-apps-border);
 }
 
 .export-diff-table td, .export-diff-table th {
@@ -85,7 +99,7 @@
 
 /* low signal stays visible, only quieter: the classifier reports everything */
 .export-diff-table tr.export-diff-low td {
-	color: #888;
+	color: var(--color-text-tertiary);
 }
 
 .export-diff-profiles {
@@ -97,8 +111,8 @@
 .export-diff-profile {
 	flex: 1;
 	padding: .75rem 1rem;
-	background-color: #fafafa;
-	border: 1px solid #e5e5e5;
+	background-color: var(--export-diff-panel-background);
+	border: 1px solid var(--export-diff-profile-border);
 	font-size: .85rem;
 	line-height: 1.5;
 }

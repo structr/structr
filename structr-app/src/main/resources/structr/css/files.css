@@ -16,8 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/* Role tokens of this area, see main.css */
+:root {
+	/* Backgrounds */
+	--files-progress-background:     #ffffff85;
+	--files-progress-bar-background: #84ba3985;
+}
 .file-icon svg {
-	color: var(--solid-black);
+	color: var(--color-text-black);
 }
 
 .folder-path {
@@ -91,7 +98,7 @@
 }
 
 #folder-contents .thumbnail {
-	color: var(--gray-aaa);
+	color: var(--color-text-faint);
 }
 
 #folder-contents .thumbnailZoom {
@@ -104,7 +111,7 @@
 
 #folder-contents tr[id]:hover,
 #folder-contents .tile:hover {
-	background-color: var(--light-gray-bg-f3) ! important;
+	background-color: var(--color-background-hover) ! important;
 }
 
 #folder-contents tr[id] .node-action-icon,
@@ -119,11 +126,11 @@
 }
 
 #folder-contents .nodeActive {
-	background-color: var(--light-gray-bg-f3) ! important;
+	background-color: var(--color-background-hover) ! important;
 }
 
 #folder-contents .nodeHover, .image.nodeHover {
-	color: var(--gray-333) ! important;
+	color: var(--color-text-dark) ! important;
 	z-index: 1;
 }
 
@@ -179,11 +186,11 @@
 }
 
 #files-table tr:nth-child(even) {
-	background-color: var(--main-background);
+	background-color: var(--color-background-page);
 }
 
 #files-table tr:nth-child(odd) {
-	background-color: var(--solid-white);
+	background-color: var(--color-background-primary);
 }
 
 #files-table th {
@@ -216,11 +223,11 @@
 }
 
 #files-table tbody tr td .editable .placeholder {
-	color: var(--inactive-tab-text);
+	color: var(--color-text-inactive);
 }
 
 #files-table tbody tr td.id_ {
-	color: var(--gray-ccc);
+	color: var(--color-text-ghost);
 }
 
 #files-table tbody tr td .node {
@@ -251,11 +258,11 @@
 	height: 100%;
 	margin: 2px 0 0 0;
 	padding: 0;
-	background: #ffffff85;
+	background: var(--files-progress-background);
 }
 
 .progress .bar {
-	background-color: #84ba3985;
+	background-color: var(--files-progress-bar-background);
 	width: 50%;
 	height: 100%;
 	padding: 0;
@@ -297,25 +304,25 @@
 
 pre.csv-preview {
 	overflow: auto;
-	background-color: var(--solid-white);
-	border: 1px solid var(--gray-ddd);
+	background-color: var(--color-background-primary);
+	border: 1px solid var(--color-border-secondary);
 	height: 100px;
 }
 
 .row-container tr:nth-child(odd) {
-	background-color: var(--solid-white);
+	background-color: var(--color-background-primary);
 }
 
 .row-container tr:nth-child(even) {
-	background-color: var(--light-gray-bg-f7);
+	background-color: var(--color-background-secondary);
 }
 
 #row-container tr:nth-child(odd) {
-	background-color: var(--solid-white);
+	background-color: var(--color-background-primary);
 }
 
 #row-container tr:nth-child(even) {
-	background-color: var(--light-gray-bg-f7);
+	background-color: var(--color-background-secondary);
 }
 
 div.attr-mapping table {
@@ -327,7 +334,7 @@ div.attr-mapping table {
 }
 
 div.attr-mapping td {
-	border: 1px solid var(--gray-ddd);
+	border: 1px solid var(--color-border-secondary);
 }
 
 div.attr-mapping td.key {
@@ -371,8 +378,8 @@ div.xml-mapping, div#config {
 }
 
 div.xml-mapping {
-	background-color: var(--solid-white);
-	border: 1px solid var(--gray-ddd);
+	background-color: var(--color-background-primary);
+	border: 1px solid var(--color-border-secondary);
 }
 
 div.xml-mapping table {
@@ -384,7 +391,7 @@ div.xml-mapping td {
 }
 
 div.xml-mapping td:hover, div.xml-mapping td.selected {
-	background-color: var(--structr-light-green-transparent);
+	background-color: var(--color-background-selected);
 }
 
 div#left {
@@ -411,7 +418,7 @@ div#xml-config select.xml-config-select {
 }
 
 button#start-import, button#run-method {
-	background-color: var(--structr-green);
+	background-color: var(--color-background-brand);
 }
 
 button#run-method {
@@ -454,7 +461,7 @@ div#xml-configurations button {
 .node.drag-over:not(.drop-not-possible) {
 }
 .node.drag-background-node-highlight {
-	background: var(--hover-highlight-color-active);
+	background: var(--color-background-drop-active);
 }
 
 .node.drag-background-drop-forbidden {
@@ -463,7 +470,7 @@ div#xml-configurations button {
 }
 
 .jstree-default .jstree-wholerow.drag-background-node-highlight {
-	background: var(--hover-highlight-color-active) ! important;
+	background: var(--color-background-drop-active) ! important;
 }
 
 .jstree-default .jstree-wholerow.drag-background-drop-forbidden {

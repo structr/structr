@@ -5298,8 +5298,8 @@ let _Pages = {
 				marker.setAttribute('markerWidth', 4);
 				marker.setAttribute('markerHeight', 4);
 				marker.setAttribute('orient', 'auto-start-reverse');
-				marker.setAttribute('stroke', '#333333');
-				marker.setAttribute('fill', '#333333');
+				marker.setAttribute('stroke', 'var(--diagram-marker, #333333)');
+				marker.setAttribute('fill', 'var(--diagram-marker, #333333)');
 
 				let p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 				p.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');

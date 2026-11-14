@@ -41,8 +41,8 @@
 	vertical-align: top;
 	overflow: auto;
 	height: calc(100% - 1rem);
-	background: var(--solid-white);
-	box-shadow: 0 0 .625rem 0 rgba(0, 0, 0, 0.1);
+	background: var(--color-background-primary);
+	box-shadow: 0 0 .625rem 0 var(--color-shadow);
 }
 
 #mail-templates-list td.allow-break {
@@ -51,11 +51,11 @@
 
 .mail-template-row:hover {
 	cursor: pointer;
-	background-color: var(--structr-light-green) !important;
+	background-color: var(--color-background-brand-light) !important;
 }
 
 .mail-template-row.selected {
-	background-color: var(--structr-green) !important;
+	background-color: var(--color-background-brand) !important;
 }
 
 #mail-template-detail-form #mail-template-text, #mail-template-detail-form iframe#mail-template-preview {
@@ -67,7 +67,7 @@
 }
 
 #mail-template-detail-form iframe#mail-template-preview {
-	border: 1px solid var(--input-field-border);
+	border: 1px solid var(--color-border-primary);
 }
 #mail-templates-detail-container .actions {
 	margin-top: 1rem;

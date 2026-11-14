@@ -40,9 +40,9 @@
 }
 
 .app-tile {
-    background-color: var(--solid-white);
-    border: 1px solid var(--black-opacity-125);
-    box-shadow: 0 0 1rem var(--gray-opacity-10);
+    background-color: var(--color-background-primary);
+    border: 1px solid var(--color-border-translucent);
+    box-shadow: 0 0 1rem var(--color-shadow-tile);
     margin: 1rem 3rem 3rem 0;
     padding: 0;
     position: relative;
@@ -55,8 +55,8 @@
 }
 
 .app-tile:hover {
-    background-color: var(--light-gray-bg-f3);
-    box-shadow: 0 0 1rem var(--black-opacity-125);
+    background-color: var(--color-background-hover);
+    box-shadow: 0 0 1rem var(--color-shadow-tile-hover);
     cursor: pointer;
 }
 

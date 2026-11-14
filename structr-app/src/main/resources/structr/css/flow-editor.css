@@ -16,6 +16,38 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/* Role tokens of this area, see main.css */
+:root {
+	/* Backgrounds */
+	--flow-group-background:                   var(--light-blue-20);
+	--flow-modal-backdrop:                     var(--black-opacity-40);
+	--flow-socket-background:                  var(--light-gray-delete-b3);
+	--flow-socket-condition-active-background: orange;
+	--flow-socket-condition-background:        var(--dark-ocker);
+	--flow-socket-data-active-background:      var(--color-flow-datasource-blue);
+	--flow-socket-data-background:             var(--medium-blue);
+	--flow-socket-exception-active-background: red;
+	--flow-socket-exception-background:        var(--dark-red);
+	--flow-socket-next-active-background:      var(--color-flow-next-light-green);
+	--flow-socket-next-background:             var(--dark-green);
+
+	/* Borders */
+	--flow-editor-tab-border:                  var(--gray-opacity-25);
+	--flow-group-active-border:                var(--light-yellow);
+	--flow-socket-border:                      var(--gray-555);
+	--flow-socket-multiple-border:             yellow;
+
+	/* Fills and strokes */
+	--flow-connection-active:                  var(--gray-aaa);
+	--flow-connection-condition:               orange;
+	--flow-connection-data:                    var(--color-flow-datasource-blue);
+	--flow-connection-exception:               red;
+	--flow-connection-next:                    var(--color-flow-next-light-green);
+	--flow-connection-stroke:                  var(--gray-eee);
+	--flow-selection-fill:                     var(--gray-888);
+	--flow-selection-stroke:                   dimgray;
+}
 @charset "UTF-8";
 
 #flows-canvas {
@@ -66,26 +98,26 @@
 	box-sizing: content-box;
 	position: absolute;
 	min-width: 10rem;
-	color: var(--gray-555);
-	background-color: var(--light-gray-bg-f3);
-	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+	color: var(--color-text-secondary);
+	background-color: var(--color-background-hover);
+	box-shadow: 0 0 .625rem 0 var(--color-shadow);
     margin: 0 ! important;
     opacity: .9;
-	border: 1px solid var(--black-opacity-125);
+	border: 1px solid var(--color-border-translucent);
 	padding: 0;
 }
 .node-editor .node:hover {
-	background-color: var(--medium-light-gray-e0);
+	background-color: var(--color-background-node);
 }
 .node-editor .node.selected {
-    background: var(--medium-light-gray-e0) ! important;
-    border-color: var(--structr-green) ! important;
+    background: var(--color-background-node) ! important;
+    border-color: var(--color-border-brand) ! important;
 }
 .node-editor .node .startNode {
-	background-color: var(--structr-green);
+	background-color: var(--color-background-brand);
 }
 .node-editor .node .startNode:hover {
-    background-color: var(--structr-light-green);
+    background-color: var(--color-background-brand-light);
 }
 .node-editor .node .title {
 	text-align: center;
@@ -94,7 +126,7 @@
 	overflow: hidden;
 	border: none;
 	font-family: inherit;
-	color: var(--body-text);
+	color: var(--color-text-primary);
 	font-weight: normal;
 	border-top-left-radius: .5rem;
 	border-top-right-radius: .5rem;
@@ -113,7 +145,7 @@
 .node-editor .node .socket {
 	display: inline-block;
 	cursor: pointer;
-	border: 2px solid white;
+	border: 2px solid var(--color-border-inverse);
 	border-radius: 8px;
 	width: 16px;
 	height: 16px;
@@ -133,187 +165,187 @@
 	display: inline-block;
 	border-style: solid;
 	border-width: 4px 0 4px 2.66667px;
-	border-color: transparent transparent transparent var(--gray-555);
+	border-color: transparent transparent transparent var(--flow-socket-border);
 }
 .node-editor .node .socket.multiple {
-	border-color: yellow; }
+	border-color: var(--flow-socket-multiple-border); }
 .node-editor .node .socket:hover {
-	border: 2px solid white; }
+	border: 2px solid var(--color-border-inverse); }
 .node-editor .node .socket.input.used {
-	background-color: white; }
+	background-color: var(--color-background-primary); }
 .node-editor .node .socket.input:not(.used) {
-	background-color: var(--light-gray-delete-b3); }
+	background-color: var(--flow-socket-background); }
 .node-editor .node .socket.input:hover {
-	background-color: white; }
+	background-color: var(--color-background-primary); }
 .node-editor .node .socket.input.dataSource.used {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.dataSource:not(.used) {
-	background-color: var(--medium-blue); }
+	background-color: var(--flow-socket-data-background); }
 .node-editor .node .socket.input.dataSource:hover {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.dataSources.used {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.dataSources:not(.used) {
-	background-color: var(--medium-blue); }
+	background-color: var(--flow-socket-data-background); }
 .node-editor .node .socket.input.dataSources:hover {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.valueSource.used {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.valueSource:not(.used) {
-	background-color: var(--medium-blue); }
+	background-color: var(--flow-socket-data-background); }
 .node-editor .node .socket.input.valueSource:hover {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.prev.used {
-	background-color: var(--color-flow-next-light-green); }
+	background-color: var(--flow-socket-next-active-background); }
 .node-editor .node .socket.input.prev:not(.used) {
-	background-color: var(--dark-green); }
+	background-color: var(--flow-socket-next-background); }
 .node-editor .node .socket.input.prev:hover {
-	background-color: var(--color-flow-next-light-green); }
+	background-color: var(--flow-socket-next-active-background); }
 .node-editor .node .socket.input.condition.used {
-	background-color: orange; }
+	background-color: var(--flow-socket-condition-active-background); }
 .node-editor .node .socket.input.condition:not(.used) {
-	background-color: var(--dark-ocker); }
+	background-color: var(--flow-socket-condition-background); }
 .node-editor .node .socket.input.condition:hover {
-	background-color: orange; }
+	background-color: var(--flow-socket-condition-active-background); }
 .node-editor .node .socket.input.conditions.used {
-	background-color: orange; }
+	background-color: var(--flow-socket-condition-active-background); }
 .node-editor .node .socket.input.conditions:not(.used) {
-	background-color: var(--dark-ocker); }
+	background-color: var(--flow-socket-condition-background); }
 .node-editor .node .socket.input.conditions:hover {
-	background-color: orange; }
+	background-color: var(--flow-socket-condition-active-background); }
 .node-editor .node .socket.input.keyValueSources.used {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.keyValueSources:not(.used) {
-	background-color: var(--medium-blue); }
+	background-color: var(--flow-socket-data-background); }
 .node-editor .node .socket.input.keyValueSources:hover {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.parameters.used {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.parameters:not(.used) {
-	background-color: var(--medium-blue); }
+	background-color: var(--flow-socket-data-background); }
 .node-editor .node .socket.input.parameters:hover {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.startValue.used {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.startValue:not(.used) {
-	background-color: var(--medium-blue); }
+	background-color: var(--flow-socket-data-background); }
 .node-editor .node .socket.input.startValue:hover {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.scriptSource.used {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.scriptSource:not(.used) {
-	background-color: var(--medium-blue); }
+	background-color: var(--flow-socket-data-background); }
 .node-editor .node .socket.input.scriptSource:hover {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.nodeSource.used {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.nodeSource:not(.used) {
-	background-color: var(--medium-blue); }
+	background-color: var(--flow-socket-data-background); }
 .node-editor .node .socket.input.nodeSource:hover {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.propertyNameSource.used {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.propertyNameSource:not(.used) {
-	background-color: var(--medium-blue); }
+	background-color: var(--flow-socket-data-background); }
 .node-editor .node .socket.input.propertyNameSource:hover {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.input.handledNodes.used {
-	background-color: red; }
+	background-color: var(--flow-socket-exception-active-background); }
 .node-editor .node .socket.input.handledNodes:not(.used) {
-	background-color: var(--dark-red); }
+	background-color: var(--flow-socket-exception-background); }
 .node-editor .node .socket.input.handledNodes:hover {
-	background-color: red; }
+	background-color: var(--flow-socket-exception-active-background); }
 .node-editor .node .socket.input.condition_baseNode.used {
-	background-color: orange; }
+	background-color: var(--flow-socket-condition-active-background); }
 .node-editor .node .socket.input.condition_baseNode:not(.used) {
-	background-color: var(--dark-ocker); }
+	background-color: var(--flow-socket-condition-background); }
 .node-editor .node .socket.input.condition_baseNode:hover {
-	background-color: orange; }
+	background-color: var(--flow-socket-condition-active-background); }
 .node-editor .node .socket.input.switch.used {
-	background-color: orange; }
+	background-color: var(--flow-socket-condition-active-background); }
 .node-editor .node .socket.input.switch:not(.used) {
-	background-color: var(--dark-ocker); }
+	background-color: var(--flow-socket-condition-background); }
 .node-editor .node .socket.input.switch:hover {
-	background-color: orange; }
+	background-color: var(--flow-socket-condition-active-background); }
 .node-editor .node .socket.output.used {
-	background-color: white; }
+	background-color: var(--color-background-primary); }
 .node-editor .node .socket.output:not(.used) {
-	background-color: var(--light-gray-delete-b3); }
+	background-color: var(--flow-socket-background); }
 .node-editor .node .socket.output:hover {
-	background-color: white; }
+	background-color: var(--color-background-primary); }
 .node-editor .node .socket.output.next.used {
-	background-color: var(--color-flow-next-light-green); }
+	background-color: var(--flow-socket-next-active-background); }
 .node-editor .node .socket.output.next:not(.used) {
-	background-color: var(--dark-green); }
+	background-color: var(--flow-socket-next-background); }
 .node-editor .node .socket.output.next:hover {
-	background-color: var(--color-flow-next-light-green); }
+	background-color: var(--flow-socket-next-active-background); }
 .node-editor .node .socket.output.trueElement.used {
-	background-color: var(--color-flow-next-light-green); }
+	background-color: var(--flow-socket-next-active-background); }
 .node-editor .node .socket.output.trueElement:not(.used) {
-	background-color: var(--dark-green); }
+	background-color: var(--flow-socket-next-background); }
 .node-editor .node .socket.output.trueElement:hover {
-	background-color: var(--color-flow-next-light-green); }
+	background-color: var(--flow-socket-next-active-background); }
 .node-editor .node .socket.output.falseElement.used {
-	background-color: var(--color-flow-next-light-green); }
+	background-color: var(--flow-socket-next-active-background); }
 .node-editor .node .socket.output.falseElement:not(.used) {
-	background-color: var(--dark-green); }
+	background-color: var(--flow-socket-next-background); }
 .node-editor .node .socket.output.falseElement:hover {
-	background-color: var(--color-flow-next-light-green); }
+	background-color: var(--flow-socket-next-active-background); }
 .node-editor .node .socket.output.dataTarget.used {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.output.dataTarget:not(.used) {
-	background-color: var(--medium-blue); }
+	background-color: var(--flow-socket-data-background); }
 .node-editor .node .socket.output.dataTarget:hover {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.output.result.used {
-	background-color: orange; }
+	background-color: var(--flow-socket-condition-active-background); }
 .node-editor .node .socket.output.result:not(.used) {
-	background-color: var(--dark-ocker); }
+	background-color: var(--flow-socket-condition-background); }
 .node-editor .node .socket.output.result:hover {
-	background-color: orange; }
+	background-color: var(--flow-socket-condition-active-background); }
 .node-editor .node .socket.output.objectDataTargets.used {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.output.objectDataTargets:not(.used) {
-	background-color: var(--medium-blue); }
+	background-color: var(--flow-socket-data-background); }
 .node-editor .node .socket.output.objectDataTargets:hover {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.output.loopBody.used {
-	background-color: var(--color-flow-next-light-green); }
+	background-color: var(--flow-socket-next-active-background); }
 .node-editor .node .socket.output.loopBody:not(.used) {
-	background-color: var(--dark-green); }
+	background-color: var(--flow-socket-next-background); }
 .node-editor .node .socket.output.loopBody:hover {
-	background-color: var(--color-flow-next-light-green); }
+	background-color: var(--flow-socket-next-active-background); }
 .node-editor .node .socket.output.forkBody.used {
-	background-color: var(--color-flow-next-light-green); }
+	background-color: var(--flow-socket-next-active-background); }
 .node-editor .node .socket.output.forkBody:not(.used) {
-	background-color: var(--dark-green); }
+	background-color: var(--flow-socket-next-background); }
 .node-editor .node .socket.output.forkBody:hover {
-	background-color: var(--color-flow-next-light-green); }
+	background-color: var(--flow-socket-next-active-background); }
 .node-editor .node .socket.output.call.used {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.output.call:not(.used) {
-	background-color: var(--medium-blue); }
+	background-color: var(--flow-socket-data-background); }
 .node-editor .node .socket.output.call:hover {
-	background-color: var(--color-flow-datasource-blue); }
+	background-color: var(--flow-socket-data-active-background); }
 .node-editor .node .socket.output.exceptionHandler.used {
-	background-color: red; }
+	background-color: var(--flow-socket-exception-active-background); }
 .node-editor .node .socket.output.exceptionHandler:not(.used) {
-	background-color: var(--dark-red); }
+	background-color: var(--flow-socket-exception-background); }
 .node-editor .node .socket.output.exceptionHandler:hover {
-	background-color: red; }
+	background-color: var(--flow-socket-exception-active-background); }
 .node-editor .node .socket.output.cases.used {
-	background-color: orange; }
+	background-color: var(--flow-socket-condition-active-background); }
 .node-editor .node .socket.output.cases:not(.used) {
-	background-color: var(--dark-ocker); }
+	background-color: var(--flow-socket-condition-background); }
 .node-editor .node .socket.output.cases:hover {
-	background-color: orange; }
+	background-color: var(--flow-socket-condition-active-background); }
 .node-editor .node .input-title, .node-editor .node .output-title {
 	vertical-align: middle;
 	display: inline-block;
 	font-size: 14px;
 	margin: 10px 0;
 	line-height: 16px;
-    color: var(--gray-222);
+    color: var(--color-text-strong);
     font-family: inherit;
 }
 .node-editor .node .input-control {
@@ -360,7 +392,7 @@
 }
 .node-editor .group {
 	border-radius: 16px;
-	background: var(--light-blue-20);
+	background: var(--flow-group-background);
 	cursor: pointer;
 	width: inherit;
 	height: inherit;
@@ -368,10 +400,10 @@
 	position: absolute;
 }
 .node-editor .group.active {
-	border-color: var(--light-yellow);
+	border-color: var(--flow-group-active-border);
 }
 .node-editor .group .group-title {
-	color: white;
+	color: var(--color-text-inverse);
 	font-family: sans-serif;
 	font-size: 18px;
 	padding: 12px;
@@ -409,7 +441,7 @@
 }
 .node-editor .connections .connection {
 	fill: none;
-	stroke: var(--gray-eee);
+	stroke: var(--flow-connection-stroke);
 	stroke-width: 2px;
 	pointer-events: none;
 }
@@ -449,60 +481,60 @@
 
 .node-editor .connections .connection {
 	fill: none;
-	stroke: var(--gray-eee);
+	stroke: var(--flow-connection-stroke);
 	stroke-width: 2px;
 	pointer-events: none; }
 .node-editor .connections .connection.active {
-	stroke: var(--gray-aaa); }
+	stroke: var(--flow-connection-active); }
 
 .node-editor .connections .connection.output-next.input-prev {
-	stroke: var(--color-flow-next-light-green); }
+	stroke: var(--flow-connection-next); }
 .node-editor .connections .connection.output-falseelement.input-prev {
-	stroke: var(--color-flow-next-light-green); }
+	stroke: var(--flow-connection-next); }
 .node-editor .connections .connection.output-trueelement.input-prev {
-	stroke: var(--color-flow-next-light-green); }
+	stroke: var(--flow-connection-next); }
 .node-editor .connections .connection.output-loopbody.input-prev {
-	stroke: var(--color-flow-next-light-green); }
+	stroke: var(--flow-connection-next); }
 .node-editor .connections .connection.output-forkbody.input-prev {
-	stroke: var(--color-flow-next-light-green); }
+	stroke: var(--flow-connection-next); }
 
 .node-editor .connections .connection.output-datatarget.input-datasource {
-	stroke: var(--color-flow-datasource-blue); }
+	stroke: var(--flow-connection-data); }
 .node-editor .connections .connection.output-datatarget.input-datasources {
-	stroke: var(--color-flow-datasource-blue); }
+	stroke: var(--flow-connection-data); }
 .node-editor .connections .connection.output-datatarget.input-valuesource {
-	stroke: var(--color-flow-datasource-blue); }
+	stroke: var(--flow-connection-data); }
 .node-editor .connections .connection.output-objectdatatargets.input-keyvaluesources {
-	stroke: var(--color-flow-datasource-blue); }
+	stroke: var(--flow-connection-data); }
 .node-editor .connections .connection.output-call.input-parameters {
-	stroke: var(--color-flow-datasource-blue); }
+	stroke: var(--flow-connection-data); }
 .node-editor .connections .connection.output-datatarget.input-startvalue {
-	stroke: var(--color-flow-datasource-blue); }
+	stroke: var(--flow-connection-data); }
 .node-editor .connections .connection.output-datatarget.input-scriptsource {
-	stroke: var(--color-flow-datasource-blue); }
+	stroke: var(--flow-connection-data); }
 .node-editor .connections .connection.output-datatarget.input-nodesource {
-	stroke: var(--color-flow-datasource-blue); }
+	stroke: var(--flow-connection-data); }
 .node-editor .connections .connection.output-datatarget.input-propertynamesource {
-	stroke: var(--color-flow-datasource-blue); }
+	stroke: var(--flow-connection-data); }
 
 .node-editor .connections .connection.output-exceptionhandler.input-handlednodes {
-	stroke: red; }
+	stroke: var(--flow-connection-exception); }
 
 .node-editor .connections .connection.output-cases.input-switch {
-    stroke: orange; }
+    stroke: var(--flow-connection-condition); }
 .node-editor .connections .connection.output-result.input-condition {
-	stroke: orange; }
+	stroke: var(--flow-connection-condition); }
 .node-editor .connections .connection.output-result.input-conditions {
-	stroke: orange; }
+	stroke: var(--flow-connection-condition); }
 .node-editor .connections .connection.output-result.input-condition_basenode {
-	stroke: orange; }
+	stroke: var(--flow-connection-condition); }
 
 .node-editor select, .node-editor input, .node-editor select, .node-editor select {
 	width: initial;
 	font-family: var(--font-main) ! important;
 	font-size: 1rem;
-	color: var(--body-text);
-	border: 1px solid var(--input-field-border);
+	color: var(--color-text-primary);
+	border: 1px solid var(--color-border-primary);
 	padding: .5rem .75rem;
 	border-radius: .25rem;
 	margin: 0;
@@ -513,12 +545,12 @@
 	top: 0;
 	position: absolute;
 	margin-top: -20px;
-	border: 1px solid var(--black-opacity-125) ! important;
+	border: 1px solid var(--color-border-translucent) ! important;
 	padding: 0 ! important;
 	font-family: inherit ! important;
 }
 .context-menu > .item {
-	border: 1px solid white;
+	border: 1px solid var(--color-border-inverse);
 	margin-left: -80%;
 }
 .context-menu > .item .subitems {
@@ -548,10 +580,10 @@
 	font-size: 1em;
 	width: auto ! important;
 	min-width: 200px;
-	color: var(--gray-222) ! important;
-	background-color: var(--solid-white) ! important;
+	color: var(--color-text-strong) ! important;
+	background-color: var(--color-background-primary) ! important;
 	border: none ! important;
-	border-bottom: 1px solid var(--black-opacity-125) ! important;
+	border-bottom: 1px solid var(--color-border-translucent) ! important;
 	border-radius: 0 ! important;
 	padding: 6px ! important;
 	margin: 0;
@@ -564,10 +596,10 @@
 	border-bottom: none;
 }
 .context-menu .item:hover {
-	background-color: var(--structr-green) ! important;
+	background-color: var(--color-background-brand) ! important;
 }
 .context-menu .item .subitems {
-	border: 1px solid var(--black-opacity-125) ! important;
+	border: 1px solid var(--color-border-translucent) ! important;
 	border-radius: 0 ! important;
 	font-family: inherit ! important;
 }
@@ -579,8 +611,8 @@
 	width: 100%;
 	height: 100%;
 	overflow: auto;
-	background-color: black;
-	background-color: var(--black-opacity-40);
+	background-color: var(--color-background-black);
+	background-color: var(--flow-modal-backdrop);
 	z-index: 5;
 }
 .modal#editorModal .modal-content {
@@ -590,17 +622,17 @@
 	transform: translate(-50%, -50%);
 	width: 60%;
 	height: 40%;
-	color: var(--gray-222) ! important;
-    background-color: var(--light-gray-bg-f3) ! important;
-    border: 1px solid var(--black-opacity-125) ! important;
+	color: var(--color-text-strong) ! important;
+    background-color: var(--color-background-hover) ! important;
+    border: 1px solid var(--color-border-translucent) ! important;
     padding: 12px ! important;
 }
 .modal#editorModal .modal-content .CodeMirror {
-	border: 1px solid var(--gray-888);
+	border: 1px solid var(--color-border-muted);
 	height: 100%;
 }
 .modal#editorModal .modal-content .cm-tab {
-	border-right: 1px solid var(--gray-opacity-25);
+	border-right: 1px solid var(--flow-editor-tab-border);
 	margin-left: -1px;
 }
 .modal#layoutModal .modal-content {
@@ -609,9 +641,9 @@
 	left: 50%;
 	transform: translate(-50%, -50%);
 	min-width: 20%;
-	color: var(--gray-222) ! important;
-    background-color: var(--light-gray-bg-f3) ! important;
-    border: 1px solid var(--black-opacity-125) ! important;
+	color: var(--color-text-strong) ! important;
+    background-color: var(--color-background-hover) ! important;
+    border: 1px solid var(--color-border-translucent) ! important;
     padding: 12px ! important;
 }
 .modal#layoutModal .modal-content .layout-controls h2 {
@@ -626,8 +658,8 @@
 	vertical-align: middle;
 	line-height: 16px;
 	padding: 10px;
-    background-color: var(--light-gray-bg-f3) ! important;
-    color: var(--gray-222) ! important;
+    background-color: var(--color-background-hover) ! important;
+    color: var(--color-text-strong) ! important;
     font-family: inherit ! important;
     font-size: inherit ! important;
     line-height: 16px;
@@ -635,7 +667,7 @@
     padding: 10px;
 }
 .modal#layoutModal .modal-content .layout-controls .input-group:hover {
-	background-color: var(--solid-white);
+	background-color: var(--color-background-primary);
 }
 /*.modal#layoutModal .modal-content .layout-controls select, .modal#layoutModal .modal-content .layout-controls button {*/
 /*	vertical-align: middle;*/
@@ -656,7 +688,7 @@
 /*	background-color: var(--solid-white);*/
 /*}*/
 span.close {
-	color: white;
+	color: var(--color-text-inverse);
 	float: right;
 	font-size: 40px;
 	font-weight: bold;
@@ -672,12 +704,12 @@ span.close:focus {
 	cursor: pointer;
 }
 .modal-content span.close {
-	color: var(--gray-555);
+	color: var(--color-text-secondary);
 	line-height: 1em;
 }
 #executionResult {
 	position: absolute;
-	background-color: var(--black-opacity-25);
+	background-color: var(--color-background-backdrop);
 	width: 30%;
 	right: 0;
 	z-index: 9999;
@@ -686,14 +718,14 @@ span.close:focus {
 }
 #executionResult h4 {
 	font-family: sans-serif;
-	color: white;
+	color: var(--color-text-inverse);
 }
 #executionResult pre {
 	z-index: auto;
 	border-radius: 5px;
-	border: 1px solid var(--black-opacity-125) ! important;
-	color: var(--gray-222);
-	background-color: var(--solid-white);
+	border: 1px solid var(--color-border-translucent) ! important;
+	color: var(--color-text-strong);
+	background-color: var(--color-background-primary);
 	padding: 5px;
 	overflow: auto;
 	font-size: 1em ! important;
@@ -702,7 +734,7 @@ span.close:focus {
 }
 #executionResult span.close {
 	right: 10px;
-	color: var(--solid-white);
+	color: var(--color-text-inverse);
 	margin-top: -22px;
 	display: inline-block;
     position: absolute;
@@ -716,8 +748,8 @@ span.close:focus {
 	z-index: 2;
 }
 .area-selector .selection {
-	fill: dimgray;
-	stroke: var(--gray-888);
+	fill: var(--flow-selection-stroke);
+	stroke: var(--flow-selection-fill);
 	fill-opacity: 0.3;
 	stroke-opacity: 0.7;
 	stroke-width: 2;
@@ -725,12 +757,12 @@ span.close:focus {
 }
 
 .query-builder-container {
-	background-color: var(--light-gray-bg-f3);
+	background-color: var(--color-background-hover);
 }
 
 .query-operation {
 	position: relative;
-	background-color: var(--light-gray-bg-f3);
+	background-color: var(--color-background-hover);
 }
 .query-operation.query-sort {
 	margin-top: 12px;
@@ -758,7 +790,7 @@ span.close:focus {
 	min-width: 400px;
 	position: relative;
 	padding: 0 12px 0 12px;
-	border: 1px solid var(--black-opacity-125) ! important;
+	border: 1px solid var(--color-border-translucent) ! important;
 	margin-top: 12px;
 	margin-bottom: 12px;
 }
@@ -774,17 +806,17 @@ span.close:focus {
 	/*display: inline-block;*/
 }
 .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-and, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-or, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-not {
-	background-color: var(--light-gray-bg-f3);
+	background-color: var(--color-background-hover);
 	margin-right: -4px ! important;
 	margin-left: 0 ! important;
 }
 .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-and:hover, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-or:hover, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-not:hover {
-	background-color: var(--solid-white);
+	background-color: var(--color-background-primary);
 	margin-right: -4px ! important;
 	margin-left: 0 ! important;
 }
 .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-and.active, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-or.active, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-not.active {
-	background-color: var(--structr-green);
+	background-color: var(--color-background-brand);
 	margin-right: -4px ! important;
 	margin-left: 0 ! important;
 }

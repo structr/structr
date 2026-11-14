@@ -16,6 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/* Role tokens of this area, see main.css */
+:root {
+	/* Text */
+	--config-match-text:   var(--config-structr-green);
+
+	/* Borders */
+	--config-match-border: var(--config-structr-green);
+}
 @charset "UTF-8";
 /** Defaults */
 
@@ -103,12 +112,12 @@
 
 	.tabs-menu li.active {
 		border-bottom: 0;
-		border-left: .25rem solid var(--structr-green);
+		border-left: .25rem solid var(--color-border-brand);
 	}
 
 	.tabs-menu li:not(.active):hover {
 		border-bottom: 0;
-		border-left: .25rem solid var(--structr-light-green);
+		border-left: .25rem solid var(--color-border-brand-light);
 	}
 
 	li.no-search-match {
@@ -180,12 +189,12 @@ form.config-form div.buttons input[type=reset] {
 }
 
 .default-action {
-	background-color: var(--structr-green);
-	color: white;
+	background-color: var(--color-background-brand);
+	color: var(--color-text-inverse);
 }
 
 .default-action:hover {
-	background-color: var(--dark-structr-green);
+	background-color: var(--color-background-brand-hover);
 }
 
 .config-group h1 {
@@ -219,11 +228,11 @@ form.config-form div.buttons input[type=reset] {
 }
 
 .buttons input[type=submit] {
-	color: #222;
+	color: var(--color-text-strong);
 }
 
 .buttons input[type=submit]:hover:not(.disabled) {
-	color: #333;
+	color: var(--color-text-dark);
 	cursor: pointer ! important;
 }
 
@@ -236,7 +245,7 @@ form.config-form div.buttons input[type=reset] {
 }
 
 .context-help-text table, .context-help-text tr, .context-help-text td, .context-help-text th, .context-help-text tbody, .context-help-text thead {
-	border: 1px solid var(--input-field-border);
+	border: 1px solid var(--color-border-primary);
 }
 
 .context-help-text table thead th, .context-help-text table tbody td {
@@ -244,7 +253,7 @@ form.config-form div.buttons input[type=reset] {
 }
 
 button:hover {
-	background-color: var(--light-gray-bg-f3);
+	background-color: var(--color-background-hover);
 }
 
 button.toggle-option {
@@ -252,7 +261,7 @@ button.toggle-option {
 }
 
 button.toggle-option.active {
-	background-color: #ccc !important;
+	background-color: var(--color-background-strong) !important;
 }
 
 button.toggle-option:not(.active) {
@@ -268,41 +277,41 @@ button.toggle-option.active::after {
 }
 
 li.search-matches.active {
-	background: var(--config-structr-green);
+	background: var(--color-background-brand-bright);
 }
 
 li.search-matches {
-	background: #b5e27f;
+	background: var(--color-background-brand-light);
 }
 
 label.search-matches {
-    color: var(--config-structr-green);
+    color: var(--config-match-text);
 }
 
 label span.search-matches > svg {
-    background: var(--config-structr-green);
+    background: var(--color-background-brand-bright);
     border-radius: 1rem;
 }
 
 input.search-matches {
-    border: 2px solid var(--config-structr-green);
+    border: 2px solid var(--config-match-border);
 }
 
 button.search-matches {
-    border: 1px solid var(--config-structr-green) !important;
-    color: var(--config-structr-green);
+    border: 1px solid var(--config-match-border) !important;
+    color: var(--config-match-text);
 }
 
 select.search-matches {
-    border: 2px solid var(--config-structr-green);
+    border: 2px solid var(--config-match-border);
 }
 
 select option.search-matches {
-	color: var(--config-structr-green);
+	color: var(--config-match-text);
 }
 
 td.search-matches {
-	color: var(--config-structr-green);
+	color: var(--config-match-text);
 	font-weight: bold;
 }
 
@@ -343,7 +352,7 @@ h2 {
 div.connection {
 	float: left;
 	margin: 1em 2em 0 0;
-	background-color: var(--solid-white);
+	background-color: var(--color-background-primary);
 	min-width: 36rem;
 	width: calc(100vw - 22.5rem);
 	min-height: 18rem;
@@ -406,8 +415,8 @@ div.connection label {
 }
 
 div.connection input[readonly="readonly"] {
-	background-color: #f0f0f0;
-	color: #aaa;
+	background-color: var(--color-background-disabled);
+	color: var(--color-text-faint);
 }
 
 div.connection input[type="password"],
@@ -425,7 +434,7 @@ div.connection p.buttons {
 }
 
 div.connection button {
-	border: 1px solid rgba(0,0,0,.125);
+	border: 1px solid var(--color-border-translucent);
 	position: relative;
 	margin: 0 0 0 1rem;
 }
@@ -482,13 +491,13 @@ input.combined {
 }
 
 input[type="submit"] {
-	background-color: var(--structr-green);
+	background-color: var(--color-background-brand);
 	/*background-color: var(--config-structr-green);*/
-	color: var(--solid-white);
+	color: var(--color-text-inverse);
 }
 
 input[type="submit"]:hover {
-	background-color: var(--dark-structr-green);
+	background-color: var(--color-background-brand-hover);
 }
 
 input[type="submit"].combined {

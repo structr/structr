@@ -429,7 +429,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		this._svg.setAttribute('width',  '100%');
 		this._svg.setAttribute('height', '100%');
 		this._svg.style.display = 'block';
-		this._svg.style.background = '#fafafa';
+		this._svg.style.background = 'var(--processes-diagram-background)';
 
 		// Defs: arrowhead marker for sequence flows, drop-shadow filter for
 		// shape bodies, and a grid pattern for the background.
@@ -437,21 +437,21 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		defs.innerHTML = `
 			<marker id="bpmn-arrow" viewBox="0 0 10 10" refX="10" refY="5"
 			        markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-				<path d="M 0 0 L 10 5 L 0 10 z" fill="#333"></path>
+				<path d="M 0 0 L 10 5 L 0 10 z" fill="var(--processes-ink)"></path>
 			</marker>
 			<marker id="bpmn-msgflow-start" viewBox="0 0 10 10" refX="5" refY="5"
 			        markerWidth="8" markerHeight="8" orient="auto">
-				<circle cx="5" cy="5" r="3.5" fill="#fff" stroke="#333" stroke-width="1"></circle>
+				<circle cx="5" cy="5" r="3.5" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="1"></circle>
 			</marker>
 			<marker id="bpmn-msgflow-end" viewBox="0 0 10 10" refX="9" refY="5"
 			        markerWidth="10" markerHeight="10" orient="auto-start-reverse">
-				<path d="M 0 0 L 10 5 L 0 10" fill="none" stroke="#333" stroke-width="1.2"></path>
+				<path d="M 0 0 L 10 5 L 0 10" fill="none" stroke="var(--processes-ink)" stroke-width="1.2"></path>
 			</marker>
 			<filter id="bpmn-shadow" x="-30%" y="-30%" width="160%" height="160%">
 				<feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity="0.30"></feDropShadow>
 			</filter>
 			<pattern id="bpmn-grid" width="${_BpmnDiagramCommunitySvg.GRID_STEP}" height="${_BpmnDiagramCommunitySvg.GRID_STEP}" patternUnits="userSpaceOnUse">
-				<path d="M ${_BpmnDiagramCommunitySvg.GRID_STEP} 0 L 0 0 0 ${_BpmnDiagramCommunitySvg.GRID_STEP}" fill="none" stroke="#e5e5e5" stroke-width="0.5"></path>
+				<path d="M ${_BpmnDiagramCommunitySvg.GRID_STEP} 0 L 0 0 0 ${_BpmnDiagramCommunitySvg.GRID_STEP}" fill="none" stroke="var(--processes-grid)" stroke-width="0.5"></path>
 			</pattern>
 		`;
 		this._svg.appendChild(defs);
@@ -1944,8 +1944,8 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		c.setAttribute('cx', cx);
 		c.setAttribute('cy', cy);
 		c.setAttribute('r', 9);
-		c.setAttribute('fill', '#3498db');
-		c.setAttribute('stroke', '#fff');
+		c.setAttribute('fill', 'var(--processes-handle)');
+		c.setAttribute('stroke', 'var(--processes-paper)');
 		c.setAttribute('stroke-width', '1.5');
 		g.appendChild(c);
 
@@ -1955,7 +1955,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		const arm = 4;
 		const plus = document.createElementNS(_BpmnDiagramCommunitySvg.SVG_NS, 'path');
 		plus.setAttribute('d', `M ${cx - arm} ${cy} L ${cx + arm} ${cy} M ${cx} ${cy - arm} L ${cx} ${cy + arm}`);
-		plus.setAttribute('stroke', '#fff');
+		plus.setAttribute('stroke', 'var(--processes-paper)');
 		plus.setAttribute('stroke-width', '2');
 		plus.setAttribute('stroke-linecap', 'round');
 		plus.setAttribute('fill', 'none');
@@ -1983,7 +1983,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		preview.setAttribute('y1', startY);
 		preview.setAttribute('x2', startX);
 		preview.setAttribute('y2', startY);
-		preview.setAttribute('stroke', '#3498db');
+		preview.setAttribute('stroke', 'var(--processes-handle)');
 		preview.setAttribute('stroke-width', '1.5');
 		preview.setAttribute('stroke-dasharray', '4 3');
 		preview.setAttribute('pointer-events', 'none');
@@ -2058,8 +2058,8 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			h.setAttribute('cx', wp.x);
 			h.setAttribute('cy', wp.y);
 			h.setAttribute('r', r);
-			h.setAttribute('fill',   '#3498db');
-			h.setAttribute('stroke', '#fff');
+			h.setAttribute('fill',   'var(--processes-handle)');
+			h.setAttribute('stroke', 'var(--processes-paper)');
 			h.setAttribute('stroke-width', '1.5');
 			h.style.cursor = 'move';
 			h.dataset.endpoint = isSource ? 'source' : 'target';
@@ -2077,8 +2077,8 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			h.setAttribute('y', wp.y - r);
 			h.setAttribute('width',  r * 2);
 			h.setAttribute('height', r * 2);
-			h.setAttribute('fill',   '#3498db');
-			h.setAttribute('stroke', '#fff');
+			h.setAttribute('fill',   'var(--processes-handle)');
+			h.setAttribute('stroke', 'var(--processes-paper)');
 			h.setAttribute('stroke-width', '1');
 			h.style.cursor = 'move';
 			h.dataset.waypointIndex = String(i);
@@ -2098,8 +2098,8 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			h.setAttribute('y', my - r);
 			h.setAttribute('width',  r * 2);
 			h.setAttribute('height', r * 2);
-			h.setAttribute('fill',   '#fff');
-			h.setAttribute('stroke', '#3498db');
+			h.setAttribute('fill',   'var(--processes-paper)');
+			h.setAttribute('stroke', 'var(--processes-handle)');
 			h.setAttribute('stroke-width', '1');
 			h.setAttribute('opacity', '0.85');
 			h.style.cursor = 'crosshair';
@@ -2136,7 +2136,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		preview.setAttribute('y1', fixedPt.y);
 		preview.setAttribute('x2', wps[isSource ? 0 : wps.length - 1].x);
 		preview.setAttribute('y2', wps[isSource ? 0 : wps.length - 1].y);
-		preview.setAttribute('stroke', '#3498db');
+		preview.setAttribute('stroke', 'var(--processes-handle)');
 		preview.setAttribute('stroke-width', '1.5');
 		preview.setAttribute('stroke-dasharray', '4 3');
 		preview.setAttribute('pointer-events', 'none');
@@ -2215,8 +2215,8 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			dot.setAttribute('cx', c.x);
 			dot.setAttribute('cy', c.y);
 			dot.setAttribute('r', isActive ? 6 : 4);
-			dot.setAttribute('fill',   isActive ? '#3498db' : '#fff');
-			dot.setAttribute('stroke', '#3498db');
+			dot.setAttribute('fill',   isActive ? 'var(--processes-handle)' : 'var(--processes-paper)');
+			dot.setAttribute('stroke', 'var(--processes-handle)');
 			dot.setAttribute('stroke-width', isActive ? '2' : '1');
 			dot.setAttribute('pointer-events', 'none');
 			this._viewport.appendChild(dot);
@@ -2490,8 +2490,8 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			node.setAttribute('y', hh.y - r);
 			node.setAttribute('width',  r * 2);
 			node.setAttribute('height', r * 2);
-			node.setAttribute('fill',   '#fff');
-			node.setAttribute('stroke', '#3498db');
+			node.setAttribute('fill',   'var(--processes-paper)');
+			node.setAttribute('stroke', 'var(--processes-handle)');
 			node.setAttribute('stroke-width', '1.5');
 			node.style.cursor = hh.cursor;
 			node.dataset.side = hh.side;
@@ -2805,8 +2805,8 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			body.setAttribute('ry', 8);
 		}
 		body.setAttribute('class', 'bpmn-shape-body');
-		body.setAttribute('fill',   '#fff');
-		body.setAttribute('stroke', '#333');
+		body.setAttribute('fill',   'var(--processes-paper)');
+		body.setAttribute('stroke', 'var(--processes-ink)');
 		body.setAttribute('stroke-width', elementType.startsWith('boundary') ? '1.5' : '2');
 		if (elementType.startsWith('boundary')) body.setAttribute('stroke-dasharray', '4 3');
 		// Subtle drop shadow via SVG filter (defined in <defs>).
@@ -2890,7 +2890,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			// White paint-order halo so the label stays readable when it sits
 			// over an edge in busy diagrams.
 			txt.setAttribute('paint-order', 'stroke');
-			txt.setAttribute('stroke', '#fafafa');
+			txt.setAttribute('stroke', 'var(--processes-diagram-background)');
 			txt.setAttribute('stroke-width', '3');
 			txt.setAttribute('stroke-linejoin', 'round');
 
@@ -2926,13 +2926,13 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		const finishedCount = (this._completedCounts && bpmnId) ? (this._completedCounts.get(bpmnId) || 0) : 0;
 		this._renderCountBadge(g, shape, { cx, cy, isEvent, isGateway }, activeCount, {
 			corner:  'tl',
-			fill:    '#3498db',
+			fill:    'var(--processes-handle)',
 			cssClass:'bpmn-instance-badge bpmn-instance-badge-active',
 			tooltip: (n) => `Active instances — process instances currently at this step (${n} ${n === 1 ? 'instance' : 'instances'}). Updates automatically.`,
 		});
 		this._renderCountBadge(g, shape, { cx, cy, isEvent, isGateway }, finishedCount, {
 			corner:  'tr',
-			fill:    '#27ae60',
+			fill:    'var(--processes-finished)',
 			cssClass:'bpmn-instance-badge bpmn-instance-badge-finished',
 			tooltip: (n) => `Finished instances — process instances that completed this step (${n} ${n === 1 ? 'instance' : 'instances'}). Updates automatically.`,
 		});
@@ -3002,7 +3002,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			rect.setAttribute('height', 2 * r);
 			rect.setAttribute('rx', r);
 			rect.setAttribute('fill',   opts.fill);
-			rect.setAttribute('stroke', '#fff');
+			rect.setAttribute('stroke', 'var(--processes-paper)');
 			rect.setAttribute('stroke-width', '1.5');
 			badge.appendChild(rect);
 		} else {
@@ -3011,7 +3011,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			circ.setAttribute('cy', by);
 			circ.setAttribute('r',  r);
 			circ.setAttribute('fill',   opts.fill);
-			circ.setAttribute('stroke', '#fff');
+			circ.setAttribute('stroke', 'var(--processes-paper)');
 			circ.setAttribute('stroke-width', '1.5');
 			badge.appendChild(circ);
 		}
@@ -3024,7 +3024,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		ct.setAttribute('font-size', '10');
 		ct.setAttribute('font-family', 'sans-serif');
 		ct.setAttribute('font-weight', 'bold');
-		ct.setAttribute('fill', '#fff');
+		ct.setAttribute('fill', 'var(--processes-paper)');
 		ct.textContent = label;
 		badge.appendChild(ct);
 
@@ -3064,7 +3064,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		const path = document.createElementNS(_BpmnDiagramCommunitySvg.SVG_NS, 'polyline');
 		path.setAttribute('points', points);
 		path.setAttribute('fill', 'none');
-		path.setAttribute('stroke', '#333');
+		path.setAttribute('stroke', 'var(--processes-ink)');
 		path.setAttribute('stroke-width', '1.5');
 		path.setAttribute('marker-end', 'url(#bpmn-arrow)');
 		path.setAttribute('class', 'bpmn-edge');
@@ -3163,10 +3163,10 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		text.setAttribute('dominant-baseline', 'middle');
 		text.setAttribute('font-size', '10');
 		text.setAttribute('font-family', 'sans-serif');
-		text.setAttribute('fill', '#333');
+		text.setAttribute('fill', 'var(--processes-ink)');
 		text.setAttribute('pointer-events', 'none');
 		text.setAttribute('paint-order', 'stroke');
-		text.setAttribute('stroke', '#fafafa');
+		text.setAttribute('stroke', 'var(--processes-diagram-background)');
 		text.setAttribute('stroke-width', '3');
 		text.setAttribute('stroke-linejoin', 'round');
 		text.textContent = label;
@@ -3196,7 +3196,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		wrap.setAttribute('class', 'bpmn-gateway-marker');
 		wrap.setAttribute('pointer-events', 'none');
 		wrap.setAttribute('fill', 'none');
-		wrap.setAttribute('stroke', '#333');
+		wrap.setAttribute('stroke', 'var(--processes-ink)');
 		wrap.setAttribute('stroke-width', '2');
 		wrap.setAttribute('stroke-linecap', 'round');
 
@@ -3298,13 +3298,13 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		// sidebar palette (processes.js _paletteGlyph). Coordinates are in the
 		// palette's 28x28 space (task rect at x=3, y=6, w=22, h=16).
 		const BADGES = {
-			userTask:         '<circle cx="8" cy="11" r="2.5" fill="none" stroke="#333" stroke-width="1"/><path d="M5 17 Q8 13 11 17" fill="none" stroke="#333" stroke-width="1" stroke-linecap="round"/>',
-			serviceTask:      '<circle cx="8" cy="14" r="2.5" fill="none" stroke="#333" stroke-width="1"/><path d="M8 10.5 L8 12 M8 16 L8 17.5 M5.5 14 L4 14 M12 14 L10.5 14" stroke="#333" stroke-width="1" stroke-linecap="round"/>',
-			scriptTask:       '<path d="M5 10 L11 10 M5 12.5 L11 12.5 M5 15 L9 15 M5 17.5 L11 17.5" stroke="#333" stroke-width="1" stroke-linecap="round"/>',
-			manualTask:       '<path d="M6 12 L6 17 M8 11 L8 17 M10 12 L10 17" stroke="#333" stroke-width="1" stroke-linecap="round" fill="none"/>',
-			businessRuleTask: '<rect x="5" y="11" width="6" height="6" fill="none" stroke="#333" stroke-width="1"/><line x1="5" y1="13" x2="11" y2="13" stroke="#333" stroke-width="1"/><line x1="7.5" y1="11" x2="7.5" y2="17" stroke="#333" stroke-width="1"/>',
-			sendTask:         '<rect x="5" y="11" width="7" height="5" fill="#333" stroke="#333" stroke-width="1"/>',
-			receiveTask:      '<rect x="5" y="11" width="7" height="5" fill="none" stroke="#333" stroke-width="1"/>',
+			userTask:         '<circle cx="8" cy="11" r="2.5" fill="none" stroke="var(--processes-ink)" stroke-width="1"/><path d="M5 17 Q8 13 11 17" fill="none" stroke="var(--processes-ink)" stroke-width="1" stroke-linecap="round"/>',
+			serviceTask:      '<circle cx="8" cy="14" r="2.5" fill="none" stroke="var(--processes-ink)" stroke-width="1"/><path d="M8 10.5 L8 12 M8 16 L8 17.5 M5.5 14 L4 14 M12 14 L10.5 14" stroke="var(--processes-ink)" stroke-width="1" stroke-linecap="round"/>',
+			scriptTask:       '<path d="M5 10 L11 10 M5 12.5 L11 12.5 M5 15 L9 15 M5 17.5 L11 17.5" stroke="var(--processes-ink)" stroke-width="1" stroke-linecap="round"/>',
+			manualTask:       '<path d="M6 12 L6 17 M8 11 L8 17 M10 12 L10 17" stroke="var(--processes-ink)" stroke-width="1" stroke-linecap="round" fill="none"/>',
+			businessRuleTask: '<rect x="5" y="11" width="6" height="6" fill="none" stroke="var(--processes-ink)" stroke-width="1"/><line x1="5" y1="13" x2="11" y2="13" stroke="var(--processes-ink)" stroke-width="1"/><line x1="7.5" y1="11" x2="7.5" y2="17" stroke="var(--processes-ink)" stroke-width="1"/>',
+			sendTask:         '<rect x="5" y="11" width="7" height="5" fill="var(--processes-ink)" stroke="var(--processes-ink)" stroke-width="1"/>',
+			receiveTask:      '<rect x="5" y="11" width="7" height="5" fill="none" stroke="var(--processes-ink)" stroke-width="1"/>',
 		};
 		const badge = BADGES[elementType];
 		if (!badge) return;   // plain task / sub-process / unknown -> no marker
@@ -3349,8 +3349,8 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		// glyph filled black; catching events (start, intermediateCatch,
 		// boundary) leave the glyph hollow.
 		const isThrowing = /Throw|^endEvent$/.test(elementType || '');
-		const fill   = isThrowing ? '#333' : '#fff';
-		const stroke = '#333';
+		const fill   = isThrowing ? 'var(--processes-ink)' : 'var(--processes-paper)';
+		const stroke = 'var(--processes-ink)';
 
 		const wrap = document.createElementNS(ns, 'g');
 		wrap.setAttribute('class', `bpmn-event-marker bpmn-event-marker-${eventDefType}`);
@@ -3363,7 +3363,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 				ring.setAttribute('cx', cx);
 				ring.setAttribute('cy', cy);
 				ring.setAttribute('r',  r);
-				ring.setAttribute('fill',   '#fff');
+				ring.setAttribute('fill',   'var(--processes-paper)');
 				ring.setAttribute('stroke', stroke);
 				ring.setAttribute('stroke-width', '1.2');
 				wrap.appendChild(ring);
@@ -3401,14 +3401,14 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 				env.setAttribute('width',  w);
 				env.setAttribute('height', h);
 				env.setAttribute('fill',   fill);
-				env.setAttribute('stroke', isThrowing ? '#fff' : stroke);
+				env.setAttribute('stroke', isThrowing ? 'var(--processes-paper)' : stroke);
 				env.setAttribute('stroke-width', '1.2');
 				wrap.appendChild(env);
 				// V-flap from top corners to centre.
 				const flap = document.createElementNS(ns, 'polyline');
 				flap.setAttribute('points', `${x},${y} ${cx},${y + h * 0.55} ${x + w},${y}`);
 				flap.setAttribute('fill', 'none');
-				flap.setAttribute('stroke', isThrowing ? '#fff' : stroke);
+				flap.setAttribute('stroke', isThrowing ? 'var(--processes-paper)' : stroke);
 				flap.setAttribute('stroke-width', '1.2');
 				flap.setAttribute('stroke-linejoin', 'round');
 				wrap.appendChild(flap);
@@ -3530,8 +3530,8 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		lid.setAttribute('cy', y + ry);
 		lid.setAttribute('rx', w / 2);
 		lid.setAttribute('ry', ry);
-		lid.setAttribute('fill',   '#fff');
-		lid.setAttribute('stroke', '#333');
+		lid.setAttribute('fill',   'var(--processes-paper)');
+		lid.setAttribute('stroke', 'var(--processes-ink)');
 		lid.setAttribute('stroke-width', '1.5');
 		lid.setAttribute('pointer-events', 'none');
 		parent.appendChild(lid);
@@ -3542,7 +3542,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			const arc = document.createElementNS(ns, 'path');
 			arc.setAttribute('d', `M ${x} ${y + ry + dy} A ${w / 2} ${ry} 0 0 0 ${x + w} ${y + ry + dy}`);
 			arc.setAttribute('fill', 'none');
-			arc.setAttribute('stroke', '#333');
+			arc.setAttribute('stroke', 'var(--processes-ink)');
 			arc.setAttribute('stroke-width', '0.8');
 			arc.setAttribute('pointer-events', 'none');
 			parent.appendChild(arc);
@@ -3579,7 +3579,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		const tri = document.createElementNS(ns, 'path');
 		tri.setAttribute('d', `M ${x + w - fold} ${y} L ${x + w - fold} ${y + fold} L ${x + w} ${y + fold}`);
 		tri.setAttribute('fill', 'none');
-		tri.setAttribute('stroke', '#333');
+		tri.setAttribute('stroke', 'var(--processes-ink)');
 		tri.setAttribute('stroke-width', '1');
 		tri.setAttribute('pointer-events', 'none');
 		parent.appendChild(tri);
@@ -3613,7 +3613,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		outer.setAttribute('width',  w);
 		outer.setAttribute('height', h);
 		outer.setAttribute('fill',   'none');
-		outer.setAttribute('stroke', '#888');
+		outer.setAttribute('stroke', 'var(--processes-lane-line)');
 		outer.setAttribute('stroke-width', '1');
 		g.appendChild(outer);
 
@@ -3623,7 +3623,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		strip.setAttribute('y1', y);
 		strip.setAttribute('x2', x + stripW);
 		strip.setAttribute('y2', y + h);
-		strip.setAttribute('stroke', '#888');
+		strip.setAttribute('stroke', 'var(--processes-lane-line)');
 		strip.setAttribute('stroke-width', '1');
 		g.appendChild(strip);
 
@@ -3638,7 +3638,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			text.setAttribute('transform', `rotate(-90 ${cx} ${cy})`);
 			text.setAttribute('class', 'bpmn-lane-label');
 			text.setAttribute('font-size', '11');
-			text.setAttribute('fill',      '#555');
+			text.setAttribute('fill',      'var(--processes-lane-label)');
 			text.textContent = label;
 			g.appendChild(text);
 		}
@@ -3681,8 +3681,8 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		outer.setAttribute('y', y);
 		outer.setAttribute('width',  w);
 		outer.setAttribute('height', h);
-		outer.setAttribute('fill',   '#ffffff');
-		outer.setAttribute('stroke', '#666');
+		outer.setAttribute('fill',   'var(--processes-paper)');
+		outer.setAttribute('stroke', 'var(--processes-pool-line)');
 		outer.setAttribute('stroke-width', '1');
 		g.appendChild(outer);
 
@@ -3692,7 +3692,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		strip.setAttribute('y1', y);
 		strip.setAttribute('x2', x + stripW);
 		strip.setAttribute('y2', y + h);
-		strip.setAttribute('stroke', '#666');
+		strip.setAttribute('stroke', 'var(--processes-pool-line)');
 		strip.setAttribute('stroke-width', '1');
 		g.appendChild(strip);
 
@@ -3708,7 +3708,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			text.setAttribute('transform', `rotate(-90 ${cx} ${cy})`);
 			text.setAttribute('class', 'bpmn-participant-label');
 			text.setAttribute('font-size', '12');
-			text.setAttribute('fill', '#333');
+			text.setAttribute('fill', 'var(--processes-ink)');
 			text.textContent = label;
 			g.appendChild(text);
 		}
@@ -3961,8 +3961,8 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		h.setAttribute('y', y - r);
 		h.setAttribute('width',  r * 2);
 		h.setAttribute('height', r * 2);
-		h.setAttribute('fill',   '#fff');
-		h.setAttribute('stroke', kind === 'pool' ? '#666' : '#888');
+		h.setAttribute('fill',   'var(--processes-paper)');
+		h.setAttribute('stroke', kind === 'pool' ? 'var(--processes-pool-line)' : 'var(--processes-lane-line)');
 		h.setAttribute('stroke-width', '1.5');
 		// Hover-only visibility: invisible at rest, full opacity on hover.
 		// Pointer-events stay on so the corner is still grabbable -- users
@@ -4176,7 +4176,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		const path = document.createElementNS(ns, 'polyline');
 		path.setAttribute('points', points);
 		path.setAttribute('fill', 'none');
-		path.setAttribute('stroke', '#333');
+		path.setAttribute('stroke', 'var(--processes-ink)');
 		path.setAttribute('stroke-width', '1.2');
 		path.setAttribute('stroke-dasharray', '6 4');
 		path.setAttribute('marker-start', 'url(#bpmn-msgflow-start)');
@@ -4290,7 +4290,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			const sel  = (eg.dataset.flowId === this._selectedFlowId);
 			const path = eg.querySelector('.bpmn-edge');
 			if (path) {
-				path.setAttribute('stroke',       sel ? '#3498db' : '#333');
+				path.setAttribute('stroke',       sel ? 'var(--processes-handle)' : 'var(--processes-ink)');
 				path.setAttribute('stroke-width', sel ? '2'       : '1.5');
 			}
 		}

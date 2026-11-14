@@ -16,6 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/* Role tokens of this area, see main.css */
+:root {
+	/* Text */
+	--crud-save-active-text: var(--medium-red);
+
+	/* Borders */
+	--crud-type-border:      var(--light-gray-bg-f7);
+}
 @charset "UTF-8";
 
 #crud-main {
@@ -46,8 +55,8 @@
 }
 
 #crud-left .crud-type {
-	border-bottom: 1px solid var(--light-gray-bg-f7);
-	border-top: 1px solid var(--light-gray-bg-f7);
+	border-bottom: 1px solid var(--crud-type-border);
+	border-top: 1px solid var(--crud-type-border);
 	margin-top: -1px;
 	padding: 6px 8px 6px 10px;
 	cursor: pointer;
@@ -55,11 +64,11 @@
 }
 
 #crud-left .crud-type.active {
-	background-color: var(--config-structr-green);
+	background-color: var(--color-background-brand-bright);
 }
 
 #crud-left .crud-type:hover {
-	background-color: var(--config-structr-green);
+	background-color: var(--color-background-brand-bright);
 	z-index: 99;
 }
 
@@ -82,9 +91,9 @@
 }
 
 .resourceBox {
-	background: var(--solid-white) ! important;
+	background: var(--color-background-primary) ! important;
 	position: relative;
-	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+	box-shadow: 0 0 .625rem 0 var(--color-shadow);
 }
 
 #crud-type-detail .crud-message {
@@ -109,7 +118,7 @@
 	display: block;
 	overflow: auto;
 	border-collapse: collapse;
-	background: var(--solid-white);
+	background: var(--color-background-primary);
 	width: 100%;
 }
 
@@ -118,7 +127,7 @@
 	text-align: left;
 	vertical-align: top;
 	height: 1em;
-	background-color: var(--light-gray-bg-f3);
+	background-color: var(--color-background-hover);
 }
 
 .resourceBox td {
@@ -127,11 +136,11 @@
 }
 
 .resourceBox tr:nth-child(2n) {
-	background: var(--light-gray-bg-f7);
+	background: var(--color-background-secondary);
 }
 
 .resourceBox tr:nth-child(2n+1) {
-	background: var(--solid-white);
+	background: var(--color-background-primary);
 }
 
 /* allows table headers to be sticky */
@@ -149,7 +158,7 @@
 }
 
 .column-sorted-active {
-	color: var(--active-link) ! important;
+	color: var(--color-text-primary) ! important;
 }
 
 .crud-table tbody tr:first-child td {
@@ -183,7 +192,7 @@
 }
 
 .resourceBox td.save {
-	color: var(--gray-aaa);
+	color: var(--color-text-faint);
 }
 
 .resourceBox td.save.active:hover, .resourceBox .delete:hover, .resourceBox .edit:hover {
@@ -192,12 +201,12 @@
 
 .resourceBox td.save.active {
 	font-weight: bold;
-	color: var(--medium-red);
+	color: var(--crud-save-active-text);
 }
 
 input.readonly {
-	background-color: var(--input-background) ! important;
-	color: var(--gray-333);
+	background-color: var(--color-background-disabled) ! important;
+	color: var(--color-text-dark);
 }
 
 #query-info {
@@ -205,11 +214,11 @@ input.readonly {
 	bottom: .75rem;
 	right: 1rem;
 	text-align: right;
-	color: var(--gray-666);
+	color: var(--color-text-medium);
 }
 
 .exportArea, .importArea {
-	border: 1x solid var(--input-field-border);
+	border: 1x solid var(--color-border-primary);
 	margin: 0;
 	height: calc(100% - .5rem);
 	overflow: auto;
@@ -273,8 +282,8 @@ input.readonly {
 	top: 8px;
 	left: 8px;
 	padding: 2px 4px;
-	color: black;
-	background-color: white;
+	color: var(--color-text-black);
+	background-color: var(--color-background-primary);
 	opacity: .50;
 }
 
@@ -311,7 +320,7 @@ input.readonly {
 }
 
 .searchResults h2 {
-	color: var(--gray-333);
+	color: var(--color-text-dark);
 	clear: both;
 	margin: 12px 0 0 12px;
 }
@@ -319,7 +328,7 @@ input.readonly {
 .searchResults .search-results-info {
 	display: block;
 	margin: 8px 0 4px 12px;
-	color: var(--gray-555);
+	color: var(--color-text-secondary);
 	font-size: .9rem;
 }
 
@@ -328,7 +337,7 @@ input.readonly {
 }
 
 .searchResults h3 {
-	color: var(--gray-333);
+	color: var(--color-text-dark);
 	clear: both;
 	margin: 0 0 12px 0;
 }
@@ -353,11 +362,11 @@ img.loader {
 * (collection) pager
 */
 .cell-pager > .pageWrapper {
-	border: 1px solid var(--input-field-border);
+	border: 1px solid var(--color-border-primary);
 	border-radius: .25rem;
 	display: inline-block;
 	padding: 0;
-	background: var(--solid-white) ! important;
+	background: var(--color-background-primary) ! important;
 	font-size: 1rem;
 	line-height: 2.3rem;
 	white-space: nowrap;
@@ -365,7 +374,7 @@ img.loader {
 
 .cell-pager input.collection-page,
 .cell-pager input.page-count {
-	background-color: var(--solid-white) ! important;
+	background-color: var(--color-background-primary) ! important;
 	width: 1.75rem;
 	border: none;
 	text-align: center;
@@ -373,7 +382,7 @@ img.loader {
 }
 
 .cell-pager button {
-	background-color: var(--solid-white);
+	background-color: var(--color-background-primary);
 	border: 1px solid transparent;
 }
 

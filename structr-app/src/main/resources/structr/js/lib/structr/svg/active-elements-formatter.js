@@ -29,7 +29,7 @@ class ActiveElementsFormatter {
 			label.setAttribute('font-size', '8pt');
 			label.setAttribute('x', child.x + offset.x + (child.width / 2));
 			label.setAttribute('y', child.y + offset.y + (child.height / 2));
-			label.setAttribute('stroke', '#333333');
+			label.setAttribute('stroke', 'var(--pages-diagram-label)');
 			label.setAttribute('pointer-events', 'none');
 
 			label.appendChild(text);
@@ -65,28 +65,28 @@ class ActiveElementsFormatter {
 			switch (type) {
 
 				case 'ActionMapping':
-					shape = this.createActionIcon(child, offset, '#dddddd', '#cccccc');
+					shape = this.createActionIcon(child, offset, 'var(--pages-diagram-symbol-fill)', 'var(--pages-diagram-line)');
 					break;
 
 				case 'Template':
-					shape = this.createDefaultRect(child, offset, '#eeeeee', '#cccccc');
+					shape = this.createDefaultRect(child, offset, 'var(--pages-diagram-element-fill)', 'var(--pages-diagram-line)');
 					break;
 
 				case 'Page':
-					shape = this.createPagePolygon(child, offset, '#ffffff', '#cccccc');
+					shape = this.createPagePolygon(child, offset, 'var(--pages-diagram-page-fill)', 'var(--pages-diagram-line)');
 					break;
 
 				case 'Condition':
-					shape = this.createConditionIcon(child, offset, '#dddddd', '#cccccc');
+					shape = this.createConditionIcon(child, offset, 'var(--pages-diagram-symbol-fill)', 'var(--pages-diagram-line)');
 					break;
 
 				case 'PropertyDataSource':
 				case 'ListDataSource':
-					shape = this.createDatabaseIcon(child, offset, '#dddddd', '#cccccc');
+					shape = this.createDatabaseIcon(child, offset, 'var(--pages-diagram-symbol-fill)', 'var(--pages-diagram-line)');
 					break;
 
 				default:
-					shape = this.createDefaultRect(child, offset, '#f8f8f8', '#cccccc');
+					shape = this.createDefaultRect(child, offset, 'var(--pages-diagram-default-fill)', 'var(--pages-diagram-line)');
 					break;
 			}
 
@@ -97,8 +97,8 @@ class ActiveElementsFormatter {
 		let nodeData = this.data[child.id];
 		if (nodeData?.dataKey) {
 
-			svg.appendChild(this.createDefaultRect(child, { x: offset.x + 6, y: offset.y + 6 }, '#dddddd', '#999999'));
-			svg.appendChild(this.createDefaultRect(child, { x: offset.x + 3, y: offset.y + 3 }, '#eeeeee', '#999999'));
+			svg.appendChild(this.createDefaultRect(child, { x: offset.x + 6, y: offset.y + 6 }, 'var(--pages-diagram-symbol-fill)', 'var(--pages-diagram-line-strong)'));
+			svg.appendChild(this.createDefaultRect(child, { x: offset.x + 3, y: offset.y + 3 }, 'var(--pages-diagram-element-fill)', 'var(--pages-diagram-line-strong)'));
 		}
 
 		shape.dataset.nodeId = child.id;
@@ -241,8 +241,8 @@ class ActiveElementsFormatter {
 		shape1.setAttribute('width', child.width);
 		shape1.setAttribute('height', child.height);
 
-		shape2.setAttribute('fill', '#000000');
-		shape2.setAttribute('stroke', '#000000');
+		shape2.setAttribute('fill', 'var(--pages-diagram-marker)');
+		shape2.setAttribute('stroke', 'var(--pages-diagram-marker)');
 		shape2.setAttribute('cx', child.x + offset.x + 10);
 		shape2.setAttribute('cy', child.y + offset.y + 20);
 		shape2.setAttribute('r', 5);
@@ -277,7 +277,7 @@ class ActiveElementsFormatter {
 
 		path.setAttribute('d', lines.join(' '));
 		path.setAttribute('marker-end', 'url(#arrow)');
-		path.setAttribute('stroke', '#333333');
+		path.setAttribute('stroke', 'var(--pages-diagram-label)');
 
 		svg.appendChild(path);
 	}

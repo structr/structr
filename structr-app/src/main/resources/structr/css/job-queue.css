@@ -31,5 +31,5 @@
 
 #job-queue-jobs-table tr th {
 	padding: 1rem;
-	background-color: white;
+	background-color: var(--color-background-primary);
 }

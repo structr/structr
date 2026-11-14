@@ -16,6 +16,46 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/* Role tokens of this area, see main.css */
+:root {
+	/* Backgrounds */
+	--processes-diagram-background:          #fafafa;
+	--processes-panel-background:            #f5f5f5;
+	--processes-status-active-background:    #dbf0dd;
+	--processes-status-completed-background: #d9e8ff;
+	--processes-status-created-background:   #e6e6f7;
+	--processes-status-error-background:     #fcd9d4;
+	--processes-status-reserved-background:  #fff1c8;
+
+	/* Text */
+	--processes-delete-text:                 #c0392b;
+	--processes-state-note-text:             #8a6d3b;
+	--processes-status-active-text:          #1d6a2c;
+	--processes-status-completed-text:       #1d4a9e;
+	--processes-status-created-text:         #3a3a7a;
+	--processes-status-error-text:           #8a1d1d;
+	--processes-status-reserved-text:        #7a5800;
+
+	/* Borders */
+	--processes-tab-active-border:           #3498db;
+
+	/* Fills and strokes */
+	--processes-shape-active-fill:           #fff7d6;
+	--processes-shape-completed-fill:        #e6f4ea;
+	--processes-shape-error-fill:            #fcd9d4;
+	--processes-shape-selected-stroke:       #2563eb;
+
+	/* The diagram and the palette, drawn by process-editor/community-svg.js and processes.js */
+	--processes-ink:                         #333;
+	--processes-paper:                       #fff;
+	--processes-handle:                      #3498db;
+	--processes-lane-line:                   #888;
+	--processes-pool-line:                   #666;
+	--processes-lane-label:                  #555;
+	--processes-grid:                        #e5e5e5;
+	--processes-finished:                    #27ae60;
+}
 #processes {
 	height: 100%;
 	margin-bottom: 0;
@@ -41,16 +81,16 @@
 	display: inline-flex;
 	align-items: center;
 	padding: 6px 12px;
-	border: 2px dashed #ccc;
+	border: 2px dashed var(--color-border-strong);
 	border-radius: 4px;
-	color: #666;
+	color: var(--color-text-medium);
 	font-size: 13px;
 	user-select: none;cursor:pointer;
 }
 
 .processes-controls .bpmn-dropzone:hover {
-	border: 2px dashed #aaa;
-	background-color: #f3f3f3;
+	border: 2px dashed var(--color-border-dashed);
+	background-color: var(--color-background-hover);
 }
 
 .processes-controls > div {
@@ -84,8 +124,8 @@
 }
 
 .processes-table th {
-	background: var(--input-background);
-	color: var(--gray-333);
+	background: var(--color-background-disabled);
+	color: var(--color-text-dark);
 	vertical-align: top;
 	font-weight: 600;
 }
@@ -95,15 +135,15 @@
 }
 
 .processes-table tbody tr:hover {
-	background-color: var(--structr-light-green-transparent) !important;
+	background-color: var(--color-background-selected) !important;
 }
 
 .processes-table tr:nth-child(odd) {
-	background: var(--light-gray-bg-f7) !important;
+	background: var(--color-background-secondary) !important;
 }
 
 .processes-table tr:nth-child(even) {
-	background: var(--solid-white) !important;
+	background: var(--color-background-primary) !important;
 }
 
 .processes-table td.mono {
@@ -136,53 +176,53 @@
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
-	background: var(--gray-eee, #eee);
-	color: var(--gray-333, #333);
+	background: var(--gray-eee, var(--color-background-tertiary));
+	color: var(--gray-333, var(--color-text-dark));
 }
 
 .status-badge.status-running,
 .status-badge.status-active {
-	background: #dbf0dd;
-	color: #1d6a2c;
+	background: var(--processes-status-active-background);
+	color: var(--processes-status-active-text);
 }
 
 .status-badge.status-completed {
-	background: #d9e8ff;
-	color: #1d4a9e;
+	background: var(--processes-status-completed-background);
+	color: var(--processes-status-completed-text);
 }
 
 .status-badge.status-suspended,
 .status-badge.status-waiting,
 .status-badge.status-reserved {
-	background: #fff1c8;
-	color: #7a5800;
+	background: var(--processes-status-reserved-background);
+	color: var(--processes-status-reserved-text);
 }
 
 .status-badge.status-terminated,
 .status-badge.status-cancelled,
 .status-badge.status-error {
-	background: #fcd9d4;
-	color: #8a1d1d;
+	background: var(--processes-status-error-background);
+	color: var(--processes-status-error-text);
 }
 
 .status-badge.status-created {
-	background: #e6e6f7;
-	color: #3a3a7a;
+	background: var(--processes-status-created-background);
+	color: var(--processes-status-created-text);
 }
 
 /* BPMN diagram (Process Diagram dialog) */
-.bpmn-diagram-host { background: #fafafa; }
+.bpmn-diagram-host { background: var(--processes-diagram-background); }
 .bpmn-shape { cursor: pointer; }
-.bpmn-shape:hover .bpmn-shape-body { stroke: #2563eb; }
-.bpmn-shape.bpmn-selected .bpmn-shape-body { stroke: #2563eb; stroke-width: 3; }
-.bpmn-shape.bpmn-highlight-active .bpmn-shape-body { fill: #fff7d6; }
-.bpmn-shape.bpmn-highlight-completed .bpmn-shape-body { fill: #e6f4ea; }
-.bpmn-shape.bpmn-highlight-error .bpmn-shape-body { fill: #fcd9d4; }
+.bpmn-shape:hover .bpmn-shape-body { stroke: var(--processes-shape-selected-stroke); }
+.bpmn-shape.bpmn-selected .bpmn-shape-body { stroke: var(--processes-shape-selected-stroke); stroke-width: 3; }
+.bpmn-shape.bpmn-highlight-active .bpmn-shape-body { fill: var(--processes-shape-active-fill); }
+.bpmn-shape.bpmn-highlight-completed .bpmn-shape-body { fill: var(--processes-shape-completed-fill); }
+.bpmn-shape.bpmn-highlight-error .bpmn-shape-body { fill: var(--processes-shape-error-fill); }
 .process-diagram-dialog .dialogText { padding: 0; }
-.process-diagram-palette .btn-palette.active { outline: 2px solid #3498db; }
+.process-diagram-palette .btn-palette.active { outline: 2px solid var(--processes-tab-active-border); }
 .process-diagram-sidepanel {
 	flex: 0 0 24rem;
-	border-left: 1px solid #ddd;
+	border-left: 1px solid var(--color-border-secondary);
 	padding: 10px;
 	overflow: auto;
 	font-size: 12px;
@@ -196,7 +236,7 @@
 .bpmn-listener-block {
 	margin-top: 12px;
 	padding-top: 8px;
-	border-top: 1px solid #eee;
+	border-top: 1px solid var(--color-border-tertiary);
 }
 
 .bpmn-listener-header {
@@ -207,7 +247,7 @@
 }
 
 .bpmn-listener-title {
-	color: #666;
+	color: var(--color-text-medium);
 	font-size: 11px;
 }
 
@@ -218,7 +258,7 @@
 }
 
 .bpmn-listener-hint {
-	color: #666;
+	color: var(--color-text-medium);
 	font-size: 10px;
 	line-height: 1.4;
 	margin-top: 4px;
@@ -247,7 +287,7 @@
 	white-space: nowrap;
 	font-size: 11px;
 	font-family: monospace;
-	color: #555;
+	color: var(--color-text-secondary);
 }
 
 .bpmn-listener-row .action {
@@ -257,7 +297,7 @@
 /* BPMN editor: Process Diagram dialog layout (toolbar, palette, canvas, XML pane) */
 .process-diagram-toolbar {
 	padding: 6px 8px;
-	border-bottom: 1px solid #ddd;
+	border-bottom: 1px solid var(--color-border-secondary);
 	display: flex;
 	gap: 8px;
 	align-items: center;
@@ -267,7 +307,7 @@
 .pd-toolbar-sep {
 	width: 1px;
 	height: 18px;
-	background: #ddd;
+	background: var(--color-background-separator);
 }
 
 .pd-spacer { flex: 1 1 auto; }
@@ -284,7 +324,7 @@
 
 .process-diagram-palette {
 	flex: 0 0 140px;
-	border-right: 1px solid #ddd;
+	border-right: 1px solid var(--color-border-secondary);
 	padding: 6px 6px;
 	display: flex;
 	flex-direction: column;
@@ -307,7 +347,7 @@
 	font-size: 10px;
 	font-weight: 600;
 	text-transform: uppercase;
-	color: #888;
+	color: var(--color-text-tertiary);
 	padding: 2px 0;
 	letter-spacing: 0.5px;
 }
@@ -336,7 +376,7 @@
 	display: flex;
 	flex-direction: column;
 	flex: 0 0 35%;
-	border-top: 1px solid #ddd;
+	border-top: 1px solid var(--color-border-secondary);
 	min-height: 0;
 	overflow: hidden;
 }
@@ -348,9 +388,9 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	background: #f5f5f5;
+	background: var(--processes-panel-background);
 	font-size: 12px;
-	border-bottom: 1px solid #eee;
+	border-bottom: 1px solid var(--color-border-tertiary);
 }
 
 .process-diagram-xml-pre {
@@ -360,14 +400,14 @@
 	font-size: 11px;
 	line-height: 1.4;
 	flex: 1 1 auto;
-	background: #fff;
+	background: var(--color-background-primary);
 }
 
 /* BPMN editor: side-panel tabs */
 .process-diagram-sidepanel-tabs {
 	display: flex;
 	margin: -10px -10px 10px -10px;
-	border-bottom: 1px solid #ddd;
+	border-bottom: 1px solid var(--color-border-secondary);
 }
 
 .sidepanel-tab {
@@ -376,25 +416,25 @@
 	border: none;
 	cursor: pointer;
 	font-size: 12px;
-	background: #f5f5f5;
+	background: var(--processes-panel-background);
 	font-weight: 400;
-	color: #666;
+	color: var(--color-text-medium);
 	border-bottom: 2px solid transparent;
 }
 
 .sidepanel-tab.active {
-	background: #fff;
+	background: var(--color-background-primary);
 	font-weight: 600;
-	color: #333;
-	border-bottom-color: #3498db;
+	color: var(--color-text-dark);
+	border-bottom-color: var(--processes-tab-active-border);
 }
 
 /* BPMN editor: side-panel + process-settings form primitives */
 .pd-heading       { margin: 0 0 8px 0; font-size: 13px; }
 .pd-heading-lg    { margin: 0 0 10px 0; font-size: 13px; }
-.pd-field-label   { color: #666; font-size: 11px; }
-.pd-label-block   { display: block; color: #666; font-size: 11px; margin-bottom: 4px; }
-.pd-section-title { color: #666; font-size: 11px; margin-bottom: 6px; }
+.pd-field-label   { color: var(--color-text-medium); font-size: 11px; }
+.pd-label-block   { display: block; color: var(--color-text-medium); font-size: 11px; margin-bottom: 4px; }
+.pd-section-title { color: var(--color-text-medium); font-size: 11px; margin-bottom: 6px; }
 .pd-text-12       { font-size: 12px; }
 .pd-bold          { font-weight: 600; }
 .pd-mb-6          { margin-bottom: 6px; }
@@ -405,7 +445,7 @@
 .pd-section {
 	margin-top: 12px;
 	padding-top: 8px;
-	border-top: 1px solid #eee;
+	border-top: 1px solid var(--color-border-tertiary);
 }
 
 .pd-block-header {
@@ -431,14 +471,14 @@
 
 .pd-hint {
 	display: block;
-	color: #666;
+	color: var(--color-text-medium);
 	font-size: 10px;
 	line-height: 1.4;
 	margin-top: 4px;
 }
 
-.pd-panel-intro { color: #666; font-size: 11px; margin-bottom: 10px; }
-.pd-panel-note  { color: #666; font-size: 11px; margin-top: 6px; }
+.pd-panel-intro { color: var(--color-text-medium); font-size: 11px; margin-bottom: 10px; }
+.pd-panel-note  { color: var(--color-text-medium); font-size: 11px; margin-top: 6px; }
 
 /* Panel help lives behind an info icon rather than in permanently visible
    paragraphs: the side panel is narrow, and four blocks of static prose pushed
@@ -454,7 +494,7 @@
 
 .pd-heading-row    { margin: 0 0 10px 0; }
 .pd-heading-row h4 { margin: 0; }
-.pd-label-row      { color: #666; font-size: 11px; margin-bottom: 4px; }
+.pd-label-row      { color: var(--color-text-medium); font-size: 11px; margin-bottom: 4px; }
 
 .pd-button-row { align-items: center; }
 
@@ -469,7 +509,7 @@
    button next to it will do. */
 .pd-state-note {
 	display: block;
-	color: #8a6d3b;
+	color: var(--processes-state-note-text);
 	font-size: 10px;
 	line-height: 1.4;
 	margin-top: 4px;
@@ -510,12 +550,12 @@
 }
 
 .chk-default-assignee-from-initiator { margin-top: 3px; }
-.btn-delete-element { margin-left: auto; color: #c0392b; }
+.btn-delete-element { margin-left: auto; color: var(--processes-delete-text); }
 
 .process-settings-section {
 	margin-bottom: 14px;
 	padding-bottom: 10px;
-	border-bottom: 1px solid #eee;
+	border-bottom: 1px solid var(--color-border-tertiary);
 }
 
 .bpmn-dropzone-input { display: none; }

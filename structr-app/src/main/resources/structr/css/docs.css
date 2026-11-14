@@ -16,6 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/* Role tokens of this area, see main.css */
+:root {
+	/* Backgrounds */
+	--docs-blockquote-background: #ffcc3322;
+
+	/* Text */
+	--docs-link:                  #74a819;
+	--docs-link-hover:            #90d01e;
+
+	/* Shadows */
+	--docs-image-shadow:          #ddd;
+}
 @media (max-width: 1000px) {
 	.article {
 		padding: 0 5% 4rem 5% !important;
@@ -24,12 +37,12 @@
 }
 
 html.documentation {
-	background-color: white;
+	background-color: var(--color-background-primary);
 	padding: 1rem 0;
 }
 
 #docs-area {
-	background-color: white;
+	background-color: var(--color-background-primary);
 	min-width: 16rem;
 	/* the admin UI keeps the body at least 70rem wide; the docs fit the window instead, so the right column is never cut off */
 	width: min(100%, 100vw);
@@ -59,11 +72,11 @@ html.documentation {
 }
 
 #docs-nav-column.collapsed {
-	border-right: 1px solid var(--gray-ddd);
+	border-right: 1px solid var(--color-border-secondary);
 }
 
 #docs-index-column.collapsed {
-	border-left: 1px solid var(--gray-ddd);
+	border-left: 1px solid var(--color-border-secondary);
 }
 
 #docs-area .docs-column.collapsed .docs-column-toggle {
@@ -85,7 +98,7 @@ html.documentation {
 	padding: 0;
 	border: none;
 	background-color: transparent;
-	color: var(--gray-555);
+	color: var(--color-text-secondary);
 	cursor: pointer;
 	opacity: .6;
 }
@@ -123,7 +136,7 @@ html.documentation {
 }
 
 #docs-area nav a.active {
-	color: var(--structr-green);
+	color: var(--color-text-brand);
 }
 
 #docs-area nav > ul {
@@ -134,7 +147,7 @@ html.documentation {
 #docs-area nav > ul > li > ul {
 	padding: 0;
 	margin: 1.5rem 0 0 0;
-	border-left: .15rem solid var(--gray-ccc);
+	border-left: .15rem solid var(--color-border-strong);
 }
 
 #docs-area nav li {
@@ -145,7 +158,7 @@ html.documentation {
 
 #docs-area nav li li {
 	list-style-type: none;
-	color: var(--gray-555);
+	color: var(--color-text-secondary);
 	font-weight: 400;
 	padding: 0;
 	margin: 0;
@@ -154,11 +167,11 @@ html.documentation {
 
 #docs-area nav li li:hover {
 	list-style-type: none;
-	color: var(--gray-333);
+	color: var(--color-text-dark);
 }
 
 #docs-area nav li li:has(a.active) {
-	color: var(--structr-green);
+	color: var(--color-text-brand);
 }
 
 #docs-area nav li li:before {
@@ -167,12 +180,12 @@ html.documentation {
 }
 
 #docs-area nav li li:hover:before {
-	color: var(--gray-ccc);
+	color: var(--color-text-ghost);
 	content: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='10px' height='10px' viewBox='0 0 10 10'><circle cx='4' cy='5' r='3.5' stroke='none' fill='%23cccccc'/></svg>");
 }
 
 #docs-area nav li li:has(a.active):before {
-	color: var(--structr-green);
+	color: var(--color-text-brand);
 	content: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='10px' height='10px' viewBox='0 0 10 10'><circle cx='4' cy='5' r='3.5' stroke='none' fill='%2384ba39'/></svg>");
 }
 
@@ -190,7 +203,7 @@ html.documentation {
 }
 
 .article {
-	background-color: white;
+	background-color: var(--color-background-primary);
 	padding: 0 10% 6rem 10%;
 	min-height: 100%;
 }
@@ -207,7 +220,7 @@ html.documentation {
 	padding: 1rem;
 	border: 1px solid var(--badge-color);
 	border-radius: .5rem;
-	background-color: color-mix(in srgb, var(--badge-color), white 92%);
+	background-color: color-mix(in srgb, var(--badge-color), var(--color-background-primary) 92%);
 }
 
 .article .badge-passage > :first-child {
@@ -233,7 +246,7 @@ html.documentation {
 	border: 1px solid var(--badge-color);
 	border-radius: .25rem;
 	color: var(--badge-color);
-	background-color: white;
+	background-color: var(--color-background-primary);
 	font-size: .7rem;
 	font-weight: 400;
 	line-height: 1.2;
@@ -276,11 +289,11 @@ html.documentation {
 }
 
 .article div.editable:has(button:hover) {
-	background-color: var(--structr-light-green-transparent);
+	background-color: var(--color-background-selected);
 }
 
 .article div button {
-	color: #999;
+	color: var(--color-text-muted);
 	margin: .1rem 0;
 }
 
@@ -301,8 +314,8 @@ html.documentation {
 }
 
 .article button.save-button {
-	color: #000;
-	background-color: #ddd;
+	color: var(--color-text-black);
+	background-color: var(--color-background-separator);
 	float: none;
 	clear: both;
 }
@@ -323,7 +336,7 @@ html.documentation {
 	font-weight: 500;
 	padding: .5rem  0 0 0;
 	margin: 1rem 0 .5rem 0;
-	color: var(--structr-green);
+	color: var(--color-text-brand);
 }
 
 .article h2 {
@@ -365,23 +378,23 @@ html.documentation {
 .article img:not([src*="svg"]) {
 	margin: 1rem auto;
 	width: 100%;
-	box-shadow: 0 .2rem 1rem .125rem #ddd;
+	box-shadow: 0 .2rem 1rem .125rem var(--docs-image-shadow);
 }
 
 .article p a,
 .article li a {
 	text-decoration: underline;
-	color: #74a819;
+	color: var(--docs-link);
 }
 
 .article p a:hover,
 .article li a:hover {
 	text-decoration: underline;
-	color: #90d01e;
+	color: var(--docs-link-hover);
 }
 
 .article blockquote {
-	background-color: #ffcc3322;
+	background-color: var(--docs-blockquote-background);
 	padding: 1rem;
 	margin: .5rem 0;
 	border-radius: .5rem;
@@ -389,11 +402,11 @@ html.documentation {
 
 .article pre,
 .article code {
-	color: #000;
-	background-color: #f7f7f7;
+	color: var(--color-text-black);
+	background-color: var(--color-background-secondary);
 	font-size: .9rem;
 	overflow-x: auto;
-	border: 1px solid #eee;
+	border: 1px solid var(--color-border-tertiary);
 }
 
 .article pre > code {
@@ -442,7 +455,7 @@ html.documentation {
 }
 
 .article table th {
-	border-bottom: 2px solid var(--gray-ccc);
+	border-bottom: 2px solid var(--color-border-strong);
 }
 
 .article table th,
@@ -471,7 +484,7 @@ html.documentation {
 }
 
 .article tr {
-	border-bottom: 1px solid var(--gray-eee);
+	border-bottom: 1px solid var(--color-border-tertiary);
 }
 
 .index {
@@ -481,14 +494,14 @@ html.documentation {
 	scrollbar-gutter: stable;
 	height: calc(100vh - 10rem);
 	padding: 1.75rem 1rem 2rem 1rem;
-	background-color: white;
-	color: var(--gray-555);
+	background-color: var(--color-background-primary);
+	color: var(--color-text-secondary);
 	line-height: 2rem;
 	font-size: .8rem;
 }
 
 .index .index-heading {
-	color: #000;
+	color: var(--color-text-black);
 	font-size: 1rem;
 	font-weight: 500;
 	margin: 0 0 1rem 0;
@@ -501,7 +514,7 @@ html.documentation {
 }
 
 .index a.active {
-	color: var(--structr-green);
+	color: var(--color-text-brand);
 }
 
 .index p, .index ul, .index ol, .index code, .index pre, .index blockquote, .index h1, .index h3, .index h4, .index h5, .index h6, .index h7, .index dl {
@@ -565,7 +578,7 @@ index h2, .index h3 {
 	left: .75rem;
 	top: .5rem;
 	height: 1.5rem;
-	color: var(--gray-555);
+	color: var(--color-text-secondary);
 }
 
 #search-field input, #search-overlay input {
@@ -578,7 +591,7 @@ index h2, .index h3 {
 #search-overlay input {
 	width: 100%;
 	height: 2.6rem;
-	border-color: white;
+	border-color: var(--color-border-inverse);
 }
 
 #search-overlay {
@@ -596,7 +609,7 @@ index h2, .index h3 {
 }
 
 #search-results {
-	background-color: white;
+	background-color: var(--color-background-primary);
 	border-bottom-left-radius: .25rem;
 	border-bottom-right-radius: .25rem;
 	margin-top: -.25rem;
@@ -608,7 +621,7 @@ index h2, .index h3 {
 #search-results ul {
 	padding: 0;
 	margin: 0;
-	background-color: white;
+	background-color: var(--color-background-primary);
 	border-bottom-left-radius: .25rem;
 	border-bottom-right-radius: .25rem;
 }
@@ -618,13 +631,13 @@ index h2, .index h3 {
 	display: block;
 	padding: .75rem 1rem;
 	margin: 0;
-	background-color: white;
+	background-color: var(--color-background-primary);
 	border-bottom-left-radius: .25rem;
 	border-bottom-right-radius: .25rem;
 }
 
 .search-result:hover {
-	background-color: #f7f7f7;
+	background-color: var(--color-background-secondary);
 }
 
 .search-result div {
@@ -636,7 +649,7 @@ index h2, .index h3 {
 	margin-top: .25rem;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	color: var(--gray-999);
+	color: var(--color-text-muted);
 }
 
 .search-result-type {
@@ -644,7 +657,7 @@ index h2, .index h3 {
 	margin-top: .25rem;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	color: var(--gray-666);
+	color: var(--color-text-medium);
 	font-style: italic;
 }
 
@@ -653,11 +666,11 @@ index h2, .index h3 {
 	margin-top: .25rem;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	color: var(--gray-999);
+	color: var(--color-text-muted);
 }
 
 .search-result-path:hover {
-	color: var(--gray-aaa);
+	color: var(--color-text-faint);
 }
 
 .article span.info {

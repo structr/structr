@@ -805,34 +805,34 @@ let _ProcessDiagram = {
 
 	_paletteGlyph: (kind) => {
 		// 28x28 viewBox. Body builders, then optional inner markers.
-		const ev    = (m = '') => `<svg viewBox="0 0 28 28" width="28" height="28"><circle cx="14" cy="14" r="11" fill="#fff" stroke="#333" stroke-width="2"/>${m}</svg>`;
-		const evDb  = (m = '') => `<svg viewBox="0 0 28 28" width="28" height="28"><circle cx="14" cy="14" r="11" fill="#fff" stroke="#333" stroke-width="1"/><circle cx="14" cy="14" r="9" fill="#fff" stroke="#333" stroke-width="1"/>${m}</svg>`;
-		const evEnd = (m = '') => `<svg viewBox="0 0 28 28" width="28" height="28"><circle cx="14" cy="14" r="11" fill="#fff" stroke="#333" stroke-width="3"/>${m}</svg>`;
+		const ev    = (m = '') => `<svg viewBox="0 0 28 28" width="28" height="28"><circle cx="14" cy="14" r="11" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="2"/>${m}</svg>`;
+		const evDb  = (m = '') => `<svg viewBox="0 0 28 28" width="28" height="28"><circle cx="14" cy="14" r="11" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="1"/><circle cx="14" cy="14" r="9" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="1"/>${m}</svg>`;
+		const evEnd = (m = '') => `<svg viewBox="0 0 28 28" width="28" height="28"><circle cx="14" cy="14" r="11" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="3"/>${m}</svg>`;
 		// Boundary events: dashed circle to match the on-canvas renderer
 		// (community-svg.js applies stroke-dasharray for elementType
 		// starting with "boundary"). Single circle for simplicity at
 		// 28x28: a double dashed circle gets visually noisy at this size.
-		const evBnd = (m = '') => `<svg viewBox="0 0 28 28" width="28" height="28"><circle cx="14" cy="14" r="11" fill="#fff" stroke="#333" stroke-width="1.5" stroke-dasharray="3 2"/>${m}</svg>`;
-		const task  = (m = '') => `<svg viewBox="0 0 28 28" width="28" height="28"><rect x="3" y="6" width="22" height="16" rx="3" ry="3" fill="#fff" stroke="#333" stroke-width="2"/>${m}</svg>`;
-		const gw    = (m = '') => `<svg viewBox="0 0 28 28" width="28" height="28"><polygon points="14,3 25,14 14,25 3,14" fill="#fff" stroke="#333" stroke-width="2"/>${m}</svg>`;
+		const evBnd = (m = '') => `<svg viewBox="0 0 28 28" width="28" height="28"><circle cx="14" cy="14" r="11" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="1.5" stroke-dasharray="3 2"/>${m}</svg>`;
+		const task  = (m = '') => `<svg viewBox="0 0 28 28" width="28" height="28"><rect x="3" y="6" width="22" height="16" rx="3" ry="3" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="2"/>${m}</svg>`;
+		const gw    = (m = '') => `<svg viewBox="0 0 28 28" width="28" height="28"><polygon points="14,3 25,14 14,25 3,14" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="2"/>${m}</svg>`;
 		// Inner markers (centre 14,14).
-		const clock     = `<circle cx="14" cy="14" r="5" fill="none" stroke="#333" stroke-width="1.2"/><path d="M14 10 L14 14 L17 16" stroke="#333" stroke-width="1.2" fill="none" stroke-linecap="round"/>`;
-		const envelope  = `<rect x="9" y="11" width="10" height="6" fill="#fff" stroke="#333" stroke-width="1.2"/><polyline points="9,11 14,15 19,11" fill="none" stroke="#333" stroke-width="1.2"/>`;
-		const envFilled = `<rect x="9" y="11" width="10" height="6" fill="#333" stroke="#333" stroke-width="1.2"/><polyline points="9,11 14,15 19,11" fill="none" stroke="#fff" stroke-width="1.2"/>`;
-		const bolt      = `<polygon points="11,8 17,8 14,13 18,13 12,20 14,15 10,15" fill="#333" stroke="#333" stroke-width="0.5" stroke-linejoin="round"/>`;
-		const termDot   = `<circle cx="14" cy="14" r="6" fill="#333"/>`;
+		const clock     = `<circle cx="14" cy="14" r="5" fill="none" stroke="var(--processes-ink)" stroke-width="1.2"/><path d="M14 10 L14 14 L17 16" stroke="var(--processes-ink)" stroke-width="1.2" fill="none" stroke-linecap="round"/>`;
+		const envelope  = `<rect x="9" y="11" width="10" height="6" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="1.2"/><polyline points="9,11 14,15 19,11" fill="none" stroke="var(--processes-ink)" stroke-width="1.2"/>`;
+		const envFilled = `<rect x="9" y="11" width="10" height="6" fill="var(--processes-ink)" stroke="var(--processes-ink)" stroke-width="1.2"/><polyline points="9,11 14,15 19,11" fill="none" stroke="var(--processes-paper)" stroke-width="1.2"/>`;
+		const bolt      = `<polygon points="11,8 17,8 14,13 18,13 12,20 14,15 10,15" fill="var(--processes-ink)" stroke="var(--processes-ink)" stroke-width="0.5" stroke-linejoin="round"/>`;
+		const termDot   = `<circle cx="14" cy="14" r="6" fill="var(--processes-ink)"/>`;
 		// Up-pointing triangle for signal events.
-		const triangle  = `<polygon points="14,8 19,18 9,18" fill="#fff" stroke="#333" stroke-width="1.2" stroke-linejoin="round"/>`;
+		const triangle  = `<polygon points="14,8 19,18 9,18" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="1.2" stroke-linejoin="round"/>`;
 		// Up-arrow chevron for escalation events.
-		const escArrow  = `<polygon points="14,8 19,18 14,15.5 9,18" fill="#fff" stroke="#333" stroke-width="1.2" stroke-linejoin="round"/>`;
+		const escArrow  = `<polygon points="14,8 19,18 14,15.5 9,18" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="1.2" stroke-linejoin="round"/>`;
 		// Task corner badges (top-left of body, leaving room for label).
-		const userBadge   = `<circle cx="8" cy="11" r="2.5" fill="none" stroke="#333" stroke-width="1"/><path d="M5 17 Q8 13 11 17" fill="none" stroke="#333" stroke-width="1" stroke-linecap="round"/>`;
-		const gearBadge   = `<circle cx="8" cy="14" r="2.5" fill="none" stroke="#333" stroke-width="1"/><path d="M8 10.5 L8 12 M8 16 L8 17.5 M5.5 14 L4 14 M12 14 L10.5 14" stroke="#333" stroke-width="1" stroke-linecap="round"/>`;
-		const scriptBadge = `<path d="M5 10 L11 10 M5 12.5 L11 12.5 M5 15 L9 15 M5 17.5 L11 17.5" stroke="#333" stroke-width="1" stroke-linecap="round"/>`;
-		const handBadge   = `<path d="M6 12 L6 17 M8 11 L8 17 M10 12 L10 17" stroke="#333" stroke-width="1" stroke-linecap="round" fill="none"/>`;
-		const ruleBadge   = `<rect x="5" y="11" width="6" height="6" fill="none" stroke="#333" stroke-width="1"/><line x1="5" y1="13" x2="11" y2="13" stroke="#333" stroke-width="1"/><line x1="7.5" y1="11" x2="7.5" y2="17" stroke="#333" stroke-width="1"/>`;
-		const sendBadge   = `<rect x="5" y="11" width="7" height="5" fill="#333" stroke="#333" stroke-width="1"/>`;
-		const recvBadge   = `<rect x="5" y="11" width="7" height="5" fill="none" stroke="#333" stroke-width="1"/>`;
+		const userBadge   = `<circle cx="8" cy="11" r="2.5" fill="none" stroke="var(--processes-ink)" stroke-width="1"/><path d="M5 17 Q8 13 11 17" fill="none" stroke="var(--processes-ink)" stroke-width="1" stroke-linecap="round"/>`;
+		const gearBadge   = `<circle cx="8" cy="14" r="2.5" fill="none" stroke="var(--processes-ink)" stroke-width="1"/><path d="M8 10.5 L8 12 M8 16 L8 17.5 M5.5 14 L4 14 M12 14 L10.5 14" stroke="var(--processes-ink)" stroke-width="1" stroke-linecap="round"/>`;
+		const scriptBadge = `<path d="M5 10 L11 10 M5 12.5 L11 12.5 M5 15 L9 15 M5 17.5 L11 17.5" stroke="var(--processes-ink)" stroke-width="1" stroke-linecap="round"/>`;
+		const handBadge   = `<path d="M6 12 L6 17 M8 11 L8 17 M10 12 L10 17" stroke="var(--processes-ink)" stroke-width="1" stroke-linecap="round" fill="none"/>`;
+		const ruleBadge   = `<rect x="5" y="11" width="6" height="6" fill="none" stroke="var(--processes-ink)" stroke-width="1"/><line x1="5" y1="13" x2="11" y2="13" stroke="var(--processes-ink)" stroke-width="1"/><line x1="7.5" y1="11" x2="7.5" y2="17" stroke="var(--processes-ink)" stroke-width="1"/>`;
+		const sendBadge   = `<rect x="5" y="11" width="7" height="5" fill="var(--processes-ink)" stroke="var(--processes-ink)" stroke-width="1"/>`;
+		const recvBadge   = `<rect x="5" y="11" width="7" height="5" fill="none" stroke="var(--processes-ink)" stroke-width="1"/>`;
 		switch (kind) {
 			// Events
 			case 'evStart':       return ev();
@@ -860,16 +860,16 @@ let _ProcessDiagram = {
 			case 'taskRule':      return task(ruleBadge);
 			case 'taskSend':      return task(sendBadge);
 			case 'taskReceive':   return task(recvBadge);
-			case 'subProcess':    return `<svg viewBox="0 0 28 28" width="28" height="28"><rect x="3" y="6" width="22" height="16" rx="3" ry="3" fill="#fff" stroke="#333" stroke-width="2"/><rect x="11.5" y="16.5" width="5" height="5" fill="#fff" stroke="#333" stroke-width="1"/><line x1="14" y1="17.5" x2="14" y2="20.5" stroke="#333" stroke-width="1"/><line x1="12.5" y1="19" x2="15.5" y2="19" stroke="#333" stroke-width="1"/></svg>`;
+			case 'subProcess':    return `<svg viewBox="0 0 28 28" width="28" height="28"><rect x="3" y="6" width="22" height="16" rx="3" ry="3" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="2"/><rect x="11.5" y="16.5" width="5" height="5" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="1"/><line x1="14" y1="17.5" x2="14" y2="20.5" stroke="var(--processes-ink)" stroke-width="1"/><line x1="12.5" y1="19" x2="15.5" y2="19" stroke="var(--processes-ink)" stroke-width="1"/></svg>`;
 			// Gateways
-			case 'gwXor':         return gw(`<path d="M9 9 L19 19 M19 9 L9 19" stroke="#333" stroke-width="2" stroke-linecap="round"/>`);
-			case 'gwAnd':         return gw(`<path d="M9 14 L19 14 M14 9 L14 19" stroke="#333" stroke-width="2.5" stroke-linecap="round"/>`);
-			case 'gwOr':          return gw(`<circle cx="14" cy="14" r="4.5" fill="none" stroke="#333" stroke-width="2"/>`);
-			case 'gwEvent':       return gw(`<circle cx="14" cy="14" r="6" fill="none" stroke="#333" stroke-width="0.8"/><circle cx="14" cy="14" r="4.5" fill="none" stroke="#333" stroke-width="0.8"/><polygon points="14,11 16.5,12.8 15.5,15.8 12.5,15.8 11.5,12.8" fill="none" stroke="#333" stroke-width="1"/>`);
-			case 'gwComplex':     return gw(`<path d="M9 14 L19 14 M14 9 L14 19 M10.5 10.5 L17.5 17.5 M17.5 10.5 L10.5 17.5" stroke="#333" stroke-width="1.5" stroke-linecap="round"/>`);
+			case 'gwXor':         return gw(`<path d="M9 9 L19 19 M19 9 L9 19" stroke="var(--processes-ink)" stroke-width="2" stroke-linecap="round"/>`);
+			case 'gwAnd':         return gw(`<path d="M9 14 L19 14 M14 9 L14 19" stroke="var(--processes-ink)" stroke-width="2.5" stroke-linecap="round"/>`);
+			case 'gwOr':          return gw(`<circle cx="14" cy="14" r="4.5" fill="none" stroke="var(--processes-ink)" stroke-width="2"/>`);
+			case 'gwEvent':       return gw(`<circle cx="14" cy="14" r="6" fill="none" stroke="var(--processes-ink)" stroke-width="0.8"/><circle cx="14" cy="14" r="4.5" fill="none" stroke="var(--processes-ink)" stroke-width="0.8"/><polygon points="14,11 16.5,12.8 15.5,15.8 12.5,15.8 11.5,12.8" fill="none" stroke="var(--processes-ink)" stroke-width="1"/>`);
+			case 'gwComplex':     return gw(`<path d="M9 14 L19 14 M14 9 L14 19 M10.5 10.5 L17.5 17.5 M17.5 10.5 L10.5 17.5" stroke="var(--processes-ink)" stroke-width="1.5" stroke-linecap="round"/>`);
 			// Data
-			case 'dataObject':    return `<svg viewBox="0 0 28 28" width="28" height="28"><path d="M6 4 L18 4 L22 8 L22 24 L6 24 Z" fill="#fff" stroke="#333" stroke-width="1.5"/><path d="M18 4 L18 8 L22 8" fill="none" stroke="#333" stroke-width="1.5"/></svg>`;
-			case 'dataStore':     return `<svg viewBox="0 0 28 28" width="28" height="28"><ellipse cx="14" cy="6" rx="9" ry="2.5" fill="#fff" stroke="#333" stroke-width="1.2"/><path d="M5 6 L5 22 A 9 2.5 0 0 0 23 22 L23 6" fill="#fff" stroke="#333" stroke-width="1.2"/><path d="M5 9 A 9 2.5 0 0 0 23 9 M5 12 A 9 2.5 0 0 0 23 12" fill="none" stroke="#333" stroke-width="0.8"/></svg>`;
+			case 'dataObject':    return `<svg viewBox="0 0 28 28" width="28" height="28"><path d="M6 4 L18 4 L22 8 L22 24 L6 24 Z" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="1.5"/><path d="M18 4 L18 8 L22 8" fill="none" stroke="var(--processes-ink)" stroke-width="1.5"/></svg>`;
+			case 'dataStore':     return `<svg viewBox="0 0 28 28" width="28" height="28"><ellipse cx="14" cy="6" rx="9" ry="2.5" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="1.2"/><path d="M5 6 L5 22 A 9 2.5 0 0 0 23 22 L23 6" fill="var(--processes-paper)" stroke="var(--processes-ink)" stroke-width="1.2"/><path d="M5 9 A 9 2.5 0 0 0 23 9 M5 12 A 9 2.5 0 0 0 23 12" fill="none" stroke="var(--processes-ink)" stroke-width="0.8"/></svg>`;
 		}
 		return '';
 	},
@@ -1641,7 +1641,7 @@ let _ProcessDiagram = {
 			undoBtn.disabled    = !(api.canUndo && api.canUndo());
 			redoBtn.disabled    = !(api.canRedo && api.canRedo());
 			dirty.textContent = has ? '● Unsaved changes' : '';
-			dirty.style.color = has ? '#c0392b' : '';
+			dirty.style.color = has ? 'var(--processes-delete-text)' : '';
 		};
 
 		// Refresh the dirty / undo / redo indicators on every buffer change.

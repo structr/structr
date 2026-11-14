@@ -16,6 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/* Role tokens of this area, see main.css */
+:root {
+	/* Backgrounds */
+	--rest-header-background: #363636;
+
+	/* Text */
+	--rest-bold-text:         #444;
+	--rest-string-text:       #c60;
+	--rest-type-text:         #080;
+	--rest-value-text:        #00a;
+}
 body, html {
 	font-family: "Liberation Mono","DejaVu Sans Mono",Consolas,Monaco,"Vera Sans Mono","Lucida Console","Courier New",monospace ! important;
 	font-size: 9pt;
@@ -24,27 +36,27 @@ body, html {
 }
 
 div#top {
-	border-bottom: 1px solid #a5a5a5;
+	border-bottom: 1px solid var(--color-border-medium);
 	line-height: 2em;
-	background-color: #363636;
+	background-color: var(--rest-header-background);
 	padding: 20px;
 	font-family: Arial,Helvetica,Sans-serif;
 }
 
 div#top a {
-	color: #fff;
+	color: var(--color-text-inverse);
 	text-decoration: none;
 	font-weight: 700;
 	margin-right: 2em;
 }
 
 div#left {
-	background-color: #eee;
+	background-color: var(--color-background-tertiary);
 	padding: 10px 20px;
 }
 
 div#left a {
-	color: #666;
+	color: var(--color-text-medium);
 	text-decoration: none;
 	font-weight: 700;
 	margin-right: 2rem;
@@ -61,44 +73,44 @@ ul {
 
 b {
 	font-weight: 700;
-	color: #444;
+	color: var(--rest-bold-text);
 	margin-right: .75rem;
 }
 
 a.id, a.id:visited {
-	color: #00a;
+	color: var(--rest-value-text);
 }
 
 span {
-	color: #000;
+	color: var(--color-text-black);
 }
 
 span.type {
 	font-weight: 400;
-	color: #080;
+	color: var(--rest-type-text);
 }
 
 span.id {
 	font-weight: 400;
-	color: #999;
+	color: var(--color-text-muted);
 }
 
 span.name {
 	font-weight: 700;
-	color: #666;
+	color: var(--color-text-medium);
 }
 
 span.string {
-	color: #c60;
+	color: var(--rest-string-text);
 	white-space: pre;
 }
 
 span.boolean, span.number {
-	color: #00a;
+	color: var(--rest-value-text);
 }
 
 span.null {
-	color: #999;
+	color: var(--color-text-muted);
 }
 
 li {
@@ -141,11 +153,11 @@ li.collapsibleListClosed > ul.collapsibleList:empty {
 li.collapsibleListClosed > ul.collapsibleList {
 	line-height: 11px;
 	display: inline-block;
-	border: 1px solid #aaa;
+	border: 1px solid var(--color-border-dashed);
 	border-radius: 6px;
 	padding-left: 2px;
 	cursor: pointer;
-	background-color: #ddd;
+	background-color: var(--color-background-separator);
 	padding-right: 3px;
 	margin-left: 3px;
 	margin-right: -2px;

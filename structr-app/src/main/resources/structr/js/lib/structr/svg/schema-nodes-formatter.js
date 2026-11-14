@@ -22,7 +22,7 @@ class SchemaNodesFormatter {
 				portShape.setAttribute('cx', child.x + (port.x || 0) + offset.x);
 				portShape.setAttribute('cy', child.y + (port.y || 0) + offset.y);
 				portShape.setAttribute('r', 5);
-				portShape.setAttribute('fill', '#999999');
+				portShape.setAttribute('fill', 'var(--schema-diagram-port)');
 
 				svg.appendChild(portShape);
 			}
@@ -41,7 +41,7 @@ class SchemaNodesFormatter {
 			label.setAttribute('x', child.x + offset.x + (child.width / 2));
 			label.setAttribute('y', child.y + offset.y + (child.height / 2) + 1);
 			label.setAttribute('stroke', 'none');
-			label.setAttribute('fill', '#333333');
+			label.setAttribute('fill', 'var(--schema-diagram-label)');
 			label.setAttribute('pointer-events', 'none');
 
 			label.appendChild(text);
@@ -88,8 +88,8 @@ class SchemaNodesFormatter {
 			}
 		}
 
-		let fillColor         = '#ffffff';
-		let strokeColor       = '#ffffff';
+		let fillColor         = 'var(--schema-diagram-fill)';
+		let strokeColor       = 'var(--schema-diagram-fill)';
 
 		shape.setAttribute('id', child.id);
 		shape.setAttribute('fill', fillColor);
@@ -173,7 +173,7 @@ class SchemaNodesFormatter {
 
 		path.setAttribute('d', lines.join(' '));
 		path.setAttribute('marker-end', 'url(#arrow)');
-		path.setAttribute('stroke', '#81ce25');
+		path.setAttribute('stroke', 'var(--schema-diagram-relation)');
 		path.setAttribute('stroke-width', 4);
 		path.setAttribute('stroke-linejoin', 'round');
 
@@ -204,9 +204,9 @@ class SchemaNodesFormatter {
 				lines.push('M' + source.getAttribute('x') + ',' + source.getAttribute('y'));
 				lines.push('L' + target.getAttribute('x') + ',' + target.getAttribute('y'));
 
-				path.setAttribute('fill', '#dddddd');
+				path.setAttribute('fill', 'var(--schema-diagram-inheritance)');
 				path.setAttribute('d', lines.join(' '));
-				path.setAttribute('stroke', '#dddddd');
+				path.setAttribute('stroke', 'var(--schema-diagram-inheritance)');
 				path.setAttribute('stroke-width', 4);
 
 				path.setAttribute('stroke-linejoin', 'round');
@@ -226,8 +226,8 @@ class SchemaNodesFormatter {
 		// create default shape (rectangle)
 		let shape = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
 
-		let fillColor         = '#ffffff';
-		let strokeColor       = '#81ce25';
+		let fillColor         = 'var(--schema-diagram-fill)';
+		let strokeColor       = 'var(--schema-diagram-relation)';
 
 		shape.setAttribute('fill', fillColor);
 		shape.setAttribute('stroke', strokeColor);
@@ -248,7 +248,7 @@ class SchemaNodesFormatter {
 		label.setAttribute('x', child.x + (child.width / 2));
 		label.setAttribute('y', child.y + (child.height / 2) + 1);
 		label.setAttribute('stroke', 'none');
-		label.setAttribute('fill', '#666666');
+		label.setAttribute('fill', 'var(--schema-diagram-label-muted)');
 		label.setAttribute('pointer-events', 'none');
 
 		label.appendChild(text);
