@@ -184,7 +184,7 @@ public final class ScriptFailures {
 		}
 
 		// a deadlock is not a script error: the request is repeated
-		if (RetryException.find(failure) != null) {
+		if (isDeadlock(failure)) {
 
 			return null;
 		}
@@ -213,6 +213,21 @@ public final class ScriptFailures {
 			.build();
 
 		return new ScriptFrame(new ScriptFrame.Spec(snippet.getName(), identity, null));
+	}
+
+	/**
+	 * Whether the database terminated the transaction. GraalVM does not chain a host exception as the
+	 * cause of the PolyglotException that carries it out of guest code, for example as the reason of a
+	 * rejected promise, so it is looked for in the host exception too.
+	 */
+	private static boolean isDeadlock(final Throwable failure) {
+
+		if (failure instanceof PolyglotException pex && pex.isHostException()) {
+
+			return RetryException.find(pex.asHostException()) != null;
+		}
+
+		return RetryException.find(failure) != null;
 	}
 
 	private static boolean isAssertion(final Throwable failure) {
