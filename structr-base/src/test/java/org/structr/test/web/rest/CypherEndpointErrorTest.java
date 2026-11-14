@@ -25,7 +25,6 @@ import ch.qos.logback.core.read.ListAppender;
 import io.restassured.RestAssured;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DataFormatException;
-import org.structr.api.DatabaseFeature;
 import org.structr.api.SyntaxErrorException;
 import org.structr.api.UnknownClientException;
 import org.structr.api.config.Settings;
@@ -56,21 +55,23 @@ import static org.testng.AssertJUnit.fail;
  */
 public class CypherEndpointErrorTest extends StructrUiTest {
 
+	private static final String QUERY_RAISING_DATA_FORMAT_EXCEPTION_WHILE_READING_ROWS = "MATCH (n:CypherErrorTarget) RETURN 1 / size(n.tags[5..]) AS s";
+
 	@Test
-	public void testTypeErrorWhileReadingTheResultIs422() {
+	public void testDataErrorWhileReadingTheResultIs422() {
 
 		if (Services.getInstance().getDatabaseService().supportsCypher()) {
 
 			createTarget();
 
-			final List<ILoggingEvent> events = capture(() -> post("MATCH (n:CypherErrorTarget) RETURN toString(n.tags) AS s", "toString"));
+			final List<ILoggingEvent> events = capture(() -> post(QUERY_RAISING_DATA_FORMAT_EXCEPTION_WHILE_READING_ROWS, "by zero"));
 
 			assertLoggedOnce(events);
 		}
 	}
 
 	@Test
-	public void testTypeErrorInTheCypherFunctionIs422() {
+	public void testDataErrorInTheCypherFunctionIs422() {
 
 		if (Services.getInstance().getDatabaseService().supportsCypher()) {
 
@@ -78,7 +79,7 @@ public class CypherEndpointErrorTest extends StructrUiTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.cypher('MATCH (n:CypherErrorTarget) RETURN toString(n.tags) AS s') }}", "test");
+				Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.cypher('" + QUERY_RAISING_DATA_FORMAT_EXCEPTION_WHILE_READING_ROWS + "') }}", "test");
 
 				fail("expected the query to be rejected");
 

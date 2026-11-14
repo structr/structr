@@ -22,6 +22,7 @@ import org.structr.api.ConstraintViolationException;
 import org.structr.api.DataFormatException;
 import org.structr.api.SyntaxErrorException;
 import org.structr.api.UnknownClientException;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -100,7 +101,9 @@ public class CypherFunction extends CoreFunction {
 			final NativeQueryCommand nqc = StructrApp.getInstance(ctx.getSecurityContext()).command(NativeQueryCommand.class);
 			nqc.setRunInNewTransaction(runInNewTransaction);
 
-			return nqc.execute(query, params);
+			// read the rows here: a driver that streams them raises an error in the query only while they are read, and
+			// that must happen inside this try to be reported as the caller's error
+			return Iterables.toList(nqc.execute(query, params));
 
 		} catch (ArgumentNullException pe) {
 
