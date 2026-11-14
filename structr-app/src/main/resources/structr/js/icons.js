@@ -22,11 +22,39 @@ let _Icons = {
 	typeIconClassNoChildren: 'typeIcon-nochildren',
 
 	preloadSVGIcons: () => {
+
+		// the new look has its own sprite with the same symbol ids; the page without a look (config) takes the classic one
+		const next = (typeof _Theme !== 'undefined' && _Theme.isNext());
+
+		if (typeof _Theme !== 'undefined' && _Icons.spriteIsNext === undefined) {
+
+			_Theme.onChange(() => {
+				if (_Theme.isNext() !== _Icons.spriteIsNext) {
+					_Icons.preloadSVGIcons();
+				}
+			});
+		}
+
+		_Icons.spriteIsNext = next;
+
 		// this should be super fast because we inserted a preload rule to the index.html
-		fetch('icon/sprites.svg').then(response => {
+		fetch(next ? 'icon/sprites-tabler.svg' : 'icon/sprites.svg').then(response => {
 			return response.text();
 		}).then(svgPreload => {
-			document.body.insertAdjacentHTML('afterbegin', svgPreload);
+
+			// a look chosen meanwhile has started its own request
+			if (next !== _Icons.spriteIsNext) {
+				return;
+			}
+
+			const template = document.createElement('template');
+			template.innerHTML = svgPreload;
+
+			const sprite = template.content.querySelector('svg');
+			sprite.id = 'svg-sprite';
+
+			document.getElementById('svg-sprite')?.remove();
+			document.body.prepend(sprite);
 		});
 	},
 
@@ -41,6 +69,8 @@ let _Icons = {
 	/* SVG element icons */
 	iconTerminal:             'terminal',
 	iconNotificationBell:     'notification-bell',
+	iconThemeSun:             'theme-sun',
+	iconThemeMoon:            'theme-moon',
 
 
 	iconSite:                 'icon-site',
