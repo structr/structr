@@ -38,6 +38,9 @@ class AppMapRenderer {
 	// the dots of the grid on the canvas are this many pixels apart on the screen
 	static GRID = 22;
 
+	// up to this distance in pixels the dots are a pattern, beyond it they are drawn one by one
+	static GRID_PATTERN_MAX = 256;
+
 	// an element is a ring this share of its radius wide, at most RING_MAX pixels, from RING_FROM pixels of radius on the
 	// screen, and filled below (see paintElement)
 	static RING      = 0.3;
@@ -288,6 +291,7 @@ class AppMapRenderer {
 		ctx.fillStyle = look.bg;
 		ctx.fillRect(0, 0, view.width, view.height);
 		this.drawGrid();
+		this.drawGridAbove();
 		ctx.translate(view.transform.x, view.transform.y);
 		ctx.scale(k, k);
 
@@ -694,29 +698,80 @@ class AppMapRenderer {
 
 	// the faint grid of dots on the canvas, GRID pixels apart on the screen whatever the zoom; it moves with the map, so that
 	// panning is seen on an empty canvas, too. Drawn from a pattern of one cell, made anew when the look changes
-	drawGrid() {
+	drawGrid(ctx = this.ctx, shift = 0, height = this.view.height) {
 
 		const view = this.view;
-		const ctx  = this.ctx;
 		const look = view.look;
 		const size = AppMapRenderer.GRID;
 
-		if (this.grid?.look !== look) {
+		// in the new look the grid has the dots of the page and belongs to the map: it moves and widens with it
+		const page = _Theme.isNext();
+		const t    = view.transform;
+		const dpr  = window.devicePixelRatio || 1;
+
+		// the dots stand as far apart as on the page when the map fits the screen, and spread and close with the zoom
+		const step = page ? size * t.k / (view.baseK || t.k) : size;
+		const left = t.x % step;
+		const top  = (t.y + shift) % step;
+
+		// far apart, the few dots in sight are drawn one by one: a cell of the pattern would be larger than the screen
+		if (step > AppMapRenderer.GRID_PATTERN_MAX) {
+
+			// the colour is read from the page once per look, not with every frame
+			if (this.dots?.look !== look) {
+				this.dots = { look, color: _Theme.color('color-border-secondary') };
+			}
+
+			ctx.fillStyle = this.dots.color;
+			ctx.beginPath();
+
+			for (let x = left - step / 2; x < view.width + step; x += step) {
+
+				for (let y = top - step / 2; y < height + step; y += step) {
+
+					ctx.moveTo(x + 1.15, y);
+					ctx.arc(x, y, 1.15, 0, 2 * Math.PI);
+				}
+			}
+
+			ctx.fill();
+
+			return;
+		}
+
+		const pixels = Math.max(1, Math.round(step * dpr));
+
+		if (this.grid?.look !== look || this.grid.page !== page || this.grid.pixels !== pixels) {
 
 			const cell = document.createElement('canvas');
-			const dpr  = window.devicePixelRatio || 1;
 
-			cell.width  = Math.round(size * dpr);
-			cell.height = Math.round(size * dpr);
+			cell.width  = pixels;
+			cell.height = pixels;
 
 			const c = cell.getContext('2d');
 
-			c.fillStyle = look.grid;
-			c.beginPath();
-			c.arc(cell.width / 2, cell.height / 2, 1.15 * dpr, 0, 2 * Math.PI);
-			c.fill();
+			if (page) {
 
-			this.grid = { look, dpr, pattern: ctx.createPattern(cell, 'repeat') };
+				// as the page draws them (next/shell.css): solid to one pixel, gone at 1.3
+				const dot   = c.createRadialGradient(pixels / 2, pixels / 2, 0, pixels / 2, pixels / 2, 1.3 * dpr);
+				const color = _Theme.color('color-border-secondary');
+
+				dot.addColorStop(0, color);
+				dot.addColorStop(1 / 1.3, color);
+				dot.addColorStop(1, 'transparent');
+
+				c.fillStyle = dot;
+				c.fillRect(0, 0, pixels, pixels);
+
+			} else {
+
+				c.fillStyle = look.grid;
+				c.beginPath();
+				c.arc(pixels / 2, pixels / 2, 1.15 * dpr, 0, 2 * Math.PI);
+				c.fill();
+			}
+
+			this.grid = { look, page, pixels, pattern: this.ctx.createPattern(cell, 'repeat') };
 		}
 
 		// a canvas that cannot make patterns has no grid
@@ -724,12 +779,50 @@ class AppMapRenderer {
 			return;
 		}
 
-		const t = view.transform;
+		// the cell has whole pixels, the scale makes up for what the rounding took
+		const scale = step / pixels;
 
-		this.grid.pattern.setTransform(new DOMMatrix([1 / this.grid.dpr, 0, 0, 1 / this.grid.dpr, t.x % size, t.y % size]));
+		this.grid.pattern.setTransform(new DOMMatrix([scale, 0, 0, scale, left, top]));
 
 		ctx.fillStyle = this.grid.pattern;
-		ctx.fillRect(0, 0, view.width, view.height);
+		ctx.fillRect(0, 0, view.width, height);
+	}
+
+	// the new look continues the background under the row of controls, on a canvas of its own so the map's canvas keeps its place
+	drawGridAbove() {
+
+		const view = this.view;
+
+		if (!this.above) {
+
+			this.above           = document.createElement('canvas');
+			this.above.className = 'appmap-above';
+
+			view.container.parentElement?.appendChild(this.above);
+		}
+
+		const height = this.above.clientHeight;
+
+		// the classic look hides it
+		if (!height) {
+			return;
+		}
+
+		const dpr = window.devicePixelRatio || 1;
+
+		if (this.above.width !== Math.round(view.width * dpr) || this.above.height !== Math.round(height * dpr)) {
+
+			this.above.width  = Math.round(view.width * dpr);
+			this.above.height = Math.round(height * dpr);
+		}
+
+		const ctx = this.above.getContext('2d');
+
+		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+		ctx.fillStyle = view.look.bg;
+		ctx.fillRect(0, 0, view.width, height);
+
+		this.drawGrid(ctx, height, height);
 	}
 
 	// the relations from their picture, which is drawn anew when they change, when the elements move while the layout

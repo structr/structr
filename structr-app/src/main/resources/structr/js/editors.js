@@ -1045,7 +1045,116 @@ let _Editors = {
 
 		delete savedOptions.restoreModel;
 
+		// the new look follows its colour scheme where the standard light theme is saved; any other choice stays
+		if (_Theme.isNext() && savedOptions.theme === 'vs') {
+			savedOptions.theme = _Editors.lookTheme();
+		}
+
 		return savedOptions;
+	},
+	// the editor of the new look: its colours come from the tokens of the look, light or dark (see css/next/tokens.css)
+	lookTheme: () => {
+
+		const dark = _Theme.isDark();
+
+		if (typeof monaco === 'undefined') {
+			return dark ? 'vs-dark' : 'vs';
+		}
+
+		// the editor takes colours as #rrggbb or #rrggbbaa only
+		const color = (token, opacity) => {
+
+			let hex = _Theme.color(token).replace('#', '');
+
+			if (hex.length === 3) {
+				hex = [...hex].map(c => c + c).join('');
+			}
+
+			return '#' + hex + (opacity === undefined ? '' : Math.round(opacity * 255).toString(16).padStart(2, '0'));
+		};
+
+		const name       = dark ? 'structr-dark' : 'structr-light';
+		const background = color('color-background-primary');
+		const text       = color('color-text-primary');
+		const line       = color('color-border-secondary');
+		const none       = '#00000000';
+		const rule       = (token, name, fontStyle) => ({ token, foreground: color(name).slice(1), ...(fontStyle ? { fontStyle } : {}) });
+
+		monaco.editor.defineTheme(name, {
+			base: dark ? 'vs-dark' : 'vs',
+			inherit: true,
+			rules: [
+				rule('comment', 'code-comment', 'italic'),
+				rule('keyword', 'code-keyword'),
+				rule('string', 'code-string'),
+				rule('number', 'code-number'),
+				rule('regexp', 'code-regexp'),
+				rule('type', 'code-type'),
+				rule('tag', 'code-keyword'),
+				rule('metatag', 'code-keyword'),
+				rule('attribute.name', 'code-type'),
+				rule('attribute.value', 'code-string'),
+				rule('delimiter', 'color-text-secondary')
+			],
+			colors: {
+				'editor.background': background,
+				'editor.foreground': text,
+				'editorGutter.background': background,
+				'minimap.background': background,
+				'editorLineNumber.foreground': color('color-text-tertiary'),
+				'editorLineNumber.activeForeground': text,
+				'editorCursor.foreground': text,
+				'editor.lineHighlightBackground': color('color-text-primary', 0.05),
+				'editor.lineHighlightBorder': none,
+				'editor.selectionBackground': color('color-text-info', 0.3),
+				'editor.inactiveSelectionBackground': color('color-text-info', 0.18),
+				'editor.selectionHighlightBackground': color('color-text-info', 0.15),
+				'editor.wordHighlightBackground': color('color-text-tertiary', 0.2),
+				'editor.findMatchBackground': color('color-accent-yellow', 0.55),
+				'editor.findMatchHighlightBackground': color('color-accent-yellow', 0.28),
+				'editorIndentGuide.background1': color('color-border-tertiary'),
+				'editorIndentGuide.activeBackground1': line,
+				'editorWhitespace.foreground': line,
+				'editorBracketMatch.background': color('color-brand', 0.2),
+				'editorBracketMatch.border': color('color-brand', 0.6),
+				'editorOverviewRuler.border': none,
+				'scrollbar.shadow': none,
+				'scrollbarSlider.background': color('color-text-tertiary', 0.3),
+				'scrollbarSlider.hoverBackground': color('color-text-tertiary', 0.45),
+				'scrollbarSlider.activeBackground': color('color-text-tertiary', 0.6),
+				'minimapSlider.background': color('color-text-tertiary', 0.2),
+				'editorWidget.background': background,
+				'editorWidget.foreground': text,
+				'editorWidget.border': line,
+				'editorSuggestWidget.background': background,
+				'editorSuggestWidget.foreground': text,
+				'editorSuggestWidget.border': line,
+				'editorSuggestWidget.selectedBackground': color('color-background-tertiary'),
+				'editorSuggestWidget.selectedForeground': text,
+				'editorSuggestWidget.highlightForeground': color('color-text-info'),
+				'editorHoverWidget.background': background,
+				'editorHoverWidget.border': line,
+				'input.background': background,
+				'input.foreground': text,
+				'input.border': line,
+				'focusBorder': color('color-text-info'),
+				'list.hoverBackground': color('color-background-tertiary'),
+				'list.activeSelectionBackground': color('color-background-tertiary'),
+				'list.activeSelectionForeground': text,
+				'list.highlightForeground': color('color-text-info'),
+				'editorError.foreground': color('color-text-danger'),
+				'editorWarning.foreground': color('color-text-warning'),
+				'editorInfo.foreground': color('color-text-info')
+			}
+		});
+
+		return name;
+	},
+	followColorScheme: () => {
+
+		if (typeof monaco !== 'undefined') {
+			monaco.editor.setTheme(_Editors.getOurSavedEditorOptionsForEditor().theme);
+		}
 	},
 	getSavedEditorOptions: () => {
 		return LSWrapper.getItem(_Editors.keyEditorOptions, {});
@@ -1277,3 +1386,5 @@ let _Editors = {
 		_Helpers.activateCommentsInElement(dropdown);
 	}
 };
+
+_Theme.onChange(() => _Editors.followColorScheme());

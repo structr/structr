@@ -233,9 +233,36 @@ let _Documentation = {
 			_Documentation.attachClickHandlerToIframe(iframe);
 		}
 	},
+	// the article is a document of its own: it takes the look and the colour scheme of the UI around it
+	applyLook: () => {
+
+		let doc = document.querySelector('div#docs-area iframe')?.contentDocument;
+		if (!doc?.head) {
+			return;
+		}
+
+		for (let name of ['tokens', 'shell', 'docs']) {
+
+			if (!doc.getElementById('look-' + name)) {
+
+				let link  = doc.createElement('link');
+				link.id   = 'look-' + name;
+				link.rel  = 'stylesheet';
+				link.href = _Helpers.getPrefixedRootUrl(`/structr/css/next/${name}.css`);
+
+				doc.head.appendChild(link);
+			}
+		}
+
+		for (let name of ['ui-next', 'theme-light', 'theme-dark']) {
+			doc.documentElement.classList.toggle(name, document.documentElement.classList.contains(name));
+		}
+	},
 	attachClickHandlerToIframe: (iframe) => {
 
 		iframe.addEventListener('load', () => {
+
+			_Documentation.applyLook();
 
 			iframe.contentDocument.querySelector('body').addEventListener('click', e => {
 
@@ -532,3 +559,5 @@ let _Documentation = {
 		`
 	}
 }
+
+_Theme.onChange(() => _Documentation.applyLook());

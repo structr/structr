@@ -157,7 +157,7 @@ let _AppMap = {
 
 		_AppMap.view = new AppMapView(container, new AppMapModel(json.result), {
 			// only the look can be chosen; what else an earlier version remembered no longer applies
-			settings: { look: LSWrapper.getItem(_AppMap.settingsKey, {}).look },
+			settings: { look: _AppMap.schemeLook() ?? LSWrapper.getItem(_AppMap.settingsKey, {}).look },
 			storage: {
 				get:    key => LSWrapper.getItem(key),
 				set:    (key, value) => LSWrapper.setItem(key, value),
@@ -1219,6 +1219,16 @@ let _AppMap = {
 	saveSettings: () => {
 		LSWrapper.setItem(_AppMap.settingsKey, _AppMap.view.settings);
 	},
+	// in the new look the map follows the colour scheme of the UI; the classic look keeps the map's own choice
+	schemeLook: () => _Theme.isNext() ? (_Theme.isDark() ? 'dark' : 'light') : undefined,
+	followColorScheme: () => {
+
+		let look = _AppMap.schemeLook();
+
+		if (look && _AppMap.view) {
+			_AppMap.view.setLook(look);
+		}
+	},
 	initControls: () => {
 
 		let view = _AppMap.view;
@@ -1374,3 +1384,5 @@ let _AppMap = {
 		`
 	}
 };
+
+_Theme.onChange(() => _AppMap.followColorScheme());

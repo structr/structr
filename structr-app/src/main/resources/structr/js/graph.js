@@ -131,6 +131,8 @@ let _Graph = {
 				labelThreshold: 0,
 				borderSize: 4,
 				defaultNodeBorderColor: '#a5a5a5',
+				// the canvas takes no CSS variables: the labels get the text colour the look resolves, the classic look keeps black
+				defaultLabelColor: _Theme.isNext() ? _Theme.color('color-text-primary') : '#000',
 				singleHover: true,
 				doubleClickEnabled: false,
 				minEdgeSize: 1,
