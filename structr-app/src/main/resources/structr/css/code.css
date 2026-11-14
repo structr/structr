@@ -27,6 +27,26 @@
 	position: relative;
 }
 
+/* the tabs of a type stand in the function bar, above the column they belong to */
+#code-toolbar {
+	position: absolute;
+	gap: 1rem;
+}
+
+#code-toolbar button {
+	margin: 0;
+}
+
+#code-toolbar button.hidden {
+	display: none;
+}
+
+/* the overview of the types of a folder */
+.type-overview .type-kind {
+	color: var(--color-text-placeholder);
+	font-style: italic;
+}
+
 #code-contents h2 {
 	margin: 0 0 1rem 0;
 }
@@ -197,7 +217,47 @@ h2.has-changes::after {
 	content: "*";
 }
 
-#type-actions, #create-type-actions {
+/* stays last, whatever is added to the card after it */
+#code-contents .code-actions-footer {
+	order: 99;
+	flex-shrink: 0;
+	margin-top: auto;
+	padding-top: 1rem;
+}
+
+#code-contents .code-actions-footer .action-button {
+	margin-bottom: 0;
+}
+
+#code-contents .code-actions-footer {
+	display: flex;
+	align-items: center;
+}
+
+#code-contents .code-actions-footer .editor-info {
+	order: 99;
+	margin-left: auto;
+}
+
+/* the row ends where the card's content ends */
+#code-contents .code-actions-footer,
+#code-contents .code-actions-footer .editor-info button {
+	margin-right: 0 ! important;
+}
+
+/* the options of a method in one row */
+#code-contents .method-flags-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0 1.25rem;
+}
+
+#code-contents .method-flags-row > div {
+	display: contents;
+}
+
+#type-actions {
 	background-color: var(--color-background-primary);
 }
 
@@ -240,4 +300,46 @@ fieldset {
 	& legend {
 		padding: 0 .5rem;
 	}
+}
+/* the tabs of a type: no distance above their content, and their tables run from edge to edge of the card */
+#code-contents .propTabContent {
+	margin-top: 0;
+}
+
+#code-contents .propTabContent:has(> .schema-grid) {
+	margin-inline: -2rem;
+}
+
+#code-contents .propTabContent > .schema-grid :is(.schema-grid-header, .schema-grid-row) > div:first-child,
+#code-contents .propTabContent > .schema-grid .schema-grid-footer > div {
+	padding-left: 2rem;
+}
+
+#code-contents .propTabContent > .schema-grid :is(.schema-grid-header, .schema-grid-row) > div:last-child {
+	padding-right: 2rem;
+}
+
+/* on "Types" the card gives way to two areas, one to create a type and one to create a service class */
+#code-contents.create-areas {
+	gap: 2rem;
+	padding: 0 2rem;
+	background: none;
+	box-shadow: none;
+}
+
+/* as wide as the card they stand in for */
+#code-contents .create-area {
+	flex-shrink: 0;
+	margin-inline: -2rem;
+	padding: 1.5rem 2rem;
+	background-color: var(--color-background-primary);
+	box-shadow: 0 0 .625rem 0 var(--color-shadow);
+}
+
+#code-contents .create-area-actions {
+	margin-top: 1.5rem;
+}
+
+#code-contents .create-area-actions .action-button {
+	margin-bottom: 0;
 }

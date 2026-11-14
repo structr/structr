@@ -250,6 +250,23 @@
 	box-shadow: var(--shadow-card);
 }
 
+/* the rows of a table of properties: stripes that let the card or the dialog show through */
+:root.ui-next .props > div:nth-child(2n+1),
+:root.ui-next .schema-props tbody tr:nth-child(odd),
+:root.ui-next .schema-props .schema-grid-body .schema-grid-row:nth-child(odd) > div,
+:root.ui-next .props.show-all tr:nth-child(2n),
+:root.ui-next .props:not(.show-all) tr:nth-child(2n+0 of :not(.hidden)) {
+	background-color: transparent;
+}
+
+:root.ui-next .props > div:nth-child(2n),
+:root.ui-next .schema-props tbody tr:nth-child(even),
+:root.ui-next .schema-props .schema-grid-body .schema-grid-row:nth-child(even) > div,
+:root.ui-next .props.show-all tr:nth-child(2n+1),
+:root.ui-next .props:not(.show-all) tr:nth-child(2n+1 of :not(.hidden)) {
+	background-color: color-mix(in srgb, var(--color-text-primary) 4%, transparent);
+}
+
 /* the panels that slide in from the edge of the window: the card begins beside the strip of their big buttons */
 :root.ui-next .slideOut {
 	--slideout-strip: 4rem;
@@ -328,7 +345,7 @@
 }
 
 /* without a help for the area, the settings end where the cards below end */
-:root.ui-next body:has(#main-help a.hidden) #ui-settings-popup > button.dropdown-select {
+:root.ui-next body:has(#main-help a:is(.hidden, :empty)) #ui-settings-popup > button.dropdown-select {
 	margin-right: .1rem;
 }
 
@@ -355,6 +372,11 @@
 :root.ui-next #function-bar .tabs-menu > li a {
 	padding: 0 .8rem;
 	color: inherit;
+}
+
+/* tabs without a link carry the padding themselves */
+:root.ui-next #function-bar #code-type-tabs .tabs-menu > li {
+	padding: 0 .8rem 2px ! important;
 }
 
 :root.ui-next #function-bar .tabs-menu > li:not(.active):hover {
@@ -591,4 +613,25 @@
 
 :root.ui-next #global-search-results .custom-html-attr {
 	color: var(--color-text-info);
+}
+
+/* tables of the schema and the buttons above them stand on the card, without a ground of their own */
+:root.ui-next .schema-props,
+:root.ui-next #type-actions {
+	background-color: transparent;
+}
+
+/* the areas to create a type or a service class are the cards, not what holds them */
+:root.ui-next #main #code-contents.create-areas {
+	outline: none;
+	background: transparent ! important;
+	box-shadow: none;
+}
+
+:root.ui-next #code-contents .create-area {
+	border-radius: var(--radius-dialog);
+	outline: 1px solid var(--color-border-secondary);
+	outline-offset: -1px;
+	background: var(--card-ground);
+	box-shadow: var(--shadow-card);
 }

@@ -68,6 +68,8 @@ let _Code = {
 		document.getElementById('code-tree').style.width              = `calc(${left}px - 1rem)`;
 		document.getElementById('code-contents').style.width          = `calc(${availableWidth}px - ${left}px - 5rem)`;
 
+		_Code.mainArea.typeTabs.align();
+
 		_Editors.resizeVisibleEditors();
 	},
 	unload: () => {
@@ -103,6 +105,8 @@ let _Code = {
 			_Code.codeMain     = $('#code-main');
 			_Code.codeTree     = $('#code-tree');
 			_Code.codeContents = $('#code-contents');
+
+			_Code.mainArea.typeTabs.toolbar();
 
 			Structr.initVerticalSlider($('.column-resizer-left', _Code.codeMain), _Code.codeResizerLeftKey, _Code.leftTabMinWidth, _Code.moveLeftResizer);
 
@@ -819,6 +823,10 @@ let _Code = {
 		},
 		handleTreeClick: (evt, data) => {
 
+			if (_Code.mainArea.typeTabs.selectingInTree) {
+				return;
+			}
+
 			let selection = data?.node?.data || {};
 
 			selection.updateLocationStack = true;
@@ -834,6 +842,10 @@ let _Code = {
 		},
 		handleSelection: (data) => {
 
+			if (_Code.mainArea.typeTabs.showLoaded(data)) {
+				return;
+			}
+
 			if (_Code.persistence.testAllowNavigation()) {
 
 				_Code.dirty = false;
@@ -841,13 +853,17 @@ let _Code = {
 
 				// clear page
 				_Code.mainArea.clearMainArea();
+				_Code.mainArea.typeTabs.showCreateButtons(data.content ?? data.key);
 
-				switch (data.content) {
+				switch (data.key === 'root' ? 'root' : data.content) {
+
+					case 'root':
+						_Code.mainArea.displayCreateAreas(data);
+						break;
 
 					case 'searchresults':
 					case 'undefined':
 					case 'null':
-					case 'root':
 						break;
 
 					case 'scratchpads':
@@ -879,23 +895,11 @@ let _Code = {
 						break;
 
 					case 'properties':
-						_Code.mainArea.displayPropertiesContent(data, data.updateLocationStack);
-						break;
-
 					case 'remoteproperties':
-						_Code.mainArea.displayRemotePropertiesContent(data, data.updateLocationStack);
-						break;
-
 					case 'views':
-						_Code.mainArea.displayViewsContent(data, data.updateLocationStack);
-						break;
-
 					case 'methods':
-						_Code.mainArea.displayMethodsContent(data, data.updateLocationStack);
-						break;
-
 					case 'inheritedproperties':
-						_Code.mainArea.displayInheritedPropertiesContent(data, data.updateLocationStack);
+						_Code.mainArea.displaySchemaNodeContent(data);
 						break;
 
 					case 'inherited':
@@ -1078,6 +1082,8 @@ let _Code = {
 	mainArea: {
 		clearMainArea: () => {
 			_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
+			_Code.codeContents[0].classList.remove('create-areas');
+			_Code.mainArea.typeTabs.remove();
 
 			_Code.persistence.runCurrentEntitySaveAction = null;
 		},
@@ -1126,40 +1132,112 @@ let _Code = {
 			});
 		},
 		displayCustomTypesContent: (data) => {
+			_Code.mainArea.displayTypeOverview(data, false);
+		},
+		displayCreateAreas: (data) => {
 
-			_Code.codeContents[0].insertAdjacentHTML('beforeend', _Code.templates.createNewType());
+			_Code.mainArea.updateLocationStack(data, data.updateLocationStack);
 
-			let container = _Code.codeContents[0].querySelector('#create-type-container');
+			_Code.codeContents[0].classList.add('create-areas');
 
-			_Schema.nodes.showCreateNewTypeDialog(container, null, { isServiceClass: false });
+			for (let isServiceClass of [false, true]) {
 
-			_Code.persistence.runCurrentEntitySaveAction = () => {
+				let label = (isServiceClass ? 'Create Service Class' : 'Create Type');
+				let path  = (isServiceClass ? '/root/services' : '/root/custom');
+				let area  = _Helpers.createSingleDOMElementFromHTML(`
+					<div class="create-area">
+						<h2>${label}</h2>
+						<div class="create-area-form"></div>
+						<div class="create-area-actions flex"></div>
+					</div>
+				`);
 
-				let typeData = _Schema.nodes.getTypeDefinitionDataFromForm(container, {});
+				_Code.codeContents[0].appendChild(area);
 
-				if (!typeData.name || typeData.name.trim() === '') {
+				let form = area.querySelector('.create-area-form');
 
-					_Helpers.blinkRed(container.querySelector('[data-property="name"]'));
+				_Schema.nodes.showCreateNewTypeDialog(form, null, { isServiceClass: isServiceClass });
 
-				} else {
-
-					_Schema.nodes.createTypeDefinition(typeData).then(responseData => {
-
-						_Code.tree.refreshNode(data.path);
-
-						window.setTimeout(() => {
-							// tree needs to be refreshed - implement better solution using refresh_node.jstree event
-							_Code.tree.findAndOpenNode(data.path + '/' + responseData.result[0], true);
-						}, 250);
-
-					}, rejectData => {
-
-						Structr.errorFromResponse(rejectData, undefined, { requiresConfirmation: true });
-					});
+				// two forms on one page: the tags select needs an id of its own, select2 keeps its state by id
+				let tagsSelect = $('#tags-select', form);
+				if (tagsSelect.hasClass('select2-hidden-accessible')) {
+					tagsSelect.select2('destroy');
 				}
+				tagsSelect.removeData('select2Id').removeAttr('data-select2-id').attr('id', `tags-select-${isServiceClass ? 'service' : 'type'}`).select2({ tags: true, width: '100%' });
+
+				let button = _Helpers.createSingleDOMElementFromHTML(_Code.templates.actionButton({ iconSvg: _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green'), suffix: 'create', name: label }));
+
+				area.querySelector('.create-area-actions').appendChild(button);
+
+				button.addEventListener('click', () => {
+
+					let typeData = _Schema.nodes.getTypeDefinitionDataFromForm(form, {});
+
+					if (!typeData.name || typeData.name.trim() === '') {
+
+						_Helpers.blinkRed(form.querySelector('[data-property="name"]'));
+
+					} else {
+
+						_Schema.nodes.createTypeDefinition(typeData).then(responseData => {
+
+							_Code.tree.refreshNode(path);
+
+							// tree needs to be refreshed - implement better solution using refresh_node.jstree event
+							window.setTimeout(() => _Code.tree.findAndOpenNode(`${path}/${responseData.result[0]}`, true), 250);
+
+						}, rejectData => {
+
+							Structr.errorFromResponse(rejectData, undefined, { requiresConfirmation: true });
+						});
+					}
+				});
+			}
+		},
+		displayTypeOverview: (data, isServiceClass) => {
+
+			_Code.mainArea.updateLocationStack(data, data.updateLocationStack);
+
+			let countColumns = (isServiceClass ? ['Methods'] : ['Direct properties', 'Linked properties', 'Views', 'Methods']);
+			let tableConfig  = {
+				class: 'type-overview schema-props grid',
+				style: `grid-template-columns: [ name ] minmax(0, 2fr) [ traits ] minmax(0, 3fr) repeat(${countColumns.length}, minmax(5%, max-content));`,
+				cols: [
+					{ class: 'pb-2 px-2 font-bold flex', title: 'Name' },
+					{ class: 'pb-2 px-2 font-bold flex', title: 'Traits' },
+					...countColumns.map(title => ({ class: 'pb-2 px-2 font-bold flex justify-center', title: title }))
+				],
+				noButtons: true
 			};
 
-			_Code.mainArea.helpers.displaySvgActionButton('#create-type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green'), 'create', 'Create', _Code.persistence.runCurrentEntitySaveAction);
+			let table    = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaGrid(tableConfig));
+			let gridBody = table.querySelector('.schema-grid-body');
+			table.querySelector('.schema-grid-footer').classList.add('hidden');
+
+			_Code.codeContents[0].appendChild(table);
+
+			Command.query('SchemaNode', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { isServiceClass: isServiceClass }, (types) => {
+
+				for (let type of types) {
+
+					let counts = (isServiceClass ? [type.schemaMethods] : [type.schemaProperties, [...(type.relatedTo ?? []), ...(type.relatedFrom ?? [])], type.schemaViews, type.schemaMethods]);
+					let kind   = (type.isInterface ? 'interface' : (type.isAbstract ? 'abstract' : ''));
+					let row    = _Helpers.createSingleDOMElementFromHTML(`
+						<div class="schema-grid-row contents cursor-pointer" title="Open type ${_Helpers.escapeForHtmlAttributes(type.name)}">
+							<div class="p-2 flex items-center gap-2"><b>${type.name}</b><span class="type-kind">${kind}</span></div>
+							<div class="p-2 flex items-center">${(type.inheritedTraits ?? []).join(', ')}</div>
+							${counts.map(list => `<div class="p-2 flex items-center justify-center">${(list ?? []).length}</div>`).join('')}
+						</div>
+					`);
+
+					row.addEventListener('click', () => {
+						_Code.tree.findAndOpenNode(`${data.path}/${type.id}`, true);
+					});
+
+					gridBody.appendChild(row);
+				}
+
+			}, true, 'ui');
 		},
 		displayBuiltInTypesContent: () => {
 			_Code.codeContents.append(_Code.templates.builtin());
@@ -1543,7 +1621,11 @@ let _Code = {
 				}
 			}
 		),
-		displaySchemaNodeContent: (data) => {
+		displaySchemaNodeContent: (data, targetView = _Code.mainArea.typeTabs.tabFor(data)) => {
+
+			let typePath = _Code.mainArea.typeTabs.typePathFor(data);
+
+			_Code.mainArea.updateLocationStack(data, data.updateLocationStack);
 
 			fetch(`${Structr.rootUrl}${data.id}/schema`).then(response => {
 
@@ -1560,8 +1642,10 @@ let _Code = {
 				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 				_Code.codeContents.append(_Code.templates.type({ data, type: entity }));
 
-				let targetView  = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`, 'general');
-				let tabControls = _Schema.nodes.loadNode(entity, $('.tabs-container', )[0], $('.tabs-content-container', _Code.codeContents)[0], targetView, null, _Code.mainArea.getOverridesForSchemaActions(data));
+				let tabs        = _Code.mainArea.typeTabs.create(entity, typePath);
+				let tabControls = _Schema.nodes.loadNode(entity, tabs, $('.tabs-content-container', _Code.codeContents)[0], targetView, null, _Code.mainArea.getOverridesForSchemaActions({ ...data, path: `${typePath}/properties` }));
+
+				_Code.mainArea.typeTabs.activate(tabs);
 
 				// remove bulk edit save/discard buttons
 				for (let button of _Code.codeContents[0].querySelectorAll('.discard-all, .save-all')) {
@@ -1575,10 +1659,10 @@ let _Code = {
 						if (success) {
 
 							// reload tree node
-							_Code.tree.refreshNode(data.path);
+							_Code.tree.refreshNode(typePath);
 
-							// and refresh center pane
-							_Code.tree.handleNodeObjectClick(data);
+							// and refresh center pane, on the tab that is open
+							_Code.mainArea.displaySchemaNodeContent(data, _Code.mainArea.typeTabs.activeTab());
 						}
 					});
 				};
@@ -1610,84 +1694,155 @@ let _Code = {
 				});
 			});
 		},
-		displayPropertiesContent: (data, updateLocationStack) => {
+		typeTabs: {
+			typeId: null,
+			typePath: null,
+			selectingInTree: false,
+			folders: { properties: 'local', remoteproperties: 'remote', views: 'views', methods: 'methods', inheritedproperties: 'builtin' },
+			element: () => document.querySelector('#code-type-tabs'),
+			toolbar: () => {
 
-			_Code.mainArea.updateLocationStack(data, updateLocationStack);
+				let toolbar = document.querySelector('#code-toolbar');
+				if (!toolbar) {
 
-			_Code.codeContents.append(_Code.templates.propertiesLocal({ data: data }));
+					let button = (label) => `<button title="${label}" class="action button btn flex items-center active:border-green hidden">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} ${label}</button>`;
 
-			Command.get(data.id, null, (entity) => {
+					toolbar = _Helpers.createSingleDOMElementFromHTML(`<div id="code-toolbar" class="flex items-center">${button('Create Type')}${button('Create Service Class')}</div>`);
 
-				_Schema.properties.appendLocalProperties(document.querySelector('#code-contents .content-container'), entity, _Code.mainArea.getOverridesForSchemaActions(data), () => {
-					_Code.tree.refreshNode(data.path);
+					[...toolbar.querySelectorAll('button')].forEach((el, index) => {
+
+						let isServiceClass = (index === 1);
+						let path           = (isServiceClass ? '/root/services' : '/root/custom');
+
+						el.addEventListener('click', () => {
+
+							_Schema.nodes.showCreateTypeDialog({ isServiceClass: isServiceClass }, (id) => {
+
+								_Code.tree.refreshNode(path);
+
+								// tree needs to be refreshed - implement better solution using refresh_node.jstree event
+								window.setTimeout(() => _Code.tree.findAndOpenNode(`${path}/${id}`, true), 250);
+							});
+						});
+					});
+
+					Structr.functionBar.appendChild(toolbar);
+					_Code.mainArea.typeTabs.align();
+				}
+
+				return toolbar;
+			},
+			showCreateButtons: (level) => {
+
+				// each level of the tree offers what can be created there
+				let offers = { custom: [true, false], services: [false, true] }[level] ?? [false, false];
+
+				[..._Code.mainArea.typeTabs.toolbar().querySelectorAll(':scope > button')].forEach((button, index) => {
+					button.classList.toggle('hidden', !offers[index]);
 				});
+			},
+			isFolder: (data) => Object.hasOwn(_Code.mainArea.typeTabs.folders, data.content),
+			tabFor: (data) => _Code.mainArea.typeTabs.folders[data.content] ?? 'general',
+			typePathFor: (data) => _Code.mainArea.typeTabs.isFolder(data) ? data.path.substring(0, data.path.lastIndexOf('/')) : data.path,
+			pathFor: (tab) => {
 
-				_Code.persistence.runCurrentEntitySaveAction = () => {
-					$('.save-all', _Code.codeContents).click();
-				};
-			});
-		},
-		displayRemotePropertiesContent: (data, updateLocationStack) => {
+				let folder = Object.keys(_Code.mainArea.typeTabs.folders).find(key => _Code.mainArea.typeTabs.folders[key] === tab);
 
-			_Code.mainArea.updateLocationStack(data, updateLocationStack);
+				return folder ? `${_Code.mainArea.typeTabs.typePath}/${folder}` : _Code.mainArea.typeTabs.typePath;
+			},
+			activeTab: () => _Code.mainArea.typeTabs.element()?.querySelector('li.active')?.id.substring('tab-'.length) ?? 'general',
+			create: (entity, typePath) => {
 
-			_Code.codeContents.append(_Code.templates.propertiesRemote({ data: data }));
+				_Code.mainArea.typeTabs.remove();
 
-			Command.get(data.id, null, (entity) => {
+				_Code.mainArea.typeTabs.typeId   = entity.id;
+				_Code.mainArea.typeTabs.typePath = typePath;
 
-				_Schema.remoteProperties.appendRemote(_Code.codeContents[0].querySelector('.content-container'), entity, () => {
+				let tabs = _Helpers.createSingleDOMElementFromHTML('<div id="code-type-tabs" class="tabs-container"><ul class="tabs-menu"></ul></div>');
 
-					// TODO: navigation should/could be possible in the code area as well - currently this is deactivated in schema.js
+				_Code.mainArea.typeTabs.toolbar().appendChild(tabs);
 
-				}, _Code.tree.refreshTree);
+				return tabs;
+			},
+			adopt: () => {
 
-				_Code.persistence.runCurrentEntitySaveAction = () => {
-					$('.save-all', _Code.codeContents).click();
-				};
-			});
-		},
-		displayViewsContent: (data, updateLocationStack) => {
+				// the tabs of a method or a function property move from the card to the toolbar
+				let list = _Code.codeContents[0].querySelector('.code-tabs.level-two > ul');
+				if (list) {
 
-			_Code.mainArea.updateLocationStack(data, updateLocationStack);
+					_Code.mainArea.typeTabs.remove();
 
-			_Code.codeContents.append(_Code.templates.views({ data: data }));
+					let tabs = _Helpers.createSingleDOMElementFromHTML('<div id="code-type-tabs" class="tabs-container"></div>');
 
-			Command.get(data.id, null, (entity) => {
-				_Schema.views.appendViews(_Code.codeContents[0].querySelector('.content-container'), entity, () => {
-					_Code.tree.refreshNode(data.path);
-				});
+					list.classList.add('tabs-menu');
+					tabs.appendChild(list);
+					_Code.mainArea.typeTabs.toolbar().appendChild(tabs);
+				}
+			},
+			activate: (tabs) => {
 
-				_Code.persistence.runCurrentEntitySaveAction = () => {
-					$('.save-all', _Code.codeContents).click();
-				};
-			});
-		},
-		displayMethodsContent: (data, updateLocationStack) => {
+				let list = tabs.querySelector('ul');
 
-			_Code.mainArea.updateLocationStack(data, updateLocationStack);
+				// the order of the folders in the tree
+				let inherited = list.querySelector('#tab-builtin');
+				if (inherited) {
+					list.appendChild(inherited);
+				}
 
-			_Code.codeContents.append(_Code.templates.methods({ data: data }));
+				for (let tab of list.querySelectorAll('li')) {
 
-			fetch(Structr.rootUrl + data.id + '/schema').then(res => res.json()).then(r => r.result).then((entity) => {
+					tab.addEventListener('click', (e) => {
 
-				_Schema.methods.appendMethods(_Code.codeContents[0].querySelector('.content-container'), entity, entity.schemaMethods, () => {
-					_Code.tree.refreshNode(data.path);
-				});
+						if (e.isTrusted) {
+							_Code.mainArea.typeTabs.selectInTree(tab.id.substring('tab-'.length));
+						}
+					});
+				}
+			},
+			remove: () => {
 
-				_Code.persistence.runCurrentEntitySaveAction = () => {
-					$('.save-all', _Code.codeContents).click();
-				};
-			});
-		},
-		displayInheritedPropertiesContent: (data, updateLocationStack) => {
+				_Code.mainArea.typeTabs.element()?.remove();
 
-			_Code.mainArea.updateLocationStack(data, updateLocationStack);
+				_Code.mainArea.typeTabs.typeId   = null;
+				_Code.mainArea.typeTabs.typePath = null;
+			},
+			align: () => {
 
-			_Code.codeContents.append(_Code.templates.propertiesInherited({ data: data }));
+				let toolbar = document.querySelector('#code-toolbar');
+				if (toolbar) {
+					toolbar.style.left = `${_Code.codeContents[0].parentNode.getBoundingClientRect().left - Structr.functionBar.getBoundingClientRect().left}px`;
+				}
+			},
+			showLoaded: (data) => {
 
-			Command.get(data.id, null, (entity) => {
-				_Schema.properties.appendBuiltinProperties(_Code.codeContents[0].querySelector('.content-container'), entity);
-			});
+				let isType = (_Code.mainArea.typeTabs.isFolder(data) || (data.key ?? data.type) === 'SchemaNode');
+				let tab    = _Code.mainArea.typeTabs.element()?.querySelector(`#tab-${_Code.mainArea.typeTabs.tabFor(data)}`);
+
+				if (!isType || !tab || data.id !== _Code.mainArea.typeTabs.typeId) {
+					return false;
+				}
+
+				tab.click();
+				_Code.mainArea.updateLocationStack(data, data.updateLocationStack);
+
+				return true;
+			},
+			selectInTree: (tab) => {
+
+				let path = _Code.mainArea.typeTabs.pathFor(tab);
+				let tree = _Code.codeTree.jstree(true);
+
+				if (tree.get_node(path) && !tree.is_selected(path)) {
+
+					_Code.mainArea.typeTabs.selectingInTree = true;
+					tree.deselect_all();
+					tree.select_node(path);
+					_Code.mainArea.typeTabs.selectingInTree = false;
+				}
+
+				_Code.pathLocations.updatePathLocationStack(path);
+				_Code.lastClickedPath = path;
+			}
 		},
 		displayPropertyDetails: (data) => {
 
@@ -1729,25 +1884,26 @@ let _Code = {
 		displayFunctionPropertyDetails: (property, data, lastOpenTab) => {
 
 			_Code.codeContents.append(_Code.templates.functionProperty({ property: property }));
+			_Code.mainArea.typeTabs.adopt();
 
 			let activateTab = (tabName) => {
 				$('.function-property-tab-content', _Code.codeContents).hide();
-				$('li[data-name]', _Code.codeContents).removeClass('active');
+				$('#code-toolbar li[data-name]').removeClass('active');
 
 				let activeTab = $('#tabView-' + tabName, _Code.codeContents);
 				activeTab.show();
-				$('li[data-name="' + tabName + '"]', _Code.codeContents).addClass('active');
+				$('#code-toolbar li[data-name="' + tabName + '"]').addClass('active');
 
 				window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
 			};
 
-			for (let tabLink of _Code.codeContents[0].querySelectorAll('li[data-name]')) {
+			for (let tabLink of document.querySelectorAll('#code-toolbar li[data-name]')) {
 				tabLink.addEventListener('click', (e) => {
 					e.stopPropagation();
 					activateTab(tabLink.dataset.name);
 				})
 			}
-			if (_Code.codeContents[0].querySelector(`li[data-name="${lastOpenTab}"]`)) {
+			if (document.querySelector(`#code-toolbar li[data-name="${lastOpenTab}"]`)) {
 				activateTab(lastOpenTab || 'source');
 			} else {
 				activateTab('source');
@@ -2075,6 +2231,7 @@ let _Code = {
 
 				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 				_Code.codeContents.append(_Code.templates.method({ method: result }));
+				_Code.mainArea.typeTabs.adopt();
 
 				LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
 
@@ -2463,21 +2620,21 @@ let _Code = {
 					_Code.mainArea.saveActiveTabForMethod(data.id, tabName);
 
 					$('.method-tab-content', _Code.codeContents).hide();
-					$('li[data-name]', _Code.codeContents).removeClass('active');
+					$('#code-toolbar li[data-name]').removeClass('active');
 
 					let activeTab = $(`#tabView-${tabName}`, _Code.codeContents);
 					activeTab.show();
-					$(`li[data-name="${tabName}"]`, _Code.codeContents).addClass('active');
+					$(`#code-toolbar li[data-name="${tabName}"]`).addClass('active');
 
 					window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
 				};
 
-				$('li[data-name]', _Code.codeContents).off('click').on('click', function(e) {
+				$('#code-toolbar li[data-name]').off('click').on('click', function(e) {
 					e.stopPropagation();
 					activateTab($(this).data('name'));
 				});
 
-				if (_Code.codeContents[0].querySelector(`li[data-name="${lastOpenTab}"]`)) {
+				if (document.querySelector(`#code-toolbar li[data-name="${lastOpenTab}"]`)) {
 					activateTab(lastOpenTab || 'source');
 				} else {
 					activateTab('source');
@@ -2620,40 +2777,7 @@ let _Code = {
 			_Code.codeContents.append(_Code.templates.swaggerui({ iframeSrc: iframeSrc }));
 		},
 		displayServiceClassesContent: (data) => {
-
-			_Code.codeContents[0].insertAdjacentHTML('beforeend', _Code.templates.createNewType({ text: 'Service Class'}));
-
-			let container = _Code.codeContents[0].querySelector('#create-type-container');
-
-			_Schema.nodes.showCreateNewTypeDialog(container, null, { isServiceClass: true });
-
-			_Code.persistence.runCurrentEntitySaveAction = () => {
-
-				let typeData = _Schema.nodes.getTypeDefinitionDataFromForm(container, {});
-
-				if (!typeData.name || typeData.name.trim() === '') {
-
-					_Helpers.blinkRed(container.querySelector('[data-property="name"]'));
-
-				} else {
-
-					_Schema.nodes.createTypeDefinition(typeData).then(responseData => {
-
-						_Code.tree.refreshNode(data.path);
-
-						window.setTimeout(() => {
-							// tree needs to be refreshed - implement better solution using refresh_node.jstree event
-							_Code.tree.findAndOpenNode(data.path + '/' + responseData.result[0], true);
-						}, 250);
-
-					}, rejectData => {
-
-						Structr.errorFromResponse(rejectData, undefined, { requiresConfirmation: true });
-					});
-				}
-			};
-
-			_Code.mainArea.helpers.displaySvgActionButton('#create-type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green'), 'create', 'Create', _Code.persistence.runCurrentEntitySaveAction);
+			_Code.mainArea.displayTypeOverview(data, true);
 		},
 		helpers: {
 			shouldHideOpenAPITabForMethod: (entity) => {
@@ -2705,6 +2829,19 @@ let _Code = {
 
 				let targetNode = document.querySelector(targetId);
 				targetNode.appendChild(button);
+
+				// the row of Save, Revert and Delete stands at the foot of the card
+				if (targetId.endsWith('-actions') && targetNode.parentNode !== _Code.codeContents[0]) {
+
+					targetNode.classList.add('code-actions-footer');
+					_Code.codeContents[0].appendChild(targetNode);
+				}
+
+				// the settings of the view's own editor stand at the right end of that row; an editor inside a tab keeps its own
+				let editorInfo = _Code.codeContents[0].querySelector('.editor-info:not(.propTabContent .editor-info)');
+				if (editorInfo && targetNode.classList.contains('code-actions-footer') && editorInfo.parentNode !== targetNode) {
+					targetNode.appendChild(editorInfo);
+				}
 
 				return button;
 			},
@@ -4062,17 +4199,6 @@ let _Code = {
 		builtin: config => `
 			<h2>System Types</h2>
 		`,
-		createNewType: config => `
-			<div class="mb-2">
-				<h2>Create New ${config?.text ?? 'Type'}</h2>
-				<div id="method-buttons">
-					<div id="create-type-actions" class="flex gap-4"></div>
-					</div>
-				</div>
-			</div>
-				
-			<div id="create-type-container"></div>
-		`,
 		dataSourceCreation: (title) => `
 			<div class="">
 				<h2>${title}</h2>
@@ -4166,7 +4292,7 @@ let _Code = {
 			<div id="method-buttons" class="mb-2">
 				<div id="method-options" class="flex flex-wrap gap-x-4">
 					<div id="method-actions" class="flex items-start mr-4"></div>
-					${_Schema.methods.templates.methodFlags(Object.assign({ cssClasses: 'flex gap-x-2' }, config))}
+					${_Schema.methods.templates.methodFlags(Object.assign({ cssClasses: 'method-flags-row' }, config))}
 				</div>
 			</div>
 			<div id="method-code-container" class="code-tabs level-two flex flex-col flex-grow">
@@ -4191,10 +4317,6 @@ let _Code = {
 				<div class="editor-info"></div>
 				<div class="logging-output"></div>
 			</div>
-		`,
-		methods: config => `
-			<h2>Methods of type ${config.data.type}</h2>
-			<div id="code-methods-container" class="content-container"></div>
 		`,
 		openAPIBaseConfig: config => `
 			<div id="openapi-options" class="flex flex-col flex-grow">
@@ -4315,18 +4437,6 @@ let _Code = {
 
 			</details>
 		`,
-		propertiesInherited: config => `
-			<h2>Inherited Attributes of type ${config.data.type}</h2>
-			<div class="content-container"></div>
-		`,
-		propertiesLocal: config => `
-			<h2>Direct Properties of type ${config.data.type}</h2>
-			<div class="content-container"></div>
-		`,
-		propertiesRemote: config => `
-			<h2>Linked properties of type ${config.data.type}</h2>
-			<div class="content-container"></div>
-		`,
 		property: config => `
 			<h2>${config.property.schemaNode.name}.${config.property.name}</h2>
 		`,
@@ -4427,12 +4537,7 @@ let _Code = {
 		`,
 		type: config => `
 			<div class="mb-2">
-				<h2>Type ${config.type.name}</h2>
 				<div id="type-actions" class="flex"></div>
-			</div>
-			
-			<div class="tabs-container code-tabs">
-				<ul></ul>
 			</div>
 			<div class="tabs-content-container flex-grow"></div>
 		`,
@@ -4462,10 +4567,6 @@ let _Code = {
 					</div>
 				</div>
 			</div>
-		`,
-		views: config => `
-			<h2>Views of type ${config.data.type}</h2>
-			<div class="content-container"></div>
 		`,
 		swaggerui: config => `
 			<div id="swagger-ui-container" class="flex-grow">

@@ -790,9 +790,10 @@ let _Schema = {
 
 			return tabControls;
 		},
-		showCreateTypeDialog: async () => {
+		showCreateTypeDialog: async (config, onCreated) => {
 
-			let { dialogText } = _Dialogs.custom.openDialog("Create Type", null, ['schema-edit-dialog']);
+			let isServiceClass = (config?.isServiceClass === true);
+			let { dialogText } = _Dialogs.custom.openDialog(isServiceClass ? "Create Service Class" : "Create Type", null, ['schema-edit-dialog']);
 
 			let discardButton = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard and close' }));
 			let saveButton    = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Create' }));
@@ -810,7 +811,7 @@ let _Schema = {
 
 			updateChangeStatus();
 
-			_Schema.nodes.showCreateNewTypeDialog(dialogText, updateChangeStatus, { isServiceClass: false });
+			_Schema.nodes.showCreateNewTypeDialog(dialogText, updateChangeStatus, { isServiceClass: isServiceClass });
 
 			initialData = _Schema.nodes.getTypeDefinitionDataFromForm(dialogText, {});
 
@@ -833,8 +834,17 @@ let _Schema = {
 				} else {
 
 					_Schema.nodes.createTypeDefinition(typeData).then(responseData => {
-						_Schema.openEditDialog(responseData.result[0]);
-						_Schema.reload();
+
+						if (typeof onCreated === 'function') {
+
+							_Dialogs.custom.dialogCancelBaseAction();
+							onCreated(responseData.result[0]);
+
+						} else {
+
+							_Schema.openEditDialog(responseData.result[0]);
+							_Schema.reload();
+						}
 					}, rejectData => {
 						Structr.errorFromResponse(rejectData, undefined, { requiresConfirmation: true });
 					});
@@ -1746,19 +1756,19 @@ let _Schema = {
 
 			let gridConfig = {
 				class: 'local schema-props grid',
-				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((showDatabaseName) ? '[ dbName ] minmax(0, 1fr) ' : '') + '[ type ] minmax(min-content, max-content) [ format ] minmax(10%, max-content) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ fulltext ] minmax(5%, max-content) [ defaultValue ] minmax(0, 1fr) [ actions ] 4rem',
+				style: 'grid-template-columns: [ name ] minmax(10.5rem, 1fr) ' +  ((showDatabaseName) ? '[ dbName ] minmax(10.5rem, 1fr) ' : '') + '[ type ] minmax(min-content, max-content) [ format ] minmax(10%, max-content) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ fulltext ] minmax(5%, max-content) [ defaultValue ] minmax(4rem, 1fr) [ actions ] 4rem',
 				cols: [
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'JSON Name' },
-					{ class: 'py-2 px-1 font-bold items-center justify-center ' + dbNameClass, title: 'DB Name' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Type' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Format' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Notnull', longTitle: 'Not Null'  },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Comp.', longTitle: 'Composite Uniqueness' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Uniq.', longTitle: 'Unique'  },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Idx', longTitle: 'Indexed'  },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Fulltext', longTitle: 'Fulltext Indexed'  },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Default', longTitle: 'Default Value'  },
-					{ class: 'actions-col pb-1 px-1 font-bold flex items-center justify-center', title: 'Action' }
+					{ class: 'pb-2 px-1 font-bold flex items-center justify-center', title: 'JSON Name' },
+					{ class: 'pb-2 px-1 font-bold items-center justify-center ' + dbNameClass, title: 'DB Name' },
+					{ class: 'pb-2 px-1 font-bold flex items-center justify-center', title: 'Type' },
+					{ class: 'pb-2 px-1 font-bold flex items-center justify-center', title: 'Format' },
+					{ class: 'pb-2 px-1 font-bold flex items-center justify-center', title: 'Notnull', longTitle: 'Not Null'  },
+					{ class: 'pb-2 px-1 font-bold flex items-center justify-center', title: 'Comp.', longTitle: 'Composite Uniqueness' },
+					{ class: 'pb-2 px-1 font-bold flex items-center justify-center', title: 'Uniq.', longTitle: 'Unique'  },
+					{ class: 'pb-2 px-1 font-bold flex items-center justify-center', title: 'Idx', longTitle: 'Indexed'  },
+					{ class: 'pb-2 px-1 font-bold flex items-center justify-center', title: 'Fulltext', longTitle: 'Fulltext Indexed'  },
+					{ class: 'pb-2 px-1 font-bold flex items-center justify-center', title: 'Default', longTitle: 'Default Value'  },
+					{ class: 'actions-col pb-2 px-1 font-bold flex items-center justify-center', title: 'Action' }
 				],
 				buttons: _Schema.templates.basicAddButton({ addButtonText: 'Add direct property' })
 			};
