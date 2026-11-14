@@ -504,7 +504,91 @@
 	filter: invert(.85);
 }
 
-/* the selected row of a tree: a tint, not a block */
+/* one highlight for the row in use, in a tree as in a menu: the brand colour with white text; a hovered row keeps its tint */
 :root.ui-next .jstree-default .jstree-wholerow-clicked {
-	background: var(--color-background-brand-light) ! important;
+	background: var(--color-brand) ! important;
+}
+
+:root.ui-next .jstree-default .jstree-clicked,
+:root.ui-next .jstree-default .jstree-clicked svg {
+	color: var(--color-text-inverse);
+}
+
+/* the same highlight for the selected row of the other lists: the node of a page tree (its row, not its subtree) */
+:root.ui-next .node.nodeSelected:has(> .node-container.node-selected) {
+	background-color: transparent ! important;
+}
+
+:root.ui-next .node .node-container.node-selected {
+	background-color: var(--color-brand);
+}
+
+:root.ui-next .node .node-container.node-selected,
+:root.ui-next .node .node-container.node-selected .name_,
+:root.ui-next .node .node-container.node-selected .class-id-attrs,
+:root.ui-next .node .node-container.node-selected svg {
+	color: var(--color-text-inverse);
+}
+
+/* and the selected row of a table or a list */
+:root.ui-next #files-main .selected,
+:root.ui-next #files-main .selected:hover,
+:root.ui-next #contents-main .selected,
+:root.ui-next #contents-main .selected:hover,
+:root.ui-next .localization-row.selected,
+:root.ui-next .mail-template-row.selected,
+:root.ui-next #crud-left .crud-type.active {
+	background: var(--color-brand) ! important;
+	color: var(--color-text-inverse) ! important;
+}
+
+:root.ui-next #files-main .selected *,
+:root.ui-next #contents-main .selected *,
+:root.ui-next .localization-row.selected *,
+:root.ui-next .mail-template-row.selected *,
+:root.ui-next #crud-left .crud-type.active * {
+	color: var(--color-text-inverse) ! important;
+}
+
+/* the rows of the keyboard shortcuts: as high as a row of a tree, the text as far from the edge */
+:root.ui-next #keyboard-shortcuts-menu > div {
+	min-height: 2rem;
+	padding: 0 1rem;
+}
+
+/* the system's canvas colour is black in a dark scheme; what stands on it takes the card surface */
+:root.ui-next .bg-canvas {
+	background-color: var(--color-background-primary);
+}
+
+/* the menu of the keyboard shortcuts: a card hanging from the header */
+:root.ui-next #keyboard-shortcuts-menu {
+	border-color: var(--color-border-secondary);
+	border-radius: 0 0 var(--radius-surface) var(--radius-surface);
+	box-shadow: 0 12px 34px var(--color-shadow);
+	color: var(--color-text-primary);
+}
+
+:root.ui-next .keyboard-key {
+	background-color: var(--color-background-secondary);
+	border-color: var(--color-border-secondary);
+	color: var(--color-text-secondary);
+}
+
+/* the global search: a card, its field with the ring of the other fields */
+:root.ui-next #global-search-popover {
+	background: var(--color-background-primary);
+	color: var(--color-text-primary);
+	border: 1px solid var(--color-border-secondary);
+	border-radius: var(--radius-dialog);
+	box-shadow: 0 12px 34px var(--color-shadow);
+}
+
+:root.ui-next .global-search-input:focus {
+	border-color: var(--color-text-info);
+	box-shadow: var(--focus-ring);
+}
+
+:root.ui-next #global-search-results .custom-html-attr {
+	color: var(--color-text-info);
 }
