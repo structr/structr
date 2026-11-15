@@ -2365,6 +2365,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					entry.put(ScratchpadTraitDefinition.LOG_PROPERTY,                 scratchpad.getLog());
 					entry.put(ScratchpadTraitDefinition.LAST_RUN_TIMESTAMP_PROPERTY,  scratchpad.getLastRunTimestamp());
 					entry.put(ScratchpadTraitDefinition.COLLAPSED_PROPERTY,           scratchpad.getCollapsed());
+					entry.put(ScratchpadTraitDefinition.WRAP_JS_IN_MAIN_PROPERTY,     scratchpad.wrapJsInMain());
 
 					entry.put(GENERIC_FILENAME_KEY, filename);
 

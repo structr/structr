@@ -1958,6 +1958,13 @@ let Structr = {
 
 						// allow positioning to change between openings
 						container.style.right = null;
+
+						// a dropdown that would leave the window at the right ends at the right edge of its button
+						if (container.getBoundingClientRect().right > window.innerWidth) {
+
+							let reference         = (container.style.position === 'fixed') ? { left: 0, width: window.innerWidth } : btn.offsetParent.getBoundingClientRect();
+							container.style.right = `${(reference.width + reference.left) - btnRect.right}px`;
+						}
 					}
 
 					if (btn.dataset['preferredPositionY'] === 'top') {

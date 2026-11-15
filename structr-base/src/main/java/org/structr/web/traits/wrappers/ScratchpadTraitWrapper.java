@@ -28,6 +28,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.schema.action.ActionContext;
@@ -76,6 +77,12 @@ public class ScratchpadTraitWrapper extends AbstractNodeTraitWrapper implements 
 	}
 
 	@Override
+	public boolean wrapJsInMain() {
+
+		return wrappedObject.getProperty(traits.key(ScratchpadTraitDefinition.WRAP_JS_IN_MAIN_PROPERTY));
+	}
+
+	@Override
 	public void setLastRunTimestamp(final Long timestamp) throws FrameworkException {
 
 		wrappedObject.setProperty(traits.key(ScratchpadTraitDefinition.LAST_RUN_TIMESTAMP_PROPERTY), timestamp);
@@ -90,7 +97,7 @@ public class ScratchpadTraitWrapper extends AbstractNodeTraitWrapper implements 
 
 			// wrap in graphobject so we can yield null values (would otherwise return as [])
 			final GraphObjectMap result = new GraphObjectMap();
-			result.setProperty(new GenericProperty("result"), Scripting.evaluate(actionContext, null, "${" + getSource().trim() + "}", "scratchpad", getUuid()));
+			result.setProperty(new GenericProperty("result"), Scripting.evaluate(actionContext, null, "${" + getSource().trim() + "}", "scratchpad", getUuid(), ScriptConfig.builder().wrapJsInMain(wrapJsInMain()).build()));
 
 			return result;
 

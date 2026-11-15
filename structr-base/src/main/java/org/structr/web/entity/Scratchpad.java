@@ -29,6 +29,7 @@ public interface Scratchpad extends NodeInterface {
 	String getLog();
 	Long getLastRunTimestamp();
 	boolean getCollapsed();
+	boolean wrapJsInMain();
 	void setLastRunTimestamp(final Long timestamp) throws FrameworkException;
 
 	String getScratchpadLogString();

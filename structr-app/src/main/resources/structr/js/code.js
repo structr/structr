@@ -146,7 +146,7 @@ let _Code = {
 					{
 						id:       path + '/scratchpads',
 						text:     'Scratchpads',
-						children: false,
+						children: true,
 						icon:     _Icons.nonExistentEmptyIcon,
 						li_attr:  { 'data-id': 'scratchpads' },
 						data: {
@@ -298,6 +298,12 @@ let _Code = {
 
 					case 'searchresults':
 						_Code.tree.loadSearchResults(data);
+						break;
+
+					case 'scratchpads':
+						_Code.mainArea.scratchpad.load().then(pads => {
+							callback(pads.map(pad => _Code.mainArea.scratchpad.getTreeEntry(pad, data.path)));
+						});
 						break;
 
 					case 'openapi':
@@ -867,7 +873,11 @@ let _Code = {
 						break;
 
 					case 'scratchpads':
-						_Code.mainArea.scratchpad.show(data, true);
+						_Code.mainArea.scratchpad.showOverview(data);
+						break;
+
+					case 'scratchpad':
+						_Code.mainArea.scratchpad.show(data);
 						break;
 
 					case 'globals':
@@ -1707,9 +1717,11 @@ let _Code = {
 
 					let button = (label) => `<button title="${label}" class="action button btn flex items-center active:border-green hidden">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} ${label}</button>`;
 
-					toolbar = _Helpers.createSingleDOMElementFromHTML(`<div id="code-toolbar" class="flex items-center">${button('Create Type')}${button('Create Service Class')}</div>`);
+					toolbar = _Helpers.createSingleDOMElementFromHTML(`<div id="code-toolbar" class="flex items-center">${button('Create Type')}${button('Create Service Class')}${button('Create Scratchpad')}</div>`);
 
-					[...toolbar.querySelectorAll('button')].forEach((el, index) => {
+					toolbar.querySelector('button:nth-child(3)').addEventListener('click', _Code.mainArea.scratchpad.create);
+
+					[...toolbar.querySelectorAll('button')].slice(0, 2).forEach((el, index) => {
 
 						let isServiceClass = (index === 1);
 						let path           = (isServiceClass ? '/root/services' : '/root/custom');
@@ -1735,7 +1747,7 @@ let _Code = {
 			showCreateButtons: (level) => {
 
 				// each level of the tree offers what can be created there
-				let offers = { custom: [true, false], services: [false, true] }[level] ?? [false, false];
+				let offers = { custom: [true, false, false], services: [false, true, false], scratchpads: [false, false, true] }[level] ?? [false, false, false];
 
 				[..._Code.mainArea.typeTabs.toolbar().querySelectorAll(':scope > button')].forEach((button, index) => {
 					button.classList.toggle('hidden', !offers[index]);
@@ -2831,10 +2843,13 @@ let _Code = {
 				targetNode.appendChild(button);
 
 				// the row of Save, Revert and Delete stands at the foot of the card
-				if (targetId.endsWith('-actions') && targetNode.parentNode !== _Code.codeContents[0]) {
+				if (targetId.endsWith('-actions')) {
 
 					targetNode.classList.add('code-actions-footer');
-					_Code.codeContents[0].appendChild(targetNode);
+
+					if (targetNode.parentNode !== _Code.codeContents[0]) {
+						_Code.codeContents[0].appendChild(targetNode);
+					}
 				}
 
 				// the settings of the view's own editor stand at the right end of that row; an editor inside a tab keeps its own
@@ -2847,125 +2862,187 @@ let _Code = {
 			},
 		},
 		scratchpad: {
-			scratchpadsKey: 'scratchpads_' + location.port,
-			currentScratchPads: [],
-			show: async (data, updateLocationStack) => {
+			path: '/scratchpads',
+			nameOf: (pad) => ((pad.name && pad.name.trim().length > 0) ? pad.name : 'Untitled Scratchpad'),
+			load: () => Command.queryPromise('Scratchpad', 1000, 1, 'name', 'asc', null, true, 'ui'),
+			getTreeEntry: (pad, path) => {
+				return {
+					id:       `${path}/${pad.id}`,
+					text:     _Code.mainArea.scratchpad.nameOf(pad),
+					children: false,
+					icon:     _Icons.nonExistentEmptyIcon,
+					li_attr:  { 'data-id': pad.id },
+					data: {
+						svgIcon: _Icons.getSvgIcon(_Icons.iconScratchpad, 16, 24),
+						key:     'Scratchpad',
+						content: 'scratchpad',
+						id:      pad.id,
+						path:    `${path}/${pad.id}`
+					},
+				};
+			},
+			create: async () => {
 
-				_Code.mainArea.updateLocationStack(data, updateLocationStack);
+				let pad = await Command.createPromise({ type: 'Scratchpad', name: 'Untitled Scratchpad' });
 
-				_Code.codeContents.append(_Code.mainArea.scratchpad.templates.main());
+				_Code.tree.refreshNode(_Code.mainArea.scratchpad.path);
 
-				let newScratchPadButton = _Code.codeContents[0].querySelector('svg');
-				newScratchPadButton?.addEventListener('click', async () => {
-					let newScratchPad = await _Code.mainArea.scratchpad.createScratchpadEntity();
-					_Code.mainArea.scratchpad.drawScratchpad(newScratchPad);
-				});
+				// tree needs to be refreshed - implement better solution using refresh_node.jstree event
+				window.setTimeout(() => _Code.tree.findAndOpenNode(`${_Code.mainArea.scratchpad.path}/${pad.id}`, true), 250);
+			},
+			showOverview: async (data) => {
 
-				let currentScratchPads = await Command.queryPromise('Scratchpad', 1000, 1, 'createdDate', false, null, true, 'ui');
-				for (let currentPad of currentScratchPads) {
+				_Code.mainArea.updateLocationStack(data, data.updateLocationStack);
 
-					_Code.mainArea.scratchpad.drawScratchpad(currentPad);
+				_Code.codeContents.append(_Code.mainArea.scratchpad.templates.overview());
+
+				let tableConfig = {
+					class: 'type-overview schema-props grid',
+					style: 'grid-template-columns: [ name ] minmax(0, 3fr) [ lastRun ] minmax(0, 1fr);',
+					cols: [
+						{ class: 'pb-2 px-2 font-bold flex', title: 'Name' },
+						{ class: 'pb-2 px-2 font-bold flex', title: 'Last run' }
+					],
+					noButtons: true
+				};
+
+				let table    = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaGrid(tableConfig));
+				let gridBody = table.querySelector('.schema-grid-body');
+				table.querySelector('.schema-grid-footer').classList.add('hidden');
+
+				_Code.codeContents[0].appendChild(table);
+
+				for (let pad of await _Code.mainArea.scratchpad.load()) {
+
+					let name = _Code.mainArea.scratchpad.nameOf(pad);
+					let row  = _Helpers.createSingleDOMElementFromHTML(`
+						<div class="schema-grid-row contents cursor-pointer" title="Open scratchpad">
+							<div class="p-2 flex items-center"><b></b></div>
+							<div class="p-2 flex items-center">${pad.lastRunTimestamp ? new Date(pad.lastRunTimestamp).toLocaleString() : ''}</div>
+						</div>
+					`);
+
+					row.querySelector('b').textContent = name;
+
+					row.addEventListener('click', () => {
+						_Code.tree.findAndOpenNode(`${data.path}/${pad.id}`, true);
+					});
+
+					gridBody.appendChild(row);
 				}
 			},
-			drawScratchpad: (currentPad) => {
+			show: async (data) => {
 
-				let container = _Code.codeContents[0].querySelector('#code-scratchpad-container');
+				_Code.mainArea.updateLocationStack(data, data.updateLocationStack);
 
-				let newScratchpad = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.scratchpad(currentPad));
-				container.insertAdjacentElement('afterbegin', newScratchpad);
+				let pad = await Command.getPromise(data.id, null, 'ui');
 
-				let titleDiv         = newScratchpad.querySelector('[data-is-title]');
-				let titleInput       = newScratchpad.querySelector('[data-is-title-input]');
-				let editorDiv        = newScratchpad.querySelector('[data-is-editor]');
-				let editorContextDiv = newScratchpad.querySelector('[data-is-editor-context]');
-				let logTextarea      = newScratchpad.querySelector('[data-is-log]');
-				let logContext       = newScratchpad.querySelector('[data-is-log-context]');
-				let outputDiv        = newScratchpad.querySelector('[data-is-output]');
+				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
+				_Code.codeContents.append(_Code.mainArea.scratchpad.templates.scratchpad());
 
-				newScratchpad.querySelector('summary').addEventListener('click', (e) => {
+				let contents    = _Code.codeContents[0];
+				let nameOutput  = contents.querySelector('#scratchpad-name-output');
+				let nameInput   = contents.querySelector('#scratchpad-name-input');
+				let wrapOption  = contents.querySelector('#scratchpad-options');
+				let wrapInput   = contents.querySelector('[data-property="wrapJsInMain"]');
+				let logTextarea = contents.querySelector('[data-is-log]');
+				let outputDiv   = contents.querySelector('[data-is-output]');
 
-					let details = e.target.closest('details');
+				// an instance without the switch does not know the property and would refuse the whole save
+				let hasWrapSwitch = Object.hasOwn(pad, 'wrapJsInMain');
 
-					currentPad.collapsed = details.open;
+				let save = () => {
 
-					if (!details.open) {
-						_Editors.resizeVisibleEditors();
+					let { name, source, result, log } = pad;
+
+					Command.setProperties(pad.id, Object.assign({ name, source, result, log }, hasWrapSwitch ? { wrapJsInMain: pad.wrapJsInMain } : {}));
+				};
+
+				// name: click to rename, as for a method
+				nameOutput.textContent = _Code.mainArea.scratchpad.nameOf(pad);
+				nameInput.value        = pad.name ?? '';
+
+				let commitName = () => {
+
+					if (nameInput.classList.contains('hidden')) {
+						return;
 					}
 
-					saveFn();
-				});
+					nameInput.classList.add('hidden');
+					nameOutput.classList.remove('hidden');
 
-				let saveFn = async () => {
+					if (nameInput.value !== (pad.name ?? '')) {
 
-					let { name, source, result, log, collapsed } = currentPad;
+						pad.name               = nameInput.value;
+						nameOutput.textContent = _Code.mainArea.scratchpad.nameOf(pad);
 
-					Command.setProperties(currentPad.id, { name, source, result, log, collapsed });
+						save();
+						_Code.codeTree.jstree(true).rename_node(data.path, _Code.mainArea.scratchpad.nameOf(pad));
+					}
 				};
 
-				logTextarea.value = currentPad.log ?? '';
+				nameOutput.addEventListener('click', () => {
 
-				_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
-
-				let updateTitleDiv = (newName) => {
-
-					titleDiv.textContent = (newName && newName.trim().length > 0) ? newName : 'Untitled Scratchpad';
-				};
-
-				updateTitleDiv(currentPad.name);
-
-				titleInput.value = currentPad.name ?? 'Untitled Scratchpad';
-				titleInput.addEventListener('input', e => {
-
-					currentPad.name = e.target.value;
-
-					updateTitleDiv(currentPad.name);
-
-					saveFn();
+					nameOutput.classList.add('hidden');
+					nameInput.classList.remove('hidden');
+					nameInput.focus();
 				});
+
+				nameInput.addEventListener('blur', commitName);
+				nameInput.addEventListener('keyup', (e) => {
+
+					if (e.key === 'Escape') {
+						nameInput.value = pad.name ?? '';
+						commitName();
+					} else if (e.key === 'Enter') {
+						commitName();
+					}
+				});
+
+				// wrap in main(): makes "return" work
+				wrapOption.classList.toggle('hidden', !hasWrapSwitch);
+				wrapInput.checked = (pad.wrapJsInMain === true);
+				wrapInput.addEventListener('change', () => {
+
+					pad.wrapJsInMain = wrapInput.checked;
+					save();
+				});
+
+				logTextarea.value = pad.log ?? '';
+				_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, pad);
 
 				let scratchMonacoConfig = {
 					language: 'auto',
 					lint: true,
 					autocomplete: true,
 					isAutoscriptEnv: true,
-					scrollBeyondLastLine: false,
 					changeFn: (editor, entity) => {
 
 						entity.source = editor.getValue();
-						saveFn();
-
-						_Code.mainArea.scratchpad.resizeEditorContainer(editorDiv, editor);
+						save();
 					}
 				};
 
-				let scratchEditor = _Editors.getMonacoEditor(currentPad, 'source', editorDiv, scratchMonacoConfig);
+				let scratchEditor = _Editors.getMonacoEditor(pad, 'source', contents.querySelector('.editor'), scratchMonacoConfig);
+				_Editors.appendEditorOptionsElement(contents.querySelector('.editor-info'));
 
-				_Code.mainArea.scratchpad.resizeEditorContainer(editorDiv, scratchEditor);
-
-				let runButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.runButton());
-				editorContextDiv.appendChild(runButton);
-
-				let removePadButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.removePadButton());
-				editorContextDiv.appendChild(removePadButton);
-
-				let updateLogButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.updateLogButton());
-				logContext.appendChild(updateLogButton);
+				let updateLogButton = contents.querySelector('#scratchpad-update-log');
 
 				let updateLog = async () => {
 
-					let response = await fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}/getServerLog`, { method: 'POST' });
-					let data     = await response.json();
+					let response = await fetch(`${Structr.rootUrl}Scratchpad/${pad.id}/getServerLog`, { method: 'POST' });
+					let logData  = await response.json();
 
 					if (response.ok) {
 
-						currentPad.log    = data;
-						logTextarea.value = data;
+						pad.log           = logData;
+						logTextarea.value = logData;
 
-						saveFn();
+						save();
 
 					} else {
 
-						Structr.errorFromResponse(data);
+						Structr.errorFromResponse(logData);
 					}
 				};
 
@@ -2982,34 +3059,30 @@ let _Code = {
 					}, 1000);
 				};
 
-				runButton.addEventListener('click', async () => {
+				let runButton = _Code.mainArea.helpers.displaySvgActionButton('#scratchpad-actions', _Icons.getSvgIcon(_Icons.iconRunButton, 14, 14), 'run', 'Run', () => {
 
-					_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(runButton, true);
-					_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(updateLogButton, true);
+					_Helpers.disableElements(true, runButton, updateLogButton);
 
 					_Helpers.fastRemoveAllChildren(outputDiv);
 					logTextarea.value = '';
 
-					fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}/prepareNextRun`, { method: 'POST' })
+					fetch(`${Structr.rootUrl}Scratchpad/${pad.id}/prepareNextRun`, { method: 'POST' })
 						.then(response => {
 
 							updateLogUntilCallFinished();
 
-							return fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}/run`, { method: 'POST' })
+							return fetch(`${Structr.rootUrl}Scratchpad/${pad.id}/run`, { method: 'POST' })
 						})
 						.then(response => response.json())
-						.then(data => {
+						.then(runData => {
 
-							// a string result is shown as it is: JSON.stringify would wrap it in quotes and
-							// turn its newlines into a literal backslash-n. print() and println() write
-							// strings, and Scripting.evaluate returns the output buffer in preference to the
-							// actual result, so this is the common case rather than an edge case.
-							currentPad.result = (data.code === 422) ? data.message : (typeof data.result === 'string' ? data.result : JSON.stringify(data.result, null, '\t'));
-							_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
+							// a string result is shown as it is: JSON.stringify would wrap it in quotes and turn its newlines into a literal backslash-n
+							pad.result = (runData.code === 422) ? runData.message : (typeof runData.result === 'string' ? runData.result : JSON.stringify(runData.result, null, '\t'));
+							_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, pad);
 
 						}).catch(e => {
 
-							_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
+							_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, pad);
 							console.log(e);
 
 						}).finally(() => {
@@ -3018,66 +3091,37 @@ let _Code = {
 
 							updateLog();
 
-							_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(runButton, false);
-							_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(updateLogButton, false);
+							_Helpers.disableElements(false, runButton, updateLogButton);
 						});
 				});
 
-				updateLogButton.addEventListener('click', async () => {
-					await updateLog();
-				});
+				runButton.title = `Run (${_Helpers.isMac() ? 'Cmd' : 'Ctrl'}+Enter)`;
 
-				removePadButton.addEventListener('click', async (e) => {
+				_Code.mainArea.helpers.displaySvgActionButton('#scratchpad-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete scratchpad', () => {
 
-					_Dialogs.confirmation.showPromise(`Delete scratchpad <strong>${_Helpers.escapeTags(currentPad.name ?? '')}</strong>?`).then(async confirm => {
+					_Dialogs.confirmation.showPromise(`Delete scratchpad <strong>${_Helpers.escapeTags(pad.name ?? '')}</strong>?`).then(async confirm => {
 
 						if (confirm === true) {
 
-							let response = await fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}`, { method: 'DELETE' });
+							let response = await fetch(`${Structr.rootUrl}Scratchpad/${pad.id}`, { method: 'DELETE' });
 
 							if (!response.ok) {
 
-								let data = await response.json();
-
-								Structr.errorFromResponse(data);
+								Structr.errorFromResponse(await response.json());
 
 							} else {
-								e.target.closest('[data-is-scratchpad]').remove();
+
+								_Code.tree.refreshNode(_Code.mainArea.scratchpad.path);
+								_Code.tree.findAndOpenNode(_Code.mainArea.scratchpad.path, true);
 							}
 						}
 					});
 				});
 
+				updateLogButton.addEventListener('click', updateLog);
+
 				_Editors.resizeVisibleEditors();
-			},
-			createScratchpadEntity: async () => {
-
-				return Command.createPromise({
-					type: 'Scratchpad',
-					name: 'Untitled Scratchpad'
-				});
-			},
-			setButtonDisabledAndSpinnerStatus: (button, status) => {
-
-				button.classList.toggle('show-spinner', status);
-				button.classList.toggle('disabled', status);
-				button.disabled = status;
-			},
-			resizeEditorContainer: (container, editor) => {
-
-				const lineCount  = editor.getModel().getLineCount();
-				const lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
-
-				let minLines = 5;
-				let maxLines = 35;
-
-				let showLines = Math.min(maxLines, Math.max(minLines, lineCount));
-
-				const contentHeight = showLines * lineHeight;
-
-				container.style.height = contentHeight + 'px';
-
-				_Editors.resizeEditor(editor);
+				_Editors.focusEditor(scratchEditor);
 			},
 			populateOutputDiv: (div, entity) => {
 
@@ -3099,86 +3143,43 @@ let _Code = {
 				div.appendChild(outputDiv);
 			},
 			templates: {
-				main: config => `
-					<div class="flex flex-col items-start gap-2 items-center mb-4">
-						<h2>Scratchpads ${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-green', 'cursor-pointer', 'mr-2'])}</h2>
-					</div>
-					<div class="content-container">
-					
-						<div class="inline-info">
-							<div class="inline-info-icon">
-								${_Icons.getSvgIcon('info-icon')}
-							</div>
-							<div class="inline-info-text">
-								<p>Scratchpads are simple blocks where custom code can be developed without needing to create a method.</p>
-								
-								<p>If log output is generated by the scratchpad code, it is tagged with <code>[scratch_xxxx]</code>. The log view is continuously updated while the script is running and only contains log entries that contain the corresponding tag.</p>
-							</div>
+				overview: config => `
+					<div class="inline-info mb-4">
+						<div class="inline-info-icon">
+							${_Icons.getSvgIcon('info-icon')}
 						</div>
-					
-						<div id="code-scratchpad-container" class="flex flex-col gap-6">
+						<div class="inline-info-text">
+							<p>Scratchpads are simple blocks where custom code can be developed without needing to create a method.</p>
+							<p>If log output is generated by the scratchpad code, it is tagged with <code>[scratch_xxxx]</code>. The log view is continuously updated while the script is running and only contains log entries that contain the corresponding tag.</p>
 						</div>
 					</div>
 				`,
 				scratchpad: config => `
-					<details class="flex px-2" data-is-scratchpad ${config.collapsed ? '' : 'open'}>
-						
-						<summary class="cursor-pointer flex items-center gap-4 list-none pl-4 py-4">
-							${_Icons.getSvgIcon('chevron-right-filled', 12, 12)}
-							<div data-is-title class="font-semibold"></div>
-						</summary>
-						
-						<div data-is-scratchpad-details class="flex flex-col flex-grow gap-2">
-						
-							<input data-is-title-input placeholder="Title" name="name" class="flex-grow">
-							
-							<div class="flex-grow flex gap-2">
-	
-								<div data-is-editor-context class="flex flex-col gap-2"></div>
-								
-								<div class="flex-grow grid grid-cols-2 gap-4">
-			
-									<div data-is-editor-container>
-										<div data-is-editor></div>
-									</div>
-	
-									<div class="flex gap-4">
-										<textarea data-is-log readonly="readonly" class="flex-grow whitespace-nowrap whitespace-pre"></textarea>
-										<div data-is-log-context></div>
-									</div>
-									
-									<div data-is-output class="col-span-2"></div>
-								</div>
-							</div>	
+					<h2 class="cursor-text">
+						<span id="scratchpad-name-output"></span>
+						<input class="hidden font-bold text-lg" type="text" id="scratchpad-name-input" placeholder="Untitled Scratchpad" size="60" autocomplete="off">
+					</h2>
+					<div id="scratchpad-options" class="mb-2">
+						<label class="whitespace-nowrap"><input type="checkbox" data-property="wrapJsInMain"> Wrap JavaScript in main()</label>
+					</div>
+					<div id="scratchpad-editor" class="flex flex-col flex-grow">
+						<div class="editor flex-grow"></div>
+					</div>
+					<div id="scratchpad-results" class="grid grid-cols-2 gap-4">
+						<div class="scratchpad-pane flex flex-col">
+							<h4>Output</h4>
+							<div data-is-output class="flex-grow"></div>
 						</div>
-					</details>
-				`,
-				runButton: config => `
-					<button class="group hover:bg-gray-100 focus:border-gray-666 active:border-green" title="Run">
-						<div class="group-[.show-spinner]:hidden flex items-center justify-center gap-2">
-							${_Icons.getSvgIcon(_Icons.iconRunButton)}
+						<div class="scratchpad-pane flex flex-col">
+							<h4 class="flex items-center gap-2">
+								Server log
+								<button id="scratchpad-update-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green" title="Update log">${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 14, 14)}</button>
+							</h4>
+							<textarea data-is-log readonly="readonly" class="flex-grow whitespace-pre"></textarea>
 						</div>
-						<div class="flex">
-							${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 16, 16, ['hidden', 'group-[.show-spinner]:block'])}
-						</div>
-					</button>
-				`,
-				updateLogButton: config => `
-					<button class="group over:bg-gray-100 focus:border-gray-666 active:border-green" title="Update Log">
-						<div class="group-[.show-spinner]:hidden flex items-center justify-center gap-2">
-							${_Icons.getSvgIcon(_Icons.iconRefreshArrows)}
-						</div>
-						<div class="flex">
-							${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 16, 16, ['hidden', 'group-[.show-spinner]:block'])}
-						</div>
-					</button>
-				`,
-				removePadButton: config => `
-					<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" title="Remove this scratchpad">
-						<div class="flex items-center justify-center gap-2">
-							${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['icon-red'])}
-						</div>
-					</button>
+					</div>
+					<div class="editor-info"></div>
+					<div id="scratchpad-actions" class="flex"></div>
 				`,
 			}
 		},
@@ -3461,6 +3462,19 @@ let _Code = {
 								runButton.click();
 							}
 						}
+					}
+				}
+
+				// ctrl-enter / cmd-enter runs the open scratchpad
+				if (event.key === 'Enter' && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
+
+					let runButton = document.querySelector('#scratchpad-actions #action-button-run');
+
+					if (runButton && !_Dialogs.custom.isDialogOpen()) {
+
+						event.preventDefault();
+						event.stopPropagation();
+						runButton.click();
 					}
 				}
 

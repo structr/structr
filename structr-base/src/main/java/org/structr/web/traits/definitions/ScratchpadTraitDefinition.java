@@ -50,6 +50,7 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String LOG_PROPERTY                = "log";
 	public static final String LAST_RUN_TIMESTAMP_PROPERTY = "lastRunTimestamp";
 	public static final String COLLAPSED_PROPERTY          = "collapsed";
+	public static final String WRAP_JS_IN_MAIN_PROPERTY    = "wrapJsInMain";
 
 	public ScratchpadTraitDefinition() {
 
@@ -130,14 +131,15 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> logProperty            = new StringProperty(LOG_PROPERTY).defaultValue("");
 		final Property<Long> lastRunTimestampProperty = new LongProperty(LAST_RUN_TIMESTAMP_PROPERTY);
 		final Property<Boolean> collapsedProperty     = new BooleanProperty(COLLAPSED_PROPERTY).defaultValue(false);
+		final Property<Boolean> wrapJsInMainProperty  = new BooleanProperty(WRAP_JS_IN_MAIN_PROPERTY).defaultValue(true);
 
-		return Set.of(sourceProperty, resultProperty, logProperty, lastRunTimestampProperty, collapsedProperty);
+		return Set.of(sourceProperty, resultProperty, logProperty, lastRunTimestampProperty, collapsedProperty, wrapJsInMainProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(PropertyView.Ui, newSet(SOURCE_PROPERTY, RESULT_PROPERTY, LOG_PROPERTY, LAST_RUN_TIMESTAMP_PROPERTY, COLLAPSED_PROPERTY));
+		return Map.of(PropertyView.Ui, newSet(SOURCE_PROPERTY, RESULT_PROPERTY, LOG_PROPERTY, LAST_RUN_TIMESTAMP_PROPERTY, COLLAPSED_PROPERTY, WRAP_JS_IN_MAIN_PROPERTY));
 	}
 
 	@Override
