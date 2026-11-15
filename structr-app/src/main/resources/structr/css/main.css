@@ -1425,8 +1425,13 @@ i.button {
 	background-color: var(--color-background-hover);
 }
 
+/* as in the other trees: the top level stands 12px from the edge of the box, a child's arrow centred below the icon of its parent */
 .slideOut .node {
-	margin: 0 0 0 1rem;
+	margin: 0 0 0 9px;
+}
+
+.slideOut .node .node {
+	margin-left: 1.55rem;
 }
 
 #components, #elements {
@@ -2629,13 +2634,28 @@ td#cascading-options, td#propagation-options {
 .jstree-default .jstree-node.jstree-open > .jstree-ocl {
 	background-image: none;
 	background-color: var(--color-tree-arrow);
-	-webkit-mask: var(--tree-arrow-closed) no-repeat 9px 7px / .8rem;
-	mask: var(--tree-arrow-closed) no-repeat 9px 7px / .8rem;
+	-webkit-mask: var(--tree-arrow-closed) no-repeat 5px 7px / .8rem;
+	mask: var(--tree-arrow-closed) no-repeat 5px 7px / .8rem;
 }
 
 .jstree-default .jstree-node.jstree-open > .jstree-ocl {
-	-webkit-mask: var(--tree-arrow-open) no-repeat 7px 9px / .8rem;
-	mask: var(--tree-arrow-open) no-repeat 7px 9px / .8rem;
+	-webkit-mask: var(--tree-arrow-open) no-repeat 3px 9px / .8rem;
+	mask: var(--tree-arrow-open) no-repeat 3px 9px / .8rem;
+}
+
+/* arrow, icon and label stand as close together as in the page tree */
+.jstree-default .jstree-node > .jstree-ocl {
+	width: 18px;
+}
+
+.jstree-default .jstree-anchor > .jstree-themeicon {
+	width: 20px;
+	margin-right: 2px;
+}
+
+/* a child is indented so that its arrow stands centred below the icon of its parent */
+.jstree-default .jstree-children:not(.jstree-container-ul) > .jstree-node {
+	margin-left: 21px;
 }
 
 .jstree-default .jstree-node.jstree-loading > .jstree-ocl {
@@ -6052,4 +6072,33 @@ body.monitor-panel-resizing {
 
 #monitor-switches button.hidden {
 	display: none;
+}
+
+/* the right end of the toolbar row, the tools of the header and the panel at the foot end where the main area ends */
+#function-bar .searchBox {
+	margin-right: 0;
+	padding-right: 0;
+}
+
+#function-bar .searchBox .clearSearchIcon {
+	right: .5rem;
+}
+
+#header > .flex.gap-4 {
+	margin-right: 2rem;
+}
+
+#monitor-panel-content {
+	padding-right: 2rem;
+}
+
+#monitor-panel-close {
+	right: .35rem;
+}
+
+/* the arrows of the top level of the trees of Code and Files stand 12px from the edge of their box */
+#code-tree > .jstree-container-ul,
+#file-tree > .jstree-container-ul {
+	box-sizing: border-box;
+	padding-left: 8px;
 }

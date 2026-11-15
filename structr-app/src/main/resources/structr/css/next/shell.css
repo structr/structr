@@ -525,6 +525,56 @@
 	color: var(--color-text-inverse);
 }
 
+/* a row under the pointer has the same light green in every tree, and it is the row alone, not what is below it */
+:root.ui-next .jstree-default .jstree-wholerow-hovered:not(.jstree-wholerow-clicked) {
+	background: var(--color-background-brand-light) ! important;
+}
+
+:root.ui-next .node.nodeHover:has(> .node-container) {
+	background-color: transparent ! important;
+}
+
+:root.ui-next .node.nodeHover > .node-container:not(.node-selected) {
+	background-color: var(--color-background-brand-light);
+}
+
+/* in the trees of the slide-outs the highlight of a row begins at the edge of the box, whatever the indent of the row */
+:root.ui-next .slideOut .node.nodeHover > .node-container:not(.node-selected)::before,
+:root.ui-next .slideOut .node .node-container.node-selected::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: 100%;
+	width: 60rem;
+	background-color: var(--color-background-brand-light);
+	pointer-events: none;
+}
+
+:root.ui-next .slideOut .node .node-container.node-selected::before {
+	background-color: var(--color-brand);
+}
+
+/* the arrow of the selected row takes the colour of its text */
+:root.ui-next .jstree-default .jstree-node:is(.jstree-open, .jstree-closed):has(> .jstree-clicked) > .jstree-ocl {
+	background-color: var(--color-text-inverse);
+}
+
+:root.ui-next .node .node-container.node-selected > .expand_icon_svg {
+	background-image: none;
+	background-color: var(--color-text-inverse);
+}
+
+:root.ui-next .node .node-container.node-selected > .expand_icon_svg.svg-collapsed {
+	-webkit-mask: var(--tree-arrow-closed) no-repeat .35rem .35rem / .8rem;
+	mask: var(--tree-arrow-closed) no-repeat .35rem .35rem / .8rem;
+}
+
+:root.ui-next .node .node-container.node-selected > .expand_icon_svg.svg-expanded {
+	-webkit-mask: var(--tree-arrow-open) no-repeat .15rem .55rem / .8rem;
+	mask: var(--tree-arrow-open) no-repeat .15rem .55rem / .8rem;
+}
+
 /* the same highlight for the selected row of the other lists: the node of a page tree (its row, not its subtree) */
 :root.ui-next .node.nodeSelected:has(> .node-container.node-selected) {
 	background-color: transparent ! important;
@@ -630,4 +680,15 @@
 	border-color: var(--color-border-primary);
 	background-color: var(--color-background-tertiary);
 	color: var(--color-text-primary);
+}
+
+/* the row of a context menu under the pointer: white text and icons on its green or red, as on a selected row; its submenu keeps its own colours */
+:root.ui-next #context-menu-dialog li:hover:not(.preview-context-menu) > .menu-entry-container,
+:root.ui-next #context-menu-dialog li:hover:not(.preview-context-menu) > .menu-entry-container :is(svg, .class-id-attrs, b) {
+	color: var(--color-text-inverse);
+}
+
+/* the plain rows at the deepest level of a context menu have no container of their own */
+:root.ui-next #context-menu-dialog li:hover:not(.preview-context-menu):not(:has(> .menu-entry-container)) {
+	color: var(--color-text-inverse);
 }
