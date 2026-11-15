@@ -2837,22 +2837,6 @@ input.tree-search-input {
 	width: 100%;
 }
 
-/* BEGIN: styles to maximize methods editors in bulk save dialog for CODE area */
-#code-methods-container {
-	height: calc(100% - 40px);
-}
-#code-methods-container #methods-container {
-	height: 100%;
-}
-#code-methods-container #methods-container #methods-content {
-	height: calc(100% - 10px);
-}
-#code-methods-container #methods-container #methods-content .method-tab-content,
-#code-methods-container #methods-container #methods-content .method-tab-content .cm-schema-methods {
-	height: 100%;
-}
-/* END: styles to maximize methods editors in bulk save dialog for CODE area */
-
 /* BEGIN: styles to maximize methods editors in bulk save dialog for SCHEMA area */
 #dialogBox.dialog.schema-edit-dialog .dialogText,
 #dialogBox.dialog.schema-edit-dialog .dialogText .schema-details,

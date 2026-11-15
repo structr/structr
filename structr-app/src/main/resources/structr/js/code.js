@@ -869,15 +869,22 @@ let _Code = {
 				_Code.mainArea.clearMainArea();
 				_Code.mainArea.typeTabs.showCreateButtons(data.content ?? data.key);
 
-				switch (data.key === 'root' ? 'root' : data.content) {
+				switch ((data.key === 'root' || data.key === 'searchresults') ? data.key : data.content) {
 
 					case 'root':
 						_Code.mainArea.displayCreateAreas(data);
 						break;
 
 					case 'searchresults':
+						_Code.codeContents[0].insertAdjacentHTML('beforeend', '<p class="overview-note">Select a result in the tree to open it.</p>');
+						break;
+
 					case 'undefined':
 					case 'null':
+						break;
+
+					case 'processes':
+						_Code.mainArea.displayProcessesContent(data);
 						break;
 
 					case 'scratchpads':
@@ -925,8 +932,7 @@ let _Code = {
 						break;
 
 					case 'deploy-configs':
-						// no overview UI -> redirect to first child
-						_Code.tree.findAndOpenNode(data.path + '/pre-deploy-conf', false);
+						_Code.mainArea.deploymentConfigurationScripts.showOverview(data);
 						break;
 
 					case 'pre-deploy-conf':
@@ -1062,26 +1068,8 @@ let _Code = {
 						tree.open_node(node);
 					}
 
-					let selectedNode = tree.get_node(node, true);
-					if (selectedNode) {
-
-						// depending on the depth we select a different parent level
-						let parentToScrollTo = selectedNode;
-						switch (selectedNode.parents.length) {
-							case 4:
-								parentToScrollTo = tree.get_node(tree.get_parent(node), true);
-								break;
-							case 5:
-								parentToScrollTo = tree.get_node(tree.get_parent(tree.get_parent(node)), true)
-								break;
-						}
-
-						if (parentToScrollTo.length) {
-							parentToScrollTo[0].scrollIntoView();
-						} else {
-							parentToScrollTo.scrollIntoView();
-						}
-					}
+					// the tree only moves if the entry is not in view
+					tree.get_node(node.id, true)?.[0]?.querySelector(':scope > a')?.scrollIntoView({ block: 'nearest' });
 
 					if (_Code.search.searchIsActive()) {
 						tree.element[0].scrollTo(0,0);
@@ -1116,37 +1104,122 @@ let _Code = {
 
 			_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
-			_Code.codeContents.append(_Code.templates.globals());
+			_Code.mainArea.globalsPath = data.path;
+
+			let yesNo = (flag) => (flag ? 'yes' : 'no');
+
+			_Code.mainArea.displayOverview(data, ['Name', 'Callable via HTTP', 'Wrap JavaScript in main()', 'Return result object only'], (addRow) => {
+
+				_Schema.methods.fetchUserDefinedMethods((methods) => {
+
+					for (let method of methods) {
+
+						addRow(method.id, [
+							`${_Icons.getIconForSchemaNodeType(method)}<b>${_Helpers.escapeTags(method.name)}</b>`,
+							(method.isPrivate ? 'no' : (method.httpVerb ?? 'POST')),
+							yesNo(method.wrapJsInMain),
+							yesNo(method.returnRawResult)
+						]);
+					}
+				});
+			});
+		},
+		// creates a user-defined function, or opens the lifecycle method of that name if it exists already
+		createGlobalMethod: (lifecycleName) => {
 
 			_Schema.methods.fetchUserDefinedMethods((methods) => {
 
-				_Schema.methods.appendMethods(_Code.codeContents[0].querySelector('#code-methods-container'), null, methods, () => {
-					_Code.tree.refreshNode(data.path);
-				});
+				let names    = methods.map(method => method.name);
+				let existing = methods.find(method => method.name === lifecycleName);
+				let name     = lifecycleName;
 
-				_Code.persistence.runCurrentEntitySaveAction = () => {
-					$('.save-all', _Code.codeContents).click();
-				};
+				if (existing) {
+					_Code.search.goToResult(existing);
+					return;
+				}
+
+				for (let suffix = 1; !name || names.includes(name); suffix++) {
+					name = 'newFunction' + (suffix > 1 ? suffix : '');
+				}
+
+				Command.create({ type: 'SchemaMethod', name: name, httpVerb: 'POST' }, (result) => {
+					_Code.mainArea.renameOnOpen = (lifecycleName ? null : result.id);
+					_Code.tree.refreshNode(_Code.mainArea.globalsPath);
+					_Code.search.goToResult(result);
+				});
 			});
 		},
 		displayDataSourcesContent: (data) => {
 
-			let title = 'Create New Data Source';
+			_Code.mainArea.dataSourcesPath = data.path;
 
-			_Code.codeContents[0].insertAdjacentHTML('beforeend', _Code.templates.dataSourceCreation(title));
+			_Code.mainArea.displayOverview(data, ['Name', 'Kind'], (addRow) => {
 
-			_Code.mainArea.helpers.displaySvgActionButton('#data-source-buttons', _Icons.getSvgIcon(_Icons.iconScriptWrapped, 14, 14, ''), 'create', 'Script Data Source', () => {
-				Command.create({ type: 'ScriptDataSource' }, (result) => {
-					_Code.tree.refreshNode(data.path);
-					_Code.search.goToResult(result);
+				Command.query('DataSource', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { '!type': 'Folder' }, (result) => {
+
+					for (let source of result.filter(s => s.type !== 'SchemaNode' && s.type !== 'Folder')) {
+
+						let name = (source.name ? `<b>${_Helpers.escapeTags(source.name)}</b>` : `<span class="type-kind">[unnamed ${source.type}]</span>`);
+
+						let icon = _Icons.getSvgIcon((source.type === 'QueryDataSource') ? _Icons.iconFilterFunnel : _Icons.iconScriptWrapped, 16, 24, ['flex-shrink-0']);
+
+						addRow(source.id, [icon + name, (source.type === 'QueryDataSource' ? 'Query' : (source.type === 'ScriptDataSource' ? 'Script' : source.type))]);
+					}
+
+				}, true, 'ui');
+			});
+		},
+		createDataSource: (type) => {
+
+			Command.create({ type: type }, (result) => {
+				_Code.tree.refreshNode(_Code.mainArea.dataSourcesPath);
+				_Code.search.goToResult(result);
+			});
+		},
+		displayProcessesContent: (data) => {
+
+			_Code.mainArea.displayOverview(data, ['Name', 'Version'], (addRow) => {
+
+				Command.query('BpmnDefinitions', 2000, 1, 'name', 'asc', {}, (definitions) => {
+
+					for (let definition of (definitions ?? [])) {
+						addRow(definition.id, [`${_Icons.getSvgIcon(_Icons.iconProcess, 16, 24, ['flex-shrink-0'])}<b>${_Helpers.escapeTags(definition.processName || definition.name || '[unnamed]')}</b>`, definition.version ?? '']);
+					}
 				});
 			});
 
-			_Code.mainArea.helpers.displaySvgActionButton('#data-source-buttons', _Icons.getSvgIcon(_Icons.iconFilterFunnel, 14, 14, ''), 'create', 'Query Data Source', () => {
-				Command.create({ type: 'QueryDataSource'}, (result) => {
-					_Code.tree.refreshNode(data.path);
-					_Code.search.goToResult(result);
+			_Code.codeContents[0].insertAdjacentHTML('beforeend', '<p class="overview-note">Processes are created and imported in the <a href="#processes">Processes area</a>.</p>');
+		},
+		// the overview of a level of the tree: one row per entry, a click opens it
+		displayOverview: (data, columns, load) => {
+
+			_Code.mainArea.updateLocationStack(data, data.updateLocationStack);
+
+			let table = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaGrid({
+				class: 'type-overview schema-props grid',
+				style: `grid-template-columns: minmax(0, 3fr) repeat(${columns.length - 1}, minmax(0, 1fr));`,
+				cols: columns.map(title => ({ class: 'pb-2 px-2 font-bold flex', title: title })),
+				noButtons: true
+			}));
+
+			let gridBody = table.querySelector('.schema-grid-body');
+			table.querySelector('.schema-grid-footer').classList.add('hidden');
+
+			_Code.codeContents[0].prepend(table);
+
+			load((id, cells) => {
+
+				let row = _Helpers.createSingleDOMElementFromHTML(`
+					<div class="schema-grid-row contents cursor-pointer">
+						${cells.map(cell => `<div class="p-2 flex items-center gap-2">${cell}</div>`).join('')}
+					</div>
+				`);
+
+				row.addEventListener('click', () => {
+					_Code.tree.findAndOpenNode(`${data.path}/${id}`, true);
 				});
+
+				gridBody.appendChild(row);
 			});
 		},
 		displayCustomTypesContent: (data) => {
@@ -1242,7 +1315,7 @@ let _Code = {
 					let kind   = (type.isInterface ? 'interface' : (type.isAbstract ? 'abstract' : ''));
 					let row    = _Helpers.createSingleDOMElementFromHTML(`
 						<div class="schema-grid-row contents cursor-pointer" title="Open type ${_Helpers.escapeForHtmlAttributes(type.name)}">
-							<div class="p-2 flex items-center gap-2"><b>${type.name}</b><span class="type-kind">${kind}</span></div>
+							<div class="p-2 flex items-center gap-2">${_Icons.getIconForSchemaNodeType(type)}<b>${type.name}</b><span class="type-kind">${kind}</span></div>
 							<div class="p-2 flex items-center">${(type.inheritedTraits ?? []).join(', ')}</div>
 							${counts.map(list => `<div class="p-2 flex items-center justify-center">${(list ?? []).length}</div>`).join('')}
 						</div>
@@ -1278,7 +1351,7 @@ let _Code = {
 
 				if (entity.type === 'QueryDataSource') {
 
-					_Code.codeContents.append(_Code.templates.dataSourceEditor('Edit Data Source "' + entity.name + '"'));
+					_Code.codeContents.append(_Code.templates.dataSourceEditor(entity.name, entity));
 
 					let container = _Code.codeContents[0].querySelector('#datasource-container');
 
@@ -1507,7 +1580,7 @@ let _Code = {
 
 				} else if (entity.type === 'ScriptDataSource') {
 
-					_Code.codeContents.append(_Code.templates.dataSourceEditor('Edit Data Source "' + entity.name + '"'));
+					_Code.codeContents.append(_Code.templates.dataSourceEditor(entity.name, entity));
 
 					let container = _Code.codeContents[0].querySelector('#datasource-container');
 
@@ -1533,7 +1606,7 @@ let _Code = {
 					// A type that carries the DataSource trait but has no editor of its own: without this
 					// branch the panel stayed empty and the name input the code below wires up did not
 					// exist, so the click ended in a TypeError.
-					_Code.codeContents.append(_Code.templates.dataSourceEditor('Edit Data Source "' + (entity.name || entity.id) + '"'));
+					_Code.codeContents.append(_Code.templates.dataSourceEditor(entity.name || entity.id, entity));
 
 					let container = _Code.codeContents[0].querySelector('#datasource-container');
 
@@ -1725,9 +1798,25 @@ let _Code = {
 
 					let button = (label) => `<button title="${label}" class="action button btn flex items-center active:border-green hidden">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} ${label}</button>`;
 
-					toolbar = _Helpers.createSingleDOMElementFromHTML(`<div id="code-toolbar" class="flex items-center">${button('Create Type')}${button('Create Service Class')}${button('Create Scratchpad')}</div>`);
+					toolbar = _Helpers.createSingleDOMElementFromHTML(`<div id="code-toolbar" class="flex items-center">${button('Create Type')}${button('Create Service Class')}${button('Create Scratchpad')}${button('Create Script Data Source')}${button('Create Query Data Source')}
+						<button title="Create Pre-Deployment Script" data-level="create-pre-deploy-conf" class="action button btn flex items-center active:border-green hidden">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Pre-Deployment Script</button>
+						<button title="Create Post-Deployment Script" data-level="create-post-deploy-conf" class="action button btn flex items-center active:border-green hidden">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Post-Deployment Script</button>
+						<div id="code-create-function" class="hidden">
+							<select class="select-create-type combined-select-create">
+								<option value="">Function</option>
+								${LifecycleMethods.getAvailableLifecycleMethods(null).map(method => `<option value="${method.name}">${method.name}</option>`).join('')}
+							</select>
+							<button class="action button inline-flex items-center combined-select-create">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')}<span>Create</span></button>
+						</div>
+					</div>`);
+
+					toolbar.querySelector('#code-create-function button').addEventListener('click', () => {
+						_Code.mainArea.createGlobalMethod(toolbar.querySelector('#code-create-function select').value);
+					});
 
 					toolbar.querySelector('button:nth-child(3)').addEventListener('click', _Code.mainArea.scratchpad.create);
+					toolbar.querySelector('button:nth-child(4)').addEventListener('click', () => _Code.mainArea.createDataSource('ScriptDataSource'));
+					toolbar.querySelector('button:nth-child(5)').addEventListener('click', () => _Code.mainArea.createDataSource('QueryDataSource'));
 
 					[...toolbar.querySelectorAll('button')].slice(0, 2).forEach((el, index) => {
 
@@ -1755,11 +1844,13 @@ let _Code = {
 			showCreateButtons: (level) => {
 
 				// each level of the tree offers what can be created there
-				let offers = { custom: [true, false, false], services: [false, true, false], scratchpads: [false, false, true] }[level] ?? [false, false, false];
+				let offers = { custom: [0], services: [1], scratchpads: [2], datasources: [3, 4] }[level] ?? [];
 
 				[..._Code.mainArea.typeTabs.toolbar().querySelectorAll(':scope > button')].forEach((button, index) => {
-					button.classList.toggle('hidden', !offers[index]);
+					button.classList.toggle('hidden', button.dataset.level ? (button.dataset.level !== level) : !offers.includes(index));
 				});
+
+				_Code.mainArea.typeTabs.toolbar().querySelector('#code-create-function').classList.toggle('hidden', level !== 'globals');
 			},
 			isFolder: (data) => Object.hasOwn(_Code.mainArea.typeTabs.folders, data.content),
 			tabFor: (data) => _Code.mainArea.typeTabs.folders[data.content] ?? 'general',
@@ -2661,6 +2752,14 @@ let _Code = {
 				}
 
 				_Editors.focusEditor(sourceEditor);
+
+				// a function that was just created opens with its name being edited
+				if (_Code.mainArea.renameOnOpen === result.id) {
+
+					_Code.mainArea.renameOnOpen = null;
+					document.getElementById('method-name-container').click();
+					document.getElementById('method-name-input').select();
+				}
 			});
 		},
 		saveActiveTabForMethod: (methodId, tabName) => {
@@ -2925,7 +3024,7 @@ let _Code = {
 					let name = _Code.mainArea.scratchpad.nameOf(pad);
 					let row  = _Helpers.createSingleDOMElementFromHTML(`
 						<div class="schema-grid-row contents cursor-pointer" title="Open scratchpad">
-							<div class="p-2 flex items-center"><b></b></div>
+							<div class="p-2 flex items-center gap-2">${_Icons.getSvgIcon(_Icons.iconScratchpad, 16, 24, ['flex-shrink-0'])}<b></b></div>
 							<div class="p-2 flex items-center">${pad.lastRunTimestamp ? new Date(pad.lastRunTimestamp).toLocaleString() : ''}</div>
 						</div>
 					`);
@@ -2995,6 +3094,8 @@ let _Code = {
 					nameInput.classList.remove('hidden');
 					nameInput.focus();
 				});
+
+				contents.querySelector('h2 .rename-hint').addEventListener('click', () => nameOutput.click());
 
 				nameInput.addEventListener('blur', commitName);
 				nameInput.addEventListener('keyup', (e) => {
@@ -3165,6 +3266,7 @@ let _Code = {
 				scratchpad: config => `
 					<h2 class="cursor-text">
 						<span id="scratchpad-name-output"></span>
+						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, ['rename-hint'], 'Rename')}
 						<input class="hidden font-bold text-lg" type="text" id="scratchpad-name-input" placeholder="Untitled Scratchpad" size="60" autocomplete="off">
 					</h2>
 					<div id="scratchpad-options" class="mb-2">
@@ -3228,6 +3330,59 @@ let _Code = {
 					_Code.mainArea.deploymentConfigurationScripts.getTreeChildForKey(path, 'post-deploy-conf')
 				]
 			},
+			// the level above the two scripts: the scripts that exist, and a button for each that does not
+			showOverview: async (data) => {
+
+				let templates = _Code.mainArea.deploymentConfigurationScripts.templates;
+				let existing  = {};
+
+				for (let scriptType of Object.keys(templates.treeNames)) {
+					existing[scriptType] = (await Command.queryPromise('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: scriptType }, true, null, null)).length > 0;
+				}
+
+				if ($('#code-tree').jstree(true).get_selected()[0] !== data.path) {
+					return;
+				}
+
+				_Code.codeContents[0].insertAdjacentHTML('beforeend', templates.overview());
+
+				_Code.mainArea.displayOverview(data, ['Name', 'File', 'Runs'], (addRow) => {
+
+					for (let scriptType of Object.keys(templates.treeNames).filter(type => existing[type])) {
+
+						addRow(scriptType, [
+							`${_Icons.getSvgIcon(_Icons[templates.icons[scriptType]], 18, 24, ['flex-shrink-0'])}<b>${templates.treeNames[scriptType]}</b>`,
+							templates.scriptNames[scriptType],
+							(scriptType === 'pre-deploy-conf' ? 'before the import' : 'after the import')
+						]);
+					}
+				});
+
+				for (let scriptType of Object.keys(templates.treeNames).filter(type => !existing[type])) {
+
+					_Code.mainArea.deploymentConfigurationScripts.offerCreation(data, scriptType, () => {
+						_Code.tree.findAndOpenNode(`${data.path}/${scriptType}`, true);
+					});
+				}
+			},
+			// shows the toolbar button that creates the script, as long as the level it was asked for is still selected
+			offerCreation: (data, scriptType, afterCreation) => {
+
+				if ($('#code-tree').jstree(true).get_selected()[0] !== data.path) {
+					return;
+				}
+
+				let createButton = _Code.mainArea.typeTabs.toolbar().querySelector(`button[data-level="create-${scriptType}"]`);
+
+				createButton.classList.remove('hidden');
+				createButton.onclick = () => {
+
+					Command.createApplicationConfigurationDataNode(scriptType, scriptType, _Code.mainArea.deploymentConfigurationScripts.templates.initialScript[scriptType], () => {
+						createButton.classList.add('hidden');
+						afterCreation();
+					});
+				};
+			},
 			editDeploymentConfigurationScript: async (data) => {
 
 				let scriptType = data.content;
@@ -3236,17 +3391,15 @@ let _Code = {
 
 				let scripts = await Command.queryPromise('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: scriptType }, true, null, null);
 
-				_Code.codeContents.append(_Code.mainArea.deploymentConfigurationScripts.templates.main('Deployment Configuration Script: ' + _Code.mainArea.deploymentConfigurationScripts.templates.scriptNames[scriptType]));
+				_Code.codeContents.append(_Code.mainArea.deploymentConfigurationScripts.templates.main(_Code.mainArea.deploymentConfigurationScripts.templates.treeNames[scriptType], scriptType));
 
 				_Code.mainArea.deploymentConfigurationScripts.appendDocumentation(_Code.codeContents[0]).then(/*ignore*/);
 
 				if (scripts.length === 0) {
 
-					_Code.mainArea.helpers.displaySvgActionButton('#deploy-config-script-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Create', () => {
-
-						Command.createApplicationConfigurationDataNode(scriptType, scriptType, _Code.mainArea.deploymentConfigurationScripts.templates.initialScript[scriptType], () => {
-							_Code.mainArea.deploymentConfigurationScripts.editDeploymentConfigurationScript(data);
-						});
+					// a script that does not exist yet is created from the toolbar
+					_Code.mainArea.deploymentConfigurationScripts.offerCreation(data, scriptType, () => {
+						_Code.mainArea.deploymentConfigurationScripts.editDeploymentConfigurationScript(data);
 					});
 
 				} else {
@@ -3327,8 +3480,8 @@ let _Code = {
 				}
 			},
 			templates: {
-				main: (title) => `
-					<h2>${title}</h2>
+				main: (title, scriptType) => `
+					<h2 class="with-icon">${_Icons.getSvgIcon(_Icons[_Code.mainArea.deploymentConfigurationScripts.templates.icons[scriptType]], 18, 24, ['flex-shrink-0'])}${title}</h2>
 
 					<div id="method-buttons">
 						<div class="flex flex-wrap gap-x-4">
@@ -3347,6 +3500,33 @@ let _Code = {
 						</div>
 						<div class="inline-info-text" style="width: 50%; max-height: calc(100% - 6rem); overflow: auto;" data-structr-embedded-documentation-container data-structr-deployment-scripts-help-container>
 						</div>
+					</div>
+				`,
+				overview: () => `
+					<div class="info-panel text-sm mt-4">
+						<p class="font-semibold mb-2">Pre- and Post-Deploy Scripts</p>
+						<p class="mb-2">You can include scripts that run automatically before or after import.</p>
+
+						<p class="font-semibold mt-4 mb-2">pre-deploy.conf</p>
+						<p class="mb-2">If a file named <code>pre-deploy.conf</code> is present in the application folder being imported, Structr executes it as a script before importing the data. Since it is run before the schema from the deployment has been imported, only the then-existing schema types can be used.</p>
+						<p class="mb-2">Use this to create users or groups that are referenced in visibility settings of the exported files but may not exist in the target system. All operations in this script should be idempotent, meaning they can be safely run multiple times without causing unintended side effects. For example, prefer using methods like <code>get_or_create</code> rather than <code>create</code> to avoid duplicate entries.</p>
+						<pre class="p-3 rounded bg-gray-100 overflow-x-auto text-xs leading-relaxed">{
+	let myUserGroup = $.getOrCreate('Group', 'name', 'myUserGroup');
+	let myNestedUserGroup = $.getOrCreate('Group', 'name', 'myNestedUserGroup');
+
+	if (!$.isInGroup(myUserGroup, myNestedUserGroup)) {
+		$.addToGroup(myUserGroup, myNestedUserGroup);
+	}
+}</pre>
+
+						<p class="font-semibold mt-4 mb-2">post-deploy.conf</p>
+						<p class="mb-2">If a file named <code>post-deploy.conf</code> is present, Structr executes it after the import completes successfully. Since this script is run after the new schema has been imported, all types from the deployed schema are available.</p>
+						<p class="mb-2">Use this to ensure that required data exists in every instance of your application.</p>
+						<pre class="p-3 rounded bg-gray-100 overflow-x-auto text-xs leading-relaxed">{
+	let necessaryData = $.getOrCreate('TypeFromDeployedSchema', 'name', 'important');
+
+	// ... ensure that required data exists
+}</pre>
 					</div>
 				`,
 				scriptEditor: config => `
@@ -4215,22 +4395,15 @@ let _Code = {
 			</button>
 		`,
 		booleanProperty: config => `
-			<h2>BooleanProperty ${config.property.schemaNode.name}.${config.property.name}</h2>
+			<h2 class="with-icon">${_Icons.getIconForSchemaNodeType(config.property)}${config.property.schemaNode.name}.${config.property.name}</h2>
 			<div id="property-buttons"></div>
 		`,
 		builtin: config => `
 			<h2>System Types</h2>
 		`,
-		dataSourceCreation: (title) => `
+		dataSourceEditor: (title, entity) => `
 			<div class="">
-				<h2>${title}</h2>
-				<div id="data-source-buttons" class="flex gap-4">
-				</div>
-			</div>
-		`,
-		dataSourceEditor: (title) => `
-			<div class="">
-				<h2>${title}</h2>
+				<h2 class="with-icon">${_Icons.getSvgIcon((entity.type === 'QueryDataSource') ? _Icons.iconFilterFunnel : _Icons.iconScriptWrapped, 16, 24, ['flex-shrink-0'])}${title}</h2>
 				<div id="method-buttons">
 					<div class="flex flex-wrap gap-x-4">
 						<div class="">
@@ -4243,7 +4416,7 @@ let _Code = {
 			<div id="datasource-container"></div>
 		`,
 		cypherProperty: config => `
-			<h2>CypherProperty ${config.property.schemaNode.name}.${config.property.name}</h2>
+			<h2 class="with-icon">${_Icons.getIconForSchemaNodeType(config.property)}${config.property.schemaNode.name}.${config.property.name}</h2>
 			<div id="property-buttons"></div>
 			<div class="flex flex-col flex-grow">
 				<div id="cypher-code-container" class="mb-4 flex flex-col h-full">
@@ -4254,15 +4427,15 @@ let _Code = {
 			</div>
 		`,
 		defaultProperty: config => `
-			<h2>${config.property.propertyType}Property ${config.property.schemaNode.name}.${config.property.name}</h2>
+			<h2 class="with-icon">${_Icons.getIconForSchemaNodeType(config.property)}${config.property.schemaNode.name}.${config.property.name}</h2>
 			<div id="property-buttons"></div>
 		`,
 		defaultView: config => `
-			<h2>View ${config.view.schemaNode.name}.${config.view.name}</h2>
+			<h2 class="with-icon">${_Icons.getIconForSchemaNodeType(config.view)}${config.view.schemaNode.name}.${config.view.name}</h2>
 			<div id="view-buttons"></div>
 		`,
 		functionProperty: config => `
-			<h2>FunctionProperty ${config.property.schemaNode.name}.${config.property.name}</h2>
+			<h2 class="with-icon">${_Icons.getIconForSchemaNodeType(config.property)}${config.property.schemaNode.name}.${config.property.name}</h2>
 			<div id="property-buttons"></div>
 
 			<div id="function-property-container" class="code-tabs level-two flex flex-col flex-grow">
@@ -4300,14 +4473,12 @@ let _Code = {
 				<div class="editor-info"></div>
 			</div>
 		`,
-		globals: config => `
-			<h2>User-defined functions</h2>
-			<div id="code-methods-container"></div>
-		`,
 		method: config => `
-			<h2 class="cursor-text">
+			<h2 class="cursor-text with-icon">
+				${_Icons.getIconForSchemaNodeType(config.method)}
 				<span id="method-name-container">
 					<span>${(config.method.schemaNode ? config.method.schemaNode.name + '.' : '')}</span><span id="method-name-output">${config.method.name}</span><span>()</span>
+					${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, ['rename-hint'], 'Rename')}
 				</span>
 				<input class="hidden font-bold text-lg " type="text" id="method-name-input" data-property="name" size="60" value="${config.method.name}" autocomplete="off">
 			</h2>
@@ -4554,7 +4725,7 @@ let _Code = {
 			</div>
 		`,
 		stringProperty: config => `
-			<h2>StringProperty ${config.property.schemaNode.name}.${config.property.name}</h2>
+			<h2 class="with-icon">${_Icons.getIconForSchemaNodeType(config.property)}${config.property.schemaNode.name}.${config.property.name}</h2>
 			<div id="property-buttons"></div>
 		`,
 		type: config => `
@@ -4612,10 +4783,16 @@ let _Code = {
 					<div class="@lg:col-span-1 col-span-2">
 						<label class="block mt-8 mb-2 font-bold" data-comment="The name of the data source">Name</label>
 						<input id="data-source-name-input" data-property="name" class="w-full box-border" placeholder="Data Source Name..." value="${config.name || ''}">
-						<label class="block mt-8 mb-2 font-bold" data-comment="This script is evaluated to obtain the values in this data source.">Values Script</label>
-						<div class="editor w-full h-80" id="values-script-editor" data-property="valuesScript"></div>
-						<label class="block mt-8 mb-2 font-bold" data-comment="This script is evaluated to obtain information about the fields in this data source.">Fields Script</label>
-						<div class="editor w-full h-80" id="fields-script-editor" data-property="fieldsScript"></div>
+					</div>
+					<div class="col-span-2 data-source-scripts">
+						<div>
+							<label class="block mb-2 font-bold" data-comment="This script is evaluated to obtain the values in this data source.">Values Script</label>
+							<div class="editor w-full h-80" id="values-script-editor" data-property="valuesScript"></div>
+						</div>
+						<div>
+							<label class="block mb-2 font-bold" data-comment="This script is evaluated to obtain information about the fields in this data source.">Fields Script</label>
+							<div class="editor w-full h-80" id="fields-script-editor" data-property="fieldsScript"></div>
+						</div>
 					</div>
 				</div>
 			</div>

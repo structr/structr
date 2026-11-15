@@ -42,6 +42,11 @@
 }
 
 /* the overview of the types of a folder */
+.overview-note {
+	margin: 1rem 0 0;
+	color: var(--color-text-placeholder);
+}
+
 .type-overview .type-kind {
 	color: var(--color-text-placeholder);
 	font-style: italic;
@@ -370,4 +375,58 @@ fieldset {
 
 #code-contents #methods-container-right .editor-info button {
 	margin-right: 0 ! important;
+}
+
+/* a heading that begins with the icon of its tree entry */
+#code-contents h2.with-icon {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+}
+
+/* the two scripts of a data source stand side by side, one under the other in a narrow window */
+.data-source-scripts {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+	gap: 2rem;
+}
+
+/* the pencil beside a name that is renamed in place: it shows while the pointer is over the heading */
+#code-contents h2 .rename-hint {
+	margin-left: .5rem;
+	opacity: 0;
+	cursor: pointer;
+	transition: opacity .15s ease-in-out;
+}
+
+#code-contents h2:hover .rename-hint {
+	opacity: .6;
+}
+
+#code-contents h2:has(input:not(.hidden)) .rename-hint {
+	display: none;
+}
+
+#code-create-function:not(.hidden) {
+	display: inline-flex;
+}
+
+/* a box of explaining text in the main area */
+#code-contents .info-panel {
+	padding: 1rem;
+	border: 1px solid var(--color-border-primary);
+	border-radius: .5rem;
+	background-color: var(--color-background-secondary);
+}
+
+/* code inside the explaining text stands out from the words around it */
+#code-contents .info-panel :not(pre) > code {
+	padding: .1em .35em;
+	border-radius: .25rem;
+	background-color: var(--color-background-tertiary);
+	font-size: .9em;
+}
+
+#code-contents .info-panel pre {
+	background-color: var(--color-background-tertiary);
 }
