@@ -104,6 +104,7 @@
 	--color-text-black:            var(--color-text-primary);
 	--color-text-strong:           var(--color-text-primary);
 	--color-text-dark:             var(--color-text-primary);
+	--color-tree-arrow:            var(--color-text-secondary);
 	--color-text-heading:          var(--color-text-primary);
 	--color-text-medium:           var(--color-text-secondary);
 	--color-text-link:             var(--color-text-secondary);

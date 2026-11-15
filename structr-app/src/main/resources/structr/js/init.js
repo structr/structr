@@ -2836,6 +2836,26 @@ let _TreeHelper = {
 		});
 
 		_TreeHelper.addSvgIconReplacementBehaviorToTree(initializedTree);
+		_TreeHelper.addChildrenProbeToTree(initializedTree);
+	},
+	addChildrenProbeToTree: (tree) => {
+
+		// a node that only may have children is loaded as soon as it shows, so it has an arrow only if there is something to open
+		let probe = () => {
+
+			let instance = $(tree).jstree(true);
+
+			for (let element of $(tree)[0].querySelectorAll('li.jstree-closed')) {
+
+				let node = instance.get_node(element);
+
+				if (node?.data?.probe === true && !instance.is_loaded(node) && !instance.is_loading(node)) {
+					instance.load_node(node);
+				}
+			}
+		};
+
+		$(tree).on('ready.jstree refresh.jstree refresh_node.jstree after_open.jstree', probe);
 	},
 	addSvgIconReplacementBehaviorToTree: (tree) => {
 

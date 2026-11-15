@@ -521,11 +521,6 @@
 	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%23bdb9ad'><polygon points='0,0 100,0 50,50'/></svg>");
 }
 
-/* jstree draws its arrows from a dark image */
-:root.ui-next.theme-dark .jstree-default .jstree-ocl {
-	filter: invert(.85);
-}
-
 /* one highlight for the row in use, in a tree as in a menu: the brand colour with white text; a hovered row keeps its tint */
 :root.ui-next .jstree-default .jstree-wholerow-clicked {
 	background: var(--color-brand) ! important;

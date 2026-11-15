@@ -150,6 +150,7 @@ let _Code = {
 						icon:     _Icons.nonExistentEmptyIcon,
 						li_attr:  { 'data-id': 'scratchpads' },
 						data: {
+							probe:   true,
 							svgIcon: _Icons.getSvgIcon(_Icons.iconScratchpad, 16, 24),
 							key:     'scratchpads',
 							content: 'scratchpads',
@@ -163,6 +164,7 @@ let _Code = {
 						icon:     _Icons.nonExistentEmptyIcon,
 						li_attr:  { 'data-id': 'globals' },
 						data: {
+							probe:   true,
 							svgIcon: _Icons.getSvgIcon(_Icons.iconGlobe, 16, 24),
 							key:     'SchemaMethod',
 							query:   { schemaNode: null },
@@ -190,6 +192,7 @@ let _Code = {
 						icon:     _Icons.nonExistentEmptyIcon,
 						li_attr:  { 'data-id': 'datasources' },
 						data: {
+							probe:   true,
 							svgIcon: _Icons.getSvgIcon(_Icons.iconSchemaPropertyCypher, 18, 24),
 							key:     'datasources',
 							content: 'datasources',
@@ -203,6 +206,7 @@ let _Code = {
 						icon:     _Icons.nonExistentEmptyIcon,
 						li_attr:  { 'data-id': 'processes' },
 						data: {
+							probe:   true,
 							svgIcon: _Icons.getSvgIcon(_Icons.iconProcesses, 18, 24),
 							key:     'processes',
 							content: 'processes',
@@ -228,6 +232,7 @@ let _Code = {
 								icon:     _Icons.nonExistentEmptyIcon,
 								li_attr:  { 'data-id': 'custom' },
 								data: {
+									probe:   true,
 									svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
 									key:     'SchemaNode',
 									query:   { isServiceClass: false },
@@ -242,6 +247,7 @@ let _Code = {
 								icon:     _Icons.nonExistentEmptyIcon,
 								li_attr:  { 'data-id': 'services' },
 								data: {
+									probe:   true,
 									svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
 									key:     'SchemaNode',
 									query:   { isServiceClass: true },
@@ -330,6 +336,7 @@ let _Code = {
 									icon:     _Icons.nonExistentEmptyIcon,
 									li_attr:  { 'data-id': def.id },
 									data: {
+										probe:   true,
 										svgIcon: _Icons.getSvgIcon(_Icons.iconProcess, 16, 24),
 										key:     'bpmnDefinitionMethods',
 										content: 'bpmnDefinitionMethods',

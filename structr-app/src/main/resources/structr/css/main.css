@@ -232,6 +232,9 @@
 	--color-text-danger:                 var(--red);
 	--color-text-danger-dark:            var(--dark-red);
 	--color-text-dark:                   var(--gray-333);
+	--color-tree-arrow:                  var(--gray-333);
+	--tree-arrow-closed:                 url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><polygon points='0,0 0,100 50,50'/></svg>");
+	--tree-arrow-open:                   url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><polygon points='0,0 100,0 50,50'/></svg>");
 	--color-text-disabled:               var(--input-disabled);
 	--color-text-faint:                  var(--gray-aaa);
 	--color-text-ghost:                  var(--gray-ccc);
@@ -2601,6 +2604,26 @@ td#cascading-options, td#propagation-options {
 /*
  * Filesystem-like pages (Filesystem, Contents)
  */
+/* the arrows of a tree: the triangle of the page tree, right when closed, down when open */
+.jstree-default .jstree-node.jstree-closed > .jstree-ocl,
+.jstree-default .jstree-node.jstree-open > .jstree-ocl {
+	background-image: none;
+	background-color: var(--color-tree-arrow);
+	-webkit-mask: var(--tree-arrow-closed) no-repeat 9px 7px / .8rem;
+	mask: var(--tree-arrow-closed) no-repeat 9px 7px / .8rem;
+}
+
+.jstree-default .jstree-node.jstree-open > .jstree-ocl {
+	-webkit-mask: var(--tree-arrow-open) no-repeat 7px 9px / .8rem;
+	mask: var(--tree-arrow-open) no-repeat 7px 9px / .8rem;
+}
+
+.jstree-default .jstree-node.jstree-loading > .jstree-ocl {
+	background: url("lib/throbber.gif") center center no-repeat;
+	-webkit-mask: none;
+	mask: none;
+}
+
 .jstree-default .jstree-wholerow {
 	height: 2rem;
 	margin-top: -.15rem;
@@ -3416,16 +3439,33 @@ div.toggle-button-container button:last-child {
     list-style: none;
 }
 
-#sortable-list summary::before {
-    content: '▶';
-    font-size: 0.6em;
-    transition: transform 0.2s;
-    margin-right: 0.5rem;
-    flex-shrink: 0;
+/* blocks that open and close carry the triangle of the trees: right when closed, down when open */
+#sortable-list summary::before,
+#code-contents details > summary::before {
+	content: '';
+	flex-shrink: 0;
+	width: .8rem;
+	height: .8rem;
+	margin-right: .5rem;
+	background-color: var(--color-tree-arrow);
+	-webkit-mask: var(--tree-arrow-closed) no-repeat .2rem 0 / .8rem;
+	mask: var(--tree-arrow-closed) no-repeat .2rem 0 / .8rem;
 }
 
-#sortable-list details[open] > summary::before {
-    transform: rotate(90deg);
+#sortable-list details[open] > summary::before,
+#code-contents details[open] > summary::before {
+	-webkit-mask: var(--tree-arrow-open) no-repeat 0 .2rem / .8rem;
+	mask: var(--tree-arrow-open) no-repeat 0 .2rem / .8rem;
+}
+
+#code-contents details > summary {
+	display: flex;
+	align-items: center;
+	list-style: none;
+}
+
+#code-contents details > summary::-webkit-details-marker {
+	display: none;
 }
 
 #sortable-list input[type="checkbox"] {
