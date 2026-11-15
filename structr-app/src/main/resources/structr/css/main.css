@@ -1508,6 +1508,13 @@ body[style*=zoom] .non-block-ui-blocker-content {
 	margin: auto;
 }
 
+/* in a narrow window a dialog takes the width there is */
+@media (max-width: 1100px) {
+	#dialogBox:not(.maximized) {
+		width: calc(100vw - 8rem);
+	}
+}
+
 #dialogBox .window-icon {
 	position: absolute;
 	color: var(--color-text-link);
@@ -4004,6 +4011,9 @@ table.props td.__value {
 
 #ui-settings-popup .dropdown-menu-container {
 	width: 30rem;
+	max-width: calc(100vw - 2rem);
+	max-height: calc(100vh - 5rem);
+	overflow-y: auto;
 	padding: .25rem .5rem 1rem .75rem
 }
 

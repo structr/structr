@@ -54,6 +54,13 @@
 	overflow: auto;
 }
 
+/* in a narrow window the sections stand one under the other */
+@media (max-width: 1000px) {
+	#dashboard .tabs-contents {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
 #dashboard .tab-content {
 	display: block;
 	position: relative;
