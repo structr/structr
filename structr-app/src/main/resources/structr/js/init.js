@@ -578,6 +578,7 @@ let Structr = {
 					Structr.hideMainHelpLink();
 					UISettings.showSettingsForCurrentModule();
 					_MonitorPanel.ensure();
+					Structr.mainMenu.watchRoom();
 
 					Structr.modules[name].onload();
 				});
@@ -982,6 +983,76 @@ let Structr = {
 					}
 				}
 			}
+
+			Structr.mainMenu.fit();
+		},
+		// the menu never wraps: entries that find no room in the header wait in the submenu and come back when there is room
+		fit: () => {
+
+			let header    = Structr.header;
+			let submenu   = document.querySelector('#submenu');
+			let hamburger = document.querySelector('#menu li.submenu-trigger');
+
+			if (!header || !submenu || !hamburger) {
+				return;
+			}
+
+			for (let item of submenu.querySelectorAll(':scope > li[data-overflow]')) {
+
+				delete item.dataset.overflow;
+				hamburger.before(item);
+			}
+
+			let mainItems = () => [...document.querySelectorAll('#menu > ul > li[data-name]')].filter(li => li.style.display !== 'none');
+
+			while (header.scrollWidth > header.clientWidth + 1 && mainItems().length > 1) {
+
+				let last = mainItems().pop();
+
+				last.dataset.overflow = 'true';
+				submenu.prepend(last);
+			}
+		},
+		// the tabs of the toolbar row scroll sideways where they find no room; a fade marks the cut edge
+		fitToolbarTabs: () => {
+
+			for (let tabs of document.querySelectorAll('#function-bar .tabs-menu')) {
+
+				// measured at the last tab itself: the list may be wider than its tabs by a trailing margin, which cuts nothing
+				let lastTab = [...tabs.children].filter(tab => tab.offsetParent !== null).pop();
+
+				tabs.classList.toggle('is-cut', lastTab !== undefined && lastTab.getBoundingClientRect().right > tabs.getBoundingClientRect().right + 1);
+
+				// the tabs change their width without the row changing its own, e.g. while a panel beside them slides
+				Structr.mainMenu.roomWatcher?.observe(tabs);
+			}
+		},
+		watchRoom: () => {
+
+			if (Structr.mainMenu.roomWatcher || !Structr.header || !Structr.functionBar) {
+				return;
+			}
+
+			let pending = null;
+			let fit     = () => {
+
+				cancelAnimationFrame(pending);
+
+				pending = requestAnimationFrame(() => {
+					Structr.mainMenu.fit();
+					Structr.mainMenu.fitToolbarTabs();
+				});
+			};
+
+			Structr.mainMenu.roomWatcher = new ResizeObserver(fit);
+			Structr.mainMenu.roomWatcher.observe(Structr.header);
+			Structr.mainMenu.roomWatcher.observe(Structr.functionBar);
+
+			new MutationObserver(fit).observe(Structr.functionBar, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+			new MutationObserver(fit).observe(Structr.header.querySelector('.structr-instance-info'), { childList: true, subtree: true, characterData: true });
+
+			Structr.functionBar.addEventListener('scroll', Structr.mainMenu.fitToolbarTabs, true);
+			Structr.functionBar.addEventListener('transitionend', fit, true);
 		},
 		block: () => {
 

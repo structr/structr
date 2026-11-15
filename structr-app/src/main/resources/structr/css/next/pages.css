@@ -57,6 +57,7 @@
 :root.ui-next body:has(.slideOutLeft.open) #function-bar .tabs-menu {
 	position: relative;
 	left: 8rem;
+	margin-right: 8rem;
 }
 
 /* the Save button of the repeater's query keeps a distance from the editor above it */

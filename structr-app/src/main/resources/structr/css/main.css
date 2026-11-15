@@ -323,7 +323,7 @@ html {
 body {
 	height: calc(100% - var(--monitor-panel-height, 0px));
 	width: 100%;
-	min-width: 70rem;
+	min-width: 768px;
 	margin: 0;
 	padding: 0;
 	font-family: var(--font-main);
@@ -6101,4 +6101,60 @@ body.monitor-panel-resizing {
 #file-tree > .jstree-container-ul {
 	box-sizing: border-box;
 	padding-left: 8px;
+}
+
+/* a narrow window: the header keeps one line; the name of the instance gives way first, then entries of the menu move to the submenu */
+#header #menu,
+#header .logo,
+#header > .flex.gap-4 {
+	flex-shrink: 0;
+}
+
+.menu > ul {
+	white-space: nowrap;
+}
+
+#header .structr-instance-info {
+	flex-shrink: 1;
+	min-width: 5rem;
+	overflow: hidden;
+}
+
+#header .structr-instance {
+	min-width: 0;
+	white-space: nowrap;
+}
+
+#header .structr-instance-name {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* the tabs of the toolbar row keep one line and scroll sideways where they find no room */
+#function-bar .tabs-menu {
+	flex-shrink: 1;
+	min-width: 0;
+	overflow-x: auto;
+	overflow-y: hidden;
+	white-space: nowrap;
+	scrollbar-width: none;
+}
+
+#function-bar .tabs-menu::-webkit-scrollbar {
+	display: none;
+}
+
+#function-bar .tabs-menu.is-cut {
+	-webkit-mask-image: linear-gradient(to right, var(--color-text-primary) calc(100% - 2.5rem), transparent);
+	mask-image: linear-gradient(to right, var(--color-text-primary) calc(100% - 2.5rem), transparent);
+}
+
+/* the tabs can only give way where the box around them does: it lays them out in a row and may get narrower than they are */
+#function-bar > * {
+	min-width: 0;
+}
+
+#function-bar > .flex-grow:has(> .tabs-menu) {
+	display: flex;
 }
