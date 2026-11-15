@@ -4095,7 +4095,11 @@ let _Code = {
 					_Editors.highlightTextInNextEditor(searchData.searchString);
 				}
 
-				_Code.search.prepareTabForNodeAndKey(node, key);
+				// only a search result says which tab holds the match
+				if (key) {
+					_Code.search.prepareTabForNodeAndKey(node, key);
+				}
+
 				_Code.tree.findAndOpenNode(path);
 			});
 		},
