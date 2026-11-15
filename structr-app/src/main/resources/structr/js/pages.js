@@ -29,6 +29,7 @@ let _Pages = {
 	activeTabLeftKey: 'structrActiveTabLeft_' + location.port,
 	leftTabMinWidth: 410,
 	rightTabMinWidth: 400,
+	centerMinWidth: 320,
 	selectedTypeKey: 'structrSelectedType_' + location.port,
 	detailsObjectIdKey: 'structrDetailsObjectId_' + location.port,
 	requestParametersKey: 'structrRequestParameters_' + location.port,
@@ -364,7 +365,24 @@ let _Pages = {
 		}
 	},
 	resize: () => {
+		_Pages.makeRoom('left');
 		_Pages.resizeColumns();
+	},
+	// the width that is left for the middle, with a panel of the given width on a side or none (0)
+	roomForCenter: (pxLeft, pxRight) => {
+
+		let rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+
+		return window.innerWidth - (pxLeft ? pxLeft + 3 * rem : 4 * rem) - (pxRight ? pxRight - rem : 4 * rem);
+	},
+	// a window too narrow for a panel on each side beside the middle keeps the one named and closes the other
+	makeRoom: (keep) => {
+
+		let bothOpen = (document.querySelector('.slideOutLeft.open') && document.querySelector('.slideOutRight.open'));
+
+		if (bothOpen && window.innerWidth < _Pages.leftTabMinWidth + _Pages.rightTabMinWidth + 16) {
+			document.querySelector(`.slideout-activator.${keep === 'right' ? 'left' : 'right'}.active`)?.click();
+		}
 	},
 	dialogSizeChanged: () => {
 		_Editors.resizeVisibleEditors();
@@ -485,6 +503,7 @@ let _Pages = {
 
 		LSWrapper.setItem(_Pages.activeTabLeftKey, tabId);
 		_Entities.highlightSelectedElementOnSlideoutOpen();
+		_Pages.makeRoom('left');
 	},
 	leftSlideoutClosedCallback: () => {
 
@@ -493,6 +512,7 @@ let _Pages = {
 	rightSlideoutOpenedCallback: (tabId) => {
 
 		LSWrapper.setItem(_Pages.activeTabRightKey, tabId);
+		_Pages.makeRoom('right');
 	},
 	rightSlideoutClosedCallback: () => {
 
@@ -907,6 +927,8 @@ let _Pages = {
 	},
 	resizeColumns: (pxLeft, pxRight) => {
 
+		let fromStore = (!pxLeft && !pxRight);
+
 		if (!pxLeft && !pxRight) {
 			pxLeft  = LSWrapper.getItem(_Pages.getLeftResizerKey())  || _Pages.leftTabMinWidth;
 			pxRight = LSWrapper.getItem(_Pages.getRightResizerKey()) || _Pages.rightTabMinWidth;
@@ -931,6 +953,39 @@ let _Pages = {
 			pxRight = 0;
 		}
 
+		// the middle keeps a minimum width: the panels give way down to their own minimum, the right one first;
+		// a panel that still leaves no room lies over the middle. The stored widths stay as they are.
+		let overlay = false;
+
+		if (fromStore) {
+
+			let lack = _Pages.centerMinWidth - _Pages.roomForCenter(pxLeft, pxRight);
+
+			if (lack > 0 && pxRight) {
+				let give = Math.min(lack, pxRight - _Pages.rightTabMinWidth);
+				pxRight -= give;
+				lack    -= give;
+			}
+
+			if (lack > 0 && pxLeft) {
+				let give = Math.min(lack, pxLeft - _Pages.leftTabMinWidth);
+				pxLeft -= give;
+				lack   -= give;
+			}
+
+			overlay = (lack > 0);
+
+			document.body.classList.toggle('slideout-overlay', overlay);
+
+			if (overlay) {
+
+				let rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+
+				if (pxLeft)  { pxLeft  = Math.min(pxLeft,  window.innerWidth - 5 * rem); }
+				if (pxRight) { pxRight = Math.min(pxRight, window.innerWidth - 5 * rem); }
+			}
+		}
+
 		let leftPos  = pxLeft  ? pxLeft  : (openLeftSlideout  ? openLeftSlideout.getBoundingClientRect().right  : 0);
 		let rightPos = pxRight ? pxRight : (openRightSlideout ? openRightSlideout.getBoundingClientRect().width : 0);
 
@@ -944,9 +999,9 @@ let _Pages = {
 
 				if (openLeftSlideout) openLeftSlideout.style.width = `calc(${leftPos}px - 3rem)`;
 
-				_Pages.centerPane.style.marginLeft = `calc(${leftPos}px + 3rem)`;
+				_Pages.centerPane.style.marginLeft = overlay ? '4rem' : `calc(${leftPos}px + 3rem)`;
 
-				if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px - 7rem)`;
+				if (tabsMenu) tabsMenu.style.marginLeft = overlay ? '4rem' : `calc(${leftPos}px - 7rem)`;
 
 			} else {
 
@@ -976,7 +1031,7 @@ let _Pages = {
 
 				if (openRightSlideout) openRightSlideout.style.width = `calc(${rightPos}px - 7rem)`;
 
-				_Pages.centerPane.style.marginRight = `calc(${rightPos}px - 1rem)`;
+				_Pages.centerPane.style.marginRight = overlay ? '4rem' : `calc(${rightPos}px - 1rem)`;
 
 			} else {
 

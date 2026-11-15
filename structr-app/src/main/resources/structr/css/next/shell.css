@@ -692,3 +692,8 @@
 :root.ui-next #context-menu-dialog li:hover:not(.preview-context-menu):not(:has(> .menu-entry-container)) {
 	color: var(--color-text-inverse);
 }
+
+/* a panel that lies over the middle, in a window too narrow to hold both, has a ground that hides what is below it */
+:root.ui-next body.slideout-overlay .slideOut::before {
+	background: var(--color-background-primary);
+}
