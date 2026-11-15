@@ -211,10 +211,14 @@
 	padding-right: 1.5rem;
 }
 
+/* the name while it is edited: its text stays where the name stood */
 #files-table input.new-name {
-	margin-left: 2rem;
-	padding: 0;
+	margin-left: calc(1.5rem - 1px);
+	margin-right: calc(-.5rem - 1px);
+	padding: .25rem .5rem;
+	box-sizing: border-box;
 	width: 100%;
+	min-width: calc(var(--replaced-width, 0px) + 1rem + 2px);
 }
 
 #files-table tbody tr td .editable {

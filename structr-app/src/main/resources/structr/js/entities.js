@@ -2533,6 +2533,7 @@ let _Entities = {
 
 		let newInput = $(`<input type="text" size="${oldValue.length + 4}" class="new-${attributeName} ${additionalInputClass}" value="">`);
 		newInput.val(oldValue);
+		newInput[0].style.setProperty('--replaced-width', `${attributeElement[0].getBoundingClientRect().width}px`);
 		attributeElement.replaceWith(newInput);
 
 		let input = $('input', parentElement);
