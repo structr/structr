@@ -41,17 +41,40 @@
 	border-bottom: 1px solid var(--color-border-primary);
 }
 
-#dashboard .tab-content {
-	height: calc(100% - 4rem);
+/* one page of sections, each a box of its own, that scrolls as a whole; the two About sections share a row */
+#dashboard .tabs-contents {
+	display: grid;
+	grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+	align-items: start;
+	align-content: start;
+	gap: 1.5rem;
+	box-sizing: border-box;
+	height: calc(100% - 2rem);
+	padding: .5rem .5rem 1rem;
 	overflow: auto;
 }
 
-#dashboard .tab-content.active {
+#dashboard .tab-content {
 	display: block;
+	position: relative;
 }
 
-#dashboard .tabs-contents {
-	height: calc(100% - 2rem);
+#dashboard #dashboard-deployment {
+	grid-column: 1 / -1;
+}
+
+/* the area has no toolbar: the page begins below the header */
+body:has(#dashboard) #function-bar {
+	display: none;
+}
+
+body:has(#dashboard) #main {
+	top: calc(var(--header-height) + 1rem);
+	height: calc(100% - var(--header-height) - 1rem);
+}
+
+#dashboard .section-title {
+	margin: 0 0 1rem;
 }
 
 #about-structr .props {
@@ -317,4 +340,28 @@
 
 .http-statistics-HEAD {
 	fill: var(--dashboard-http-head);
+}
+
+/* long values such as session ids break inside their box */
+#dashboard-about-me td,
+#dashboard-about-structr td {
+	overflow-wrap: anywhere;
+}
+
+/* in the dialog of all UI settings the reset stands above the lists, at the right */
+#dialogBox #dashboard-ui-config > .absolute {
+	position: static;
+	margin-bottom: .5rem;
+	text-align: right;
+}
+
+/* the note of the log refresh: dim at rest, brighter while a refresh runs */
+#dashboard-server-log-feedback {
+	margin-left: .75rem;
+	opacity: .4;
+	transition: opacity .4s ease-in-out;
+}
+
+#dashboard-server-log-feedback.refreshing {
+	opacity: 1;
 }

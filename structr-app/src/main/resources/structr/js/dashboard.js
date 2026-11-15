@@ -22,12 +22,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let _Dashboard = {
 	_moduleName: 'dashboard',
-	activeTabPrefixKey: 'activeDashboardTabPrefix' + location.port,
 
 	init: () => {},
-	unload: () => {
-		_Dashboard.tabs.logs.stop();
-	},
+	unload: () => {},
 	onload: async (retryCount = 0) => {
 
 		try {
@@ -72,7 +69,7 @@ let _Dashboard = {
 			dashboardUiConfig.deploymentServletAvailable   = (deployResponse.status == 200);
 
 			Structr.setMainContainerHTML(_Dashboard.templates.main(dashboardUiConfig));
-			Structr.setFunctionBarHTML(_Dashboard.templates.functions());
+			Structr.setFunctionBarHTML('');
 
 			if (dashboardUiConfig.envInfo.dashboardInfo.runtimeInfo.maxMemory < (8 * 1024*1024*1024)) {
 
@@ -126,140 +123,7 @@ let _Dashboard = {
 				securityWarningsCell.textContent = 'No warnings';
 			}
 
-			// display HTTP stats
-			let httpStatisticsCell = document.querySelector('#http-access-statistics');
-			if (httpStatisticsCell) {
-
-				let drawStatistics = (interval) => {
-
-					fetch(`${Structr.rootUrl}stats?interval=${interval}`).then(response => response.json()).then(json => {
-
-						httpStatisticsCell.innerHTML = `
-							<label>Resolution: </label>
-							<select id="statistics-resolution-selector">
-								<option value="60000">Minutes</option>
-								<option value="3600000">Hours</option>
-								<option value="86400000">Days</option>
-								</option>
-							</select>
-							<button id="statistics-refresh-button">Refresh</button>
-							<div id="statistics-diagram-container"></div>
-						`;
-
-						let data = json.result;
-						let items = [];
-						let groups = {};
-						let id = 0;
-						let min = 999999999999999;
-						let max = 0;
-
-						for (let key of Object.keys(data)) {
-
-							let local = data[key];
-							let group = id++;
-
-							if (!groups[key]) {
-								groups[key] = {
-									id: ''+group,	// display legend correctly
-									content: key,
-									className: 'http-statistics-' + key
-								};
-							}
-
-							for (let date of Object.keys(local)) {
-
-								let dateNumber = Number(date);
-								min = Math.min(dateNumber, min);
-								max = Math.max(dateNumber, max);
-								items.push({
-									x: new Date(dateNumber).toISOString(),
-									//x2: new Date(dateNumber + interval).toISOString(),
-									y: local[date],
-									group: ''+group,	// display legend correctly
-								});
-							}
-						}
-
-						let groupList = Object.values(groups);
-
-						let options = {
-							start: new Date(min - interval).toISOString(),
-							end: new Date(max + interval).toISOString(),
-							legend: true,
-							drawPoints: true,
-							barChart: {
-								align: 'right'
-							},
-							style: 'bar',
-							stack: true,
-							dataAxis: {
-								left: {
-									range: {
-										min: 0
-									}
-								}
-							},
-							zoomMax: 86400000 * 31,		// ~ 1 month
-							zoomMin: 3600000			//   1 hour
-						};
-
-						let statElement = httpStatisticsCell.querySelector("#statistics-diagram-container");
-						new vis.Graph2d(statElement, new vis.DataSet(items), new vis.DataSet(groupList), options);
-
-						let selector = document.querySelector('#statistics-resolution-selector');
-
-						selector.addEventListener('change', (e) => {
-							drawStatistics(new Number(e.target.value));
-						});
-
-						selector.value = interval;
-
-						// refresh button
-						httpStatisticsCell.querySelector("#statistics-refresh-button").addEventListener('click', () => {
-							drawStatistics(interval);
-						});
-
-						window.setTimeout(() => {
-							statElement.classList.add('loaded');
-						}, 0)
-					});
-				}
-
-				drawStatistics(60000);
-			}
-
-			if (dashboardUiConfig.envInfo.databaseService === 'MemoryDatabaseService') {
-				Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));
-			}
-
-			let formats = {
-				with_dashes: 'UUIDv4 with dashes',
-				without_dashes: 'UUIDv4 without dashes',
-				both: 'UUIDv4 with or without dashes'
-			};
-
-			let allowedUUIDFormatElement = document.querySelector('.allowed-uuid-format');
-			allowedUUIDFormatElement.textContent = formats[dashboardUiConfig.envInfo.dashboardInfo.allowedUUIDFormat];
-
-			if (dashboardUiConfig.envInfo.dashboardInfo.allowedUUIDFormat === 'both') {
-
-				let compact = dashboardUiConfig.envInfo.dashboardInfo.createCompactUUIDs === true;
-				allowedUUIDFormatElement.textContent += ' (created UUIDs will ' + (compact ? 'not' : '')  + ' contain dashes)';
-
-				_Helpers.appendInfoTextToElement({
-					element: allowedUUIDFormatElement,
-					customToggleIcon: _Icons.iconWarningYellowFilled,
-					text: 'Warning! This mode is not supported and is only meant to be used to consolidate databases where both UUID formats are used. Using this setting is strongly discouraged and should only be temporary!',
-					width: 16,
-					height: 16,
-					noSpan: true,
-					css: {
-						marginLeft: '6px'
-					}
-				});
-			}
-
-			_Dashboard.initializeTabsAndTabMenu(dashboardUiConfig);
+			_Dashboard.initializeSections(dashboardUiConfig);
 
 			Structr.mainMenu.unblock(100);
 
@@ -275,75 +139,14 @@ let _Dashboard = {
 		}
 
 	},
-	initializeTabsAndTabMenu: (dashboardUiConfig) => {
+	sections: ['about', 'me', 'deployment'],
+	initializeSections: (dashboardUiConfig) => {
 
-		let allTabLinks = Structr.functionBar.querySelectorAll('.tabs-menu li a');
+		// the area is one page: every section is set up and shown at once
+		for (let section of _Dashboard.sections) {
 
-		let removeActiveClass = (nodelist) => {
-			for (let el of nodelist) {
-				el.classList.remove('active');
-			}
-		};
-
-		for (let tabLink of allTabLinks) {
-
-			let urlHash   = tabLink.getAttribute('href');
-			let subModule = urlHash.split(':')[1];
-
-			// init target module
-			_Dashboard.tabs[subModule].init(dashboardUiConfig);
-
-			tabLink.addEventListener('click', (e) => {
-				e.preventDefault();
-
-				// find currently active module and run onHide
-				let activeTabLink = Structr.functionBar.querySelector('.tabs-menu li.active a');
-				if (activeTabLink) {
-					let activeSubModule = activeTabLink.getAttribute('href').split(':')[1];
-					_Dashboard.tabs[activeSubModule]?.onHide?.();
-				}
-
-				window.location.hash = urlHash;
-
-				removeActiveClass(document.querySelectorAll('#dashboard .tabs-contents .tab-content'));
-				removeActiveClass(Structr.functionBar.querySelectorAll('.tabs-menu li'));
-
-				e.target.closest('li').classList.add('active');
-				document.querySelector(`[data-module-name="${subModule}"]`).classList.add('active');
-				LSWrapper.setItem(_Dashboard.activeTabPrefixKey, subModule);
-
-				_Dashboard.tabs[subModule].onShow();
-			});
-		}
-
-		_Dashboard.activateCurrentTab();
-	},
-	activateCurrentTab: () => {
-
-		// activate tab - either defined by URL or by last accessed
-		let tabSelected = false;
-		if (location.hash.split(':').length > 1) {
-			let locationHashLink = Structr.functionBar.querySelector('[href="' + location.hash + '"]');
-			if (locationHashLink) {
-				tabSelected = true;
-				locationHashLink.click();
-			}
-		}
-
-		if (!tabSelected) {
-			let storedSubModule = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
-			let activeTabLink   = document.querySelector('[href="#' + _Dashboard._moduleName + ':' + storedSubModule + '"]');
-			if (activeTabLink) {
-				tabSelected = true;
-				activeTabLink.click();
-			}
-		}
-
-		if (!tabSelected) {
-			let firstTab = Structr.functionBar.querySelector('a');
-			if (firstTab) {
-				firstTab.click();
-			}
+			_Dashboard.tabs[section].init(dashboardUiConfig);
+			_Dashboard.tabs[section].onShow();
 		}
 	},
 
@@ -1331,83 +1134,6 @@ let _Dashboard = {
 				`
 			}
 		},
-		methods: {
-			init: () => {
-				_Dashboard.tabs.methods.appendMethods();
-			},
-			getMarkupForMethod: (method) => `
-				<tr>
-					<td>
-						<span class="method-name">${method.schemaNode ? `<span class="font-semibold">${method.schemaNode.name}</span>.` : ''}${method.name}</span>
-					</td>
-					<td>
-						<button class="run action button flex items-center gap-2">${_Icons.getSvgIcon(_Icons.iconRunButton)} Open run dialog</button>
-					</td>
-				</tr>
-			`,
-			appendMethods: () => {
-
-				let container = document.querySelector('#dashboard-methods');
-				_Helpers.fastRemoveAllChildren(container);
-
-				fetch(`${Structr.rootUrl}SchemaMethod/schema?isStatic=true&isPrivate=false&${Structr.getRequestParameterName('sort')}=name`, {
-					headers: {
-						Accept: 'properties=id,type,name,isStatic,httpVerb,schemaNode,summary,description,parameters,index,exampleValue,parameterType'
-					}
-				}).then(response => {
-
-					if (response.ok) {
-						return response.json();
-					}
-
-				}).then(data => {
-
-					let userDefinedFunctions = data.result.filter(method => !method.schemaNode);
-					let staticFunctions      = data.result.filter(method => method.schemaNode).reduce((acc, curr) => {
-						acc[curr.schemaNode.name] ??= {};
-						acc[curr.schemaNode.name][curr.name] = curr;
-						return acc;
-					}, {});
-
-					if (userDefinedFunctions.length === 0 && Object.keys(staticFunctions).length === 0) {
-
-						container.textContent = 'No functions available.';
-
-					} else {
-
-						let callableMethodsListElement = _Helpers.createSingleDOMElementFromHTML(`<table class="props"></table>`);
-
-						for (let method of userDefinedFunctions) {
-							_Dashboard.tabs.methods.appendMethod(method, callableMethodsListElement);
-						}
-
-						for (let typeName of Object.keys(staticFunctions).sort()) {
-
-							for (let methodName of Object.keys(staticFunctions[typeName]).sort()) {
-
-								let method = staticFunctions[typeName][methodName];
-
-								_Dashboard.tabs.methods.appendMethod(method, callableMethodsListElement);
-							}
-						}
-
-						container.appendChild(callableMethodsListElement);
-					}
-				});
-			},
-			appendMethod: (method, container) => {
-
-				let methodEntry = _Helpers.createSingleDOMElementFromHTML(_Dashboard.tabs.methods.getMarkupForMethod(method));
-
-				methodEntry.querySelector('button.run').addEventListener('click', () => {
-					_Schema.methods.runSchemaMethod(method);
-				});
-
-				container.appendChild(methodEntry);
-			},
-			onShow: async () => {},
-			onHide: async () => {}
-		},
 		logs: {
 			isInitialized: false,
 			configValues: {
@@ -1548,7 +1274,15 @@ let _Dashboard = {
 					let config             = _Helpers.collectPropertyDataFromContainerAndApplyToEntity(document.querySelector('#dashboard-server-log'));
 					let logFileForFeedback = config.logFileName ? `(${config.logFileName})` : '';
 
-					_Dashboard.tabs.logs.setFeedback(`<span class="flex items-center">${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 18, 18, ['mr-2', 'fill-green'])}<span> Refreshing log file ${logFileForFeedback}...</span></span>`);
+					// the note stays where it is and only brightens while a refresh runs, so nothing appears and disappears
+					let feedback     = document.querySelector('#dashboard-server-log-feedback');
+					let feedbackText = `Refreshing log file ${logFileForFeedback}`;
+
+					if (feedback && feedback.textContent !== feedbackText) {
+						feedback.textContent = feedbackText;
+					}
+
+					feedback?.classList.add('refreshing');
 
 					Command.getServerLogSnapshot(config).then(log => {
 
@@ -1560,8 +1294,14 @@ let _Dashboard = {
 						}
 
 						window.setTimeout(() => {
-							_Dashboard.tabs.logs.setFeedback('');
-						}, 250);
+
+							feedback?.classList.remove('refreshing');
+
+							// without an interval nothing refreshes again by itself
+							if (!(_Dashboard.tabs.logs.getRefreshInterval() > 0)) {
+								_Dashboard.tabs.logs.setFeedback('');
+							}
+						}, 400);
 					});
 				}
 			},
@@ -1618,7 +1358,7 @@ let _Dashboard = {
 		
 								<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 									<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-y="bottom" data-wants-fixed="true">
-										${_Icons.getSvgIcon(_Icons.iconSettingsCog, 16, 16, ['mr-2'])}
+										${_Icons.getSvgIcon(_Icons.iconUIConfigSettings, 14, 14, ['mr-2'], 'Server Log Settings')}
 									</button>
 		
 									<div class="dropdown-menu-container" style="display: none;">
@@ -1657,8 +1397,8 @@ let _Dashboard = {
 								<input class="mr-2" type="search" name="filter" placeholder="Filter..." data-property="filter">
 		
 								<button id="dashboard-server-log-manual-refresh" class="action">Refresh</button>
-								<button id="dashboard-server-log-copy" class="action mr-1">Copy</button>
-								<button id="dashboard-server-log-download" class="action">Download</button>
+								<button id="dashboard-server-log-copy" class="icon-button mr-1" title="Copy the log to the clipboard">${_Icons.getSvgIcon(_Icons.iconClone, 14, 14, [], 'Copy the log to the clipboard')}</button>
+								<button id="dashboard-server-log-download" class="icon-button" title="Download the log">${_Icons.getSvgIcon('download-icon', 14, 14, [], 'Download the log')}</button>
 		
 								<span id="dashboard-server-log-feedback"></span>
 							</div>
@@ -1667,6 +1407,155 @@ let _Dashboard = {
 								<textarea readonly="readonly" class="h-full w-full"></textarea>
 							</div>
 						</div>
+					</div>
+				`,
+			}
+		},
+		stats: {
+			onShow: async () => {
+				_Dashboard.tabs.stats.draw();
+			},
+			onHide: async () => {},
+			init: () => {},
+			draw: () => {
+
+				let httpStatisticsCell = document.querySelector('#http-access-statistics');
+				if (httpStatisticsCell) {
+
+					let drawStatistics = (interval) => {
+
+						fetch(`${Structr.rootUrl}stats?interval=${interval}`).then(response => response.json()).then(json => {
+
+							httpStatisticsCell.innerHTML = `
+								<label>Resolution: </label>
+								<select id="statistics-resolution-selector">
+									<option value="60000">Minutes</option>
+									<option value="3600000">Hours</option>
+									<option value="86400000">Days</option>
+									</option>
+								</select>
+								<button id="statistics-refresh-button">Refresh</button>
+								<div id="statistics-diagram-container"></div>
+							`;
+
+							let data = json.result;
+							let items = [];
+							let groups = {};
+							let id = 0;
+							let min = 999999999999999;
+							let max = 0;
+
+							for (let key of Object.keys(data)) {
+
+								let local = data[key];
+								let group = id++;
+
+								if (!groups[key]) {
+									groups[key] = {
+										id: ''+group,	// display legend correctly
+										content: key,
+										className: 'http-statistics-' + key
+									};
+								}
+
+								for (let date of Object.keys(local)) {
+
+									let dateNumber = Number(date);
+									min = Math.min(dateNumber, min);
+									max = Math.max(dateNumber, max);
+									items.push({
+										x: new Date(dateNumber).toISOString(),
+										//x2: new Date(dateNumber + interval).toISOString(),
+										y: local[date],
+										group: ''+group,	// display legend correctly
+									});
+								}
+							}
+
+							let groupList = Object.values(groups);
+
+							let options = {
+								start: new Date(min - interval).toISOString(),
+								end: new Date(max + interval).toISOString(),
+								legend: true,
+								drawPoints: true,
+								barChart: {
+									align: 'right'
+								},
+								style: 'bar',
+								stack: true,
+								dataAxis: {
+									left: {
+										range: {
+											min: 0
+										}
+									}
+								},
+								height: '100%',
+								zoomMax: 86400000 * 31,		// ~ 1 month
+								zoomMin: 3600000			//   1 hour
+							};
+
+							let statElement = httpStatisticsCell.querySelector("#statistics-diagram-container");
+							new vis.Graph2d(statElement, new vis.DataSet(items), new vis.DataSet(groupList), options);
+
+							let selector = document.querySelector('#statistics-resolution-selector');
+
+							selector.addEventListener('change', (e) => {
+								drawStatistics(new Number(e.target.value));
+							});
+
+							selector.value = interval;
+
+							// refresh button
+							httpStatisticsCell.querySelector("#statistics-refresh-button").addEventListener('click', () => {
+								drawStatistics(interval);
+							});
+
+							window.setTimeout(() => {
+								statElement.classList.add('loaded');
+							}, 0)
+						});
+					}
+
+					drawStatistics(60000);
+				}
+
+				if (dashboardUiConfig.envInfo.databaseService === 'MemoryDatabaseService') {
+					Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));
+				}
+
+				let formats = {
+					with_dashes: 'UUIDv4 with dashes',
+					without_dashes: 'UUIDv4 without dashes',
+					both: 'UUIDv4 with or without dashes'
+				};
+
+				let allowedUUIDFormatElement = document.querySelector('.allowed-uuid-format');
+				allowedUUIDFormatElement.textContent = formats[dashboardUiConfig.envInfo.dashboardInfo.allowedUUIDFormat];
+
+				if (dashboardUiConfig.envInfo.dashboardInfo.allowedUUIDFormat === 'both') {
+
+					let compact = dashboardUiConfig.envInfo.dashboardInfo.createCompactUUIDs === true;
+					allowedUUIDFormatElement.textContent += ' (created UUIDs will ' + (compact ? 'not' : '')  + ' contain dashes)';
+
+					_Helpers.appendInfoTextToElement({
+						element: allowedUUIDFormatElement,
+						customToggleIcon: _Icons.iconWarningYellowFilled,
+						text: 'Warning! This mode is not supported and is only meant to be used to consolidate databases where both UUID formats are used. Using this setting is strongly discouraged and should only be temporary!',
+						width: 16,
+						height: 16,
+						noSpan: true,
+						css: {
+							marginLeft: '6px'
+						}
+					});
+				}
+			},
+			templates: {
+				tabContent: config => `
+					<div class="tab-content" id="dashboard-http-statistics" data-module-name="stats">
+						<div id="http-access-statistics"></div>
 					</div>
 				`,
 			}
@@ -1840,6 +1729,15 @@ let _Dashboard = {
 				_Dashboard.tabs.ui.showConfigurableSettings();
 				_Dashboard.tabs.ui.handleResetConfiguration(templateConfig.meObj.id);
 			},
+			// all settings of this UI in a dialog; the header's settings menu links to it
+			openDialog: () => {
+
+				let { dialogText } = _Dialogs.custom.openDialog('UI Settings');
+
+				dialogText.insertAdjacentHTML('beforeend', _Dashboard.templates.tabContentUIConfig({}));
+
+				_Dashboard.tabs.ui.init({ meObj: { id: StructrWS.userId } });
+			},
 
 			showMainMenuConfiguration: () => {
 
@@ -1861,7 +1759,7 @@ let _Dashboard = {
 				}
 
 				for (let mainMenuItem of userConfigMenu.main) {
-					let child = subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]');
+					let child = subMenuConfigContainer.querySelector('div[data-name="' + (Structr.mainMenu.renamedItems[mainMenuItem] ?? mainMenuItem) + '"]');
 					if (child) {
 						mainMenuConfigContainer.appendChild(child);
 					}
@@ -1913,7 +1811,7 @@ let _Dashboard = {
 						Command.setProperty(userId, 'localStorage', null, false, () => {
 							_Helpers.blinkGreen(document.querySelector('#clear-local-storage-on-server'));
 							LSWrapper.clear();
-							_Dashboard.onload();
+							location.reload();
 						});
 					});
 				});
@@ -1928,47 +1826,16 @@ let _Dashboard = {
 
 				<div class="tabs-contents">
 
-					${_Dashboard.templates.tabContentAboutMe(config)}
-					${_Dashboard.templates.tabContentAboutStructr(config)}
-					${_Dashboard.tabs.deployment.templates.tabContent(config)}
-					${_Dashboard.templates.tabContentUserDefinedMethods(config)}
-					${_Dashboard.tabs.logs.templates.tabContent(config)}
-					${_Dashboard.templates.tabContentEventLog(config)}
-					${_Dashboard.templates.tabContentThreads(config)}
-					${_Dashboard.templates.tabContentUIConfig(config)}
+					${_Dashboard.templates.section('About Structr', _Dashboard.templates.tabContentAboutStructr(config))}
+					${_Dashboard.templates.section('About Me', _Dashboard.templates.tabContentAboutMe(config))}
+					${_Dashboard.templates.section('Deployment', _Dashboard.tabs.deployment.templates.tabContent(config))}
 
 				</div>
 
 			</div>
 		`,
-		functions: config => `
-			<ul class="tabs-menu flex-grow">
-				<li>
-					<a href="#dashboard:me">About Me</a>
-				</li>
-				<li>
-					<a href="#dashboard:about">About Structr</a>
-				</li>
-				<li>
-					<a href="#dashboard:deployment">Deployment</a>
-				</li>
-				<li>
-					<a href="#dashboard:methods">User-defined functions</a>
-				</li>
-				<li>
-					<a href="#dashboard:logs">Server Log</a>
-				</li>
-				<li>
-					<a href="#dashboard:events">Event Log</a>
-				</li>
-				<li>
-					<a href="#dashboard:threads">Threads</a>
-				</li>
-				<li>
-					<a href="#dashboard:ui">UI Settings</a>
-				</li>
-			</ul>
-		`,
+		// a section of the page: the former tab content under its title
+		section: (title, html) => html.replace(/(<div class="tab-content[^>]*>)/, `$1<h2 class="section-title">${title}</h2>`),
 		tabContentAboutMe: config => `
 			<div class="tab-content active" id="dashboard-about-me" data-module-name="me">
 
@@ -2058,20 +1925,11 @@ let _Dashboard = {
 						<td class="key">Security Warnings</td>
 						<td id="security-warnings"></td>
 					</tr>
-					<tr>
-						<td class="key">HTTP Access Statistics</td>
-						<td id="http-access-statistics"></td>
-					</tr>
 				</table>
 			</div>
 		`,
-		tabContentUserDefinedMethods: config => `
-			<div class="tab-content" id="dashboard-methods" data-module-name="methods">
-
-			</div>
-		`,
 		tabContentUIConfig: config => `
-			<div class="tab-content relative" id="dashboard-ui-config" data-module-name="ui">
+			<div class="relative" id="dashboard-ui-config">
 
 				<div class="absolute top-2 right-0">
 					<button class="ml-2 action" id="clear-local-storage-on-server">Reset <strong>all</strong> stored UI settings</button>

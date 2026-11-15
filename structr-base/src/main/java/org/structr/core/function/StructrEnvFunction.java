@@ -125,6 +125,7 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 		final DatabaseService db = Services.getInstance().getDatabaseService();
 		info.setProperty(new BooleanProperty("globalSearchSupport"),                  db.supportsFeature(DatabaseFeature.GlobalSearch));
 		info.setProperty(new BooleanProperty("globalSearchCaseInsensitiveSupport"),   db.supportsFeature(DatabaseFeature.TypePredicateExpressions));
+		info.setProperty(new BooleanProperty("requestLoggingEnabled"),                Settings.RequestLogging.getValue());
 
 		return info;
 	}

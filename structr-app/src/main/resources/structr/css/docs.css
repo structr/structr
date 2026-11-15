@@ -123,7 +123,7 @@ html.documentation {
 	background-color: transparent;
 	overflow: auto;
 	scrollbar-gutter: stable;
-	height: calc(100vh - 8rem);
+	height: calc(100vh - var(--monitor-panel-height, 0px) - 8rem);
 	width: max-content;
 }
 
@@ -492,7 +492,7 @@ html.documentation {
 	max-width: 24rem;
 	overflow: auto;
 	scrollbar-gutter: stable;
-	height: calc(100vh - 10rem);
+	height: calc(100vh - var(--monitor-panel-height, 0px) - 10rem);
 	padding: 1.75rem 1rem 2rem 1rem;
 	background-color: var(--color-background-primary);
 	color: var(--color-text-secondary);

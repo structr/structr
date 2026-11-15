@@ -321,7 +321,7 @@ html {
 }
 
 body {
-	height: 100%;
+	height: calc(100% - var(--monitor-panel-height, 0px));
 	width: 100%;
 	min-width: 70rem;
 	margin: 0;
@@ -5828,4 +5828,228 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	background-color: var(--color-background-page);
 	border: 1px solid var(--color-border-key);
 	border-radius: 0.25rem;
+}
+
+/* the monitoring views at the foot of the window: their switches stand in the bottom strip, the open view below them */
+#monitor-switches {
+	position: absolute;
+	left: 2rem;
+	bottom: .4rem;
+	z-index: 100;
+	display: flex;
+	gap: 1rem;
+}
+
+#monitor-switches button {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--color-text-placeholder);
+	font-size: .75rem;
+	cursor: pointer;
+}
+
+#monitor-switches button:hover,
+#monitor-switches button.active {
+	color: var(--color-text-primary);
+}
+
+#monitor-switches button.active {
+	font-weight: 600;
+}
+
+#monitor-panel {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1001;
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	height: var(--monitor-panel-height, 0px);
+	border-top: 1px solid var(--color-border-primary);
+	background-color: var(--color-background-primary);
+}
+
+#monitor-panel.hidden {
+	display: none;
+}
+
+#monitor-panel-resizer {
+	position: absolute;
+	top: -3px;
+	left: 0;
+	right: 0;
+	height: 6px;
+	cursor: ns-resize;
+}
+
+body.monitor-panel-resizing {
+	user-select: none;
+	cursor: ns-resize;
+}
+
+#monitor-panel-close {
+	position: absolute;
+	top: .5rem;
+	right: .75rem;
+	z-index: 1;
+	margin: 0;
+	padding: .25rem;
+	border: 0;
+	background: none;
+	line-height: 0;
+	cursor: pointer;
+}
+
+#monitor-panel-content {
+	flex: 1;
+	min-height: 0;
+	padding: .75rem 3rem .75rem 2rem;
+}
+
+#monitor-panel-content .tab-content {
+	box-sizing: border-box;
+	height: 100%;
+	padding: 0;
+	overflow: hidden;
+	border: 0;
+	background: none ! important;
+	box-shadow: none;
+}
+
+/* a view fills the panel: its controls keep their height, what it shows takes the rest and scrolls only if it has to */
+#monitor-panel-content .tab-content.active {
+	display: flex;
+	flex-direction: column;
+}
+
+#monitor-panel-content .tab-content > :not(.monitor-panel-scroller, .flex-col, #http-access-statistics) {
+	flex-shrink: 0;
+}
+
+#monitor-panel-content .monitor-panel-scroller,
+#monitor-panel-content .tab-content > .flex-col,
+#monitor-panel-content #http-access-statistics {
+	flex: 1;
+	min-height: 0;
+}
+
+#monitor-panel-content .monitor-panel-scroller {
+	overflow: auto;
+}
+
+#monitor-panel-content .monitor-panel-scroller thead th {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background-color: var(--color-background-primary);
+}
+
+#monitor-panel-content #dashboard-server-log .flex-grow {
+	display: flex;
+	min-height: 0;
+}
+
+#monitor-panel-content #dashboard-server-log textarea {
+	flex: 1;
+	height: auto;
+	min-height: 0;
+}
+
+#monitor-panel-content #http-access-statistics {
+	display: grid;
+	grid-template-columns: auto auto auto 1fr;
+	grid-template-rows: auto minmax(0, 1fr);
+	align-items: center;
+	justify-items: start;
+	gap: .5rem;
+}
+
+#monitor-panel-content #statistics-diagram-container {
+	grid-column: 1 / -1;
+	align-self: stretch;
+	justify-self: stretch;
+	min-height: 0;
+}
+
+/* long values of the event log break inside their column, so the table needs no sideways scrolling */
+#monitor-panel-content #event-log-container td[data-data] {
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
+/* the views of the panel in the size of the text around them, with compact controls */
+#monitor-panel {
+	font-size: .85rem;
+}
+
+#monitor-panel-content :is(input, select, textarea, button, label, td, th) {
+	font-size: inherit;
+}
+
+#monitor-panel-content :is(input:not([type="checkbox"]), select, button) {
+	height: 1.9rem;
+	min-height: 0;
+	margin-top: 0;
+	margin-bottom: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+	line-height: 1;
+}
+
+#monitor-panel-content .tab-content > form,
+#monitor-panel-content #running-threads-options,
+#monitor-panel-content #dashboard-server-log-controls {
+	margin-bottom: .5rem;
+	padding-bottom: 0;
+}
+
+#monitor-panel-content .icon-button,
+#monitor-panel-content .editor-settings-popup > button.dropdown-select {
+	display: inline-flex;
+	align-items: center;
+	padding-left: .5rem;
+	border: 1px solid var(--color-border-control);
+	background-color: var(--color-background-primary);
+	cursor: pointer;
+}
+
+#monitor-panel-content .icon-button {
+	padding-right: .5rem;
+}
+
+#monitor-panel-content .editor-settings-popup > button.dropdown-select {
+	padding-right: 1.4rem;
+	background-size: .7rem;
+	background-position: calc(100% - .35rem) 50%;
+}
+
+#monitor-panel-content #dashboard-server-log textarea,
+#monitor-panel-content #event-log-container {
+	font-size: .8rem;
+}
+
+#monitor-panel-content .props :is(td, th) {
+	padding: .2rem .6rem;
+}
+
+/* the event log: short columns keep to one line, the data takes the rest and wraps */
+#monitor-panel-content #event-log-container td:not([data-data]) {
+	white-space: nowrap;
+}
+
+/* the column of actions shows only when an event of the list has one */
+#monitor-panel-content #dashboard-event-log table:not(:has(.actions-cell button)) :is(th:last-child, .actions-cell) {
+	display: none;
+}
+
+#monitor-panel-content #dashboard-event-log table {
+	width: 100%;
+}
+
+#monitor-switches button.hidden {
+	display: none;
 }

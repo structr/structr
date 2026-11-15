@@ -339,6 +339,7 @@ let Structr = {
 	doLogout: () => {
 
 		_Console.logoutAction();
+		_MonitorPanel.close(false);
 		LSWrapper.save();
 
 		Structr.mainMenu.reset();
@@ -576,6 +577,7 @@ let Structr = {
 					// every area starts with the general settings and help; its onload adds what is its own
 					Structr.hideMainHelpLink();
 					UISettings.showSettingsForCurrentModule();
+					_MonitorPanel.ensure();
 
 					Structr.modules[name].onload();
 				});
@@ -936,10 +938,10 @@ let Structr = {
 		lastMenuEntry: undefined,
 		lastMenuEntryKey: 'structrLastMenuEntry_' + location.port,
 		isBlocked: false,
-		defaultMainMenuItems: ['Dashboard', 'Apps', 'Pages', 'Files', 'Security', 'Schema', 'Code', 'Application Map', 'Data'],
+		defaultMainMenuItems: ['Instance', 'Apps', 'Pages', 'Files', 'Security', 'Schema', 'Code', 'Application Map', 'Data'],
 
 		// the entries a saved menu configuration may still know under an earlier name
-		renamedItems: { 'Map': 'Application Map' },
+		renamedItems: { 'Map': 'Application Map', 'Dashboard': 'Instance' },
 		getSavedMenuConfig: () => {
 
 			return LSWrapper.getItem(Structr.keyMenuConfig, {
@@ -2607,7 +2609,7 @@ let Structr = {
 							${_Icons.getSvgIcon(_Icons.iconHamburgerMenu, 12, 12, ['icon-white', 'opacity-80', 'hover:opacity-100', 'cursor-pointer'], 'More modules')}
 
 							<ul id="submenu">
-								<li data-name="Dashboard"><a id="dashboard_" href="#dashboard" data-activate-module="dashboard" title="Overview of this instance: about, deployment, logs and settings">Dashboard</a></li>
+								<li data-name="Instance"><a id="dashboard_" href="#dashboard" data-activate-module="dashboard" title="This instance: about, deployment and the settings of this UI">Instance</a></li>
 								<li data-name="Graph"><a id="graph_" href="#graph" data-activate-module="graph" title="Explore the database as an interactive graph">Graph</a></li>
 								<!--li data-name="Apps"><a id="apps_" href="#apps" data-activate-module="apps">Apps</a></li-->
 								<li data-name="Pages"><a id="pages_" href="#pages" data-activate-module="pages" title="Build and edit pages, templates and shared components">Pages</a></li>
@@ -3745,12 +3747,13 @@ let UISettings = {
 			UISettings.appendSettingsSectionToContainer(settingsGroup, container);
 		}
 
-		// the full list of all areas is a tab of the Dashboard
-		if (Structr.getActiveModuleName() !== 'dashboard') {
+		// the settings of all areas, the menu configuration and the reset are in a dialog
+		container.insertAdjacentHTML('beforeend', '<div class="all-ui-settings pt-4"><a href="javascript:void(0)">All UI settings</a></div>');
+		container.querySelector('.all-ui-settings a').addEventListener('click', () => {
 
-			container.insertAdjacentHTML('beforeend', '<div class="all-ui-settings pt-4"><a href="#dashboard:ui">All UI settings</a></div>');
-			container.querySelector('.all-ui-settings a').addEventListener('click', () => Structr.dropdowns.hideDropdownContainer(container));
-		}
+			Structr.dropdowns.hideDropdownContainer(container);
+			_Dashboard.tabs.ui.openDialog();
+		});
 
 		_Helpers.activateCommentsInElement(container);
 
@@ -4027,7 +4030,7 @@ let UISettings = {
 			}
 		},
 		dashboard: {
-			title: 'Dashboard',
+			title: 'Instance',
 			settings: {
 				useDeploymentWizard: {
 					text: 'Use compact deployment UI',

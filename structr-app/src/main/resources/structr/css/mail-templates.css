@@ -59,7 +59,7 @@
 }
 
 #mail-template-detail-form #mail-template-text, #mail-template-detail-form iframe#mail-template-preview {
-	height: calc(100vh - 28rem);
+	height: calc(100vh - var(--monitor-panel-height, 0px) - 28rem);
 }
 
 #mail-template-detail-form #mail-template-text {

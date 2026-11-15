@@ -180,7 +180,7 @@
 	background-color: var(--color-background-primary);
 	box-shadow: 0 0 .625rem 0 var(--color-shadow);
 	overflow: auto;
-	height: calc(100vh - 10rem);
+	height: calc(100vh - var(--monitor-panel-height, 0px) - 10rem);
 	position: relative;
 }
 
