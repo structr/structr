@@ -50,14 +50,20 @@ test('user-defined-functions', async ({page}, testInfo) => {
 
 	// Create new user-defined function
 	await page.getByText('User-defined functions').first().click();
-	await page.locator('#methods-grid-container .dropdown-menu').first().waitFor({state: 'visible'});
-	await page.locator('#methods-grid-container .dropdown-menu').first().click();
-	await page.getByText('Add method').first().click();
-	await page.locator('#methods-grid-container .property-name').first().click();
+
+	// the level offers its create action in the toolbar; a new function opens with its name being edited
+	await page.locator('#code-create-function button').click();
+	await expect(page.locator('#method-name-input')).toBeFocused();
 	await page.keyboard.type('testMethod');
-	await focusMonacoEditorInContainer(page, '#code-methods-container');
+	await page.keyboard.press('Enter');
+	await focusMonacoEditorInContainer(page, '#tabView-source');
 	await page.keyboard.type('( log(\'This is testMethod.\'), (\'testMethod return value\') )');
-	await page.getByText('Save all').first().click();
+	await page.getByRole('button', {name: 'Save method', exact: true}).click();
+	await expect(page.getByRole('button', {name: 'Save method', exact: true})).toHaveAttribute('disabled');
+
+	// the level lists the function
+	await page.getByText('User-defined functions').first().click();
+	await expect(page.locator('#code-contents .schema-grid-row', {hasText: 'testMethod'})).toBeVisible();
 
 	await page.waitForTimeout(1000);
 	await page.screenshot({path: 'screenshots/code_create-user-defined-function.png'});
@@ -69,8 +75,7 @@ test('user-defined-functions', async ({page}, testInfo) => {
 	await page.screenshot({path: 'screenshots/code_openapi-root.png'});
 
 	// Run function
-	await page.locator('[data-id="globals"] .jstree-ocl').first().click();
-	await page.getByText('testMethod()', {exact: false}).first().click();
+	await page.getByRole('link', {name: 'testMethod()', exact: false}).click();
 
 	await page.waitForTimeout(1000);
 	await page.screenshot({path: 'screenshots/code_run-function.png'});
@@ -111,7 +116,7 @@ test('user-defined-functions', async ({page}, testInfo) => {
 	await page.getByText('Add method').click();
 	await page.locator('#methods-grid-container .property-name').first().click();
 	await page.keyboard.type('sendEMail');
-	await focusMonacoEditorInContainer(page, '#code-methods-container');
+	await focusMonacoEditorInContainer(page, '#methods-container');
 
 	await page.keyboard.type('{', { delay: 50 });
 	await page.keyboard.press('Enter', { delay: 50 });
@@ -122,8 +127,8 @@ test('user-defined-functions', async ({page}, testInfo) => {
 
 	await page.keyboard.press('Enter');
 	await page.keyboard.type('();');
-	await page.getByRole('button', {name: 'Save all'}).click();
-	await expect(page.getByRole('button', {name: 'Save all'})).toHaveAttribute('disabled');
+	await page.getByRole('button', {name: 'Save', exact: true}).click();
+	await expect(page.getByRole('button', {name: 'Save', exact: true})).toHaveAttribute('disabled');
 
 	await page.getByRole('link', {name: 'Methods', exact: true}).dblclick();
 	await page.getByRole('link', {name: 'Custom method sendEMail()'}).click();
@@ -146,7 +151,11 @@ test('data-sources', async ({page}, testInfo) => {
 	await page.waitForTimeout(1000);
 
 	await page.getByRole('link', {name: 'Data Sources', exact: true}).click();
-	await expect(page.getByText('Create New Data Source')).toBeVisible();
+
+	// the level offers its create actions in the toolbar and lists the data sources
+	await expect(page.getByRole('button', {name: 'Create Script Data Source'})).toBeVisible();
+	await expect(page.getByRole('button', {name: 'Create Query Data Source'})).toBeVisible();
+	await expect(page.locator('#code-contents .schema-grid-row', {hasText: 'seededScriptSource'})).toBeVisible();
 
 	// The section lists nodes by the DataSource label rather than by a fixed set of types, so an entry
 	// without a name has to say what it is - it used to render as a bare "[unnamed]" that could not be

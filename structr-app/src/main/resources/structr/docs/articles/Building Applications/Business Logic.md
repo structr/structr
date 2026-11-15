@@ -198,7 +198,7 @@ For details on configuring Event Action Mappings, see the [Event Action Mapping]
 
 ### User-Defined Functions
 
-User-defined functions provide application-wide logic that isn't tied to a specific type. Create them in the Code area under "User-defined functions".
+User-defined functions provide application-wide logic that isn't tied to a specific type. Create them in the Code area: select "User-defined functions" in the tree and click Create in the toolbar.
 
 #### Scheduled Execution
 

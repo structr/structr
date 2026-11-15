@@ -7,6 +7,8 @@ The Code area is where you write and organize your application's business logic.
 
 The screen is divided into a navigation tree on the left and a context-sensitive editor on the right. The tree organizes your code by type: expand a type to see its properties, views, and methods. Click any item to edit it.
 
+Click a section of the tree to see a list of its entries; a click on a row opens the entry. What can be created in a section is offered as a button in the toolbar above, for example Create Type on Custom or Create Scratchpad on Scratchpads. The heading of an entry shows the same icon as its tree entry.
+
 Here you also have access to user-defined functions (global utilities available throughout your application) and service classes (containers for business logic that does not belong to a specific type). The OpenAPI output is also available here, which is useful for verifying how your methods appear to API consumers.
 
 ## The Navigation Tree
@@ -15,11 +17,15 @@ The tree contains the following sections:
 
 ### Scratchpads
 
-Scratchpads are simple blocks of code that you can develop and run without creating a method. Use them for experiments and one-off scripts; click the plus icon in the Scratchpads view to add one.
+Scratchpads are simple blocks of code that you can develop and run without creating a method. Use them for experiments and one-off scripts; click Create Scratchpad in the toolbar to add one.
 
 ### User-defined functions
 
-This shows global functions in a table format – the same view that is available in the Schema area. These functions are callable from anywhere in your application.
+This lists the global functions of your application, which are callable from anywhere. For each function the list shows whether and with which HTTP verb it can be called via HTTP, whether its JavaScript is wrapped in a main function, and whether it returns the result object only.
+
+To create a function, select Function in the toolbar and click Create. The new function opens with its name ready to be edited: type the name, press Enter, and save. The same selector offers the global lifecycle methods, for example `onStructrLogin`; a lifecycle method that already exists is opened instead of being created again.
+
+![Create a user-defined function](/structr/docs/code_create-user-defined-function.png)
 
 ### OpenAPI - Swagger UI
 
@@ -29,15 +35,19 @@ This section displays the OpenAPI specification for your application in Swagger 
 
 ### Data Sources
 
-This section lists the script-based and query-based data sources that feed data-driven components. Each data source is a piece of code (a script or a query) that returns the objects a component displays, and this is where you edit that code. How components use data sources is described in [Widgets & Components](/structr/docs/ontology/Building%20Applications/Widgets%20&%20Components).
+This section lists the script-based and query-based data sources that feed data-driven components. Each data source is a piece of code (a script or a query) that returns the objects a component displays, and this is where you edit that code. Create Script Data Source and Create Query Data Source in the toolbar add a new one. How components use data sources is described in [Widgets & Components](/structr/docs/ontology/Building%20Applications/Widgets%20&%20Components).
 
 ### Processes
 
 This section lists the BPMN processes of your application and gives access to the scripts attached to their elements, for example the code of script tasks and the expressions on gateways, so that process logic can be edited with the same editor as any other method. The processes themselves are modelled in the Processes area.
 
+### Deployment Configuration Scripts
+
+This section holds the two optional scripts that run when the application is imported by a deployment: the Pre-Deployment Script runs before the import, the Post-Deployment Script after it. The section lists the scripts that exist; for a script that does not exist yet, the toolbar offers a button to create it. See [Application Lifecycle](/structr/docs/ontology/Operations/Application%20Lifecycle) for what the scripts are used for.
+
 ### Types
 
-This lists all your custom types and service classes in the two subsections Custom and Services. Expand a type to see its contents:
+This lists all your custom types and service classes in the two subsections Custom and Services. Each subsection shows its types in a list, with their traits and the number of properties, views and methods; Create Type and Create Service Class in the toolbar add a new one. Expand a type to see its contents:
 
 - Direct Properties – Properties defined on this type
 - Linked Properties – Properties from relationships
@@ -53,7 +63,7 @@ This is a category under Types for service classes. Service classes can only con
 
 ## The Method Editor
 
-Click any method to open the editor.
+Click any method to open the editor. To rename a method, click its name in the heading, or the pencil that appears beside it when the pointer is over the heading. The new name is stored when you save the method.
 
 ### Writing Code
 
