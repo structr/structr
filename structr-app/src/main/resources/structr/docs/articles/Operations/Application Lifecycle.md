@@ -152,7 +152,7 @@ You can include scripts that run automatically before or after import.
 
 If a file named `pre-deploy.conf` is present in the application folder being imported, Structr executes it as a script before importing the data. Since it is run before the schema from the deployment has been imported, only the then-existing schema types can be used.
 
-Use this to create users or groups that are referenced in visibility settings of the exported files but may not exist in the target system. All operations in this script should be **idempotent** — meaning they can be safely run multiple times without causing unintended side effects. For example, prefer using methods like `get_or_create` rather than `create` to avoid duplicate entries.
+Use this to create users or groups that are referenced in visibility settings of the exported files but may not exist in the target system. All operations in this script should be **idempotent**, meaning they can be safely run multiple times without causing unintended side effects. For example, prefer using methods like `get_or_create` rather than `create` to avoid duplicate entries.
 
 ```javascript
 {
