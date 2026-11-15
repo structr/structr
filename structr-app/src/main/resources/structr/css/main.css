@@ -4212,6 +4212,64 @@ ul.combined-input-select-field li:not(.nohover):hover {
 }
 
 
+/* the areas of the global search: small switches in a row; an area that is searched is filled, one that is not is faint */
+#search-context-pills {
+	gap: .5rem;
+	margin: .5rem 0;
+}
+
+.search-context-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: .5rem;
+	padding: .15rem .7rem;
+	border: 1px solid var(--color-border-tertiary);
+	border-radius: 1rem;
+	color: var(--color-text-placeholder);
+	font-size: .85em;
+	line-height: 1.5;
+	white-space: nowrap;
+	cursor: pointer;
+	user-select: none;
+}
+
+.search-context-pill label {
+	cursor: pointer;
+}
+
+.search-context-pill input[data-is-search-context] {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.search-context-pill:has(input[data-is-search-context]:checked) {
+	border-color: var(--color-border-control);
+	background-color: var(--color-background-secondary);
+	color: var(--color-text-dark);
+}
+
+.search-context-pill:has(input[data-is-search-context]:focus-visible) {
+	outline: 2px solid var(--color-border-brand);
+	outline-offset: 1px;
+}
+
+/* an option of one area: a checkbox inside its pill */
+.search-context-option {
+	display: inline-flex;
+	align-items: center;
+	padding-left: .5rem;
+	border-left: 1px solid var(--color-border-control);
+}
+
+.search-context-option.hidden {
+	display: none;
+}
+
+.search-context-option input {
+	margin: 0 .3rem 0 0;
+}
+
 #global-search-popover {
 	position-anchor: --global-search;
 	position-area: x-start y-end;

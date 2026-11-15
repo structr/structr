@@ -2134,7 +2134,6 @@ let Structr = {
 
 			let form        = outerUi.querySelector('#global-search-node-form');
 			let searchField = form.querySelector('[name="searchString"]');
-			Structr.globalSearch.updateSearchContextList(form);
 
 			let debouncedSearchFunction = _Helpers.debounce(Structr.globalSearch.doSearch, 300);
 
@@ -2197,7 +2196,6 @@ let Structr = {
 			let wrapper = document.querySelector('#global-search-results-wrapper');
 			let form    = document.querySelector('#global-search-node-form');
 			let data    = Structr.globalSearch.getBasicFormData(form);
-			Structr.globalSearch.updateSearchContextList(form);
 
 			Structr.globalSearch.clear();
 
@@ -2377,14 +2375,6 @@ let Structr = {
 				return key;
 			}
 		},
-		updateSearchContextList: (form) => {
-
-			let contexts = [...form.querySelectorAll('input[data-is-search-context]:checked')].map(i => i.parentNode.textContent);
-
-			let searchContextList = document.querySelector('#search-context-list');
-
-			searchContextList.textContent = contexts.join(', ');
-		},
 		templates: {
 			popover: config => `
 				<div popover id="global-search-popover" class="direction-rtl overflow-hidden rounded">
@@ -2399,37 +2389,17 @@ let Structr = {
 										<label class="flex items-center whitespace-nowrap"><input type="checkbox" checked name="searchIgnoreCase">Ignore Case</label>
 									</div>
 
-									<div class="group relative">
-										<div class="flex items-baseline gap-1 py-1">
-											${_Icons.getSvgIcon(_Icons.iconChevronRightFilled, 10, 10, ['flex-shrink-0', 'group-hover:hidden'])}
-											${_Icons.getSvgIcon(_Icons.iconChevronDownFilled, 10, 10, ['flex-shrink-0', 'hidden', 'group-hover:block'])}
-											<span class="font-medium whitespace-nowrap">Search Context:</span>
-											<span id="search-context-list" class="truncate text-sm"></span>
-										</div>
-										<div class="absolute group-hover:block hidden bg-canvas box-border border border-gray-ddd px-4 px-6 px-x py-4 rounded-b-xl">
-											<div class="flex flex-col gap-2">
-												<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="dom">Page Elements</label>
-												<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="schema">Schema/Code</label>
-												<div class="flex items-center gap-4">
-													<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="files">Files/Folders</label>
-													<label class="flex hidden gap-2">
-														<span>(</span>
-														<input type="checkbox" class="mr-0" name="searchFuzzy">
-														<span
-															data-comment="Also finds file contents with typos, word beginnings and parts of words. Without it, file contents must contain the search text itself."
-															data-comment-config='{ "css": {"margin":0} }'
-														>
-															Fuzzy
-														</span>
-														<span>)</span>
-													</label>
-												</div>
-												<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="localizations">Localizations</label>
-												<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="mail-templates">Mail Templates</label>
-												<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="deploy-scripts">Deployment Scripts</label>
-												<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="flows">Flow Nodes</label>
-											</div>
-										</div>
+									<div id="search-context-pills" class="flex flex-wrap items-center">
+										<label class="search-context-pill"><input type="checkbox" checked data-is-search-context="true" name="dom"><span>Page Elements</span></label>
+										<label class="search-context-pill"><input type="checkbox" checked data-is-search-context="true" name="schema"><span>Schema/Code</span></label>
+										<span class="search-context-pill">
+											<label><input type="checkbox" checked data-is-search-context="true" name="files"><span>Files/Folders</span></label>
+											<label class="search-context-option hidden" title="Also finds file contents with typos, word beginnings and parts of words. Without it, file contents must contain the search text itself."><input type="checkbox" name="searchFuzzy">Fuzzy</label>
+										</span>
+										<label class="search-context-pill"><input type="checkbox" checked data-is-search-context="true" name="localizations"><span>Localizations</span></label>
+										<label class="search-context-pill"><input type="checkbox" checked data-is-search-context="true" name="mail-templates"><span>Mail Templates</span></label>
+										<label class="search-context-pill"><input type="checkbox" checked data-is-search-context="true" name="deploy-scripts"><span>Deployment Scripts</span></label>
+										<label class="search-context-pill"><input type="checkbox" checked data-is-search-context="true" name="flows"><span>Flow Nodes</span></label>
 									</div>
 								</form>
 

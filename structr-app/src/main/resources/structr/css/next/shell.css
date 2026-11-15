@@ -640,3 +640,10 @@
 	background: var(--card-ground);
 	box-shadow: var(--shadow-card);
 }
+
+/* a searched area of the global search: filled a shade off the popup, in light and in dark */
+:root.ui-next .search-context-pill:has(input[data-is-search-context]:checked) {
+	border-color: var(--color-border-primary);
+	background-color: var(--color-background-tertiary);
+	color: var(--color-text-primary);
+}
