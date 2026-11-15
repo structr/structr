@@ -576,6 +576,7 @@ let Structr = {
 
 					// every area starts with the general settings and help; its onload adds what is its own
 					Structr.hideMainHelpLink();
+					document.body.classList.remove('left-column-foldable');
 					UISettings.showSettingsForCurrentModule();
 					_MonitorPanel.ensure();
 					Structr.mainMenu.watchRoom();
@@ -1026,6 +1027,12 @@ let Structr = {
 				// the tabs change their width without the row changing its own, e.g. while a panel beside them slides
 				Structr.mainMenu.roomWatcher?.observe(tabs);
 			}
+
+			// a toolbar row wider than the window stays one row and scrolls sideways
+			let bar = Structr.functionBar;
+			if (bar) {
+				bar.classList.toggle('is-scrolling', bar.scrollWidth > bar.clientWidth + 1);
+			}
 		},
 		watchRoom: () => {
 
@@ -1236,6 +1243,33 @@ let Structr = {
 			Structr.expanded = {};
 		}
 		return Structr.expanded;
+	},
+	leftColumn: {
+		foldableBelow: 900,
+		foldedWidth: 16,
+		minRoomBeside: 320,
+		isFolded: () => (window.innerWidth < Structr.leftColumn.foldableBelow && document.body.classList.contains('left-column-folded')),
+		// the width the left column of an area takes: it leaves room for the content beside it, and folds away in a narrow window
+		fit: (left, minLeft, resizer) => {
+
+			document.body.classList.toggle('left-column-foldable', window.innerWidth < Structr.leftColumn.foldableBelow);
+
+			if (resizer && !resizer.querySelector('.column-fold-toggle')) {
+
+				let toggle = _Helpers.createSingleDOMElementFromHTML('<button type="button" class="column-fold-toggle" title="Show or hide this column"></button>');
+				toggle.addEventListener('click', () => {
+					document.body.classList.toggle('left-column-folded');
+					Structr.resize();
+				});
+				resizer.appendChild(toggle);
+			}
+
+			if (Structr.leftColumn.isFolded()) {
+				return Structr.leftColumn.foldedWidth;
+			}
+
+			return Math.max(minLeft, Math.min(left, window.innerWidth - Structr.leftColumn.minRoomBeside));
+		},
 	},
 	initVerticalSlider: (sliderEl, localstorageKey, minWidth, dragCallback, isRight) => {
 
@@ -2022,7 +2056,7 @@ let Structr = {
 					let btnRect = btn.getBoundingClientRect();
 
 					// apply "fixed" first to prevent container overflow
-					if (btn.dataset['wantsFixed'] === 'true') {
+					if (btn.dataset['wantsFixed'] === 'true' || btn.closest('#function-bar.is-scrolling')) {
 						/*
 							this is important for the editor tools in a popup which need to break free from the popup dialog
 						*/

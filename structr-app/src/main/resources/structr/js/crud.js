@@ -41,13 +41,16 @@ let _Crud = {
 
 		_Helpers.requestAnimationFrameWrapper(_Crud.prevAnimFrameReqId_moveResizer, () => {
 			left = left || LSWrapper.getItem(_Crud.crudResizerLeftKey) || 210;
+			left = Structr.leftColumn.fit(left, 204, Structr.mainContainer.querySelector('.column-resizer'));
 			Structr.mainContainer.querySelector('.column-resizer').style.left = left + 'px';
 
 			document.getElementById('crud-types').style.width        = left - 12 + 'px';
 			document.getElementById('crud-recent-types').style.width = left - 12 + 'px';
 		});
 	},
-	resize: () => {},
+	resize: () => {
+		_Crud.moveResizer();
+	},
 	onload: () => {
 
 		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('crud'));

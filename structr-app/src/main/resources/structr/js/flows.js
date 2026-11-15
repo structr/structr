@@ -48,6 +48,7 @@ let _Flows = {
 		_Helpers.requestAnimationFrameWrapper(_Flows.prevAnimFrameReqId_moveResizer, () => {
 
 			left = left || LSWrapper.getItem(_Flows.flowsResizerLeftKey) || 300;
+			left = Structr.leftColumn.fit(left, 204, flowsMain.querySelector('.column-resizer'));
 			flowsMain.querySelector('.column-resizer').style.left = left + 'px';
 			flowsTree.style.width = left - 14 + 'px';
 			if (nodeEditor) nodeEditor.style.width = '100%';

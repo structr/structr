@@ -60,6 +60,7 @@ let _Code = {
 	updatedResizers: (left) => {
 
 		left  = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || _Code.leftTabMinWidth;
+		left  = Structr.leftColumn.fit(left, _Code.leftTabMinWidth, _Code.codeMain[0].querySelector('.column-resizer-left'));
 
 		let availableWidth = _Code.codeMain.innerWidth();
 

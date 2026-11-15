@@ -226,7 +226,7 @@ let _MailTemplates = {
 		_Helpers.requestAnimationFrameWrapper(_MailTemplates.prevAnimFrameReqId_moveResizer, () => {
 
 			left = left || LSWrapper.getItem(_MailTemplates.mailTemplatesResizerLeftKey) || 300;
-			left = Math.max(300, Math.min(left, window.innerWidth - 300));
+			left = Structr.leftColumn.fit(left, 300, document.querySelector('.column-resizer'));
 
 			document.getElementById('mail-templates-list-container').style.width = `calc(${left}px - 1rem)`;
 			document.querySelector('.column-resizer').style.left                 = `${left}px`;

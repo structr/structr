@@ -2792,6 +2792,13 @@ input.tree-search-input {
 	overflow: auto;
 }
 
+/* in a narrow window the content shrinks with the room it has and scrolls inside */
+@media (max-width: 1100px) {
+	.tree-contents {
+		min-width: 0;
+	}
+}
+
 #contents-contents-container, #folder-contents-container, #code-context-container, #flows-canvas-container, #localization-detail, #mail-template-detail {
 	width: 100%;
 }
@@ -3136,6 +3143,55 @@ table.dataTable thead th, table.dataTable thead td {
 
 .column-resizer:hover::after {
 	color: var(--color-text-link);
+}
+
+/* in a narrow window the left column of an area folds away */
+.column-fold-toggle {
+	display: none;
+	position: absolute;
+	top: .25rem;
+	left: .1rem;
+	width: 1.4rem;
+	height: 1.4rem;
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--color-border-control);
+	border-radius: 50%;
+	background-color: var(--color-background-primary);
+	cursor: pointer;
+	pointer-events: auto;
+}
+
+.column-fold-toggle::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background-color: var(--color-text-inactive);
+	-webkit-mask: var(--tree-arrow-closed) no-repeat center / .6rem;
+	mask: var(--tree-arrow-closed) no-repeat center / .6rem;
+	transform: translateX(-.1rem) scaleX(-1);
+}
+
+.column-fold-toggle:hover::before {
+	background-color: var(--color-text-link);
+}
+
+body.left-column-foldable .column-fold-toggle {
+	display: block;
+}
+
+body.left-column-foldable.left-column-folded .column-fold-toggle::before {
+	transform: translateX(.2rem);
+}
+
+body.left-column-foldable.left-column-folded .column-resizer:not(.column-resizer-right) {
+	left: -1rem ! important;
+	pointer-events: none;
+}
+
+body.left-column-foldable.left-column-folded .column-resizer::after,
+body.left-column-foldable.left-column-folded .column-resizer:not(.column-resizer-right) + * {
+	display: none ! important;
 }
 
 .column-resizer-blocker {
@@ -6157,4 +6213,15 @@ body.monitor-panel-resizing {
 
 #function-bar > .flex-grow:has(> .tabs-menu) {
 	display: flex;
+}
+
+/* a toolbar row wider than the window stays one row and scrolls sideways */
+#function-bar.is-scrolling {
+	overflow-x: auto;
+	overflow-y: hidden;
+	scrollbar-width: thin;
+}
+
+#function-bar.is-scrolling > *:not(:has(> .tabs-menu)) {
+	flex-shrink: 0;
 }

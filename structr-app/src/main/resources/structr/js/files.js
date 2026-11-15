@@ -69,6 +69,7 @@ let _Files = {
 		// throttle
 		_Helpers.requestAnimationFrameWrapper(_Files.prevAnimFrameReqId_moveResizer, () => {
 			left = left || LSWrapper.getItem(_Files.filesResizerLeftKey) || 300;
+			left = Structr.leftColumn.fit(left, 204, _Files.getFilesMainElement()[0]?.querySelector('.column-resizer'));
 			$('.column-resizer', _Files.getFilesMainElement()).css({ left: left });
 
 			_Files.getFilesTree().css({ width: left - 14 + 'px' });

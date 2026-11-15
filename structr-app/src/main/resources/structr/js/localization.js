@@ -176,7 +176,7 @@ let _Localization = {
 		_Helpers.requestAnimationFrameWrapper(_Localization.prevAnimFrameReqId_moveResizer, () => {
 
 			left = left || LSWrapper.getItem(_Localization.localizationResizerLeftKey) || 340;
-			left = Math.max(300, Math.min(left, window.innerWidth - 300));
+			left = Structr.leftColumn.fit(left, 300, document.querySelector('.column-resizer'));
 
 			_Localization.uiElements.getLocalizationListContainer().style.width   = 'calc(' + left + 'px - 1rem)';
 			document.querySelector('.column-resizer').style.left                  = left + 'px';

@@ -87,6 +87,7 @@ let _ExportDiff = {
 		}
 
 		left = left || LSWrapper.getItem(_ExportDiff.resizerLeftKey) || _ExportDiff.leftTabMinWidth;
+		left = Structr.leftColumn.fit(left, _ExportDiff.leftTabMinWidth, _ExportDiff.diffMain[0].querySelector('.column-resizer-left'));
 
 		const availableWidth = _ExportDiff.diffMain.innerWidth();
 
