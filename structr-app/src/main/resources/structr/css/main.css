@@ -1488,6 +1488,11 @@ button.action.disabled:hover {
 	height: calc(100vh);
 }
 
+/* in a window without a title bar the header drags the window: a dialog lying over it has to stay clickable */
+.non-block-ui-blocker-content .dialog {
+	-webkit-app-region: no-drag;
+}
+
 body[style*=zoom] .non-block-ui-blocker-content {
 	height: calc(50vh - 4rem);
 }
