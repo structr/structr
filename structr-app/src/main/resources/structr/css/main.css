@@ -560,15 +560,30 @@ input[type="checkbox"].mr-0 {
 	background-color: var(--color-background-page);
 }
 
-#main-help {
-	position: absolute;
-	top: 5.25rem;
-	right: 1rem;
-	z-index: 1002;
+/* the settings of this UI: an icon among the tools of the header, its menu below it */
+#ui-settings-slot .dropdown-menu {
+	position: relative;
 }
 
-#main-help:hover {
-	opacity: .6;
+#ui-settings-slot button.dropdown-select {
+	display: flex;
+	align-items: center;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	cursor: pointer;
+}
+
+#ui-settings-slot .dropdown-menu-container {
+	top: calc(100% + .75rem);
+	z-index: 1003;
+	color: var(--color-text-primary);
+	font-size: 1rem;
+	font-weight: 400;
+	text-align: left;
+	white-space: normal;
+	cursor: default;
 }
 
 .main-app-box {

@@ -571,7 +571,14 @@ let Structr = {
 
 				Structr.clearMain();
 				Structr.mainMenu.activateEntry(name);
-				Structr.performActionAfterEnvResourceLoaded(Structr.modules[name].onload);
+				Structr.performActionAfterEnvResourceLoaded(() => {
+
+					// every area starts with the general settings and help; its onload adds what is its own
+					Structr.hideMainHelpLink();
+					UISettings.showSettingsForCurrentModule();
+
+					Structr.modules[name].onload();
+				});
 			}
 
 			return moduleAllowsNavigation;
@@ -1099,19 +1106,23 @@ let Structr = {
 		Structr.envInfoAvailableCallbacks.push(cb);
 	},
 	updateMainHelpLink: (newUrl) => {
-		let helpLink = document.querySelector('#main-help a');
-		if (helpLink) {
-			helpLink.setAttribute('href', newUrl);
 
-			helpLink.classList.remove('hidden');
+		// the documentation icon of the header opens the article of the area that is shown
+		let docsLink = document.querySelector('#header-docs-link');
+		if (docsLink) {
 
-			if (helpLink.children.length === 0) {
-				helpLink.innerHTML = _Icons.getSvgIcon(_Icons.iconInfo, 16, 16);
-			}
+			docsLink.setAttribute('href', newUrl);
+			docsLink.setAttribute('title', 'Documentation of this area');
 		}
 	},
 	hideMainHelpLink: () => {
-		document.querySelector('#main-help a')?.classList?.add('hidden');
+
+		let docsLink = document.querySelector('#header-docs-link');
+		if (docsLink) {
+
+			docsLink.setAttribute('href', '#docs');
+			docsLink.setAttribute('title', 'Documentation');
+		}
 	},
 	addExpandedNode: (id) => {
 
@@ -2648,6 +2659,8 @@ let Structr = {
 
 					</div>
 
+					<div id="ui-settings-slot" title="UI Settings"></div>
+
 					<div>
 						<a class="block" target="_blank" href="${_Helpers.getPrefixedRootUrl('/structr/config')}" title="System Settings (opens the Configuration Interface)">
 							${_Icons.getSvgIconWithID('settings-icon', _Icons.iconSettingsWrench, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'System Settings (opens the Configuration Interface)')}
@@ -2655,7 +2668,7 @@ let Structr = {
 					</div>
 
 					<div>
-						<a class="block" href="#docs" title="Documentation">
+						<a class="block" id="header-docs-link" target="_blank" href="#docs" title="Documentation">
 							${_Icons.getSvgIcon(_Icons.iconDocumentation, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1.5']), 'Documentation')}
 						</a>
 					</div>
@@ -2677,9 +2690,6 @@ let Structr = {
 					</div>
 				</div>
 
-				<div id="main-help">
-					<a target="_blank" href="https://support.structr.com/knowledge-graph"></a>
-				</div>
 			</div>
 
 			<div class="hidden" id="structr-console"></div>
@@ -3702,7 +3712,7 @@ let UISettings = {
 	},
 	showSettingsForCurrentModule: (...additionalSettingsGroups) => {
 
-		let settingsGroupsToShow = [UISettings.settingGroups.global];
+		let settingsGroupsToShow = [UISettings.settingGroups.style, UISettings.settingGroups.global];
 
 		let moduleSettings = UISettings.getSettings(Structr.getActiveModuleName());
 		if (moduleSettings) {
@@ -3713,12 +3723,17 @@ let UISettings = {
 
 		let settingsContainerId = 'ui-settings-popup';
 
-		_Helpers.fastRemoveElement(Structr.functionBar.querySelector('#' + settingsContainerId));
+		let slot = document.querySelector('#ui-settings-slot');
+		if (!slot) {
+			return;
+		}
+
+		_Helpers.fastRemoveElement(document.querySelector('#' + settingsContainerId));
 
 		let dropdown = _Helpers.createSingleDOMElementFromHTML(`
 			<div id="${settingsContainerId}" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-x="left">
-					${_Icons.getSvgIcon(_Icons.iconUIConfigSettings, 16, 16, ['mr-2'])}
+				<button class="dropdown-select" data-preferred-position-x="left">
+					${_Icons.getSvgIcon(_Icons.iconUIConfigSettings, 20, 20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'UI Settings')}
 				</button>
 				<div class="dropdown-menu-container" style="display: none;"></div>
 			</div>
@@ -3730,9 +3745,16 @@ let UISettings = {
 			UISettings.appendSettingsSectionToContainer(settingsGroup, container);
 		}
 
+		// the full list of all areas is a tab of the Dashboard
+		if (Structr.getActiveModuleName() !== 'dashboard') {
+
+			container.insertAdjacentHTML('beforeend', '<div class="all-ui-settings pt-4"><a href="#dashboard:ui">All UI settings</a></div>');
+			container.querySelector('.all-ui-settings a').addEventListener('click', () => Structr.dropdowns.hideDropdownContainer(container));
+		}
+
 		_Helpers.activateCommentsInElement(container);
 
-		Structr.functionBar.appendChild(dropdown);
+		slot.appendChild(dropdown);
 	},
 	appendSettingsSectionToContainer: (section, container) => {
 

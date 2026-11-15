@@ -337,24 +337,8 @@
 	box-shadow: none;
 }
 
-/* its right end: the settings, compact, then the help, which ends where the cards below end */
-:root.ui-next #ui-settings-popup > button.dropdown-select {
-	margin-right: 1.9rem;
-	padding-left: .5rem;
-	padding-right: 1.5rem;
-	background-size: .9rem;
-	background-position: calc(100% - .3rem) 50%;
-}
-
-:root.ui-next #main-help {
-	top: 5.4rem;
-	right: 2.1rem;
-	line-height: 0;
-}
-
-/* without a help for the area, the settings end where the cards below end */
-:root.ui-next body:has(#main-help a:is(.hidden, :empty)) #ui-settings-popup > button.dropdown-select {
-	margin-right: .1rem;
+:root.ui-next #ui-settings-slot button.dropdown-select {
+	background: none;
 }
 
 /* its tabs: text on the canvas, the active one lit as the active chip in the Companion's header */
