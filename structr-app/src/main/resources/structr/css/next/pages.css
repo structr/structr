@@ -58,3 +58,8 @@
 	position: relative;
 	left: 8rem;
 }
+
+/* the Save button of the repeater's query keeps a distance from the editor above it */
+:root.ui-next .repeater-container .save-repeater-query {
+	margin-top: .75rem;
+}

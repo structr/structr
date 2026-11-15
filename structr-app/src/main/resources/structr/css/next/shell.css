@@ -250,6 +250,14 @@
 	box-shadow: var(--shadow-card);
 }
 
+/* a box inside a card is no second card: a quiet frame, no surface or shadow of its own */
+:root.ui-next #main :is(.tree, .tree-contents, .resourceBox, .tab-content, .content-container) :is(.tree, .tree-contents, .resourceBox, .tab-content, .content-container) {
+	border-radius: var(--radius-surface);
+	outline-color: var(--color-border-tertiary);
+	background: transparent ! important;
+	box-shadow: none;
+}
+
 /* the rows of a table of properties: stripes that let the card or the dialog show through */
 :root.ui-next .props > div:nth-child(2n+1),
 :root.ui-next .schema-props tbody tr:nth-child(odd),
@@ -482,8 +490,10 @@
 }
 
 /* dialogs and dropdowns: cards with depth */
+/* a dialog: the card surface, a little see-through over the blurred page behind it */
 :root.ui-next #dialogBox {
-	background-color: var(--color-background-primary);
+	background-color: color-mix(in srgb, var(--color-background-primary) 82%, transparent);
+	backdrop-filter: blur(14px);
 	border: var(--line);
 	border-radius: var(--radius-dialog);
 	box-shadow: 0 12px 34px var(--color-shadow);

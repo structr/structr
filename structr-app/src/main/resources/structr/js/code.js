@@ -1119,7 +1119,7 @@ let _Code = {
 
 			_Schema.methods.fetchUserDefinedMethods((methods) => {
 
-				_Schema.methods.appendMethods(_Code.codeContents[0].querySelector('.content-container'), null, methods, () => {
+				_Schema.methods.appendMethods(_Code.codeContents[0].querySelector('#code-methods-container'), null, methods, () => {
 					_Code.tree.refreshNode(data.path);
 				});
 
@@ -4301,7 +4301,7 @@ let _Code = {
 		`,
 		globals: config => `
 			<h2>User-defined functions</h2>
-			<div id="code-methods-container" class="content-container"></div>
+			<div id="code-methods-container"></div>
 		`,
 		method: config => `
 			<h2 class="cursor-text">

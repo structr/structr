@@ -360,3 +360,14 @@ fieldset {
 	line-height: 1.2rem;
 	resize: none;
 }
+
+/* the settings of the editor of a methods list: under the editor, at its right edge */
+#code-contents #methods-container-right .editor-info {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: .75rem;
+}
+
+#code-contents #methods-container-right .editor-info button {
+	margin-right: 0 ! important;
+}
