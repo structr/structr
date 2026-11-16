@@ -3264,7 +3264,8 @@ let _Code = {
 					</div>
 				`,
 				scratchpad: config => `
-					<h2 class="cursor-text">
+					<h2 class="cursor-text with-icon">
+						${_Icons.getSvgIcon(_Icons.iconScratchpad, 16, 24, ['flex-shrink-0'])}
 						<span id="scratchpad-name-output"></span>
 						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, ['rename-hint'], 'Rename')}
 						<input class="hidden font-bold text-lg" type="text" id="scratchpad-name-input" placeholder="Untitled Scratchpad" size="60" autocomplete="off">
@@ -3393,8 +3394,6 @@ let _Code = {
 
 				_Code.codeContents.append(_Code.mainArea.deploymentConfigurationScripts.templates.main(_Code.mainArea.deploymentConfigurationScripts.templates.treeNames[scriptType], scriptType));
 
-				_Code.mainArea.deploymentConfigurationScripts.appendDocumentation(_Code.codeContents[0]).then(/*ignore*/);
-
 				if (scripts.length === 0) {
 
 					// a script that does not exist yet is created from the toolbar
@@ -3459,26 +3458,6 @@ let _Code = {
 				}
 			},
 			documentation: undefined,
-			appendDocumentation: async (container) => {
-
-				let targetEl = container.querySelector('[data-structr-deployment-scripts-help-container]');
-
-				if (_Code.mainArea.deploymentConfigurationScripts.documentation) {
-
-					targetEl.insertAdjacentHTML('afterbegin', _Code.mainArea.deploymentConfigurationScripts.documentation);
-
-				} else {
-
-					let res = await fetch(`${Structr.docsUrl}ontology/Application%20Lifecycle/Application%20Deployment/Pre-%20and%20Post-Deploy%20Scripts`);
-
-					if (res.ok) {
-
-						let html = await res.text();
-						_Code.mainArea.deploymentConfigurationScripts.documentation = html;
-						targetEl.insertAdjacentHTML('afterbegin', html);
-					}
-				}
-			},
 			templates: {
 				main: (title, scriptType) => `
 					<h2 class="with-icon">${_Icons.getSvgIcon(_Icons[_Code.mainArea.deploymentConfigurationScripts.templates.icons[scriptType]], 18, 24, ['flex-shrink-0'])}${title}</h2>
@@ -3493,14 +3472,6 @@ let _Code = {
 
 					<div id="deployment-config-script-container" class="flex flex-col flex-grow"></div>
 					<div class="editor-info"></div>
-
-					<div class="inline-info">
-						<div class="inline-info-icon">
-							${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
-						</div>
-						<div class="inline-info-text" style="width: 50%; max-height: calc(100% - 6rem); overflow: auto;" data-structr-embedded-documentation-container data-structr-deployment-scripts-help-container>
-						</div>
-					</div>
 				`,
 				overview: () => `
 					<div class="info-panel text-sm mt-4">
@@ -4638,7 +4609,7 @@ let _Code = {
 			<h2>${config.property.schemaNode.name}.${config.property.name}</h2>
 		`,
 		propertyRemote: config => `
-			<h2>Relationship (:${config.sourceNode.name})-[:${config.entity.relationshipType}]-&gt;(:${config.targetNode.name})</h2>
+			<h2 class="with-icon">${_Icons.getIconForSchemaNodeType(config.entity)}(:${config.sourceNode.name})-[:${config.entity.relationshipType}]-&gt;(:${config.targetNode.name})</h2>
 			<div id="type-actions" class="flex"></div>
 
 			<div class="tabs-container code-tabs">
