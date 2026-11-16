@@ -2,20 +2,20 @@
 
 Structr provides several ways to monitor the health and performance of your instance: a web-based dashboard for interactive monitoring, and HTTP endpoints for integration with external monitoring systems like Prometheus and Grafana.
 
-## Dashboard Monitoring
+## Monitoring in the Admin UI
 
-The Admin UI Dashboard provides real-time monitoring capabilities:
+The Admin UI provides real-time monitoring capabilities, in the Instance area and in the panel at the foot of the window:
 
 - Server Log – Live view of the server log with configurable refresh interval
 - Event Log – Structured view of API requests, authentication events, and transactions with timing breakdowns
 - Threads – List of all running threads with the ability to interrupt or kill stuck threads
-- Access Statistics – Filterable table of request statistics
+- HTTP Stats – Chart of the HTTP requests over time by method
 
-See the Dashboard chapter for details on using these features.
+See the Instance chapter for details on using these features.
 
 ## System Resources
 
-Structr monitors system resources to help you assess server capacity and diagnose performance issues. The Dashboard displays key metrics in the "About Structr" tab.
+Structr monitors system resources to help you assess server capacity and diagnose performance issues. The Instance area displays key metrics in the "About Structr" section.
 
 ### Available Metrics
 
@@ -45,7 +45,7 @@ The three memory values relate to each other as follows:
 
 System resource information is available in two places:
 
-- Dashboard – The "About Structr" tab shows processors, free memory, total memory, and max memory
+- Instance – The "About Structr" section shows processors, free memory, total memory, and max memory
 - Health Check Endpoint – The `/structr/health` endpoint returns all metrics listed above in a machine-readable JSON format
 
 ## HTTP Access Statistics
@@ -73,7 +73,7 @@ The statistics describe the load on this server rather than your application, so
 
 Access statistics are available in three places:
 
-- Dashboard – The "About Structr" tab shows a filterable table with request statistics grouped by timestamp, request count, and HTTP method
+- Admin UI – The HTTP Stats link at the foot of the window shows a chart of the requests over time, grouped by HTTP method
 - Health Check Endpoint – The `/structr/health` endpoint includes response time statistics in the `html:responseTime` and `json:responseTime` sections
 - Statistics Endpoint – `/structr/rest/stats` returns the request counts as JSON, for monitoring systems and other remote tools
 
@@ -294,6 +294,6 @@ If `log.requests` is disabled and no request log exists, `availableLogFiles` is 
 
 ## Related Topics
 
-- Dashboard - Interactive monitoring in the Admin UI
+- Instance - Interactive monitoring in the Admin UI
 - Configuration - Server settings
 - Maintenance - Maintenance mode for planned downtime

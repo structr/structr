@@ -4,7 +4,7 @@ When something doesn't work as expected, Structr provides several tools to help 
 
 ## Server Log
 
-The server log is your primary tool for diagnosing problems. You can view it in the Dashboard under "Server Log", or directly in the log file on the server.
+The server log is your primary tool for diagnosing problems. You can view it with the "Server Log" link at the foot of the Admin UI, or directly in the log file on the server.
 
 ### Enable Query Logging
 

@@ -31,7 +31,7 @@ Place this file in the same directory as `logback.xml` (typically the Structr in
 
 You can view the server log in several ways:
 
-- Dashboard – The Server Log tab shows the log in real-time with configurable refresh interval
+- Admin UI – The Server Log link at the foot of the window shows the log in real-time with configurable refresh interval, in every area
 - Command line – Use `tail -f /var/log/structr/server.log` (Debian) or `tail -f logs/server.log` (ZIP) to follow the log
 - Log file – Open the file directly in a text editor
 
@@ -101,7 +101,7 @@ The environment variable `LOG_ROTATION` selects who rotates: `structr` (the defa
 
 Every server log line also goes to stdout. A launcher that redirects stdout into the server log itself would write each line twice, so it sets `LOG_CONSOLE=off` (the default is `on`).
 
-The Dashboard Server Log tab has a log source selector for the server log, the request log and their rotated files, except the compressed ones.
+The Server Log view has a log source selector for the server log, the request log and their rotated files, except the compressed ones.
 
 ## Logging Configuration
 
@@ -179,11 +179,11 @@ Set `application.scripting.debugger` to `true` in `structr.conf` or the Configur
 When enabled, Structr generates a unique debugger URL on each startup. This URL is intentionally unpredictable for security reasons. You can find it in:
 
 - The server log at startup
-- The Dashboard in the "About Structr" tab under "Scripting Debugger"
+- The Instance area in the "About Structr" section under "Scripting Debugger"
 
 ### Connecting Chrome DevTools
 
-1. Copy the debugger URL from the Dashboard or server log
+1. Copy the debugger URL from the Instance area or server log
 2. Open a new Chrome tab and paste the URL directly into the address bar
 3. Press Enter to open DevTools
 
@@ -286,7 +286,7 @@ This logs detailed information about how permissions are resolved for each objec
 
 ## Thread Inspection
 
-The Dashboard Threads tab shows all running threads in the JVM. This helps identify:
+The Threads view at the foot of the window shows all running threads in the JVM. This helps identify:
 
 - Stuck or hung requests
 - Infinite loops in code
@@ -297,7 +297,7 @@ Each thread shows its name, state, and stack trace. You can interrupt or kill th
 
 ## Event Log Debugging
 
-The Dashboard Event Log provides structured information about requests and transactions:
+The Event Log at the foot of the window provides structured information about requests and transactions:
 
 - Authentication events with user details
 - REST and HTTP requests with timing
@@ -354,4 +354,4 @@ The Event Log shows transaction timing. Look for transactions with high callback
 
 - Monitoring – System health and performance metrics
 - Configuration – Server settings
-- Dashboard – Admin UI features
+- Instance – Admin UI features

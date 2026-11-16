@@ -106,4 +106,4 @@ Triggers a complete rebuild of all indexes for both nodes and relationships. Use
 
 ## Settings
 
-The gear icon opens configuration options for the Schema area. These are the same settings available in the Dashboard under UI Settings, filtered to show only schema-relevant options.
+The gear icon opens configuration options for the Schema area. These are the same settings available under "All UI settings" in the UI Settings menu of the header, filtered to show only schema-relevant options.

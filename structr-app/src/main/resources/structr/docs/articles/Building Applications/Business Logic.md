@@ -423,7 +423,7 @@ Write messages to the server log with `$.log()`:
 
 ### Debugging
 
-You can debug Structr's JavaScript using Chrome DevTools. Enable the setting `application.scripting.debugger` in `structr.conf` and restart Structr. The Dashboard then shows the debugger URL in the "About Structr" section, and the URL also appears in the server log. Open the URL in Chrome to set breakpoints and step through your code.
+You can debug Structr's JavaScript using Chrome DevTools. Enable the setting `application.scripting.debugger` in `structr.conf` and restart Structr. The Instance area then shows the debugger URL in the "About Structr" section, and the URL also appears in the server log. Open the URL in Chrome to set breakpoints and step through your code.
 
 ### Code Search
 

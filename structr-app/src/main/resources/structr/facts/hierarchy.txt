@@ -45,7 +45,7 @@ Topic "Building Applications" has markdown-file "articles/Building Applications/
 
 # Admin User Interface
 Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Overview.md"
-Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Dashboard.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Instance.md"
 Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Admin Console.md"
 Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Schema.md"
 Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Data.md"

@@ -50,9 +50,9 @@ This export does not include users, groups, or any data objects created by users
 
 You can trigger an application export in three ways:
 
-#### Via Dashboard
+#### Via the Instance Area
 
-Go to the Dashboard, open the Deployment tab, enter an absolute path on the server filesystem into the "Export application to local directory" field, and click the button. The path can be any location where Structr has write access, for example `/var/structr/deployments/my-app`.
+Go to the Instance area and, in the Deployment section, enter an absolute path on the server filesystem into the "Export application to local directory" field, and click the button. The path can be any location where Structr has write access, for example `/var/structr/deployments/my-app`.
 
 To download the export as a ZIP file instead, use the "Export and download application as ZIP file" button.
 
@@ -80,11 +80,11 @@ Application import is a destructive operation. Structr deletes all existing page
 
 There is no conflict resolution or merging during import. If you need to merge changes from multiple developers, do this in your version control system before importing.
 
-#### Via Dashboard
+#### Via the Instance Area
 
 Enter the path to an existing export in the "Import application from local directory" field and click the button.
 
-To import from a remote location, enter a URL to a ZIP file in the "Import application from URL" field. The URL must be publicly accessible without authentication. Structr downloads the ZIP file and imports its contents. Alternatively, select a ZIP file from your computer in the file field next to it and click the import button; the Dashboard uploads the file to the DeploymentServlet, which unpacks and imports it. If the export does not sit at the root of the ZIP file, enter its path inside the archive in the "ZIP content path" field.
+To import from a remote location, enter a URL to a ZIP file in the "Import application from URL" field. The URL must be publicly accessible without authentication. Structr downloads the ZIP file and imports its contents. Alternatively, select a ZIP file from your computer in the file field next to it and click the import button; the Admin UI uploads the file to the DeploymentServlet, which unpacks and imports it. If the export does not sit at the root of the ZIP file, enter its path inside the archive in the "ZIP content path" field.
 
 #### Via Admin Console
 
@@ -186,7 +186,7 @@ When running Structr with Docker using custom volume directories, you can integr
 The typical workflow:
 
 1. Clone your application repository to `./volumes/structr-repository` on the host system
-2. Import the application in Structr's Dashboard under Deployment by entering `/var/lib/structr/repository/webapp` in the "Import application from local directory" field
+2. Import the application in Structr's Instance area under Deployment by entering `/var/lib/structr/repository/webapp` in the "Import application from local directory" field
 3. Make changes in Structr (schema, pages, business logic, etc.)
 4. Export the application by entering `/var/lib/structr/repository/webapp` in the "Export application to local directory" field
 5. On the host system, commit and push your changes from `./volumes/structr-repository`
@@ -207,9 +207,9 @@ Common use cases include:
 
 ### Data Export
 
-#### Via Dashboard
+#### Via the Instance Area
 
-Go to the Dashboard, open the Deployment tab, select the types you want to export, enter an absolute path in the "Export data to local directory" field, and click Export.
+Go to the Instance area and, in the Deployment section, select the types you want to export, enter an absolute path in the "Export data to local directory" field, and click Export.
 
 #### Via Admin Console
 
@@ -231,7 +231,7 @@ curl -X POST http://localhost:8082/structr/rest/maintenance/deployData \
 
 Data import adds new objects to the database. If an object with the same UUID already exists, it is replaced with the imported version. Objects that exist in the database but not in the import are left unchanged.
 
-#### Via Dashboard
+#### Via the Instance Area
 
 Enter the path to an existing data export in the "Import data from local directory" field and click the button.
 
@@ -272,7 +272,7 @@ The `pre-data-deploy.conf` and `post-data-deploy.conf` scripts work the same way
 
 ## Monitoring Progress
 
-You can follow the progress of any export or import operation in the Server Log tab on the Dashboard or via the notifications in the Structr UI.
+You can follow the progress of any export or import operation in the Server Log at the foot of the window or via the notifications in the Structr UI.
 
 ## Related Topics
 

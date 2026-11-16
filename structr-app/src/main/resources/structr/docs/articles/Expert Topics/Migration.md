@@ -454,7 +454,7 @@ Resource Permissions (formerly "Resource Access Grants") have been made more fle
    - If the permission has active flags for "Authenticated Users": set `visibleToAuthenticatedUsers = true`
    - If both flags apply: split into two permissions with identical signatures
 
-For many permissions, enable "Show visibility flags in Resource Permissions table" in Dashboard → UI Settings.
+For many permissions, enable "Show visibility flags in Resource Permissions table" in the UI Settings menu of the header.
 
 #### Semi-automatic Migration via Deployment
 

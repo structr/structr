@@ -46,14 +46,17 @@ test('dashboard', async ({page}, testInfo) => {
 	// the logs, the threads and the HTTP statistics open in the panel at the foot of the window
 	await page.locator('#monitor-switches [data-view="logs"]').click();
 	await page.locator('#monitor-panel [data-module-name="logs"]').waitFor({state: 'visible'});
+	await expect(page.locator('#monitor-panel #dashboard-server-log textarea')).not.toHaveValue('');
 	await page.screenshot({path: 'screenshots/dashboard_server-log.png'});
 
 	await page.locator('#monitor-switches [data-view="events"]').click();
 	await page.locator('#monitor-panel [data-module-name="events"]').waitFor({state: 'visible'});
+	await page.locator('#monitor-panel #event-log-container tr').first().waitFor({state: 'visible'});
 	await page.screenshot({path: 'screenshots/dashboard_event-log.png'});
 
 	await page.locator('#monitor-switches [data-view="threads"]').click();
 	await page.locator('#monitor-panel [data-module-name="threads"]').waitFor({state: 'visible'});
+	await page.locator('#monitor-panel [data-module-name="threads"] tbody tr').first().waitFor({state: 'visible'});
 	await page.screenshot({path: 'screenshots/dashboard_running-threads.png'});
 
 	// HTTP statistics: vis.js is async and has no onLoad callback

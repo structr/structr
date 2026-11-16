@@ -126,7 +126,7 @@ The CronService does not automatically log when a task starts or completes. If y
 }
 ```
 
-Log output appears in the server log, which you can view in the Dashboard under "Server Log" or directly in the log file on the server.
+Log output appears in the server log, which you can view with the "Server Log" link at the foot of the Admin UI or directly in the log file on the server.
 
 ### Identifying Cron Log Entries
 

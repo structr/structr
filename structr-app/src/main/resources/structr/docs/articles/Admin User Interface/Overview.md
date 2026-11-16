@@ -13,7 +13,7 @@ The Structr Admin User Interface is a web-based console for building and managin
 | Build web pages and templates | <a href="javascript:void(0);" onclick="window.parent.location.hash='#pages'">Pages</a>         |
 | Manage static files (CSS, JS, images) | <a href="javascript:void(0);" onclick="window.parent.location.hash='#files'">Files</a>        |
 | Manage users, groups, and permissions | <a href="javascript:void(0);" onclick="window.parent.location.hash='#security'">Security</a>   |
-| Export or import my application | <a href="javascript:void(0);" onclick="window.parent.location.hash='#dashboard'">Dashboard</a> |
+| Export or import my application | <a href="javascript:void(0);" onclick="window.parent.location.hash='#dashboard'">Instance</a> |
 | Model and monitor business processes | <a href="javascript:void(0);" onclick="window.parent.location.hash='#processes'">Processes</a> |
 | Run scripts and queries interactively | Admin Console (Ctrl+Alt+C)                                                                     |
 
@@ -22,7 +22,7 @@ The Structr Admin User Interface is a web-based console for building and managin
 
 ![The Admin User Interface](/structr/docs/dashboard_about-structr.png)
 
-The interface is organized around a header bar that stays visible across all areas. The main navigation on the left side of the header takes you to the different functional areas: Dashboard, Pages, Files, Security, Schema, Code, Application Map, Data, and more. Less frequently used items are available in the burger menu, which also contains the Documentation entry and the logout link. You can configure which items appear in the main navigation through the UI Settings on the Dashboard.
+The interface is organized around a header bar that stays visible across all areas. The main navigation on the left side of the header takes you to the different functional areas: Instance, Pages, Files, Security, Schema, Code, Application Map, Data, and more. Less frequently used items are available in the burger menu, which also contains the Documentation entry and the logout link. You can configure which items appear in the main navigation through the UI Settings menu in the header.
 
 On the right side of the header, tools are available regardless of which area you are working in:
 
@@ -43,17 +43,21 @@ The terminal icon opens the Admin Console – a Quake-style terminal that slides
 
 ![Admin Console](/structr/docs/dashboard_admin-console.png)
 
+### UI Settings
+
+The UI Settings icon opens the settings of the Admin UI that matter in the current area; its last entry opens all UI settings in a dialog.
+
 ### Notifications
 
 The bell icon shows notifications and system alerts.
 
 ## The Main Areas
 
-### Dashboard
+### Instance
 
-This is the default landing page after login. Here you can view system information, check server logs, and use deployment tools to export and import your application.
+This is the default landing page after login. Here you can view system information and use deployment tools to export and import your application. The server log, the event log, the threads and the HTTP statistics open from the links at the foot of the window, in every area.
 
-![Dashboard](/structr/docs/dashboard_about-structr.png)
+![Instance](/structr/docs/dashboard_about-structr.png)
 
 ### Pages
 
