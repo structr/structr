@@ -64,3 +64,8 @@
 :root.ui-next .repeater-container .save-repeater-query {
 	margin-top: .75rem;
 }
+
+/* the highlight of a site begins at the edge of the panel, not at the edge of the window */
+:root.ui-next #sitesList {
+	clip-path: inset(0 0 0 -.25rem);
+}
