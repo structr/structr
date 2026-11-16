@@ -3406,7 +3406,7 @@ span.context-help-text {
 	position: fixed;
 	background: var(--color-background-hover);
 	border: 1px solid var(--color-border-emphasis);
-	padding: .25rem .75rem;
+	padding: .5rem .75rem;
 	max-width: 250px;
 	white-space: normal;
 	font-weight: normal;

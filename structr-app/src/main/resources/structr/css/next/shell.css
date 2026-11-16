@@ -94,7 +94,7 @@
 	align-items: center;
 }
 
-:root.ui-next #header > .flex.gap-4 svg:has(> use) {
+:root.ui-next #header > .flex.gap-4 svg.header-icon:has(> use) {
 	box-sizing: content-box;
 	width: 16px;
 	height: 16px;
@@ -108,7 +108,7 @@
 	cursor: pointer;
 }
 
-:root.ui-next #header > .flex.gap-4 svg:has(> use):hover {
+:root.ui-next #header > .flex.gap-4 svg.header-icon:has(> use):hover {
 	background: var(--color-background-tertiary);
 	color: var(--color-text-primary);
 }

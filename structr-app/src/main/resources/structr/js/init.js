@@ -2741,7 +2741,7 @@ let Structr = {
 					<div id="global-search-ui" class="hidden" style="target-name: --global-search;">
 
 						<button class="m-0 p-0 border-0 bg-transparent" popovertarget="global-search-popover" style="anchor-name: --global-search;" title="Global Search">
-							${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Global Search')}
+							${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, _Icons.getSvgIconClassesForColoredIcon(['header-icon', 'text-white', 'mt-1']), 'Global Search')}
 						</button>
 
 						${Structr.globalSearch.templates.popover(config)}
@@ -2749,7 +2749,7 @@ let Structr = {
 					
 					<div class="relative cursor-pointer" data-toggle="popup" data-target="#keyboard-shortcuts-popup" title="Keyboard Shortcuts">
 
-						${_Icons.getSvgIcon(_Icons.iconKeyboardShortcuts, 24, 24, _Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Keyboard Shortcuts')}
+						${_Icons.getSvgIcon(_Icons.iconKeyboardShortcuts, 24, 24, _Icons.getSvgIconClassesForColoredIcon(['header-icon', 'text-white']), 'Keyboard Shortcuts')}
 
 						<div id="keyboard-shortcuts-popup" class="absolute hidden pt-4 cursor-default" style="z-index: 1002; right: -2rem;" title="">
 							<div id="keyboard-shortcuts-menu" class="bg-canvas border border-gray-ddd mt py-2 rounded-b-xl">
@@ -2762,30 +2762,30 @@ let Structr = {
 
 					<div>
 						<a class="block" target="_blank" href="${_Helpers.getPrefixedRootUrl('/structr/config')}" title="System Settings (opens the Configuration Interface)">
-							${_Icons.getSvgIconWithID('settings-icon', _Icons.iconSettingsWrench, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'System Settings (opens the Configuration Interface)')}
+							${_Icons.getSvgIconWithID('settings-icon', _Icons.iconSettingsWrench, 20,20, _Icons.getSvgIconClassesForColoredIcon(['header-icon', 'text-white', 'mt-1']), 'System Settings (opens the Configuration Interface)')}
 						</a>
 					</div>
 
 					<div>
 						<a class="block" id="header-docs-link" target="_blank" href="#docs" title="Documentation">
-							${_Icons.getSvgIcon(_Icons.iconDocumentation, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1.5']), 'Documentation')}
+							${_Icons.getSvgIcon(_Icons.iconDocumentation, 20,20, _Icons.getSvgIconClassesForColoredIcon(['header-icon', 'text-white', 'mt-1.5']), 'Documentation')}
 						</a>
 					</div>
 
 					<div title="Toggle Console (${Structr.shortcuts.formatShortcut(Structr.shortcuts.handlers.toggleConsole.shortcut)})">
-						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), `Toggle Console (${Structr.shortcuts.formatShortcut(Structr.shortcuts.handlers.toggleConsole.shortcut)})`)}
+						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['header-icon', 'text-white', 'mt-1']), `Toggle Console (${Structr.shortcuts.formatShortcut(Structr.shortcuts.handlers.toggleConsole.shortcut)})`)}
 					</div>
 
 					<div id="${Structr.notificationIconId}" class="relative cursor-pointer" title="Show notifications">
-						${_Icons.getSvgIcon(_Icons.iconNotificationBell, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Show notifications')}
+						${_Icons.getSvgIcon(_Icons.iconNotificationBell, 20,20, _Icons.getSvgIconClassesForColoredIcon(['header-icon', 'text-white', 'mt-1']), 'Show notifications')}
 						<div class="absolute flex items-center rounded-full h-4 -top-1 -right-3 text-white bg-red">
 							<div data-notification-count class="px-2 text-xs empty:hidden"></div>
 						</div>
 					</div>
 
 					<div id="color-scheme-toggle" class="cursor-pointer" title="Switch between light and dark">
-						${_Icons.getSvgIcon(_Icons.iconThemeMoon, 22, 22, ['to-dark'])}
-						${_Icons.getSvgIcon(_Icons.iconThemeSun, 22, 22, ['to-light'])}
+						${_Icons.getSvgIcon(_Icons.iconThemeMoon, 22, 22, ['header-icon', 'to-dark'])}
+						${_Icons.getSvgIcon(_Icons.iconThemeSun, 22, 22, ['header-icon', 'to-light'])}
 					</div>
 				</div>
 
@@ -3832,7 +3832,7 @@ let UISettings = {
 		let dropdown = _Helpers.createSingleDOMElementFromHTML(`
 			<div id="${settingsContainerId}" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 				<button class="dropdown-select" data-preferred-position-x="left">
-					${_Icons.getSvgIcon(_Icons.iconUIConfigSettings, 20, 20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'UI Settings')}
+					${_Icons.getSvgIcon(_Icons.iconUIConfigSettings, 20, 20, _Icons.getSvgIconClassesForColoredIcon(['header-icon', 'text-white', 'mt-1']), 'UI Settings')}
 				</button>
 				<div class="dropdown-menu-container" style="display: none;"></div>
 			</div>
