@@ -3581,9 +3581,10 @@ let _Pages = {
 				element: refreshLocalizationsButton,
 				text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
 				insertAfter: true,
-				helpElementCss: { width: "300px" },
-				offsetX: -20,
-				offsetY: 10
+				helpElementCss: {
+					width: '300px',
+					maxWidth: 'initial'
+				}
 			});
 		},
 		getContextMenuElements: (div, wrappedEntity) => {

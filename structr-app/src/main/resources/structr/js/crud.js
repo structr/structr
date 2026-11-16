@@ -420,13 +420,8 @@ let _Crud = {
 			_Helpers.appendInfoTextToElement({
 				element: exactTypeLabel,
 				text: 'This flag affects the list shown below and the delete function.<br><br>If active only nodes of the selected type ("' + type + '") are shown in the list and types inheriting from this type are excluded. If it is not active, nodes for the current type and nodes of all its subtypes are shown.<br><br>The same is true for the delete function. If active, only nodes with that exact type are deleted and nodes of inheriting types are not deleted. If it is not active, nodes for the active type and nodes of all its subtypes are deleted.',
-				insertAfter: true,
 				css: {
 					marginLeft: '4px',
-				},
-				helpElementCss: {
-					fontSize: '12px',
-					lineHeight: '1.1em'
 				}
 			});
 
@@ -2059,8 +2054,7 @@ let _Crud = {
 				_Helpers.appendInfoTextToElement({
 					element: el.querySelector('.resource-link'),
 					text: "View the REST output in a new tab.",
-					customToggleIconClasses: ['icon-blue', 'ml-1'],
-					offsetY: 10
+					customToggleIconClasses: ['icon-blue', 'ml-1']
 				});
 
 				return $('.pager', el);
@@ -2169,19 +2163,25 @@ let _Crud = {
 			},
 			storePagerData: () => {
 				let type      = _Crud.type;
-				let pagerData = `${_Crud.view[type]},${_Crud.sort[type]},${_Crud.order[type]},${_Crud.page[type]},${_Crud.pageSize[type]}`;
+				let pagerData = {
+					view: _Crud.view[type],
+					sort: _Crud.sort[type],
+					order: _Crud.order[type],
+					page: _Crud.page[type],
+					pageSize: _Crud.pageSize[type]
+				};
+
 				LSWrapper.setItem(_Crud.objectList.pager.crudPagerDataKey + type, pagerData);
 			},
 			restorePagerData: (type) => {
 				let val  = LSWrapper.getItem(_Crud.objectList.pager.crudPagerDataKey + type);
 
-				if (val) {
-					let pagerData        = val.split(',');
-					_Crud.view[type]     = pagerData[0];
-					_Crud.sort[type]     = pagerData[1];
-					_Crud.order[type]    = pagerData[2];
-					_Crud.page[type]     = pagerData[3];
-					_Crud.pageSize[type] = pagerData[4];
+				if (val && typeof val === 'object') {
+					_Crud.view[type]     = val.view;
+					_Crud.sort[type]     = val.sort;
+					_Crud.order[type]    = val.order;
+					_Crud.page[type]     = val.page;
+					_Crud.pageSize[type] = val.pageSize;
 				}
 			},
 			determinePagerData: (type) => {
@@ -2200,13 +2200,12 @@ let _Crud = {
 					_Crud.objectList.pager.restorePagerData(type);
 				}
 
-				if (!_Crud.view[type]) {
-					_Crud.view[type]     = _Crud.defaultView;
-					_Crud.sort[type]     = _Crud.defaultSort;
-					_Crud.order[type]    = _Crud.defaultOrder;
-					_Crud.pageSize[type] = _Crud.objectList.pager.defaultPageSize;
-					_Crud.page[type]     = _Crud.objectList.pager.defaultPage;
-				}
+				_Crud.view[type]     = _Crud.view[type]     ?? _Crud.defaultView;
+				_Crud.sort[type]     = _Crud.sort[type]     ?? _Crud.defaultSort;
+				_Crud.order[type]    = _Crud.order[type]    ?? _Crud.defaultOrder;
+				_Crud.pageSize[type] = _Crud.pageSize[type] ?? _Crud.objectList.pager.defaultPageSize;
+				_Crud.page[type]     = _Crud.page[type]     ?? _Crud.objectList.pager.defaultPage;
+
 			},
 			updateUrl: (type) => {
 
@@ -2452,10 +2451,6 @@ let _Crud = {
 				css: {
 					left: '-18px',
 					position: 'absolute'
-				},
-				helpElementCss: {
-					fontSize: '12px',
-					lineHeight: '1.1em'
 				}
 			});
 

@@ -675,8 +675,7 @@ let _Entities = {
 				element: warnContainer,
 				customToggleIcon: _Icons.iconWarningYellowFilled,
 				width: 16,
-				height: 16,
-				noSpan: true
+				height: 16
 			});
 
 		} else {
@@ -1288,8 +1287,7 @@ let _Entities = {
 				element: addCustomAttributeButton,
 				text: "Any property name is allowed but the 'data-' prefix is recommended. Please note that 'data-structr-' is reserved for internal use.",
 				insertAfter: true,
-				customToggleIconClasses: ['icon-blue'],
-				noSpan: true
+				customToggleIconClasses: ['icon-blue']
 			});
 
 			addCustomAttributeButton.on('click', () => {

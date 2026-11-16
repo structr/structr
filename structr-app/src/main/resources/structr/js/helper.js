@@ -353,7 +353,7 @@ let _Helpers = {
 	// file and folder names can contain characters like # and ? that would end the path part of the URL
 	encodePathForURL: (path) => path?.split('/').map(encodeURIComponent).join('/'),
 	getURLParameter: (name) => {
-		return new URLSearchParams(location.search).get(name) ?? '';
+		return new URLSearchParams(location.search).get(name) ?? undefined;
 	},
 	formatKey: (text) => {
 		// don't format custom 'data-*' attributes
@@ -393,23 +393,19 @@ let _Helpers = {
 			case 503: return 'Service Unavailable';
 		}
 	},
+	infoElementCnt: 0,
 	appendInfoTextToElement: (config) => {
 
-		let element            = $(config.element);
-		let appendToElement    = config.appendToElement || element;
-		let text               = config.text || 'No text supplied!';
-		let toggleElementCss   = config.css || {};
-		let toggleElementClass = config.class || undefined;
-		let elementCss         = config.elementCss || {};
-		let helpElementCss     = config.helpElementCss || {};
-		let customToggleIcon   = config.customToggleIcon || _Icons.iconInfo;
+		let element                 = $(config.element);
+		let text                    = config.text || 'No text supplied!';
+		let toggleElementCss        = config.css || {};
+		let helpElementCss          = config.helpElementCss || {};
+		let customToggleIcon        = config.customToggleIcon || _Icons.iconInfo;
 		let customToggleIconClasses = config.customToggleIconClasses || ['icon-blue'];
-		let insertAfter        = config.insertAfter || false;
-		let offsetX            = config.offsetX || 0;
-		let offsetY            = config.offsetY || 0;
-		let width              = config.width || 12;
-		let height             = config.height || 12;
-		let hasOwnClickHandler = config?.hasOwnClickHandler ?? false;
+		let insertAfter             = config.insertAfter || false;
+		let width                   = config.width || 12;
+		let height                  = config.height || 12;
+		let hasOwnClickHandler      = config?.hasOwnClickHandler ?? false;
 
 		let createdElements = [];
 
@@ -418,77 +414,60 @@ let _Helpers = {
 		if (!toggleElement) {
 			customToggleElement = false;
 			toggleElement = $(`
-				${(config.noSpan) ? '' : '<span>'}
+				<span style="line-height: .25rem;">
 					${_Icons.getSvgIcon(customToggleIcon, width, height, _Icons.getSvgIconClassesForColoredIcon(customToggleIconClasses))}
-				${(config.noSpan) ? '' : '</span>'}
+				</span>
 			`);
 
 			createdElements.push(toggleElement);
 		}
 
-		if (toggleElementClass) {
-			toggleElement.addClass(toggleElementClass);
-		}
-		toggleElement.css(toggleElementCss);
-		appendToElement.css(elementCss);
+		let id = `tip${_Helpers.infoElementCnt++}`;
+		let anchorName = `--${id}`;
 
-		let helpElement = $(`<span class="context-help-text">${text}</span>`);
-		createdElements.push(helpElement);
-
-		helpElement[0].addEventListener('click', e => {
-			e.stopPropagation();
+		toggleElement.css({
+			"anchor-name": anchorName,
 		});
+		toggleElement[0].popovertarget = id;
 
-		toggleElement
-			.on("mousemove", function(e) {
-				let isPinned = toggleElement[0].dataset['pinned'] ?? false;
+		toggleElement.css(toggleElementCss);
 
-				helpElement.show();
+		let helpElement = $(`<span id="${id}" class="context-help-text" popover>${text}</span>`);
 
-				if (!isPinned) {
-					helpElement.css({
-						left: Math.min(e.clientX + 20 + offsetX, window.innerWidth - helpElement.width() - 50),
-						top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
-					});
-				}
-			}).on("mouseout", function(e) {
-				let isPinned = toggleElement[0].dataset['pinned'] ?? false;
+		helpElement.css({
+			'position-anchor': anchorName,
+			'position-area': 'top left',
+			'position-try-order': 'most-width',
+			'position-try-fallbacks': 'flip-block, flip-inline, flip-block flip-inline',
+			'z-index': 10001
+		})
 
-				if (!isPinned) {
-					helpElement.hide();
-				}
-			});
+		createdElements.push(helpElement);
 
 		if (hasOwnClickHandler === false) {
 
 			toggleElement[0].addEventListener('click', (e) => {
 				e.preventDefault();
-				e.stopPropagation();
-
-				let wasPinned = toggleElement[0].dataset['pinned'] ?? false;
-
-				if (wasPinned) {
-					delete toggleElement[0].dataset['pinned'];
-					helpElement.hide();
-					helpElement[0].querySelector('.pinned-info')?.remove();
-				} else {
-					helpElement.show();
-					toggleElement[0].dataset['pinned'] = true;
-					helpElement[0].insertAdjacentHTML('afterbegin', `<div class="pinned-info text-right">${_Icons.getSvgIcon('pin', 16, 16, [ '-mr-2', 'mb-1' ], 'Info Box is pinned, click info icon again to unpin.')}</div>`);
-				}
 			});
 		}
 
-		if (insertAfter) {
-			if (!customToggleElement) {
+		toggleElement[0].addEventListener('mouseenter', () => helpElement[0].showPopover());
+		toggleElement[0].addEventListener('mouseleave', () => helpElement[0].hidePopover());
+
+		let popupsContainer = document.querySelector('#comment-popups-container');
+		if (!popupsContainer) {
+			document.body.insertAdjacentHTML('beforeend', '<div id="comment-popups-container"></div>');
+			popupsContainer = document.querySelector('#comment-popups-container');
+		}
+
+		popupsContainer.insertAdjacentElement('beforeend', helpElement[0]);
+
+		if (!customToggleElement) {
+			if (insertAfter) {
 				element.after(toggleElement);
-			}
-			appendToElement.after(helpElement);
-		} else {
-			if (!customToggleElement) {
+			} else {
 				element.append(toggleElement);
 			}
-			appendToElement.append(helpElement);
 		}
 
 		helpElement.css(helpElementCss);

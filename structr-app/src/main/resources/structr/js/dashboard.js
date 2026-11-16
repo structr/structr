@@ -93,11 +93,7 @@ let _Dashboard = {
 					customToggleIcon: _Icons.iconWarningYellowFilled,
 					text: 'Warning! This mode is not supported and is only meant to be used to consolidate databases where both UUID formats are used. Using this setting is strongly discouraged and should only be temporary!',
 					width: 16,
-					height: 16,
-					noSpan: true,
-					css: {
-						marginLeft: '6px'
-					}
+					height: 16
 				});
 			}
 			Structr.setFunctionBarHTML('');
@@ -107,7 +103,9 @@ let _Dashboard = {
 				_Helpers.appendInfoTextToElement({
 					element: document.querySelector('[data-max-memory-slot]'),
 					text: 'Maximum heap size is below the recommended 8 GB. If you use an embedded database or have large datasets, this can lead to problems.<br><br>Please adjust structr.conf according to your workload and setup (see <code>application.heap.max_size</code>).',
-					customToggleIcon: _Icons.iconWarningYellowFilled
+					customToggleIcon: _Icons.iconWarningYellowFilled,
+					width: 14,
+					height: 14
 				});
 			}
 
@@ -195,7 +193,7 @@ let _Dashboard = {
 			onHide: async () => {},
 			init: (dashboardUiConfig) => {
 				_Dashboard.tabs.about.gatherVersionUpdateInfo(dashboardUiConfig.envInfo);
-				_Dashboard.tabs.about.checkLicenseEnd(dashboardUiConfig.envInfo, $('#dashboard-about-structr .end-date'), { noSpan: true });
+				_Dashboard.tabs.about.checkLicenseEnd(dashboardUiConfig.envInfo, $('#dashboard-about-structr .end-date'));
 			},
 			gatherVersionUpdateInfo: async (envInfo) => {
 
@@ -239,17 +237,16 @@ let _Dashboard = {
 					}
 				}
 			},
-			checkLicenseEnd: (envInfo, element, cfg) => {
+			checkLicenseEnd: (envInfo, element) => {
 
 				if (envInfo && envInfo.endDate && element) {
 
 					let showMessage = true;
 					let daysLeft    = Math.ceil((new Date(envInfo.endDate.slice(0, 10)) - new Date()) / 86400000) + 1;
 
-					let config = Object.assign({
-						element: element,
-						appendToElement: element
-					}, cfg);
+					let config = {
+						element: element
+					};
 
 					if (daysLeft <= 0) {
 
@@ -1896,7 +1893,7 @@ let _Dashboard = {
 					</tr>
 					<tr>
 						<td class="key">UUID Format</td>
-						<td><div class="allowed-uuid-format flex items-center"></div></td>
+						<td><div class="allowed-uuid-format flex items-center gap-2"></div></td>
 					</tr>
 					<tr>
 						<td class="key">Last Deployment Action</td>
@@ -1913,7 +1910,7 @@ let _Dashboard = {
 								<div>Total Memory</div>
 								<div>${_Helpers.formatBytes(config.envInfo.dashboardInfo.runtimeInfo.totalMemory)}</div>
 								<div>Max Memory</div>
-								<div data-max-memory-slot>${_Helpers.formatBytes(config.envInfo.dashboardInfo.runtimeInfo.maxMemory)}</div>
+								<div data-max-memory-slot class="flex items-center gap-2">${_Helpers.formatBytes(config.envInfo.dashboardInfo.runtimeInfo.maxMemory)}</div>
 							</div>
 						</td>
 					</tr>
@@ -2059,7 +2056,10 @@ let _Dashboard = {
 		`,
 		tabContentAboutStructrSecurity: config => `
 			<div>
-				<div class="flex items-center mb-4 font-bold">${_Icons.getSvgIcon(_Icons.iconWarningYellowFilled, 16, 16, 'mr-2')} Warning: The permissions for structr.conf configuration file do not match the expected permissions and pose a security risk in multi-user environments.</div>
+				<div class="flex items-center mb-4 font-bold">
+					${_Icons.getSvgIcon(_Icons.iconWarningYellowFilled, 16, 16, ['flex-shrink-0', 'mr-2'])}
+					Warning: The permissions for structr.conf configuration file do not match the expected permissions and pose a security risk in multi-user environments.
+				</div>
 				<div class="grid grid-cols-2 max-w-120">
 					<span>Expected Permissions</span>
 					${config?.expectedPermissions}
@@ -2071,7 +2071,10 @@ let _Dashboard = {
 		`,
 		tabContentAboutStructrSecurityDefaultCredentials: () => `
 			<div>
-				<div class="flex items-center mb-4 font-bold">${_Icons.getSvgIcon(_Icons.iconWarningYellowFilled, 16, 16, 'mr-2')} Warning: An administrator account still uses the default password.</div>
+				<div class="flex items-center mb-4 font-bold">
+					${_Icons.getSvgIcon(_Icons.iconWarningYellowFilled, 16, 16, ['flex-shrink-0', 'mr-2'])}
+					Warning: An administrator account still uses the default password.
+				</div>
 				<p>Anyone who can reach this instance can log in as an administrator. Change the password now, and set <code>initialuser.password</code> in structr.conf before provisioning further instances.</p>
 			</div>
 		`

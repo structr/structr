@@ -25,7 +25,6 @@ let _Schema = {
 	_moduleName: 'schema',
 	isReloading: false,
 	undefinedRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
-	initialRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
 	schemaLoading: false,
 	unload: () => {
 
@@ -1220,7 +1219,6 @@ let _Schema = {
 			let stub   = 30 + 80 * relCnt[relIndex];
 			let offset =     0.2 * relCnt[relIndex];
 
-			let relTypeIsDefaultType = (relationship.relationshipType === _Schema.initialRelType);
 			let labelClasses         = 'label bg-white/60 hover:bg-white ' + (relationship.isPartOfBuiltInSchema ? 'text-gray-999 hover:text-gray-ddd' : 'text-active-tab-text');
 
 			_Schema.ui.jsPlumbInstance.connect({
@@ -1246,7 +1244,7 @@ let _Schema = {
 					["Label", {
 						cssClass: 'rel-type ' + labelClasses,
 						label: `<div id="rel_${relationship.id}" class="flex items-center" data-name="${relationship.name}" data-source-type="${sourceName}" data-target-type="${targetName}">
-							${(relTypeIsDefaultType ? '<span>&nbsp;</span>' : relationship.relationshipType)}
+							${relationship.relationshipType ?? ''}
 							${(relationship.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'ml-2', 'edit-relationship-icon']), 'Edit relationship'))}
 							${(relationship.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'delete-relationship-icon']), 'Delete relationship'))}
 						</div>`,
@@ -1257,22 +1255,6 @@ let _Schema = {
 			});
 
 			let relTypeOverlay = $('#rel_' + relationship.id);
-
-			if (relTypeIsDefaultType) {
-
-				relTypeOverlay.css({
-					width: "80px"
-				});
-				relTypeOverlay.parent().addClass('schema-reltype-warning');
-
-				_Helpers.appendInfoTextToElement({
-					text: "It is highly advisable to set a relationship type on the relationship! To do this, click the pencil icon to open the edit dialog.<br><br><strong>Note: </strong>Any existing relationships of this type have to be migrated manually.",
-					element: $('span', relTypeOverlay),
-					customToggleIcon: _Icons.iconWarningYellowFilled,
-					customToggleIconClasses: ['ml-2'],
-					appendToElement: $('#schema-container')
-				});
-			}
 
 			relTypeOverlay.find('.edit-relationship-icon')?.on('click', () => {
 				_Schema.openEditDialog(relationship.id);
@@ -1421,7 +1403,7 @@ let _Schema = {
 			container.querySelector('#target-json-name').value               = rel.targetJsonName;
 			container.querySelector('#source-multiplicity-selector').value   = (rel.sourceMultiplicity || '*');
 			container.querySelector('#target-multiplicity-selector').value   = (rel.targetMultiplicity || '*');
-			container.querySelector('#relationship-type-name').value         = (rel.relationshipType === _Schema.initialRelType ? '' : rel.relationshipType);
+			container.querySelector('#relationship-type-name').value         = (rel.relationshipType ?? '');
 			container.querySelector('#cascading-delete-selector').value      = (rel.cascadingDeleteFlag || 0);
 			container.querySelector('#autocreate-selector').value            = (rel.autocreationFlag || 0);
 			container.querySelector('#propagation-selector').value           = (rel.permissionPropagation || 'None');
@@ -1483,10 +1465,7 @@ let _Schema = {
 				element: el,
 				insertAfter: true,
 				customToggleIcon: _Icons.iconWarningYellowFilled,
-				customToggleIconClasses: ['ml-2'],
-				helpElementCss: {
-					fontSize: '9pt'
-				}
+				customToggleIconClasses: ['ml-2']
 			});
 		},
 		validateBasicRelInfo: (container, relInfo) => {
@@ -1661,8 +1640,7 @@ let _Schema = {
 				text: '<dl class="help-definitions"><dt>NONE</dt><dd>No cascading delete</dd><dt>SOURCE_TO_TARGET</dt><dd>Delete target node when source node is deleted</dd><dt>TARGET_TO_SOURCE</dt><dd>Delete source node when target node is deleted</dd><dt>ALWAYS</dt><dd>Delete source node if target node is deleted AND delete target node if source node is deleted</dd><dt>CONSTRAINT_BASED</dt><dd>Delete source or target node if deletion of the other side would result in a constraint violation on the node (e.g. notNull constraint)</dd></dl>',
 				element: container.querySelector('#cascading-delete-selector'),
 				customToggleIconClasses: ['ml-2', 'icon-blue'],
-				insertAfter: true,
-				noSpan: true
+				insertAfter: true
 			});
 		},
 		createRelationshipDefinition: async (data) => {
@@ -2197,7 +2175,10 @@ let _Schema = {
 					text: _Schema.properties.vectorIndex.similarityHelp,
 					element: container.querySelector('.vector-similarity-label'),
 					customToggleIconClasses: ['ml-1', 'icon-blue'],
-					noSpan: true
+					helpElementCss: {
+						width: '400px',
+						maxWidth: 'initial'
+					}
 				});
 			},
 			/** The values of the form; without a size there is no index and no similarity. */
@@ -2725,19 +2706,19 @@ let _Schema = {
 					<div class="py-3 px-2 flex items-center">${_Helpers.escapeForHtmlAttributes(config.property.name)}</div>
 					<div class="py-3 px-2 flex items-center">${config.property.propertyType}</div>
 					<div class="flex items-center justify-center">
-						<input class="not-null" type="checkbox" disabled="disabled" ${(config.property.notNull ? 'checked' : '')} style="margin-right: 0;">
+						<input class="mr-0 not-null" type="checkbox" disabled="disabled" ${(config.property.notNull ? 'checked' : '')}>
 					</div>
 					<div class="flex items-center justify-center">
-						<input class="compound" type="checkbox" disabled="disabled" ${(config.property.compound ? 'checked' : '')} style="margin-right: 0;">
+						<input class="mr-0 compound" type="checkbox" disabled="disabled" ${(config.property.compound ? 'checked' : '')}>
 					</div>
 					<div class="flex items-center justify-center">
-						<input class="unique" type="checkbox" disabled="disabled" ${(config.property.unique ? 'checked' : '')} style="margin-right: 0;">
+						<input class="mr-0 unique" type="checkbox" disabled="disabled" ${(config.property.unique ? 'checked' : '')}>
+					</div>
+					<div class="flex items-center justify-center gap-1">
+						<input class="mr-0 indexed" type="checkbox" disabled="disabled" ${(config.property.indexed ? 'checked' : '')}>
 					</div>
 					<div class="flex items-center justify-center">
-						<input class="indexed" type="checkbox" disabled="disabled" ${(config.property.indexed ? 'checked' : '')} style="margin-right: 0;">
-					</div>
-					<div class="flex items-center justify-center">
-						<input class="fulltext-indexed" type="checkbox" disabled="disabled" ${(config.property.fulltext ? 'checked' : '')} style="margin-right: 0;">
+						<input class="mr-0 fulltext-indexed" type="checkbox" disabled="disabled" ${(config.property.fulltext ? 'checked' : '')}>
 					</div>
 				</div>
 			`,
@@ -2780,19 +2761,19 @@ let _Schema = {
 						})()}
 					</div>
 					<div class="flex items-center justify-center">
-						<input class="not-null" type="checkbox" ${(config.property.notNull ? 'checked' : '')} style="margin-right: 0;">
+						<input class="mr-0 not-null" type="checkbox" ${(config.property.notNull ? 'checked' : '')}>
 					</div>
 					<div class="flex items-center justify-center">
-						<input class="compound" type="checkbox" ${(config.property.compound ? 'checked' : '')} style="margin-right: 0;">
+						<input class="mr-0 compound" type="checkbox" ${(config.property.compound ? 'checked' : '')}>
 					</div>
 					<div class="flex items-center justify-center">
-						<input class="unique" type="checkbox" ${(config.property.unique ? 'checked' : '')} style="margin-right: 0;">
+						<input class="mr-0 unique" type="checkbox" ${(config.property.unique ? 'checked' : '')}>
+					</div>
+					<div class="flex items-center justify-center gap-1">
+						<input class="mr-0 indexed" type="checkbox" ${(config.property.indexed ? 'checked' : '')}>
 					</div>
 					<div class="flex items-center justify-center">
-						<input class="indexed" type="checkbox" ${(config.property.indexed ? 'checked' : '')} style="margin-right: 0;">
-					</div>
-					<div class="flex items-center justify-center">
-						<input class="fulltext-indexed" type="checkbox" ${(config.property.fulltext ? 'checked' : '')} style="margin-right: 0;">
+						<input class="mr-0 fulltext-indexed" type="checkbox" ${(config.property.fulltext ? 'checked' : '')}>
 					</div>
 					<div class="py-3 px-2"><input type="text" size="10" class="property-default" value="${_Helpers.escapeForHtmlAttributes(config.property.defaultValue)}"></div>
 					<div class="actions-col flex items-center justify-center">
@@ -3903,7 +3884,10 @@ let _Schema = {
 				});
 			}
 
-			_Helpers.activateCommentsInElement(container, { css: {}, noSpan: true, customToggleIconClasses: ['icon-blue', 'ml-2'] });
+			_Helpers.activateCommentsInElement(container, {
+				css: {},
+				customToggleIconClasses: ['icon-blue', 'ml-2']
+			});
 		},
 		appendNewMethod: (gridBody, method, entity) => {
 
@@ -4296,8 +4280,7 @@ let _Schema = {
 			_Helpers.appendInfoTextToElement({
 				element: paramsOuterBox.querySelector('h3'),
 				text: 'Parameters can be accessed in the called method by using the <code>$.methodParameters[name]</code> object (JavaScript-only) or the <code>retrieve(name)</code> function.<br>For methods called via GET, the parameters are sent using the request URL and thus, they can be accessed via the <code>request</code> object',
-				css: { marginLeft: "5px" },
-				helpElementCss: { fontSize: "12px" }
+				css: { marginLeft: "5px" }
 			});
 
 			let appendParameter = (name = '', value = '', paramDefinition = {}) => {

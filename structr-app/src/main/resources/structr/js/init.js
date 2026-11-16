@@ -349,7 +349,7 @@ let Structr = {
 			Structr.renewSessionId();
 			Structr.clearMain();
 
-			for (let versionInfo of document.querySelectorAll('.structr-version')) {
+			for (let versionInfo of document.querySelectorAll('[data-structr-version]')) {
 				versionInfo.textContent = '';
 			}
 
@@ -890,18 +890,12 @@ let Structr = {
 					${(build && date) ? `<span> build </span><span>${build}</span><span> (${date})</span>` : ''}
 				`;
 
-				$('.structr-version').html(versionInfo);
+				let versionElement = document.querySelector('[data-structr-version]');
+				versionElement.innerHTML = versionInfo;
 
 				if (envInfo.edition) {
 
-					_Dashboard.tabs.about.checkLicenseEnd(envInfo, $('.structr-version'), {
-						offsetX: -300,
-						helpElementCss: {
-							color: "black",
-							fontSize: "1rem",
-							lineHeight: "1.7em"
-						}
-					});
+					_Dashboard.tabs.about.checkLicenseEnd(envInfo, $('[data-structr-version]'));
 				}
 			}
 
@@ -1129,15 +1123,11 @@ let Structr = {
 			text: Structr.inMemoryWarningText,
 			customToggleIcon: 'database-warning-sign-icon',
 			customToggleIconClasses: [],
-			width: 20,
-			height: 20,
-			noSpan: true,
+			width: 16,
+			height: 16,
 			helpElementCss: {
 				'border': '2px solid red',
 				'border-radius': '4px',
-				'font-weight': 'bold',
-				'font-size': '15px',
-				'line-height': '1.8rem',
 				'color': '#000'
 			}
 		};
@@ -2696,7 +2686,7 @@ let Structr = {
 	templates: {
 		mainBody: config => `
 
-			<div class="structr-version text-gray-999 text-xs absolute bottom-2 right-8 z-100"></div>
+			<div data-structr-version class="flex items-center gap-1 text-gray-999 text-xs absolute bottom-2 right-8 z-100"></div>
 
 			<div id="info-area">
 				<div id="close-all-button" class="mt-4 mb-2 mx-2 text-right">

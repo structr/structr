@@ -3404,7 +3404,6 @@ body.left-column-foldable.left-column-folded .column-resizer:not(.column-resizer
 
 span.context-help-text {
 	position: fixed;
-	display: none;
 	background: var(--color-background-hover);
 	border: 1px solid var(--color-border-emphasis);
 	padding: .25rem .75rem;

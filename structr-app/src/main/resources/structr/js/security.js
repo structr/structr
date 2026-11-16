@@ -1252,7 +1252,7 @@ let _ResourceAccessPermissions = {
 
 		} else {
 
-			let x = _Helpers.appendInfoTextToElement({
+			let infoIcon = _Helpers.appendInfoTextToElement({
 				text: 'This permission has access rights configured for the following users/groups. Click to open the ACL dialog.<br><br>' + resourceAccess.grantees.map(p => p.name).join('<br>'),
 				element: actionsCol,
 				customToggleIcon: _Icons.iconSecurityRegularUser,
@@ -1262,7 +1262,7 @@ let _ResourceAccessPermissions = {
 				hasOwnClickHandler: true
 			});
 
-			_Entities.bindAccessControl(x[0], resourceAccess);
+			_Entities.bindAccessControl(infoIcon[0], resourceAccess);
 		}
 	}
 };
