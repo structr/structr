@@ -430,3 +430,8 @@ fieldset {
 #code-contents .info-panel pre {
 	background-color: var(--color-background-tertiary);
 }
+
+/* the line of facts under the heading of a process */
+#code-contents .process-facts {
+	margin: -.5rem 0 1rem;
+}

@@ -887,6 +887,10 @@ let _Code = {
 						_Code.mainArea.displayProcessesContent(data);
 						break;
 
+					case 'bpmnDefinitionMethods':
+						_Code.mainArea.displayProcessContent(data);
+						break;
+
 					case 'scratchpads':
 						_Code.mainArea.scratchpad.showOverview(data);
 						break;
@@ -1189,6 +1193,71 @@ let _Code = {
 			});
 
 			_Code.codeContents[0].insertAdjacentHTML('beforeend', '<p class="overview-note">Processes are created and imported in the <a href="#processes">Processes area</a>.</p>');
+		},
+		// one process: its elements that carry scripts, and the way to its diagram
+		displayProcessContent: (data) => {
+
+			let kindOf     = (element) => (element.type ?? '').replace(/^Bpmn/, '').replace(/([a-z])([A-Z])/g, '$1 $2');
+			let isSelected = () => (_Code.codeTree.jstree(true).get_selected()[0] === data.path);
+
+			_Code.mainArea.displayOverview(data, ['Element', 'Kind', 'Methods'], (addRow) => {
+
+				Command.query('BpmnProcess', 1000, 1, 'name', 'asc', { definition: data.id }, async (processes) => {
+
+					let elements = [];
+
+					for (let process of (processes ?? [])) {
+						elements.push(...await new Promise(resolve => Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: process.id }, result => resolve(result ?? []), true, 'ui')));
+					}
+
+					if (!isSelected()) {
+						return;
+					}
+
+					let scripted = elements.filter(element => Array.isArray(element.methods) && element.methods.length > 0);
+
+					for (let element of scripted) {
+
+						addRow(element.id, [
+							`${_Icons.getSvgIcon(_Icons.iconTask, 16, 24, ['flex-shrink-0'])}<b>${_Helpers.escapeTags(element.bpmnName || element.bpmnId || element.name || '[unnamed]')}</b>`,
+							_Helpers.escapeTags(kindOf(element)),
+							element.methods.length
+						]);
+					}
+
+					if (scripted.length === 0) {
+
+						_Code.codeContents[0].querySelector('.schema-grid')?.remove();
+						_Code.codeContents[0].insertAdjacentHTML('beforeend', '<p class="overview-note">No element of this process carries a script. Scripts are attached to elements in the diagram.</p>');
+					}
+
+				}, true, 'ui');
+			});
+
+			Command.get(data.id, null, (definition) => {
+
+				if (!isSelected()) {
+					return;
+				}
+
+				let name  = definition?.processName || definition?.name || '[unnamed]';
+				let facts = [(definition?.version != null) ? `Version ${definition.version}` : null, `${(definition?.processes ?? []).length} ${(definition?.processes ?? []).length === 1 ? 'process' : 'processes'}`].filter(Boolean).join(' · ');
+
+				_Code.codeContents[0].insertAdjacentHTML('afterbegin', `
+					<h2 class="with-icon">${_Icons.getSvgIcon(_Icons.iconProcess, 16, 24, ['flex-shrink-0'])}${_Helpers.escapeTags(name)}</h2>
+					<p class="overview-note process-facts">${_Helpers.escapeTags(facts)}</p>
+				`);
+
+				// the diagram of the process is edited in the Processes area
+				let openButton = _Code.mainArea.typeTabs.toolbar().querySelector('button[data-level="bpmnDefinitionMethods"]');
+
+				openButton.onclick = () => {
+					location.hash = '#processes';
+
+					_Helpers.waitForElement('#processDefinitionsTable').then(() => _ProcessDiagram.show({ id: data.id, name: name }, name));
+				};
+
+			}, 'ui');
 		},
 		// the overview of a level of the tree: one row per entry, a click opens it
 		displayOverview: (data, columns, load) => {
@@ -1801,6 +1870,7 @@ let _Code = {
 					toolbar = _Helpers.createSingleDOMElementFromHTML(`<div id="code-toolbar" class="flex items-center">${button('Create Type')}${button('Create Service Class')}${button('Create Scratchpad')}${button('Create Script Data Source')}${button('Create Query Data Source')}
 						<button title="Create Pre-Deployment Script" data-level="create-pre-deploy-conf" class="action button btn flex items-center active:border-green hidden">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Pre-Deployment Script</button>
 						<button title="Create Post-Deployment Script" data-level="create-post-deploy-conf" class="action button btn flex items-center active:border-green hidden">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Post-Deployment Script</button>
+						<button title="Open the diagram of this process in the Processes area" data-level="bpmnDefinitionMethods" class="button btn flex items-center hidden">${_Icons.getSvgIcon(_Icons.iconProcess, 16, 16, 'mr-2')} Open in Processes</button>
 						<div id="code-create-function" class="hidden">
 							<select class="select-create-type combined-select-create">
 								<option value="">Function</option>
