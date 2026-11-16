@@ -230,6 +230,28 @@ test('application map', async ({page}) => {
 	await page.screenshot({ path: 'screenshots/appmap_hotspots.png' });
 
 	await page.mouse.move(5, 300);
+	await page.waitForFunction(() => !_AppMap.view.spotlight && !_AppMap.view.activity);
+
+	// a click keeps an overlay on after the pointer has left, the next click or the other button ends it
+	await page.locator('#appmap-activity').click();
+	await page.mouse.move(5, 300);
+	await expect(page.locator('#appmap-activity')).toHaveAttribute('aria-pressed', 'true');
+	await page.waitForFunction(() => !!_AppMap.view.activity && !_AppMap.view.spotlight);
+
+	await page.locator('#appmap-spotlight').click();
+	await page.mouse.move(5, 300);
+	await expect(page.locator('#appmap-activity')).toHaveAttribute('aria-pressed', 'false');
+	await expect(page.locator('#appmap-spotlight')).toHaveAttribute('aria-pressed', 'true');
+	await page.waitForFunction(() => _AppMap.view.spotlight === true);
+
+	await page.locator('#appmap-activity').click();
+	await page.mouse.move(5, 300);
+	await page.waitForFunction(() => !!_AppMap.view.activity && !_AppMap.view.spotlight);
+
+	await page.locator('#appmap-activity').click();
+	await expect(page.locator('#appmap-activity')).toHaveAttribute('aria-pressed', 'false');
+	await page.waitForFunction(() => !_AppMap.view.spotlight && !_AppMap.view.activity);
+	await page.mouse.move(5, 300);
 
 	// the dark look
 	await page.locator('[data-look="dark"]').click();

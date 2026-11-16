@@ -1251,17 +1251,25 @@ let _AppMap = {
 			});
 		}
 
-		// the access lens: nobody, public users, authenticated users or one of the groups
+		// the access lens: the perspective of an admin (everything), of public users, of authenticated users or of one of the groups
 		let lens  = bar.querySelector('#appmap-lens');
 		let roles = [
-			{ key: '',       name: 'nobody' },
+			{ key: '',       name: 'Admin (everything)' },
 			{ key: 'public', name: 'Public users', kind: 'public' },
 			{ key: 'auth',   name: 'Authenticated users', kind: 'auth' },
 			...view.model.groups.slice().sort((a, b) => a.n.localeCompare(b.n)).map(g => ({ key: 'group:' + g.id, name: g.n, kind: 'group', id: g.id }))
 		];
 
+		let groups = document.createElement('optgroup');
+
+		groups.label = 'Groups';
+
 		for (let role of roles) {
-			lens.add(new Option(role.name, role.key));
+			(role.kind === 'group' ? groups : lens).appendChild(new Option(role.name, role.key));
+		}
+
+		if (groups.children.length) {
+			lens.appendChild(groups);
 		}
 
 		lens.addEventListener('change', () => {
@@ -1271,34 +1279,55 @@ let _AppMap = {
 			view.setLens(role?.kind ? role : null);
 		});
 
-		// usage and hotspots show while the pointer or the keyboard focus rests on their button: usage the glow of how much the
-		// entry points are used, hotspots the map in grey around the most used elements; pointer and focus each hold them on
-		// their own, one that leaves does not end what the other still holds
-		let hold = (button, show) => {
+		// usage and hotspots: a click keeps the overlay on, and the button lit, until the next click; while the pointer rests on
+		// a button its overlay shows for a glance. Usage is the glow of how much the entry points are used, hotspots the map in
+		// grey around the most used elements. One at a time: switching one on switches the other off
+		let overlays = { usage: bar.querySelector('#appmap-activity'), spotlight: bar.querySelector('#appmap-spotlight') };
+		let pinned   = null;
+		let peek     = null;
+		let shown    = null;
 
-			let holders = new Set();
+		let showOverlay = () => {
 
-			for (let [event, holder, on] of [['pointerenter', 'pointer', true], ['pointerleave', 'pointer', false], ['focus', 'focus', true], ['blur', 'focus', false]]) {
+			let overlay = peek ?? pinned;
 
-				button.addEventListener(event, () => {
+			if (overlay !== shown) {
 
-					let was = holders.size > 0;
+				shown = overlay;
 
-					if (on) {
-						holders.add(holder);
-					} else {
-						holders.delete(holder);
-					}
+				// the hotspots end the usage they borrowed, so they go first and come last
+				if (overlay !== 'spotlight') {
+					view.setSpotlight(false);
+				}
 
-					if (was !== holders.size > 0) {
-						show(!was);
-					}
-				});
+				view.setActivity(overlay === 'usage' ? 'usage' : null);
+
+				if (overlay === 'spotlight') {
+					view.setSpotlight(true);
+				}
+			}
+
+			for (let [name, button] of Object.entries(overlays)) {
+				button.setAttribute('aria-pressed', String(pinned === name));
 			}
 		};
 
-		hold(bar.querySelector('#appmap-activity'), on => view.setActivity(on ? 'usage' : null));
-		hold(bar.querySelector('#appmap-spotlight'), on => view.setSpotlight(on));
+		for (let [name, button] of Object.entries(overlays)) {
+
+			button.addEventListener('pointerenter', () => { peek = name; showOverlay(); });
+			button.addEventListener('pointerleave', () => { peek = null; showOverlay(); });
+
+			// switching off ends the glance too, so the click shows at once
+			button.addEventListener('click', () => {
+
+				pinned = (pinned === name ? null : name);
+				peek   = (pinned ? peek : null);
+
+				showOverlay();
+			});
+		}
+
+		showOverlay();
 
 		// the introduction: open on a first visit, the question mark brings it back
 		let intro     = document.querySelector('#appmap-intro');
@@ -1357,6 +1386,9 @@ let _AppMap = {
 				</div>
 				<div id="appmap-hud">
 					<span id="appmap-hint"></span>
+				</div>
+				<div id="appmap-info">
+					<span id="appmap-counts"></span>
 					<span id="appmap-status"></span>
 				</div>
 			</div>
@@ -1367,19 +1399,18 @@ let _AppMap = {
 					<button data-look="light">Light</button>
 					<button data-look="dark">Dark</button>
 				</span>
-				<label class="appmap-lens">Access of
-					<select id="appmap-lens" title="Shows what a role sees and may do, and where a page it sees does what it may not"></select>
+				<label class="appmap-lens">Perspective of
+					<select id="appmap-lens" title="Shows the map from the perspective of public users, authenticated users or a group: which pages they see and what they may read, write or delete. Marks in red where a page does something they may not"></select>
 				</label>
 				<span class="appmap-segment" role="group" aria-label="Activity">
-					<button id="appmap-activity" title="Hover to show how often pages, endpoints and types were requested and scheduled methods ran since the start">Usage</button>
+					<button id="appmap-activity" aria-pressed="false" title="Shows how often pages, endpoints and types were requested and scheduled methods ran since the start. Hover for a glance, click to keep it on">Usage</button>
 				</span>
 				<span class="appmap-segment" role="group" aria-label="Hotspots">
-					<button id="appmap-spotlight" title="Hover to grey out the map and show only the most used pages, endpoints, types and scheduled methods, with their number of requests or runs">Hotspots</button>
+					<button id="appmap-spotlight" aria-pressed="false" title="Greys out the map and shows only the most used pages, endpoints, types and scheduled methods, with their number of requests or runs. Hover for a glance, click to keep it on">Hotspots</button>
 				</span>
 				<span class="appmap-segment" role="group" aria-label="Help">
 					<button id="appmap-intro-toggle" aria-pressed="false" title="How to read and use the map">?</button>
 				</span>
-				<span id="appmap-counts" class="appmap-counts"></span>
 			</div>
 		`
 	}

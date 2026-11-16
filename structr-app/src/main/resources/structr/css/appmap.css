@@ -72,7 +72,6 @@
 
 .appmap-tip span {
 	margin-left: .5rem;
-	font-family: var(--font-monospace);
 	font-size: .75rem;
 	color: var(--color-text-tertiary);
 }
@@ -126,12 +125,6 @@
 	background-position: right .5rem top calc(50% + .1875rem);
 }
 
-.appmap-counts {
-	font-family: var(--font-monospace);
-	font-size: .75rem;
-	color: var(--color-text-tertiary);
-}
-
 /* ----- the panel on the map and the line at the bottom ----- */
 .appmap-panel {
 	position: absolute;
@@ -157,11 +150,31 @@
 	position: absolute;
 	z-index: 2;
 	left: 1rem;
-	bottom: .75rem;
+	/* above the line of log links at the foot of the window */
+	bottom: 2rem;
 	display: flex;
 	gap: 1rem;
+	max-width: 60%;
 	pointer-events: none;
 	font-size: .75rem;
+	color: var(--color-text-tertiary);
+}
+
+/* the facts about the map, in its bottom right corner: what it holds, and what was last saved or counted */
+#appmap-info {
+	position: absolute;
+	z-index: 2;
+	right: 1rem;
+	bottom: 2rem;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: .125rem;
+	max-width: 36%;
+	pointer-events: none;
+	font-size: .75rem;
+	font-variant-numeric: tabular-nums;
+	text-align: right;
 	color: var(--color-text-tertiary);
 }
 

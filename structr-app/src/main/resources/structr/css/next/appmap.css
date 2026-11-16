@@ -38,3 +38,30 @@
 	height: 4rem;
 	pointer-events: none;
 }
+
+/* the controls above the map have the size and corners of the buttons of the other areas; a pressed one is lit like an active tab */
+:root.ui-next .appmap-segment button,
+:root.ui-next .appmap-lens select {
+	box-sizing: border-box;
+	height: 2.4rem;
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+:root.ui-next .appmap-segment button:first-child {
+	border-top-left-radius: var(--radius-control);
+	border-bottom-left-radius: var(--radius-control);
+}
+
+:root.ui-next .appmap-segment button:last-child {
+	border-top-right-radius: var(--radius-control);
+	border-bottom-right-radius: var(--radius-control);
+}
+
+:root.ui-next .appmap-segment button[aria-pressed="true"] {
+	position: relative;
+	border-color: color-mix(in srgb, var(--color-brand) 45%, transparent);
+	background-color: color-mix(in srgb, var(--color-brand) 12%, var(--color-background-primary));
+	color: var(--color-text-primary);
+	font-weight: 600;
+}

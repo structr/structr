@@ -85,15 +85,15 @@ The controls belong to the open element nearest the middle of the screen and mov
 
 ## Lenses
 
-### Access
+### Perspective
 
-The "Access of" selection shows the application from the point of view of a role: public users, authenticated users or a group. The map then shows which pages the role sees and what it may do with the types the schema governs: read, write or delete. A page that the role sees but that does something the role may not do is marked as a gap in red. Such a gap is not always a mistake, but it is worth a look.
+The "Perspective of" selection shows the application from the point of view of public users, of authenticated users or of a group. The default, "Admin (everything)", shows the whole application. With one of the others selected, the map shows which pages they see and what they may do with the types the schema governs: read, write or delete. A page that they see but that does something they may not do is marked as a gap in red. Such a gap is not always a mistake, but it is worth a look.
 
-![The access of public users](/structr/docs/appmap_access.png)
+![The perspective of public users](/structr/docs/appmap_access.png)
 
 ### Usage
 
-While the pointer rests on the Usage button, the map shows how much the parts of the application are used: how often the pages were rendered, how often the REST endpoints and types were requested with any HTTP method, and how often the scheduled methods ran. The numbers count since the last start of Structr and are updated every 30 seconds. The more an element is used, the stronger it glows. Only entry points are counted, so a method that a page calls on its way gets no glow of its own.
+Click the Usage button to switch this view on, and click it again to switch it off; resting the pointer on the button shows it for a glance. The map then shows how much the parts of the application are used: how often the pages were rendered, how often the REST endpoints and types were requested with any HTTP method, and how often the scheduled methods ran. The numbers count since the last start of Structr and are updated every 30 seconds. The more an element is used, the stronger it glows. Only entry points are counted, so a method that a page calls on its way gets no glow of its own.
 
 ![Usage](/structr/docs/appmap_usage.png)
 
@@ -106,7 +106,7 @@ See the Monitoring chapter for how these numbers are collected.
 
 ### Hotspots
 
-While the pointer rests on the Hotspots button, the map turns grey and shows only the glow of the most used elements, with their names and numbers. This is the fastest way to see where an application is under load.
+Click the Hotspots button, or rest the pointer on it for a glance, and the map turns grey and shows only the glow of the most used elements, with their names and numbers. This is the fastest way to see where an application is under load.
 
 ![Hotspots](/structr/docs/appmap_hotspots.png)
 
