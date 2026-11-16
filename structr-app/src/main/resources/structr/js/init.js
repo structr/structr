@@ -2807,7 +2807,7 @@ let Structr = {
 			<div id="custom-context-menu-container"></div>
 		`,
 		loginDialogMarkup: `
-			<div id="login" class="dialog p-6 text-left">
+			<div id="login" class="dialog p-6 text-left" role="dialog" aria-modal="true" aria-label="Log in to Structr">
 
 				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo-login'])}
 
@@ -2820,7 +2820,7 @@ let Structr = {
 						</div>
 
 						<div class="self-center">
-							<input id="usernameField" type="text" name="username" autocomplete="username" required class="w-full box-border">
+							<input id="usernameField" type="text" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required class="w-full box-border">
 						</div>
 
 						<div class="self-center">
@@ -2832,7 +2832,7 @@ let Structr = {
 						</div>
 
 						<div class="self-center col-span-2 mt-2 text-right">
-							<button id="loginButton" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<button id="loginButton" type="submit" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
 								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Login
 							</button>
 						</div>
@@ -2865,12 +2865,12 @@ let Structr = {
 						</div>
 
 						<div class="self-center">
-							<label for="twoFactorTokenField">2FA Code:</label>
+							<label for="twoFactorCodeField">2FA Code:</label>
 						</div>
 
 						<div class="self-center">
 							<input id="twoFactorTokenField" type="hidden" name="twoFactorToken">
-							<input id="twoFactorCodeField" type="text" name="twoFactorCode" required class="w-full box-border">
+							<input id="twoFactorCodeField" type="text" name="twoFactorCode" autocomplete="one-time-code" inputmode="numeric" required class="w-full box-border">
 						</div>
 
 						<div class="self-center"></div>
@@ -2881,8 +2881,8 @@ let Structr = {
 							</label>
 						</div>
 
-						<div id="self-center" class="col-span-2 mt-2 text-right">
-							<button id="loginButtonTFA" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						<div class="self-center col-span-2 mt-2 text-right">
+							<button id="loginButtonTFA" type="submit" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
 								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Login 2FA
 							</button>
 						</div>

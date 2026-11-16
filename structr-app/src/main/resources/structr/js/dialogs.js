@@ -140,9 +140,28 @@ let _Dialogs = {
 
 				document.querySelector('#usernameField').focus();
 
+				// Tab stays inside the login while it is open
+				element.addEventListener('keydown', (e) => {
+
+					if (e.key !== 'Tab') {
+						return;
+					}
+
+					let stops = [...element.querySelectorAll('input:not([type="hidden"]), button')].filter(stop => stop.offsetParent !== null);
+					let edge  = (e.shiftKey ? stops[0] : stops[stops.length - 1]);
+
+					if (stops.length && (document.activeElement === edge || !element.contains(document.activeElement))) {
+
+						e.preventDefault();
+						(e.shiftKey ? stops[stops.length - 1] : stops[0]).focus();
+					}
+				});
+
 				document.querySelector('form#login-username-password').addEventListener('submit', (e) => {
 					e.stopPropagation();
 					e.preventDefault();
+
+					_Dialogs.loginDialog.removeErrorMessages();
 
 					Structr.doLogin({
 						username: document.querySelector('#usernameField').value,
@@ -156,6 +175,8 @@ let _Dialogs = {
 				document.querySelector('form#login-two-factor').addEventListener('submit', (e) => {
 					e.stopPropagation();
 					e.preventDefault();
+
+					_Dialogs.loginDialog.removeErrorMessages();
 
 					Structr.doLogin({
 						twoFactorCode: document.querySelector('#twoFactorCodeField').value,
@@ -177,13 +198,18 @@ let _Dialogs = {
 
 				_Dialogs.loginDialog.removeErrorMessages();
 
-				let element = _Helpers.createSingleDOMElementFromHTML(`<div class="login-error-message w-full box-border icon-red mt-2 pr-4 text-right">${msg}</div>`);
+				// the message is announced, and stays until the next attempt
+				let element = _Helpers.createSingleDOMElementFromHTML(`<div class="login-error-message w-full box-border icon-red mt-2 pr-4 text-right" role="alert">${msg}</div>`);
 
 				_Dialogs.loginDialog.getLoginDialogElement().appendChild(element);
 
-				window.setTimeout(() => {
-					element.remove();
-				}, 2500);
+				// the wrong entry is ready to be typed over
+				let field = [...document.querySelectorAll('#passwordField, #twoFactorCodeField')].find(candidate => candidate.offsetParent !== null);
+
+				if (field?.value) {
+					field.focus();
+					field.select();
+				}
 			}
 		},
 		removeErrorMessages: () => {
