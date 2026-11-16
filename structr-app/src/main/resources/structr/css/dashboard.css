@@ -349,10 +349,28 @@ body:has(#dashboard) #main {
 	fill: var(--dashboard-http-head);
 }
 
-/* long values such as session ids break inside their box */
+/* long values such as session ids break inside their box; the labels keep their column and their words */
+#dashboard-about-me table,
+#dashboard-about-structr table {
+	table-layout: fixed;
+	width: 100%;
+}
+
 #dashboard-about-me td,
 #dashboard-about-structr td {
 	overflow-wrap: anywhere;
+}
+
+#dashboard-about-me td.key,
+#dashboard-about-structr td.key,
+#dashboard-about-structr [data-last-deploy-info-container] .font-semibold {
+	overflow-wrap: normal;
+}
+
+/* the parameters of the last deployment wrap instead of widening the table */
+#dashboard-about-structr [data-last-deploy-info-container] pre {
+	min-width: 0;
+	white-space: pre-wrap;
 }
 
 /* in the dialog of all UI settings the reset stands above the lists, at the right */
