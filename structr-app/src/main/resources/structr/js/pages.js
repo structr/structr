@@ -127,9 +127,11 @@ let _Pages = {
 			_Pages.problems.erroneousNodes = erroneousNodes;
 			_Pages.problems.updateAllIndicators();
 
-			// the application map marks the same errors on its HTML elements
+			// the application map marks the same errors on its HTML elements, and the call traces of all scripting errors on
+			// the elements they failed in
 			if (Structr.isModuleActive(_AppMap)) {
 				_AppMap.view?.requestDraw();
+				_AppMap.loadTraces();
 			}
 		},
 		/**

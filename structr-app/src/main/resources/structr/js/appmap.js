@@ -31,6 +31,9 @@ let _AppMap = {
 
 	settingsKey: 'structrAppMapSettings_' + location.port,
 
+	// what the map shows: the application, or its data in the form of the map (see loadData)
+	mode: 'app',
+
 	// whether the user has seen the introduction; until then it opens with the map
 	introKey: 'structrAppMapIntroSeen_' + location.port,
 
@@ -84,8 +87,116 @@ let _AppMap = {
 
 		document.addEventListener('keydown', _AppMap.typeToSearch);
 
-		await _AppMap.load();
+		await _AppMap.show(_AppMap.mode);
 	},
+	// shows the application or its data: a map of its own each, the controls that belong to it in the bar
+	show: async mode => {
+
+		_AppMap.view?.destroy();
+		_AppMap.view = undefined;
+		_AppMap.mode = mode;
+
+		document.querySelector('#appmap-canvas')?.replaceChildren();
+		Structr.setFunctionBarHTML(_AppMap.templates.functions());
+
+		let bar = Structr.functionBar;
+
+		bar.classList.toggle('appmap-data-mode', mode === 'data');
+
+		for (let button of bar.querySelectorAll('[data-mode]')) {
+
+			button.setAttribute('aria-pressed', String(button.dataset.mode === mode));
+			button.addEventListener('click', () => {
+
+				if (button.dataset.mode !== _AppMap.mode && !(_AppMap.isDirty() && !confirm('Discard unsaved changes?'))) {
+					_AppMap.show(button.dataset.mode);
+				}
+			});
+		}
+
+		if (mode === 'data') {
+			await _AppMap.loadData();
+		} else {
+			await _AppMap.load();
+		}
+	},
+	/**
+	 * The data of the application in the form of the map (see DataMap on the server): the types in families, each family
+	 * a sector; the objects of a type in clusters, each an element as large as it has objects; the relationships between
+	 * the objects of two clusters as one relation. Its layout is not kept, it is laid out anew every time.
+	 */
+	loadData: async () => {
+
+		let status = document.querySelector('#appmap-status');
+
+		if (status) {
+			status.textContent = 'Reading and grouping all objects…';
+		}
+
+		let response = await fetch(Structr.rootUrl + '_appmap/data');
+
+		if (!response.ok) {
+
+			new ErrorMessage().text(`Unable to load the data map (${response.status})`).show();
+
+			return;
+		}
+
+		let result    = (await response.json()).result;
+		let data      = Array.isArray(result) ? result[0] : result;
+		let container = document.querySelector('#appmap-canvas');
+
+		// the module or the mode may have been left while the data was loading
+		if (!container || _AppMap.mode !== 'data') {
+			return;
+		}
+
+		// the families in turn take the hues of the aspects of the design system, the other types grey
+		let hues    = _AppMap.dataHues;
+		let areas   = {};
+		let areaHue = {};
+
+		(data.areas ?? []).forEach((area, i) => {
+
+			areas[area.key]   = { label: area.label };
+			areaHue[area.key] = area.key === 'other' ? 40 : hues[i % hues.length];
+		});
+
+		for (let n of data.nodes ?? []) {
+			n.colour = n.area === 'other' ? '#8a8678' : d3.hsl(areaHue[n.area], 0.62, 0.5).formatHex();
+		}
+
+		_AppMap.view = new AppMapView(container, new AppMapModel({ nodes: data.nodes ?? [], edges: data.edges ?? [], groups: [], sections: [], sites: [] }), {
+			settings: { look: _AppMap.schemeLook() ?? LSWrapper.getItem(_AppMap.settingsKey, {}).look },
+			areas,
+			areaHue,
+			sizeBy: 'objects',
+			radius: _AppMap.dataRadius,
+			onHint: text => {
+
+				let hint = document.querySelector('#appmap-hint');
+
+				if (hint) {
+					hint.textContent = text;
+				}
+			},
+			onStatus: text => {
+
+				if (status) {
+					status.textContent = text;
+				}
+			}
+		});
+
+		let relations = d3.sum(data.edges ?? [], e => e[2]);
+
+		document.querySelector('#appmap-counts').textContent = `${(data.objects ?? 0).toLocaleString()} objects · ${(data.nodes ?? []).length.toLocaleString()} clusters · ${relations.toLocaleString()} relationships`;
+
+		_AppMap.initLook();
+	},
+	// the hues of the families on the data map, and the radius of its smallest and largest cluster
+	dataHues:   [30, 85, 244, 15, 211, 160, 300],
+	dataRadius: [5, 70],
 	// typing on the map searches: the first character opens the global search with it in its field, which marks what it
 	// finds on the map (see onGlobalSearch). Not with a space, not while a field, an editor or a dialog has the keys, and
 	// not with a modifier, which belongs to a shortcut
@@ -117,6 +228,8 @@ let _AppMap = {
 
 		_AppMap.view?.destroy();
 		_AppMap.view = undefined;
+
+		Structr.functionBar?.classList.remove('appmap-data-mode');
 	},
 	beforeunloadHandler: () => {
 
@@ -497,14 +610,42 @@ let _AppMap = {
 		window.location.href = '#code';
 		window.setTimeout(() => _Code.tree.findAndOpenNode(path, false), timeout);
 	},
+	// the scripting errors: the Pages area keeps those of HTML elements and has the call traces loaded with them (see
+	// _Pages.problems.reloadRuntimeErrors); without it the call traces are loaded here
 	loadProblems: () => {
 
 		if (typeof _Pages !== 'undefined') {
 			_Pages.problems.reloadRuntimeErrors();
+		} else {
+			_AppMap.loadTraces();
 		}
+	},
+	// the scripting errors with the call traces that led to them, which the map marks on the elements they failed in, see
+	// CallTraces and AppMapView.setTraces; the data map has none
+	loadTraces: async () => {
+
+		if (!_AppMap.view || _AppMap.mode !== 'app') {
+			return;
+		}
+
+		let response = await fetch(Structr.rootUrl + '_appmap/traces');
+
+		if (!response.ok) {
+			return;
+		}
+
+		// a single result may come wrapped in a list
+		let result = (await response.json()).result;
+
+		_AppMap.view?.setTraces((Array.isArray(result) ? result[0] : result)?.traces ?? []);
 	},
 	// the data of the map loaded anew in place, after a change to the application, see AppMapView.replaceModel
 	reload: async () => {
+
+		// the data map is not reloaded after a change to the application
+		if (_AppMap.mode !== 'app') {
+			return;
+		}
 
 		let response = await fetch(Structr.rootUrl + '_appmap');
 
@@ -526,7 +667,7 @@ let _AppMap = {
 	},
 
 	// the code of a method or the text of a template, edited above its field on the map (see AppMapView.edit) in the editor
-	// of the Code area; Ctrl+S saves, and the map loads its data anew, as a change of code may change relations
+	// of the Code area; Ctrl+S (Cmd+S on a Mac) saves, and the map loads its data anew, as a change of code may change relations
 	codeEditor: container => {
 
 		let box      = null;
@@ -543,7 +684,7 @@ let _AppMap = {
 			let element = box?.querySelector('.appmap-editor-state');
 
 			if (element) {
-				element.textContent = text ?? (isDirty() ? 'Unsaved changes · Ctrl+S saves' : 'Ctrl+S saves · Esc closes');
+				element.textContent = text ?? (isDirty() ? `Unsaved changes · ${AppMapView.SAVE_KEY} saves` : `${AppMapView.SAVE_KEY} saves · Esc closes`);
 				element.classList.toggle('appmap-editor-dirty', !text && isDirty());
 			}
 		};
@@ -785,8 +926,8 @@ let _AppMap = {
 
 	// the controls of an HTML element opened on the map, laid out for AppMapPanels.ELEMENT_SIZE and scaled with the map:
 	// the main field on the left (the query of a repeater, the text of the element, the content of a template in the
-	// editor of the Code area), the settings on the right (data key, conditions, action mappings). Ctrl+S or Save saves,
-	// and the map loads its data anew, as a change may change relations
+	// editor of the Code area), the settings on the right (data key, conditions, action mappings). Ctrl+S (Cmd+S on a Mac)
+	// or Save saves, and the map loads its data anew, as a change may change relations; Esc discards unsaved changes
 	elementEditor: container => {
 
 		let box    = null;
@@ -840,7 +981,7 @@ let _AppMap = {
 			let element = box?.querySelector('.appmap-el-state');
 
 			if (element) {
-				element.textContent = text ?? (isDirty() ? 'Unsaved changes' : 'Ctrl+S saves');
+				element.textContent = text ?? (isDirty() ? `Unsaved changes · ${AppMapView.SAVE_KEY} saves · Esc discards` : `${AppMapView.SAVE_KEY} saves`);
 				element.classList.toggle('appmap-editor-dirty', !text && isDirty());
 			}
 
@@ -1229,14 +1370,11 @@ let _AppMap = {
 			_AppMap.view.setLook(look);
 		}
 	},
-	initControls: () => {
+	// the look, light or dark, the same on both maps
+	initLook: () => {
 
-		let view = _AppMap.view;
-		let bar  = Structr.functionBar;
-
-		_AppMap.showCounts();
-
-		let lookButtons = bar.querySelectorAll('[data-look]');
+		let view        = _AppMap.view;
+		let lookButtons = Structr.functionBar.querySelectorAll('[data-look]');
 		let press       = active => lookButtons.forEach(b => b.setAttribute('aria-pressed', String(b === active)));
 
 		press([...lookButtons].find(b => b.dataset.look === view.settings.look));
@@ -1250,6 +1388,14 @@ let _AppMap = {
 				_AppMap.saveSettings();
 			});
 		}
+	},
+	initControls: () => {
+
+		let view = _AppMap.view;
+		let bar  = Structr.functionBar;
+
+		_AppMap.showCounts();
+		_AppMap.initLook();
 
 		// the access lens: the perspective of an admin (everything), of public users, of authenticated users or of one of the groups
 		let lens  = bar.querySelector('#appmap-lens');
@@ -1395,20 +1541,24 @@ let _AppMap = {
 		`,
 		functions: () => `
 			<div class="flex items-center gap-4 flex-grow">
+				<span class="appmap-segment" role="group" aria-label="Map">
+					<button data-mode="app" title="The application: its pages, functions, data model and security">Application</button>
+					<button data-mode="data" title="Its data: the types in families, the objects in clusters, the relationships between them">Data</button>
+				</span>
 				<span class="appmap-segment" role="group" aria-label="Look">
 					<button data-look="light">Light</button>
 					<button data-look="dark">Dark</button>
 				</span>
-				<label class="appmap-lens">Perspective of
+				<label class="appmap-lens appmap-app-only">Perspective of
 					<select id="appmap-lens" title="Shows the map from the perspective of public users, authenticated users or a group: which pages they see and what they may read, write or delete. Marks in red where a page does something they may not"></select>
 				</label>
-				<span class="appmap-segment" role="group" aria-label="Activity">
+				<span class="appmap-segment appmap-app-only" role="group" aria-label="Activity">
 					<button id="appmap-activity" aria-pressed="false" title="Shows how often pages, endpoints and types were requested and scheduled methods ran since the start. Hover for a glance, click to keep it on">Usage</button>
 				</span>
-				<span class="appmap-segment" role="group" aria-label="Hotspots">
+				<span class="appmap-segment appmap-app-only" role="group" aria-label="Hotspots">
 					<button id="appmap-spotlight" aria-pressed="false" title="Greys out the map and shows only the most used pages, endpoints, types and scheduled methods, with their number of requests or runs. Hover for a glance, click to keep it on">Hotspots</button>
 				</span>
-				<span class="appmap-segment" role="group" aria-label="Help">
+				<span class="appmap-segment appmap-app-only" role="group" aria-label="Help">
 					<button id="appmap-intro-toggle" aria-pressed="false" title="How to read and use the map">?</button>
 				</span>
 			</div>

@@ -363,6 +363,14 @@ test('the editor waits hidden while the code is too small to read and while the 
 	await expect(editor(page)).toBeHidden();
 	expect(await editing(page)).toBe('Item.archive');
 
+	// the editor kept for its changes does not hold the map: the wheel zooms in again
+	const out  = await page.evaluate(() => _AppMap.view.transform.k);
+	const edge = await page.evaluate(() => { const box = _AppMap.view.canvas.getBoundingClientRect(); return { x: box.left + 8, y: box.top + box.height / 2 }; });
+
+	await page.mouse.move(edge.x, edge.y);
+	await page.mouse.wheel(0, -300);
+	await expect.poll(() => page.evaluate(() => _AppMap.view.transform.k)).toBeGreaterThan(out * 1.2);
+
 	// zoomed in again it shows with the changes
 	await showCode(page, 'Item.archive');
 	await expect(editor(page)).toBeVisible();

@@ -55,7 +55,9 @@ class AppMapView {
 
 	// the size of an element grows with its measure (see measureOf), against the largest element of its own sector: each
 	// sector has its own scale, so a sector of small elements shows its structure as clearly as one of large ones (see
-	// radiusOf for the curve); SIZE_BY is 'size' for how large an element is, 'links' for how connected
+	// radiusOf for the curve); SIZE_BY is 'size' for how large an element is, 'links' for how connected, 'objects' for
+	// the clusters of the data map, which are compared over all sectors by the area of their objects; a view may have
+	// its own (see the options sizeBy and radius)
 	static SIZE_BY = 'links';
 	static R_MIN   = 2.6;
 	static R_MAX   = 26;
@@ -147,6 +149,14 @@ class AppMapView {
 		this.synchronous = !!options.synchronous;
 
 		this.look  = AppMapView.LOOKS[settings.look] ?? AppMapView.LOOKS.light;
+
+		// the sectors, their hues and the sizes of the elements: those of the application, or those of another map in its
+		// form, as the data map (see _AppMap.loadData)
+		this.areas   = options.areas ?? AppMapModel.AREAS;
+		this.areaHue = options.areaHue ?? AppMapRenderer.AREA_HUE;
+		this.sizeBy  = options.sizeBy ?? AppMapView.SIZE_BY;
+		this.rMin    = options.radius?.[0] ?? AppMapView.R_MIN;
+		this.rMax    = options.radius?.[1] ?? AppMapView.R_MAX;
 		this.links = [...model.links];
 
 		// the hovered things: an element, an HTML element of a page, a strand, a jump marker, and the collapsed jump marker
@@ -236,6 +246,15 @@ class AppMapView {
 		this.editor  = options.editor ?? null;
 		this.editing = null;
 		this.ending  = false;
+
+		// the element the last click set off a glide into, for a double click it begins (see gliding)
+		this.glidingFrom = null;
+
+		// the scripting errors with their call traces (see setTraces), by the element each failed in, and the one shown
+		this.traceData = [];
+		this.traces    = [];
+		this.tracesOf  = new Map();
+		this.callTrace = null;
 
 		// the controls of an HTML element opened inside its box, which follow the open element nearest the middle of the
 		// screen (see followElement)
@@ -436,13 +455,19 @@ class AppMapView {
 		}
 
 		const most = this.sectorScale.get(this.scaleKeyOf(n)) ?? 1;
-		const min  = AppMapView.isSheet(n) ? AppMapView.R_MIN_PAGE : AppMapView.R_MIN;
+		const min  = AppMapView.isSheet(n) ? AppMapView.R_MIN_PAGE : this.rMin;
 
 		// sizes spread widely (a method of ten lines beside one of nine hundred), so they count by their logarithm; relations
-		// by the square root, so the area is proportional
-		const share = AppMapView.SIZE_BY === 'size' ? Math.log1p(this.measureOf(n)) / Math.log1p(most) : Math.sqrt(this.measureOf(n) / most);
+		// and objects by the square root, so the area is proportional
+		const share = this.sizeBy === 'size' ? Math.log1p(this.measureOf(n)) / Math.log1p(most) : Math.sqrt(this.measureOf(n) / most);
 
-		return min + (AppMapView.R_MAX - min) * Math.min(1, share);
+		return min + (this.rMax - min) * Math.min(1, share);
+	}
+
+	// the keys that save in an editor, as the Admin UI takes them: Cmd+S on a Mac, Ctrl+S elsewhere
+	static get SAVE_KEY() {
+
+		return typeof _Helpers !== 'undefined' && _Helpers.isMac() ? 'Cmd+S' : 'Ctrl+S';
 	}
 
 	// pages and shared components, the sheets of the map
@@ -467,7 +492,11 @@ class AppMapView {
 			return n.k === 'api' ? (n.rest?.n ?? 1) : n.s;
 		}
 
-		if (AppMapView.SIZE_BY !== 'size') {
+		if (this.sizeBy === 'objects') {
+			return n.s ?? 0;
+		}
+
+		if (this.sizeBy !== 'size') {
 			return AppMapView.isSheet(n) ? (this.importance.get(n)?.value ?? 0) : degree;
 		}
 
@@ -479,7 +508,11 @@ class AppMapView {
 
 		const area = n.c?.[0] ?? '-';
 
-		return AppMapView.SIZE_BY === 'size' || AppMapView.byContent(n) ? `${area}|${n.k}` : area;
+		if (this.sizeBy === 'objects') {
+			return '*';
+		}
+
+		return this.sizeBy === 'size' || AppMapView.byContent(n) ? `${area}|${n.k}` : area;
 	}
 
 	// the elements whose size follows what they hold, compared only among their kind, see measureOf
@@ -677,6 +710,14 @@ class AppMapView {
 		const [px, py] = d3.pointer(e, this.canvas);
 		const [wx, wy] = this.transform.invert([px, py]);
 
+		// the second click of a double click whose first one set off a glide lands on the moving map; it belongs to the
+		// double click, which leads where the first one did (see onDoubleClick)
+		if (e.detail > 1 && this.gliding()) {
+			return;
+		}
+
+		this.glidingFrom = null;
+
 		// a setting in an open box is switched where it is
 		const toggle = this.toggle && this.panels.toggleAt(wx, wy);
 
@@ -700,12 +741,14 @@ class AppMapView {
 				return;
 			}
 
+			this.glidingFrom = { at: performance.now(), code };
 			this.glideInto(code);
 			return;
 		}
 
 		if (dom && AppMapPanels.isSheet(dom) && this.domEditor && !marker) {
 
+			this.glidingFrom = { at: performance.now(), dom };
 			this.pinDom(dom);
 			this.glideIntoElement(dom);
 			return;
@@ -731,7 +774,16 @@ class AppMapView {
 			return;
 		}
 
-		const access = this.renderer.findPageProblems(wx, wy) ?? this.renderer.findAccess(wx, wy);
+		// the sign of an element with scripting errors shows the call trace of one of them, the next one with every click
+		const troubled = this.renderer.findProblems(wx, wy);
+
+		if (troubled && this.tracesOf.get(troubled)?.length) {
+
+			this.showCallTrace(troubled);
+			return;
+		}
+
+		const access = troubled ?? this.renderer.findAccess(wx, wy);
 		const n      = access ?? this.find(px, py);
 
 		if (n) {
@@ -1110,7 +1162,6 @@ class AppMapView {
 		this.strands = new AppMapStrands(this);
 		this.panels  = new AppMapPanels(this);
 
-		this.zoom.scaleExtent([this.zoom.scaleExtent()[0], this.deepestZoom()]);
 		this.renderer.recolor();
 		this.setLens(this.accessRole ?? null);
 		this.measure();
@@ -1118,6 +1169,13 @@ class AppMapView {
 		// the view stays where it is, also when the layout moves something
 		this.userZoomed = true;
 		this.layout.start(moved => this.onSettled(moved));
+
+		// the call traces name the elements by id, which are new objects now
+		this.resolveTraces();
+
+		// the closest zoom needs the elements in their places, which the layout restores as it starts; before that it would
+		// fall back to ZOOM_IN and pull the view out of an open page
+		this.zoom.scaleExtent([this.zoom.scaleExtent()[0], this.deepestZoom()]);
 		this.showTrail();
 		this.requestDraw();
 	}
@@ -1126,6 +1184,11 @@ class AppMapView {
 
 		if (this.trail[this.trail.length - 1] !== n) {
 			this.trail.push(n);
+		}
+
+		// a call trace belongs to the element it failed in
+		if (this.callTrace && this.callTrace.origin !== n) {
+			this.callTrace = null;
 		}
 
 		this.pinned    = n;
@@ -1151,6 +1214,7 @@ class AppMapView {
 
 		this.pinned    = null;
 		this.pinnedDom = null;
+		this.callTrace = null;
 		this.trail     = [];
 		this.showTrail();
 		this.requestDraw();
@@ -1556,8 +1620,9 @@ class AppMapView {
 			: this.access && !this.pinned ? this.describeLens()
 			: this.activity && !this.pinned ? this.describeActivity()
 			: this.found ? `${this.found.elements.size ? this.found.elements.size : 'No'} ${this.found.elements.size === 1 ? 'element matches' : 'elements match'} “${this.found.text}” · click a result of the search to go there`
+			: this.callTrace ? this.describeCallTrace()
 			: this.pinned ? 'Click a name at the end of a relation to go there · Esc or a click on the empty map ends exploring'
-			: this.editing?.page ? 'Ctrl+S saves the element · zoom out to leave it'
+			: this.editing?.page ? `${AppMapView.SAVE_KEY} saves the element · Esc discards its changes · zoom out to leave it`
 			: open && this.domEditor ? 'Zoom into an element or double-click it to change it, click code or a template to edit it · double-click the empty map to see the whole map again'
 			: open ? 'Double-click the empty map to see the whole map again'
 			: this.zoomTier() === 0 ? 'Hover an element to see what it connects to · click it to explore from there'
@@ -1614,10 +1679,11 @@ class AppMapView {
 			.on('mousemove', e => this.onPointerMove(e))
 			.on('mouseleave', () => this.onPointerLeave());
 
-		// Escape ends editing code, then exploring; the controls of an open HTML element stay as long as it is open. An
-		// Escape the editor used itself, to close its suggestions, ends nothing, and the editor stops it on its way, so only
-		// one that arrives here unused counts. Editing ends when the key is released: the question about unsaved changes
-		// takes the focus, and a release in it would answer it at once
+		// Escape ends editing code, then exploring; the controls of an open HTML element stay as long as it is open, and
+		// Escape discards their unsaved changes: they end, and open anew with what is saved (see followElement). An Escape
+		// the editor used itself, to close its suggestions, ends nothing, and the editor stops it on its way, so only one
+		// that arrives here unused counts. Editing ends when the key is released: the question about unsaved changes takes
+		// the focus, and a release in it would answer it at once
 		this.onKey = e => {
 
 			if (e.key !== 'Escape') {
@@ -1628,7 +1694,7 @@ class AppMapView {
 
 				this.escapeFree = !e.defaultPrevented;
 
-				if ((!this.editing || this.editing.page) && this.escapeFree && this.pinned) {
+				if ((!this.editing || (this.editing.page && !this.domEditor.isDirty())) && this.escapeFree && this.pinned) {
 					this.unpin();
 				}
 
@@ -1638,7 +1704,7 @@ class AppMapView {
 				const free      = this.escapeFree;
 				this.escapeFree = false;
 
-				if (this.editing && !this.editing.page && free) {
+				if (this.editing && (!this.editing.page || this.domEditor.isDirty()) && free) {
 					this.endEdit();
 				}
 			}
@@ -1670,9 +1736,12 @@ class AppMapView {
 		const delta    = -e.deltaY * (e.deltaMode === 1 ? 0.05 : e.deltaMode ? 1 : 0.002) * (e.ctrlKey ? 10 : 1);
 		const [lo, hi] = this.zoom.scaleExtent();
 
-		// while the editor of code or of a template stands in its element, or a leaf of the map stands open at its full size
-		// in the middle (see atLeaf), the map only zooms out, to leave it: there is nothing further in
-		const editor = (this.editing && (!this.editing.page || AppMapPanels.isSheet(this.editing))) || (delta > 0 && this.atLeaf());
+		// while the editor of code or of a template stands in its element on the screen, or a leaf of the map stands open at
+		// its full size in the middle (see atLeaf), the map only zooms out, to leave it: there is nothing further in. An
+		// editor kept for its unsaved changes after zooming out (see followElement and followCode) does not hold the map, so
+		// that its element can be zoomed into again
+		const filled = this.editing && (!this.editing.page || AppMapPanels.isSheet(this.editing)) && this.fills(this.editing, true);
+		const editor = filled || (delta > 0 && this.atLeaf());
 		const top    = editor ? Math.min(hi, this.transform.k) : hi;
 
 		if (editor && delta > 0) {
@@ -1734,6 +1803,14 @@ class AppMapView {
 		return this.baseK ? Math.min(AppMapView.MAX_GROWTH, Math.max(1, Math.sqrt(AppMapView.SIZE_ZOOM * this.baseK / k))) : 1;
 	}
 
+	// whether the last click set off a glide that a double click may still belong to: within DOUBLE_CLICK_MS
+	gliding() {
+
+		return !!this.glidingFrom && performance.now() - this.glidingFrom.at < AppMapView.DOUBLE_CLICK_MS;
+	}
+
+	static DOUBLE_CLICK_MS = 600;
+
 	/**
 	 * A double click glides to the inner structure of the element under the pointer: a page or shared component opens
 	 * with its tree filling the screen, a method with its code, a type with its properties, any other element shows its
@@ -1742,12 +1819,31 @@ class AppMapView {
 	 */
 	onDoubleClick(e) {
 
+		e.preventDefault();
+
+		// a first click that set off a glide moved the map under the pointer: the double click leads where that click did,
+		// into its template or code, not into whatever has meanwhile come under the pointer
+		if (this.gliding()) {
+
+			const { dom, code } = this.glidingFrom;
+
+			if (dom) {
+
+				this.pinDom(dom);
+				this.glideIntoElement(dom);
+
+			} else {
+
+				this.glideInto(code);
+			}
+
+			return;
+		}
+
 		const [px, py] = d3.pointer(e, this.canvas);
 		const [wx, wy] = this.transform.invert([px, py]);
 		const dom      = this.panels.findDom(wx, wy);
 		const n        = dom ? dom.page : (this.panels.openAt(wx, wy) ?? this.find(px, py));
-
-		e.preventDefault();
 
 		// readable code glides to its element, as a click on it does
 		const code = this.editor && this.panels.codeAt(wx, wy, this.transform.k);
@@ -2401,6 +2497,221 @@ class AppMapView {
 	}
 
 	// how many HTML elements of a page or shared component have problems, see AppMapPanels.problemsOfPage
+	// ----- call traces: the scripting errors with the calls that led to them (see CallTraces), on the elements of the map -----
+	/**
+	 * Takes the scripting errors as the server gives them: { m: message, c: count, t: time, f: frames }, the frames the
+	 * failing one first, then its callers, each with the line it failed in or made its call from.
+	 */
+	setTraces(list) {
+
+		this.traceData = list ?? [];
+		this.resolveTraces();
+		this.updateHint();
+		this.requestDraw();
+	}
+
+	/**
+	 * Each trace as the steps over the map it took: the frames as the elements of the map they are shown as, the failing
+	 * one first, frames in the same element as one step; a frame the map has no element for stays a step of its own, to be
+	 * named but not drawn. A trace belongs to the element it failed in.
+	 */
+	resolveTraces() {
+
+		const key      = t => JSON.stringify([t.m, t.f]);
+		const shown    = this.callTrace ? key(this.callTrace) : null;
+		this.traces    = [];
+		this.tracesOf  = new Map();
+
+		for (const t of this.traceData) {
+
+			const steps = [];
+
+			for (const frame of t.f ?? []) {
+
+				const n    = this.traceElement(frame);
+				const last = steps[steps.length - 1];
+
+				if (n && last?.n === n) {
+
+					last.frames.push(frame);
+
+				} else {
+
+					steps.push({ n, frames: [frame] });
+				}
+			}
+
+			const trace = { ...t, steps, origin: steps[0]?.n ?? null };
+
+			this.traces.push(trace);
+
+			if (trace.origin) {
+				this.tracesOf.set(trace.origin, [...(this.tracesOf.get(trace.origin) ?? []), trace]);
+			}
+		}
+
+		// a trace shown stays, with its fresh numbers, while it is still there
+		this.callTrace = shown ? this.traces.find(t => key(t) === shown && t.origin) ?? null : null;
+	}
+
+	/**
+	 * The element of the map a frame of a call trace is shown as: the first element the server located its code in (a
+	 * method is itself, a template is its page), a request its REST endpoint, the type it addresses or the page at its
+	 * path, a scheduled run the method it runs; null for what the map has no element for.
+	 */
+	traceElement(frame) {
+
+		for (const id of frame.at ?? []) {
+
+			const n = this.byId.get(id);
+
+			if (n) {
+				return n;
+			}
+		}
+
+		const name = String(frame.n ?? '');
+
+		if (frame.k === 'CRON') {
+			return this.nodes.find(n => n.k === 'method' && n.n === name) ?? null;
+		}
+
+		if (frame.k !== 'HTTP') {
+			return null;
+		}
+
+		const path = name.split('?')[0];
+		const rest = /\/rest\/(.*)$/.exec(path);
+
+		if (rest) {
+
+			const target = '/' + rest[1].replace(/\/$/, '');
+			const api    = this.nodes.filter(n => n.k === 'api' && (target === n.n || target.startsWith(n.n + '/'))).sort((a, b) => b.n.length - a.n.length)[0];
+
+			return api ?? this.nodes.find(n => n.k === 'type' && n.n === target.split('/')[1]) ?? null;
+		}
+
+		const first = path.split('/').filter(Boolean)[0] ?? '';
+
+		return this.nodes.find(n => n.k === 'page' && (n.r ?? []).some(route => route.p === path))
+			?? this.nodes.find(n => n.k === 'page' && n.n === first)
+			?? null;
+	}
+
+	// what is wrong with an element: the scripting errors that failed in it, and for a page or shared component the
+	// problems of its HTML elements (see AppMapPanels.problemsOfPage); { errors, warnings, traces }
+	problemsOfElement(n) {
+
+		const traces = this.tracesOf.get(n) ?? [];
+		const page   = AppMapView.isSheet(n) ? this.panels.problemsOfPage(n) : { errors: 0, warnings: 0 };
+
+		return { errors: page.errors + traces.length, warnings: page.warnings, traces };
+	}
+
+	// shows the call trace of a scripting error that failed in an element, the most recent first and the next one with
+	// every further call; the element is held, so the rest of the map steps back behind the elements of the trace
+	showCallTrace(n) {
+
+		const traces = this.tracesOf.get(n) ?? [];
+
+		if (!traces.length) {
+			return;
+		}
+
+		const index = this.callTrace?.origin === n ? (traces.indexOf(this.callTrace) + 1) % traces.length : 0;
+
+		this.pin(n);
+		this.callTrace = traces[index];
+		this.showWhole(this.callTrace.steps.map(step => step.n).filter(Boolean));
+		this.updateHint();
+		this.requestDraw();
+	}
+
+	// glides so that all the given elements are on the screen with their shapes, unless they are already; it only zooms out
+	// for that. The size of an element is taken at the current zoom, a little generous for a smaller one
+	showWhole(list) {
+
+		const t      = this.transform;
+		const margin = AppMapView.TRACE_MARGIN;
+		const half   = n => (AppMapRenderer.boxOf(n) ?? [1, 1]).map(v => v * this.shownRadius(n));
+		const x0     = d3.min(list, n => n.x - half(n)[0]);
+		const x1     = d3.max(list, n => n.x + half(n)[0]);
+		const y0     = d3.min(list, n => n.y - half(n)[1]);
+		const y1     = d3.max(list, n => n.y + half(n)[1]);
+
+		if (!list.length || (t.applyX(x0) > margin && t.applyX(x1) < this.width - margin && t.applyY(y0) > margin && t.applyY(y1) < this.height - margin)) {
+			return;
+		}
+
+		const fit = Math.min((this.width - 2 * margin) / Math.max(x1 - x0, 1e-6), (this.height - 2 * margin) / Math.max(y1 - y0, 1e-6));
+
+		this.glide((x0 + x1) / 2, (y0 + y1) / 2, Math.min(t.k, fit));
+	}
+
+	// the room a call trace keeps from the edges of the screen when it is shown whole, in pixels
+	static TRACE_MARGIN = 120;
+
+	// a step of a call trace as it is written: the element, or the frame where the map has no element for it, with the line
+	// (the line that failed in the failing step, the line of the call in a caller); a request with its HTTP method
+	static stepLabel(step) {
+
+		const frame = step.frames[0];
+		const name  = String(step.n?.n ?? frame.d ?? frame.n ?? frame.k);
+		const verb  = frame.k === 'HTTP' && frame.m && !name.startsWith(frame.m) ? `${frame.m} ` : '';
+
+		return `${verb}${name}${frame.r ? `:${frame.r}` : ''}`;
+	}
+
+	// a call trace in one line, from the failing step to where the work entered
+	static traceLine(trace) {
+
+		return trace.steps.map(step => AppMapView.stepLabel(step)).join(' ← ');
+	}
+
+	// what the problem sign of an element says
+	describeProblems(n) {
+
+		const { traces } = this.problemsOfElement(n);
+		const lines      = [];
+		const shorten    = text => text.length > 160 ? text.slice(0, 157) + '…' : text;
+
+		for (const t of traces.slice(0, AppMapView.TRACES_SHOWN)) {
+
+			lines.push(`${shorten(t.m ?? 'Scripting error')}${t.c > 1 ? ` (${t.c}×)` : ''}`);
+			lines.push(`   ${AppMapView.traceLine(t)}`);
+		}
+
+		if (traces.length > AppMapView.TRACES_SHOWN) {
+			lines.push(`and ${traces.length - AppMapView.TRACES_SHOWN} more`);
+		}
+
+		if (AppMapView.isSheet(n)) {
+
+			const page = this.panels.problemsOfPage(n);
+
+			if (page.errors || page.warnings) {
+				lines.push(...this.describePageProblems(n));
+			}
+		}
+
+		if (traces.length) {
+			lines.push(traces.length > 1 ? 'Click the sign to show a call trace on the map, again for the next one' : 'Click the sign to show the call trace on the map');
+		}
+
+		return lines;
+	}
+
+	static TRACES_SHOWN = 3;
+
+	// the line below the map while a call trace shows
+	describeCallTrace() {
+
+		const t      = this.callTrace;
+		const others = (this.tracesOf.get(t.origin)?.length ?? 1) - 1;
+
+		return `${t.m ?? 'Scripting error'} · ${AppMapView.traceLine(t)}${others ? ` · click the sign for the next of ${others + 1}` : ''} · Esc ends`;
+	}
+
 	describePageProblems(n) {
 
 		const { errors, warnings } = this.panels.problemsOfPage(n);
@@ -2587,18 +2898,30 @@ class AppMapView {
 		return from ? ` (from ${from})` : '';
 	}
 
-	// the tooltip: a title and a detail, or a title and lines when the detail is a list
+	// the tooltip: a title and a detail, or a title and lines when the detail is a list. It keeps the shape its text gives
+	// it: it is measured where it has the whole width, and then stands beside the pointer, to its left and above it where
+	// it would reach beyond the map, so that the edge never squeezes it. The width is what it takes at most (see
+	// .appmap-tip), the least room it keeps from the right edge
 	showTip(e, title, detail, width) {
 
 		const box = this.container.getBoundingClientRect();
+		const x   = e.clientX - box.left;
+		const y   = e.clientY - box.top;
+		const gap = 14;
 
 		this.tip.innerHTML = '<b></b><span></span>';
 		this.tip.querySelector('b').textContent    = title;
 		this.tip.querySelector('span').textContent = Array.isArray(detail) ? detail.join('\n') : detail;
 		this.tip.querySelector('span').classList.toggle('appmap-tip-lines', Array.isArray(detail));
 		this.tip.hidden     = false;
-		this.tip.style.left = `${Math.min(this.width - width, e.clientX - box.left + 14)}px`;
-		this.tip.style.top  = `${e.clientY - box.top + 14}px`;
+		this.tip.style.left = '0px';
+		this.tip.style.top  = '0px';
+
+		const w = Math.max(this.tip.offsetWidth, Math.min(width, this.width)) || width;
+		const h = this.tip.offsetHeight;
+
+		this.tip.style.left = `${Math.max(0, x + gap + w <= this.width ? x + gap : Math.min(x - gap - w, this.width - w))}px`;
+		this.tip.style.top  = `${Math.max(0, y + gap + h <= this.height ? y + gap : y - gap - h)}px`;
 	}
 
 	onPointerMove(e) {
@@ -2673,15 +2996,16 @@ class AppMapView {
 
 		// the smallest thing under the pointer answers, at every zoom: an HTML element, an element (or the anchor of the
 		// grouping whose outline holds the pointer), a strand
-		const troubled = this.renderer.findPageProblems(wx, wy);
+		const troubled = this.renderer.findProblems(wx, wy);
 		const access   = troubled ? null : this.renderer.findAccess(wx, wy);
 
 		this.canvas.style.cursor = troubled || access ? 'pointer' : '';
 
-		// the problem sign of a page says how many of its elements have problems; they show on the elements themselves
+		// the problem sign of an element says what is wrong: the scripting errors in its code with the calls that led there,
+		// and for a page how many of its elements have problems, which show on the elements themselves
 		if (troubled) {
 
-			this.showTip(e, troubled.n, this.describePageProblems(troubled), 420);
+			this.showTip(e, troubled.n, this.describeProblems(troubled), 520);
 
 			if (this.hoveredDom || this.hoveredStrand) {
 

@@ -109,6 +109,11 @@
 	border-color: var(--appmap-segment-active-border);
 }
 
+/* the controls of the application map, which the data map does not have */
+.appmap-data-mode .appmap-app-only {
+	display: none;
+}
+
 /* the role the access lens shows */
 .appmap-lens {
 	display: inline-flex;

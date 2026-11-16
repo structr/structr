@@ -77,9 +77,11 @@ class AppMapRenderer {
 	static ACCESS_SMALL = 8;
 	static ACCESS_FROM  = 8;
 
-	// the smallest size of the problem sign of a page on screen: warnings may shrink to a dot from afar, scripting errors
-	// keep the size of the access badge
-	static WARNING_SMALL = 4;
+	// how many pixels beside the problem sign of an element the pointer still finds it
+	static SIGN_REACH = 5;
+
+	// the width of the arrows of a call trace on screen, in pixels
+	static CALL_WIDTH = 2.5;
 
 	// the colour of the badge: public users see the page, only authenticated users, only admins and those with grants;
 	// [light, dark]
@@ -174,12 +176,12 @@ class AppMapRenderer {
 
 	recolor() {
 
-		this.colorCache = new Map(this.view.nodes.map(n => [n, this.view.look.kinds[n.k] ?? '#888888']));
+		this.colorCache = new Map(this.view.nodes.map(n => [n, n.colour ?? this.view.look.kinds[n.k] ?? '#888888']));
 	}
 
 	colorOf(n) {
 
-		return this.colorCache.get(n) ?? this.view.look.kinds[n.k] ?? '#888888';
+		return this.colorCache.get(n) ?? n.colour ?? this.view.look.kinds[n.k] ?? '#888888';
 	}
 
 	// the darker fill of a small element on the light canvas (see SMALL_DARKER), once per colour
@@ -206,7 +208,7 @@ class AppMapRenderer {
 
 	areaColor(key, opacity) {
 
-		return d3.hsl(AppMapRenderer.AREA_HUE[key] ?? 0, 0.75, this.view.look.dark ? 0.62 : 0.42).copy({ opacity }).formatRgb();
+		return d3.hsl(this.view.areaHue[key] ?? 0, 0.75, this.view.look.dark ? 0.62 : 0.42).copy({ opacity }).formatRgb();
 	}
 
 	font(weight, size, mono = false) {
@@ -280,7 +282,8 @@ class AppMapRenderer {
 		const lifted  = focus ? view.liftedTargets(focus) : [];
 		const shown   = focus ? this.focusLinks(focus) : [];
 		const cascade = focus?.k === 'type' ? AppMapAccess.cascadeOf(view.links, focus) : null;
-		const near    = focus ? new Set([focus, ...view.neighbours.get(focus), ...lifted.map(([anchor]) => anchor), ...shown.flatMap(l => [l.source, l.target]), ...(cascade?.keys() ?? [])]) : null;
+		const traced  = view.callTrace ? view.callTrace.steps.map(step => step.n).filter(Boolean) : [];
+		const near    = focus ? new Set([focus, ...view.neighbours.get(focus), ...lifted.map(([anchor]) => anchor), ...shown.flatMap(l => [l.source, l.target]), ...(cascade?.keys() ?? []), ...traced]) : null;
 		const around  = focus ? view.contextAround(focus) : null;
 		const rect    = this.visibleRect();
 
@@ -365,7 +368,8 @@ class AppMapRenderer {
 		// an open page lies above every hover decoration: rings, arcs and labels must not cover its structure
 		view.panels.draw(this, k);
 		this.drawAccess(k, rect, focus, near, around);
-		this.drawPageProblems(k, rect, focus, near, around);
+		this.drawProblems(k, rect, focus, near, around);
+		this.drawCallTrace(k);
 		this.drawRouting(k, rect, focus, near);
 
 		if (!focus && view.layout.areaPlaces.size) {
@@ -1377,9 +1381,10 @@ class AppMapRenderer {
 		ctx.restore();
 	}
 
-	// that HTML elements of a page or shared component have problems (see AppMapPanels.problemsOfPage), as the sign their
-	// boxes carry, on the upper right corner of its square, left of the access badge; the pointer on it says how many
-	drawPageProblems(k, rect, focus, near, around) {
+	// that an element has problems (see AppMapView.problemsOfElement): scripting errors that happened in its code, and for a
+	// page or shared component the problems of its HTML elements, as the sign their boxes carry, on the upper right corner of
+	// its square, left of the access badge; the pointer on it says what they are
+	drawProblems(k, rect, focus, near, around) {
 
 		const view = this.view;
 		const ctx  = this.ctx;
@@ -1390,25 +1395,27 @@ class AppMapRenderer {
 
 		for (const n of view.nodes) {
 
-			if (n.k !== 'page' && n.k !== 'component') {
+			const { errors, warnings } = view.problemsOfElement(n);
+
+			if (!errors && !warnings) {
 				continue;
 			}
 
-			const { errors, warnings } = view.panels.problemsOfPage(n);
+			// a round element carries it where its outline meets the corner of its square
 			const r      = Math.max(view.shownRadius(n), 2 / k);
-			const [w, h] = AppMapRenderer.PAGE_BOX;
+			const [w, h] = AppMapRenderer.boxOf(n) ?? [0.75, 0.75];
 
-			if ((!errors && !warnings) || n.x + r * w < rect[0] || n.x - r * w > rect[2] || n.y + r * h < rect[1] || n.y - r * h > rect[3]) {
+			if (n.x + r * w < rect[0] || n.x - r * w > rect[2] || n.y + r * h < rect[1] || n.y - r * h > rect[3]) {
 				continue;
 			}
 
-			const small  = errors ? AppMapRenderer.ACCESS_SMALL : AppMapRenderer.WARNING_SMALL;
-			const size   = Math.min(AppMapRenderer.ACCESS_SIZE, Math.max(small, 2 * r * w * k * AppMapRenderer.ACCESS_SHARE)) / k;
+			// warnings and scripting errors keep the smallest size of the access badge, so that they stay visible from afar
+			const size   = Math.min(AppMapRenderer.ACCESS_SIZE, Math.max(AppMapRenderer.ACCESS_SMALL, 2 * r * w * k * AppMapRenderer.ACCESS_SHARE)) / k;
 			const badge  = this.accessBadge(n, k);
 			const x      = badge ? badge.x - size * 1.15 : n.x + r * w - size * 0.35;
 			const y      = badge ? badge.y + (badge.size - size) / 2 : n.y - r * h - size * 0.65;
 
-			// in focus the signs step back with their pages
+			// in focus the signs step back with their elements
 			ctx.globalAlpha = focus && !near.has(n) ? (around.nodes.has(n) ? 0.55 : 0.15) : 1;
 
 			this.problemBoxes.push([n, x, y, x + size, y + size]);
@@ -1418,12 +1425,181 @@ class AppMapRenderer {
 		ctx.restore();
 	}
 
-	// the page or shared component whose problem sign lies under a point of the map
-	findPageProblems(x, y) {
+	// the element whose problem sign lies under a point of the map
+	findProblems(x, y) {
 
-		const pad = 2 / this.view.transform.k;
+		// the sign is small, so the pointer finds it a little beside it, too, but not on the access badge beside it
+		const pad    = AppMapRenderer.SIGN_REACH / this.view.transform.k;
+		const inside = ([, x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1;
+
+		if ((this.accessBoxes ?? []).some(inside)) {
+			return null;
+		}
 
 		return (this.problemBoxes ?? []).find(([, x0, y0, x1, y1]) => x >= x0 - pad && x <= x1 + pad && y >= y0 - pad && y <= y1 + pad)?.[0] ?? null;
+	}
+
+	// the call trace shown (see AppMapView.showCallTrace): from the element where the work entered, each call as an arrow in
+	// the colour of errors to the element it called, down to the one that failed, which is ringed; beside the middle of each
+	// arrow, on the outside of its bend, the line the call was made from, at the failing element on the side away from the
+	// call that arrives the line that failed
+	drawCallTrace(k) {
+
+		const view  = this.view;
+		const trace = view.callTrace;
+
+		if (!trace) {
+			return;
+		}
+
+		const ctx   = this.ctx;
+		const look  = view.look;
+		const steps = trace.steps.filter(step => step.n);
+		const width = AppMapRenderer.CALL_WIDTH / k;
+		const gap   = 5 / k;
+
+		// how far the outline of an element lies from its middle towards a point: the edge of the box of a page or a method,
+		// the corner of the triangle of an endpoint at most, else the circle
+		const reach = (n, x, y) => {
+
+			const r   = Math.max(view.shownRadius(n), 2 / k);
+			const box = AppMapRenderer.boxOf(n);
+
+			if (box) {
+
+				const length = Math.hypot(x - n.x, y - n.y) || 1;
+				const ux     = Math.abs(x - n.x) / length;
+				const uy     = Math.abs(y - n.y) / length;
+
+				return Math.min(ux > 1e-6 ? r * box[0] / ux : Infinity, uy > 1e-6 ? r * box[1] / uy : Infinity);
+			}
+
+			return n.k === 'api' ? r * 1.2 : r;
+		};
+
+		ctx.save();
+		ctx.lineCap  = 'round';
+		ctx.lineJoin = 'round';
+
+		// each call, from the caller (the step after) to the callee
+		for (let i = 0; i + 1 < steps.length; i++) {
+
+			const callee = steps[i].n;
+			const caller = steps[i + 1].n;
+			const dx     = callee.x - caller.x;
+			const dy     = callee.y - caller.y;
+			const length = Math.hypot(dx, dy);
+
+			if (length < 1e-6) {
+				continue;
+			}
+
+			// a gentle bend, the same way for every arrow, so that two calls between the same elements do not cover each other
+			const ux    = dx / length;
+			const uy    = dy / length;
+			const bend  = Math.min(length * 0.18, 60 / k);
+			const cx    = (caller.x + callee.x) / 2 - uy * bend;
+			const cy    = (caller.y + callee.y) / 2 + ux * bend;
+			const from  = AppMapRenderer.pointToward(caller, cx, cy, reach(caller, cx, cy) + 3 / k);
+			const to    = AppMapRenderer.pointToward(callee, cx, cy, reach(callee, cx, cy) + gap);
+			const head  = 9 / k;
+			const angle = Math.atan2(to[1] - cy, to[0] - cx);
+
+			ctx.beginPath();
+			ctx.moveTo(from[0], from[1]);
+			ctx.quadraticCurveTo(cx, cy, to[0], to[1]);
+			ctx.strokeStyle = look.halo;
+			ctx.lineWidth   = width * 3;
+			ctx.stroke();
+			ctx.strokeStyle = look.error;
+			ctx.lineWidth   = width;
+			ctx.stroke();
+
+			ctx.beginPath();
+			ctx.moveTo(to[0], to[1]);
+			ctx.lineTo(to[0] - head * Math.cos(angle - 0.4), to[1] - head * Math.sin(angle - 0.4));
+			ctx.lineTo(to[0] - head * Math.cos(angle + 0.4), to[1] - head * Math.sin(angle + 0.4));
+			ctx.closePath();
+			ctx.fillStyle = look.error;
+			ctx.fill();
+
+			// the line of the call, beside the middle of the arrow on the outside of its bend
+			const row = steps[i + 1].frames[0].r;
+
+			if (row) {
+
+				const mx = 0.25 * from[0] + 0.5 * cx + 0.25 * to[0];
+				const my = 0.25 * from[1] + 0.5 * cy + 0.25 * to[1];
+
+				this.callLabel(`line ${row}`, mx - uy * 14 / k, my + ux * 14 / k, k);
+			}
+		}
+
+		// the failing element, ringed in its own shape, with the line that failed above it
+		const origin = steps[0];
+
+		if (origin && origin === trace.steps[0]) {
+
+			const n   = origin.n;
+			const r   = Math.max(view.shownRadius(n), 2 / k);
+			const box = AppMapRenderer.boxOf(n);
+			const top = box ? r * box[1] + gap : (n.k === 'api' ? r * 1.2 : r) + gap;
+
+			ctx.beginPath();
+
+			if (box) {
+				ctx.roundRect(n.x - r * box[0] - gap, n.y - top, 2 * (r * box[0] + gap), 2 * top, gap * 1.5);
+			} else {
+				ctx.arc(n.x, n.y, top, 0, 2 * Math.PI);
+			}
+
+			ctx.strokeStyle = look.error;
+			ctx.lineWidth   = width;
+			ctx.setLineDash([4 / k, 3 / k]);
+			ctx.stroke();
+			ctx.setLineDash([]);
+
+			if (origin.frames[0].r) {
+				// on the side away from the call that arrives
+				const below = steps[1] ? steps[1].n.y < n.y : false;
+
+				this.callLabel(`fails in line ${origin.frames[0].r}`, n.x, below ? n.y + top + 12 / k : n.y - top - 12 / k, k);
+			}
+		}
+
+		ctx.restore();
+	}
+
+	// a short text on a call trace, on a background of the map, in the colour of errors
+	callLabel(text, x, y, k) {
+
+		const ctx  = this.ctx;
+		const look = this.view.look;
+		const size = 11 / k;
+
+		ctx.font         = this.font(600, size);
+		ctx.textAlign    = 'center';
+		ctx.textBaseline = 'middle';
+
+		const w = ctx.measureText(text).width + 8 / k;
+		const h = size * 1.6;
+
+		ctx.fillStyle = look.halo;
+		ctx.beginPath();
+		ctx.roundRect(x - w / 2, y - h / 2, w, h, h / 2);
+		ctx.fill();
+		ctx.fillStyle = look.error;
+		ctx.fillText(text, x, y);
+	}
+
+	// the point at the given distance from the middle of an element, towards a point
+	static pointToward(n, x, y, distance) {
+
+		const dx     = x - n.x;
+		const dy     = y - n.y;
+		const length = Math.hypot(dx, dy) || 1;
+
+		return [n.x + dx / length * distance, n.y + dy / length * distance];
 	}
 
 	// where the access badge of an element sits at a zoom, or null if it carries none there
@@ -2059,7 +2235,7 @@ class AppMapRenderer {
 		for (const area of view.layout.areaPlaces.keys()) {
 
 			const angle = view.layout.sectors.get(area).angle;
-			const label = AppMapModel.AREAS[area].label.toUpperCase();
+			const label = this.view.areas[area].label.toUpperCase();
 			const half  = (this.measure.measureText(label).width / 2 + 8) / k;
 			let r       = ring;
 			let box     = null;

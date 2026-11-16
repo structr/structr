@@ -84,16 +84,17 @@ class AppMapModel {
 	};
 
 	static KIND_LABEL  = { page: 'Page', component: 'Shared Component', type: 'Type', method: 'Method', api: 'REST Endpoint', external: 'External Service', group: 'Group', view: 'Repeater', action: 'Event Action Mapping' };
-	static EDGE_LABEL  = { creates: 'creates', updates: 'updates', deletes: 'deletes', inherits: 'inherits from', helper: 'uses helper', contains: 'contains', reads: 'reads', current: 'opens with the current', invokes: 'invokes', calls: 'calls', member: 'belongs to', relates: 'relationship', navigates: 'navigates to', endpoint: 'endpoint', include: 'includes', uses: 'uses', grant: 'grants', requests: 'sends requests to', queries: 'queries', executes: 'executes', mails: 'sends mail with' };
+	static EDGE_LABEL  = { creates: 'creates', updates: 'updates', deletes: 'deletes', inherits: 'inherits from', helper: 'uses helper', contains: 'contains', reads: 'reads', current: 'opens with the current', invokes: 'invokes', calls: 'calls', member: 'belongs to', relates: 'relationship', navigates: 'navigates to', endpoint: 'endpoint', include: 'includes', uses: 'uses', grant: 'grants', requests: 'sends requests to', queries: 'queries', executes: 'executes', mails: 'sends mail with', links: 'is related to' };
 
 	// business relations: what a page or method does to which type (C/R/U/D), the data model between types, navigation
 	// between pages; the wiring in between (page contains action, action invokes method, method calls method) is folded into them
 	static OP_KIND = { C: 'creates', D: 'deletes', U: 'updates', R: 'reads' };
 	static OPERATION_KINDS = new Set(Object.values(AppMapModel.OP_KIND));
 
-	// the functional relations: what the application does, with its data, its methods and the world outside; the others
-	// (the data model between types, inheritance, navigation between pages) describe how it is built
-	static FUNCTIONAL = new Set(['creates', 'updates', 'deletes', 'reads', 'current', 'invokes', 'calls', 'endpoint', 'requests', 'queries', 'executes', 'mails']);
+	// the functional relations: what the application does, with its data, its methods and the world outside, and on the
+	// data map the relationships between the objects of two clusters (links); the others (the data model between types,
+	// inheritance, navigation between pages) describe how it is built
+	static FUNCTIONAL = new Set(['creates', 'updates', 'deletes', 'reads', 'current', 'invokes', 'calls', 'endpoint', 'requests', 'queries', 'executes', 'mails', 'links']);
 
 	// how much a relation says about what matters, for the rank of a grouping: changing data weighs most, reading least
 	static RANK_WEIGHT = { creates: 3, updates: 2.5, deletes: 2.5, reads: 1, current: 1, invokes: 1.5, calls: 1.5, endpoint: 1, requests: 1.5, queries: 1.5, executes: 1.5, mails: 1.5 };
