@@ -46,7 +46,9 @@ public class RESTEndpoints {
 		// initialize static API endpoints
 		RESTEndpoints.register(new ApplicationMapResource());
 		RESTEndpoints.register(new ApplicationMapActivityResource());
+		RESTEndpoints.register(new ApplicationMapTracesResource());
 		RESTEndpoints.register(new ApplicationMapLocateResource());
+		RESTEndpoints.register(new ApplicationMapDataResource());
 		RESTEndpoints.register(new CollectionRelationshipsResource());
 		RESTEndpoints.register(new CypherQueryResource());
 		RESTEndpoints.register(new DeprecatedGlobalSchemaMethodsResource());

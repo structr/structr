@@ -85,13 +85,13 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 	}
 
 	@Override
-	public PropertyConverter<Byte[], byte[]> databaseConverter(final SecurityContext securityContext) {
+	public PropertyConverter<Byte[], Object> databaseConverter(final SecurityContext securityContext) {
 
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
-	public PropertyConverter<Byte[], byte[]> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+	public PropertyConverter<Byte[], Object> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
 
 		return new ArrayDatabaseConverter(securityContext, entity);
 	}
@@ -102,7 +102,12 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 		return new ArrayInputConverter(securityContext);
 	}
 
-	private class ArrayDatabaseConverter extends PropertyConverter<Byte[], byte[]> {
+	/**
+	 * Stores the bytes as a primitive array. Reading them back takes either form: the Bolt driver returns the primitive
+	 * array as it is stored, the embedded driver boxes every array it reads (EntityWrapper.revertFromStorage), so a
+	 * byte array arrives as Byte[] there.
+	 */
+	private class ArrayDatabaseConverter extends PropertyConverter<Byte[], Object> {
 
 		public ArrayDatabaseConverter(final SecurityContext securityContext, final GraphObject entity) {
 
@@ -123,24 +128,17 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 		}
 
 		@Override
-		public Byte[] revert(final byte[] source) throws FrameworkException {
+		public Byte[] revert(final Object source) throws FrameworkException {
 
-			try {
+			if (source instanceof Byte[] boxed) {
+				return boxed;
+			}
 
-				if (source != null) {
-
-					//return ArrayUtils.toObject(Base64.getDecoder().decode(source));
-
-					return ArrayUtils.toObject(source);
-				}
-
-			} catch (final Exception e) {
-
-				throw new FrameworkException(400, "Unable to convert " + source + " to Byte[].", e);
+			if (source instanceof byte[] bytes) {
+				return ArrayUtils.toObject(bytes);
 			}
 
 			return null;
-
 		}
 	}
 

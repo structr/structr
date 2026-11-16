@@ -583,6 +583,8 @@ let _Entities = {
 
 			e.stopPropagation();
 
+			let wasShown = tab.classList.contains('active');
+
 			for (let everyTab of contentEl.querySelectorAll('.propTabContent')) {
 				everyTab.style.display = 'none';
 			}
@@ -599,6 +601,12 @@ let _Entities = {
 				// this does not really work for the initially active tab because its html is not yet output... showCallback must also be called from 'outside'
 
 				if (refreshOnShow === true) {
+
+					// a tab that is already shown is not reloaded: the reload replaces its inputs asynchronously, so a value
+					// typed in the meantime would be lost without a change event (the dialog clicks the initial tab itself)
+					if (wasShown) {
+						return;
+					}
 
 					// update entity for show callback
 					if (entity.relType) {

@@ -285,7 +285,7 @@ class AppMapLayout {
 	layoutGroups(remembered, done) {
 
 		const spread = this.spread();
-		const areas  = AppMapModel.AREAS;
+		const areas  = this.view.areas;
 		// a disc is as large as its members need, each with its own size and some room around it: a grouping of a few large,
 		// well connected elements takes as much room as one of many small ones
 		const discs  = d3.groups(this.nodes, n => this.view.groupKeyOf(n))
@@ -296,9 +296,9 @@ class AppMapLayout {
 
 		// a remembered layout keeps its sectors and field: the room the groupings need changes with the sizes of the elements,
 		// and borders taken from it anew would no longer match the remembered places
-		const kept    = remembered && this.storedLayout?.sectors && Object.keys(AppMapModel.AREAS).every(key => this.storedLayout.sectors[key]) ? this.storedLayout : null;
+		const kept    = remembered && this.storedLayout?.sectors && Object.keys(this.view.areas).every(key => this.storedLayout.sectors[key]) ? this.storedLayout : null;
 
-		this.sectors = kept ? new Map(Object.entries(kept.sectors)) : AppMapLayout.sectorsFor(needed);
+		this.sectors = kept ? new Map(Object.entries(kept.sectors)) : AppMapLayout.sectorsFor(needed, Object.keys(this.view.areas));
 
 		const fullest = d3.max([...this.sectors], ([key, s]) => Math.sqrt(2 * (needed.get(key) ?? 0) / (2 * s.half * AppMapLayout.DISC_SPAN))) ?? 0;
 		const field   = kept?.field ?? Math.max(Math.sqrt(d3.sum(discs, x => (x.r + 30 * spread) ** 2)) * 0.9, fullest * 1.05) * AppMapLayout.STRETCH;
@@ -397,9 +397,8 @@ class AppMapLayout {
 	// the sectors of the areas in their fixed order around the circle, each as wide as the room its groupings need, so every
 	// sector is filled alike and the map is no larger than it must be; Pages keeps its place on the left. Kept per area as
 	// { angle, half }: the ray in the middle of the sector and half its width, in radians
-	static sectorsFor(needed) {
+	static sectorsFor(needed, keys = Object.keys(AppMapModel.AREAS)) {
 
-		const keys  = Object.keys(AppMapModel.AREAS);
 		const total = d3.sum(needed.values());
 		const min   = AppMapLayout.MIN_SECTOR * Math.PI / 180;
 		const free  = 2 * Math.PI - keys.length * min;
@@ -419,7 +418,7 @@ class AppMapLayout {
 	// where the areas stand, and the place of every grouping in the sector of its area
 	slots(discs, field) {
 
-		const areas    = AppMapModel.AREAS;
+		const areas    = this.view.areas;
 		const incoming = new Map();
 		const outgoing = new Map();
 		const groupIn  = new Map();

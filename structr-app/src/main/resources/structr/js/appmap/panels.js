@@ -2924,8 +2924,14 @@ class AppMapPanels {
 
 			} else if (tile.arrow) {
 
-				ctx.fillStyle = tint ? this.inkOf(tint) : look.label;
-				renderer.screenText('→', x + width / 2, y + height / 2, 700, height * 0.58, false, 'center');
+				// the icon of a relationship in the Code area, else an arrow
+				const ink = tint ? this.inkOf(tint) : look.label;
+
+				if (!this.drawIcon(ctx, typeof _Icons === 'undefined' ? null : _Icons.iconSchemaRelationship, x + width / 2, y + height / 2, width * 0.5, ink)) {
+
+					ctx.fillStyle = ink;
+					renderer.screenText('→', x + width / 2, y + height / 2, 700, height * 0.58, false, 'center');
+				}
 
 			} else if (tile.glyph) {
 
@@ -3601,10 +3607,79 @@ class AppMapPanels {
 
 	// the sign of the type of a field, as databases show it: Aa for text, # for numbers, a tick for yes or no, a calendar
 	// for dates, ƒ for what is computed, ≡ for a choice; a dot for anything else
+	// the icon of the Code area for the type of a property, as the map names it (String[] for an array of strings), see
+	// _Icons.getIconForSchemaPropertyType; null outside the Admin UI
+	static propertyIcon(type) {
+
+		if (typeof _Icons === 'undefined') {
+			return null;
+		}
+
+		const name = String(type);
+
+		return _Icons.getIconForSchemaPropertyType(name.endsWith('[]') ? name.slice(0, -2) + 'Array' : name);
+	}
+
+	// draws an icon of the Admin UI (a symbol of icon/sprites.svg, which the Admin UI has in its document) centred on a
+	// point, as large as given and in the colour given; says whether it could. The symbol becomes an image once per icon
+	// and colour, and the map is drawn again when it has loaded; while it loads the place stays empty, so that the sign it
+	// stands for does not flash up
+	drawIcon(ctx, id, cx, cy, size, ink) {
+
+		const image = id ? AppMapPanels.iconImage(id, ink, () => this.view.requestDraw()) : null;
+
+		if (image) {
+			ctx.drawImage(image, cx - size / 2, cy - size / 2, size, size);
+		}
+
+		return image !== null;
+	}
+
+	static icons = new Map();
+
+	// the image of a symbol in a colour, undefined while it loads, null where there is no such symbol
+	static iconImage(id, ink, loaded) {
+
+		const key = `${id} ${ink}`;
+		let entry = AppMapPanels.icons.get(key);
+
+		if (!entry) {
+
+			const symbol = typeof document.getElementById === 'function' ? document.getElementById(id) : null;
+
+			if (!symbol || typeof Image === 'undefined') {
+				return null;
+			}
+
+			// the symbol draws with currentColor, which the colour of the image gives; it is drawn large, so that it stays
+			// sharp on a tile close up
+			const attributes = [...symbol.attributes].filter(a => a.name !== 'id' && a.name !== 'viewBox').map(a => `${a.name}="${a.value}"`).join(' ');
+			const svg        = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="${symbol.getAttribute('viewBox') ?? '0 0 24 24'}" color="${ink}"><g ${attributes}>${symbol.innerHTML}</g></svg>`;
+			const image      = new Image();
+
+			entry = { image, ready: false };
+			image.onload = () => {
+
+				entry.ready = true;
+				loaded();
+			};
+			image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+
+			AppMapPanels.icons.set(key, entry);
+		}
+
+		return entry.ready ? entry.image : undefined;
+	}
+
 	drawTypeSign(renderer, type, cx, cy, size, ink) {
 
 		const ctx  = renderer.ctx;
 		const sign = AppMapPanels.TYPE_SIGNS[String(type).replace(/\[\]$/, '')] ?? '•';
+
+		// the icon the Code area shows for the type of the property, where the Admin UI has its icons
+		if (this.drawIcon(ctx, AppMapPanels.propertyIcon(type), cx, cy, size * 0.5, ink)) {
+			return;
+		}
 
 		ctx.save();
 		ctx.fillStyle   = ink;
@@ -4021,9 +4096,10 @@ class AppMapPanels {
 
 		if (errors.length || warnings.length) {
 
-			// it grows with the box only up to a few pixels on screen, beyond that much more slowly, so that it does not
-			// cover the controls of an open element
-			const onScreen = 0.55 * s * k;
+			// it keeps the smallest size of the access badge, so that it stays visible from afar, and grows with the box only
+			// up to a few pixels on screen, beyond that much more slowly, so that it does not cover the controls of an open
+			// element
+			const onScreen = Math.max(AppMapRenderer.ACCESS_SMALL / 2, 0.55 * s * k);
 			const radius   = (onScreen > 10 ? 10 * Math.pow(onScreen / 10, 0.3) : onScreen) / k;
 
 			this.drawProblemSign(ctx, x + w - 0.15 * s, top + 0.15 * s, radius, k, errors.length > 0);
