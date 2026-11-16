@@ -4344,3 +4344,11 @@ window.addEventListener('beforeunload', (event) => {
 		LSWrapper.save();
 	}
 });
+
+// a click into an embedded document (the documentation, a preview) does not reach this one, so the global search would stay open
+window.addEventListener('blur', () => {
+
+	if (document.activeElement?.tagName === 'IFRAME') {
+		document.querySelector('#global-search-popover:popover-open')?.hidePopover();
+	}
+});
