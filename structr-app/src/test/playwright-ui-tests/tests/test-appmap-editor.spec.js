@@ -387,7 +387,7 @@ test('Ctrl+S saves, the map loads its data anew and the editor stays open where 
 	const reloaded  = page.waitForResponse(response => response.url().endsWith('/structr/rest/_appmap') && response.request().method() === 'GET');
 
 	await typeIntoEditor(page, '\n// saved');
-	await page.keyboard.press('Control+s');
+	await page.keyboard.press('ControlOrMeta+s');
 
 	await reloaded;
 	await expect(state(page)).toHaveText('Ctrl+S saves · Esc closes');

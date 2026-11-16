@@ -33,50 +33,45 @@ test('dashboard', async ({page}, testInfo) => {
 
 	await goToModule(page, '#dashboard_');
 
-	await page.locator('[href="#dashboard:me"]').waitFor({state: 'visible'});
-
-	// Dashboard -> About Me
-	await page.locator('[href="#dashboard:me"]').click();
+	// the area is one page of sections: About Me, About Structr and Deployment
 	await page.locator('[data-module-name="me"]').waitFor({state: 'visible'});
 	await page.screenshot({path: 'screenshots/dashboard_about-me.png'});
 
-	// Dashboard -> About Structr
-	await page.locator('[href="#dashboard:about"]').click();
 	await page.locator('[data-module-name="about"]').waitFor({state: 'visible'});
-
-	// Wait for HTTP Access Statistics to load (vis.js is async and has no onLoad callback)
-	await page.waitForTimeout(2000);
 	await page.screenshot({path: 'screenshots/dashboard_about-structr.png'});
 
-	// Dashboard -> Deployment
-	await page.locator('[href="#dashboard:deployment"]').click();
-	await page.locator('[data-module-name="deployment"]').waitFor({state: 'visible'});
+	await page.locator('[data-module-name="deployment"]').scrollIntoViewIfNeeded();
 	await page.screenshot({path: 'screenshots/dashboard_deployment.png'});
 
-	// Dashboard -> Methods
-	await page.locator('[href="#dashboard:methods"]').click();
-	await page.locator('[data-module-name="methods"]').waitFor({state: 'visible'});
-	await page.screenshot({path: 'screenshots/dashboard_methods.png'});
-
-	// Dashboard -> Server Log
-	await page.locator('[href="#dashboard:logs"]').click();
-	await page.locator('[data-module-name="logs"]').waitFor({state: 'visible'});
+	// the logs, the threads and the HTTP statistics open in the panel at the foot of the window
+	await page.locator('#monitor-switches [data-view="logs"]').click();
+	await page.locator('#monitor-panel [data-module-name="logs"]').waitFor({state: 'visible'});
 	await page.screenshot({path: 'screenshots/dashboard_server-log.png'});
 
-	// Dashboard -> Event Log
-	await page.locator('[href="#dashboard:events"]').click();
-	await page.locator('[data-module-name="events"]').waitFor({state: 'visible'});
+	await page.locator('#monitor-switches [data-view="events"]').click();
+	await page.locator('#monitor-panel [data-module-name="events"]').waitFor({state: 'visible'});
 	await page.screenshot({path: 'screenshots/dashboard_event-log.png'});
 
-	// Dashboard -> Threads
-	await page.locator('[href="#dashboard:threads"]').click();
-	await page.locator('[data-module-name="threads"]').waitFor({state: 'visible'});
+	await page.locator('#monitor-switches [data-view="threads"]').click();
+	await page.locator('#monitor-panel [data-module-name="threads"]').waitFor({state: 'visible'});
 	await page.screenshot({path: 'screenshots/dashboard_running-threads.png'});
 
-	// Dashboard -> UI Settings
-	await page.locator('[href="#dashboard:ui"]').click();
-	await page.locator('[data-module-name="ui"]').waitFor({state: 'visible'});
+	// HTTP statistics: vis.js is async and has no onLoad callback
+	await page.locator('#monitor-switches [data-view="stats"]').click();
+	await page.locator('#monitor-panel [data-module-name="stats"]').waitFor({state: 'visible'});
+	await page.waitForTimeout(2000);
+	await page.screenshot({path: 'screenshots/dashboard_http-statistics.png'});
+
+	await page.locator('#monitor-panel-close').click();
+	await expect(page.locator('#monitor-panel')).toBeHidden();
+
+	// the settings of the UI: the most used ones in the header menu, all of them in a dialog
+	await page.locator('#ui-settings-popup > button').click();
+	await page.getByRole('link', {name: 'All UI settings'}).click();
+	await page.locator('#dialogBox #dashboard-ui-config').waitFor({state: 'visible'});
 	await page.screenshot({path: 'screenshots/dashboard_ui-config.png'});
+	await page.getByRole('button', {name: 'Close', exact: true}).click();
+	await expect(page.locator('#dialogBox #dashboard-ui-config')).toBeHidden();
 
 	// show admin console here
 	await page.locator('#terminal-icon > use').click();

@@ -119,7 +119,7 @@ test('schema', async ({page}, testInfo) => {
 	await page.locator('.property-type').nth(2).selectOption({value: 'Function'});
 	await page.getByRole('button', {name: 'Save All', exact: true}).click();
 	await expect(page.getByRole('button', {name: 'Save All', exact: true})).toHaveClass(/disabled/);
-	await page.getByRole('button', {name: 'Read'}).click();
+	await page.getByRole('button', {name: /^Read/}).click();
 	await focusMonacoEditorInContainer(page, '#dialogBox');
 	await page.keyboard.type('this.project.projectId');
 	await page.getByRole('button', {name: 'Save', exact: true}).click();
@@ -185,7 +185,7 @@ test('schema', async ({page}, testInfo) => {
 	await page.locator('.property-type').nth(1).selectOption({value: 'Function'});
 	await page.getByRole('button', {name: 'Save All', exact: true}).click();
 	await expect(page.getByRole('button', {name: 'Save All', exact: true})).toHaveClass(/disabled/);
-	await page.getByRole('button', {name: 'Read'}).click();
+	await page.getByRole('button', {name: /^Read/}).click();
 	await focusMonacoEditorInContainer(page, '#dialogBox');
 	await page.keyboard.type('this.project.projectId');
 	await page.getByRole('button', {name: 'Save', exact: true}).click();

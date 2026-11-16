@@ -38,7 +38,7 @@ test('mail-templates', async ({page}, testInfo) => {
     // Wait for Code UI to load all components
     await page.waitForTimeout(1000);
 
-    await page.getByRole('button').nth(2).click();
+    await page.locator('#function-bar .dropdown-menu > button.dropdown-select').click();
     await page.getByText('Create default "Self-').click();
 
 	await page.waitForTimeout(1000);
