@@ -187,5 +187,17 @@ test('data-sources', async ({page}, testInfo) => {
 
 	await page.screenshot({path: 'screenshots/code_data-source-editor.png'});
 
+	// The create buttons of the level make a data source and open it on its editor
+	await page.getByRole('link', {name: 'Data Sources', exact: true}).click();
+	await page.getByRole('button', {name: 'Create Query Data Source'}).click();
+	await expect(page.locator('#query-builder-container')).toBeVisible();
+	await expect(page.locator('#data-source-name-input')).toHaveValue(/^New QueryDataSource/);
+	await expect(page.getByRole('link', {name: /^New QueryDataSource/})).toBeVisible();
+
+	await page.getByRole('link', {name: 'Data Sources', exact: true}).click();
+	await page.getByRole('button', {name: 'Create Script Data Source'}).click();
+	await expect(page.locator('#values-script-editor')).toBeVisible();
+	await expect(page.locator('#data-source-name-input')).toHaveValue(/^New ScriptDataSource/);
+
 	await logout(page);
 });
