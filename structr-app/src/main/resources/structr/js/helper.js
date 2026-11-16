@@ -414,7 +414,7 @@ let _Helpers = {
 		if (!toggleElement) {
 			customToggleElement = false;
 			toggleElement = $(`
-				<span style="line-height: .25rem;">
+				<span class="info-toggle" style="line-height: .25rem;">
 					${_Icons.getSvgIcon(customToggleIcon, width, height, _Icons.getSvgIconClassesForColoredIcon(customToggleIconClasses))}
 				</span>
 			`);

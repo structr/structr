@@ -2450,6 +2450,7 @@ let _Crud = {
 				insertAfter: true,
 				css: {
 					left: '-18px',
+					top: 'calc(50% - 6px)',
 					position: 'absolute'
 				}
 			});

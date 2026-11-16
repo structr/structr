@@ -23,3 +23,8 @@
 	--crud-save-active-text: var(--color-text-danger);
 	--crud-type-border:      var(--color-border-tertiary);
 }
+
+/* the rows carry their own ground; the table behind them shows the card */
+:root.ui-next .resourceBox table {
+	background: transparent;
+}

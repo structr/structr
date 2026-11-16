@@ -3402,6 +3402,13 @@ body.left-column-foldable.left-column-folded .column-resizer:not(.column-resizer
     margin: auto;
 }
 
+/* the small icon that shows a help text: centred on the line of what stands beside it */
+.info-toggle {
+	display: inline-flex;
+	align-items: center;
+	vertical-align: middle;
+}
+
 span.context-help-text {
 	position: fixed;
 	background: var(--color-background-hover);

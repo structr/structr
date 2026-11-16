@@ -240,6 +240,7 @@
  */
 
 #localization-preview-page {
+	min-width: 7rem;
 	max-width: 10rem;
 }
 
@@ -256,9 +257,11 @@
 	margin-top: .5rem;
 }
 
+/* page, locale and Refresh are one control: the locale in the middle has no round corners */
 #localizations .inner input.locale {
-	max-width: 3.5rem;
-	margin-right: .5rem;
+	max-width: 4.5rem;
+	margin-right: 0;
+	border-radius: 0;
 }
 
 .localization-element table {

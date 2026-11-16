@@ -5626,9 +5626,9 @@ let _Pages = {
 			<div id="localizations" class="slideOut slideOutLeft">
 				<div class="page inner">
 					<div class="localizations-inputs flex">
-						<select id="localization-preview-page" class="hover:bg-gray-100 focus:border-gray-666 active:border-green"></select>
-						<input class="locale" placeholder="Locale">
-						<button class="refresh action button flex items-center">${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Refresh</button>
+						<select id="localization-preview-page" class="combined-select-create" title="The page whose translations are shown"></select>
+						<input class="locale combined-input-create" placeholder="Locale" title="The locale to show the translations for, for example en or de">
+						<button class="refresh action button flex items-center combined-select-create">${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Refresh</button>
 					</div>
 
 					<div class="results"></div>

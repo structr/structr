@@ -223,15 +223,27 @@
 	overflow-clip-margin: 6px;
 }
 
-/* the login stands on the canvas as a card, without the veil other dialogs lie on */
-:root.ui-next .non-block-ui-wrapper:has(#login) > div:first-child {
-	background-color: transparent ! important;
+/* one veil for everything that blocks the UI: the login, the dialogs and the global search lie on the blurred, dimmed page */
+:root.ui-next .non-block-ui-wrapper > div:first-child {
+	background-color: var(--color-background-backdrop) ! important;
+	opacity: 1 ! important;
+	backdrop-filter: blur(6px);
 }
 
-:root.ui-next #login {
-	border: 1px solid var(--color-border-secondary);
+:root.ui-next #global-search-popover::backdrop {
+	background: var(--color-background-backdrop);
+	backdrop-filter: blur(6px);
+}
+
+/* the small dialogs (login, connection lost, messages) are the same card as the large one */
+:root.ui-next .non-block-ui-blocker-content .dialog:not(#dialogBox) {
+	border: var(--line);
 	border-radius: var(--radius-dialog);
 	box-shadow: 0 12px 34px var(--color-shadow);
+}
+
+:root.ui-next #reconnect-dialog {
+	padding: 1.5rem 2rem;
 }
 
 /* the columns of an area: cards on the canvas; the line is an outline inside the card, so nothing clips it or changes a size */
@@ -444,6 +456,15 @@
 	border-color: var(--color-brand-strong);
 }
 
+/* its focus ring lies inside the field, so it does not cover the edge of the part beside it */
+:root.ui-next input.combined-input-create:focus-visible,
+:root.ui-next select.combined-select-create:focus-visible,
+:root.ui-next button.combined-input-create:focus-visible,
+:root.ui-next button.combined-select-create:focus-visible {
+	border-color: var(--color-brand-strong);
+	box-shadow: inset var(--focus-ring);
+}
+
 /* tabs: a thinner marker */
 :root.ui-next #tabs li.active,
 :root.ui-next .data-tabs li.active,
@@ -611,6 +632,15 @@
 	color: var(--color-text-inverse) ! important;
 }
 
+/* a field in a selected row has its own ground, so its text keeps the colour of a field */
+:root.ui-next #files-main .selected :is(input, textarea, select),
+:root.ui-next #contents-main .selected :is(input, textarea, select),
+:root.ui-next .localization-row.selected :is(input, textarea, select),
+:root.ui-next .mail-template-row.selected :is(input, textarea, select),
+:root.ui-next #crud-left .crud-type.active :is(input, textarea, select) {
+	color: var(--color-text-primary) ! important;
+}
+
 /* the rows of the keyboard shortcuts: as high as a row of a tree, the text as far from the edge */
 :root.ui-next #keyboard-shortcuts-menu > div {
 	min-height: 2rem;
@@ -622,10 +652,10 @@
 	background-color: var(--color-background-primary);
 }
 
-/* the menu of the keyboard shortcuts: a card hanging from the header */
+/* the menu of the keyboard shortcuts: the same box as the other menus of the header */
 :root.ui-next #keyboard-shortcuts-menu {
-	border-color: var(--color-border-secondary);
-	border-radius: 0 0 var(--radius-surface) var(--radius-surface);
+	border: var(--line);
+	border-radius: var(--radius-surface);
 	box-shadow: 0 12px 34px var(--color-shadow);
 	color: var(--color-text-primary);
 }
@@ -640,8 +670,8 @@
 :root.ui-next #global-search-popover {
 	background: var(--color-background-primary);
 	color: var(--color-text-primary);
-	border: 1px solid var(--color-border-secondary);
-	border-radius: var(--radius-dialog);
+	border: var(--line);
+	border-radius: var(--radius-surface);
 	box-shadow: 0 12px 34px var(--color-shadow);
 }
 
@@ -696,4 +726,16 @@
 /* a panel that lies over the middle, in a window too narrow to hold both, has a ground that hides what is below it */
 :root.ui-next body.slideout-overlay .slideOut::before {
 	background: var(--color-background-primary);
+}
+
+/* notifications: the corners and the soft line of the other boxes, a gap between them, and room to the edge of the window */
+:root.ui-next #info-area {
+	right: 1rem;
+}
+
+:root.ui-next #info-area .message {
+	margin-bottom: .5rem;
+	border-color: color-mix(in srgb, currentColor 35%, transparent);
+	border-radius: var(--radius-surface);
+	box-shadow: 0 12px 34px var(--color-shadow);
 }
