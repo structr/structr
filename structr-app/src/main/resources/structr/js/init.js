@@ -943,7 +943,7 @@ let Structr = {
 		defaultMainMenuItems: ['Instance', 'Apps', 'Pages', 'Files', 'Security', 'Schema', 'Code', 'Application Map', 'Data'],
 
 		// the entries a saved menu configuration may still know under an earlier name
-		renamedItems: { 'Map': 'Application Map', 'Dashboard': 'Instance' },
+		renamedItems: { 'Map': 'Application Map', 'Dashboard': 'Instance', 'Login': 'Logout' },
 		getSavedMenuConfig: () => {
 
 			return LSWrapper.getItem(Structr.keyMenuConfig, {
@@ -976,11 +976,13 @@ let Structr = {
 					}
 				}
 
-				// sort submenu
+				// the entries of the submenu in their saved order; one the configuration does not know stays above them
 				for (let entry of menuConfig.sub) {
-					let element = submenu.querySelector('li:last-of-type');
-					if (element.length > 0) {
-						element.after(menu.querySelector(`li[data-name="${entry}"]`));
+
+					let item = submenu.querySelector(`:scope > li[data-name="${Structr.mainMenu.renamedItems[entry] ?? entry}"]`);
+
+					if (item) {
+						submenu.appendChild(item);
 					}
 				}
 			}
@@ -2731,7 +2733,7 @@ let Structr = {
 								<li data-name="Localization"><a id="localization_" href="#localization" data-activate-module="localization" title="Manage translations used by the localize() function">Localization</a></li>
 								<li data-name="Mail Templates"><a id="mail-templates_" href="#mail-templates" data-activate-module="mail-templates" title="Edit templates for emails sent by the application">Mail Templates</a></li>
 								<li data-name="Documentation"><a id="docs_" href="#docs" data-activate-module="docs" title="Read the Structr documentation">Documentation</a></li>
-								<li data-name="Login"><a id="logout_" href="javascript:void(0)" title="End this session">Login</a></li>
+								<li data-name="Logout"><a id="logout_" href="javascript:void(0)" title="End this session">Login</a></li>
 							</ul>
 						</li>
 					</ul>
