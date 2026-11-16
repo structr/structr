@@ -21,6 +21,7 @@ package org.structr.test.web.appmap;
 import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -97,7 +98,14 @@ public class DataMapTest extends StructrUiTest {
 				.get("/_appmap/data?fresh=true")
 			.jsonPath();
 
-		final List<Integer> sizes       = map.getList("result.nodes.s");
+		// the data is read with Cypher, so a database without it has an empty data map
+		if (!Services.getInstance().getDatabaseService().supportsCypher()) {
+
+			assertEquals("A database without Cypher must have an empty data map", 0, map.getInt("result.objects"));
+			return;
+		}
+
+		final List<Integer> sizes      = map.getList("result.nodes.s");
 		final List<String> clusterTypes = map.getList("result.nodes.t");
 		final List<String> areas        = map.getList("result.areas.key");
 		final String order              = map.getString("result.nodes.find { it.t == 'ShopOrder' }.id");

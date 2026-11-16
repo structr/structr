@@ -20,7 +20,6 @@ package org.structr.appmap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseFeature;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
@@ -116,6 +115,9 @@ public class DataMap {
 		// the types of the application: the node types of its schema, without those Structr brings along
 		typeList.addAll(new TreeSet<>(Traits.getAllTypes(t -> t.isNodeType() && !t.isBuiltinType() && !t.isServiceClass() && !t.isAbstract() && !t.isInterface())));
 
+		// a type without objects counts none, also where the data cannot be read (a database without Cypher)
+		counts = new long[typeList.size()];
+
 		// the relationship types between them, from their relation properties
 		for (final String type : typeList) {
 
@@ -149,7 +151,7 @@ public class DataMap {
 			final DataMap map = new DataMap();
 			final long t0     = System.currentTimeMillis();
 
-			if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+			if (Services.getInstance().getDatabaseService().supportsCypher()) {
 
 				map.read(app);
 				map.group();

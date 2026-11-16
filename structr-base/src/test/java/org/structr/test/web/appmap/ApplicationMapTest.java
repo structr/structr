@@ -932,6 +932,37 @@ public class ApplicationMapTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testLinksWithOnlyAQueryLeadToNoPage() {
+
+		createApplication();
+
+		try (final Tx tx = app.tx()) {
+
+			final Page list  = Page.createSimplePage(securityContext, "list");
+			final Page about = Page.createSimplePage(securityContext, "about");
+			final DOMNode div = list.getElementsByTagName("div").get(0);
+
+			div.appendChild(link(list, "?"));
+			div.appendChild(link(list, "/?"));
+			div.appendChild(link(list, "?page=2"));
+			div.appendChild(link(list, "/about?tab=1"));
+
+			ids.put("about", about.getUuid());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final JsonPath map = fetchMap();
+
+		assertNotNull("A link with a query must lead to the page its path names", map.get("result.edges.find { it[1] == '" + ids.get("about") + "' && it[3] == 'navigates' }"));
+	}
+
+	@Test
 	public void testSharedComponentsFormAnAreaOfTheirOwn() {
 
 		createApplication();

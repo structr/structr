@@ -522,7 +522,8 @@ public class PagesMapContributor implements ApplicationMapContributor {
 			return null;
 		}
 
-		final String first = StringUtils.stripStart(url, "/").split("\\?")[0].split("/")[0];
+		// substringBefore instead of split: split drops trailing empty parts, so "?" alone gives no part at all
+		final String first = StringUtils.substringBefore(StringUtils.substringBefore(StringUtils.stripStart(url, "/"), "?"), "/");
 
 		if (first.isEmpty() || first.contains("$")) {
 			return null;
