@@ -51,6 +51,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.OneTimeTokens;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.OAuthException;
@@ -244,6 +245,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					logger.error("{}", oae.getMessage());
 				}
+			}
+
+			// a one-time token has opened the session: the same address again without it, so that it stays in no address bar, history or referrer
+			if (request.getAttribute(OneTimeTokens.REDEEMED_ATTRIBUTE) != null) {
+
+				sendRedirectHeader(response, OneTimeTokens.urlWithoutToken(request.getRequestURI(), request.getQueryString()), false);
+
+				return;
 			}
 
 			app = StructrApp.getInstance(securityContext);

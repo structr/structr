@@ -36,6 +36,16 @@ The Failed Login Attempts counter (useful for diagnosing lockouts) and the Confi
 
 This shows all user attributes in a raw table format.
 
+#### Test as This User
+
+This creates a link that opens a browser session as the user, so that you can see the application exactly as that user sees it, without knowing the password and without changing the account. The entry is offered for every user who is neither blocked nor an admin: a session as an admin would hand out full access, and this is for seeing the application as an ordinary user.
+
+Enter the address the test should start at and click "Create link". Open the link in a private window or in another browser: opened in the window you are working in, it would replace your own session. The link works once and for two minutes. After that, create a new one.
+
+Any address of the instance can carry the link's parameter, `_structrOneTimeToken`: a page of the application, a REST endpoint, or the Admin UI itself. A page then answers with the same address without the parameter, so the token does not stay in the address bar or the history.
+
+The session ends after 60 minutes without activity, or earlier if the session timeout of the instance is shorter, and when the user logs out in that window. Every session opened this way is recorded in the Event Log as an Authentication event with the name of the admin who created the link. Only admins can create such a link; it cannot be created from a script.
+
 #### Security Dialog
 
 This opens the access control dialog for the user object itself.

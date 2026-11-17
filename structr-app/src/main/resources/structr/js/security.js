@@ -125,6 +125,16 @@ let _Security = {
 			}
 		});
 
+		if (isUser && entity.blocked !== true && entity.isAdmin !== true) {
+
+			elements.push({
+				name: 'Test as this user…',
+				clickHandler: () => {
+					_UsersAndGroups.showTestSessionDialog(entity);
+				}
+			});
+		}
+
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		_Elements.contextMenu.appendSecurityContextMenuItems(elements, entity);
@@ -508,6 +518,73 @@ let _UsersAndGroups = {
 		return element.data('groupId');
 	},
 
+	// a link that opens a session as the user, once and for a short time, for an admin who wants to see the application as that user
+	showTestSessionDialog: (user) => {
+
+		let name           = _UsersAndGroups.getDisplayNameForUser(user);
+		let { dialogText } = _Dialogs.custom.openDialog(`Test as ${name}`);
+
+		dialogText.insertAdjacentHTML('beforeend', `
+			<div class="test-session-dialog flex flex-col gap-4 p-4">
+				<p class="m-0">Creates a link that opens a session as <b>${_Helpers.escapeTags(name)}</b>. Open it in a private window or in another browser: in this window it would replace your own session. The link works once.</p>
+				<label class="flex flex-col gap-1">
+					<span class="font-semibold">Start address</span>
+					<input type="text" class="test-session-start" value="${_Helpers.escapeForHtmlAttributes(location.origin + '/')}">
+				</label>
+				<div>
+					<button type="button" class="action test-session-create">Create link</button>
+				</div>
+				<label class="test-session-result flex flex-col gap-1 hidden">
+					<span class="font-semibold">Link <span class="test-session-validity font-normal"></span></span>
+					<span class="flex gap-2">
+						<input type="text" class="test-session-link flex-grow" readonly>
+						<button type="button" class="test-session-copy hover:bg-gray-100 focus:border-gray-666 active:border-green">Copy</button>
+					</span>
+				</label>
+			</div>
+		`);
+
+		let startInput = dialogText.querySelector('.test-session-start');
+		let linkInput  = dialogText.querySelector('.test-session-link');
+
+		dialogText.querySelector('.test-session-create').addEventListener('click', async () => {
+
+			let start;
+
+			try {
+				start = new URL(startInput.value, location.origin);
+			} catch (e) {
+				new ErrorMessage().text('The start address is not a valid address.').show();
+				return;
+			}
+
+			let response = await fetch(`${Structr.rootUrl}_oneTimeToken`, { method: 'POST', body: JSON.stringify({ user: user.id }) });
+			let data     = await response.json().catch(() => ({}));
+			let result   = Array.isArray(data.result) ? data.result[0] : data.result;
+
+			if (!response.ok || !result?.token) {
+
+				Structr.errorFromResponse(data, undefined, { requiresConfirmation: true });
+				return;
+			}
+
+			start.searchParams.set(result.parameter, result.token);
+
+			linkInput.value = start.toString();
+
+			dialogText.querySelector('.test-session-validity').textContent = `(valid once, for ${Math.round(result.validForSeconds / 60)} minutes)`;
+			dialogText.querySelector('.test-session-result').classList.remove('hidden');
+
+			linkInput.select();
+		});
+
+		dialogText.querySelector('.test-session-copy').addEventListener('click', async () => {
+
+			await navigator.clipboard.writeText(linkInput.value);
+
+			new SuccessMessage().text('Link copied to the clipboard.').show();
+		});
+	},
 	getDisplayNameForUser: (user) => {
 
 		let displayName = user?.name ?? '';

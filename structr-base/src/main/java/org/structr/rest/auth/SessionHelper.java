@@ -28,6 +28,7 @@ import org.eclipse.jetty.websocket.core.server.ServerUpgradeRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.auth.OneTimeTokens;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
@@ -67,8 +68,14 @@ public class SessionHelper {
 
 		try {
 
-			final long lastAccessed  = session.getLastAccessedTime();
-			final int sessionTimeout = Services.getGlobalSessionTimeout();
+			final long lastAccessed = session.getLastAccessedTime();
+			int sessionTimeout      = Services.getGlobalSessionTimeout();
+
+			// a session an admin opened to test as another user ends sooner, see OneTimeTokens
+			if (session.getAttribute(OneTimeTokens.SESSION_ATTRIBUTE) != null) {
+
+				sessionTimeout = (sessionTimeout > 0) ? Math.min(sessionTimeout, OneTimeTokens.TEST_SESSION_TIMEOUT_SECONDS) : OneTimeTokens.TEST_SESSION_TIMEOUT_SECONDS;
+			}
 
 			if (sessionTimeout > 0 && now > lastAccessed + sessionTimeout * 1000) {
 
