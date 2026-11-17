@@ -125,7 +125,7 @@ async function typeIntoEditor(page, text) {
 
 	// every key reaches the editor, none starts the search of the map
 	await expect(editor(page).locator('.view-lines')).toContainText(text.trim());
-	await expect(state(page)).toHaveText('Unsaved changes · Ctrl+S saves');
+	await expect(state(page)).toHaveText('Unsaved changes · Ctrl+S saves · Esc discards');
 }
 
 async function openEditorFor(page, name) {
@@ -321,7 +321,7 @@ test('unsaved changes are kept unless they are discarded, whichever way the edit
 	await expect(question(page)).toBeVisible();
 	await answer(page, 'No');
 	await expect(editor(page)).toBeVisible();
-	await expect(state(page)).toHaveText('Unsaved changes · Ctrl+S saves');
+	await expect(state(page)).toHaveText('Unsaved changes · Ctrl+S saves · Esc discards');
 
 	// a click beside the editor asks; Escape in the question cancels it like No and asks nothing more
 	const corner = await page.evaluate(() => { const box = _AppMap.view.canvas.getBoundingClientRect(); return { x: box.left + 8, y: box.bottom - 8 }; });
@@ -333,7 +333,7 @@ test('unsaved changes are kept unless they are discarded, whichever way the edit
 	await page.waitForTimeout(300);
 	await expect(question(page)).toHaveCount(0);
 	await expect(editor(page)).toBeVisible();
-	await expect(state(page)).toHaveText('Unsaved changes · Ctrl+S saves');
+	await expect(state(page)).toHaveText('Unsaved changes · Ctrl+S saves · Esc discards');
 
 	// a click on the code of another method asks; No stays, Yes discards and opens the other method
 	const other = await showCode(page, 'Item.restore');

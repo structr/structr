@@ -205,6 +205,7 @@ class AppMapView {
 		this.wheelAt    = null;
 		this.wheelLast  = 0;
 		this.wheelFrame = null;
+		this.wheelGlide = 0;
 		this.drag       = [];
 		this.coastFrame = null;
 		this.grabbing   = false;
@@ -1748,8 +1749,39 @@ class AppMapView {
 			return;
 		}
 
+		// while the map glides a leaf into the middle of the screen (see below), zooming in waits for it
+		if (delta > 0 && this.wheelGlide > performance.now()) {
+			return;
+		}
+
 		// zooming in stops where an element with an editor fills the screen, and goes on past it only with the next turn
 		const target = Math.min(top, Math.max(lo, (this.wheelK ?? this.transform.k) * Math.pow(2, delta)));
+
+		// fillStop only knows the leaves near the middle of the screen, and only there their editors open (see fills): the
+		// code or the template under the pointer, zoomed into elsewhere, glides into the middle once the zoom reaches the one
+		// at which it fills the screen, as a click on it does, instead of the map zooming on past it
+		const leaf = delta > 0 ? this.leafUnder(d3.pointer(e, this.canvas)) : null;
+
+		if (leaf && target >= this.fillZoom(leaf) * 0.999 && !this.fills(leaf, false)) {
+
+			if (this.wheelFrame) {
+				cancelAnimationFrame(this.wheelFrame);
+			}
+
+			this.wheelFrame = null;
+			this.wheelK     = null;
+			this.wheelGlide = performance.now() + AppMapView.GLIDE_MS;
+			this.userZoomed = true;
+
+			if (leaf.page) {
+				this.pinDom(leaf);
+				this.glideIntoElement(leaf);
+			} else {
+				this.glideInto(leaf);
+			}
+
+			return;
+		}
 
 		this.wheelK     = delta > 0 ? this.fillStop(target) : target;
 		this.wheelAt    = d3.pointer(e, this.canvas);
@@ -1760,6 +1792,21 @@ class AppMapView {
 			this.wheelLast  = performance.now();
 			this.wheelFrame = requestAnimationFrame(now => this.wheelStep(now));
 		}
+	}
+
+	// the leaf with an editor at a point on the screen: readable code, or a template in an open page
+	leafUnder([px, py]) {
+
+		const [x, y] = this.transform.invert([px, py]);
+		const code   = this.editor ? this.panels.codeAt(x, y, this.transform.k) : null;
+
+		if (code) {
+			return code;
+		}
+
+		const dom = this.domEditor ? this.panels.findDom(x, y) : null;
+
+		return dom && AppMapPanels.isSheet(dom) ? dom : null;
 	}
 
 	wheelStep(now) {

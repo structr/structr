@@ -684,7 +684,7 @@ let _AppMap = {
 			let element = box?.querySelector('.appmap-editor-state');
 
 			if (element) {
-				element.textContent = text ?? (isDirty() ? `Unsaved changes · ${AppMapView.SAVE_KEY} saves` : `${AppMapView.SAVE_KEY} saves · Esc closes`);
+				element.textContent = text ?? (isDirty() ? `Unsaved changes · ${AppMapView.SAVE_KEY} saves · Esc discards` : `${AppMapView.SAVE_KEY} saves · Esc closes`);
 				element.classList.toggle('appmap-editor-dirty', !text && isDirty());
 			}
 		};
