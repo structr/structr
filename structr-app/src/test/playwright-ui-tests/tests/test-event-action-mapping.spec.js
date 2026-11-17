@@ -182,7 +182,7 @@ test('pages', async ({page}, testInfo) => {
 		await dropzones[0].hover();
 		await page.mouse.up();
 
-		await page.getByLabel('Behaviour on success Define').selectOption('Navigate to a new page');
+		await page.locator('#success-behaviour-select').selectOption('Navigate to a new page');
 		await page.keyboard.press('Tab');
 		await page.getByRole('textbox', {name: 'Success URL'}).fill('/project/{result.id}');
 		await page.keyboard.press('Tab');
@@ -279,7 +279,7 @@ test('pages', async ({page}, testInfo) => {
 			await page.mouse.up();
 		}
 
-		await page.getByLabel('Behaviour on success Define').selectOption('Reload the current page');
+		await page.locator('#success-behaviour-select').selectOption('Reload the current page');
 		await page.keyboard.press('Tab');
 
 		await page.waitForTimeout(1000);
@@ -416,7 +416,7 @@ test('pages', async ({page}, testInfo) => {
 			await page.mouse.up();
 		}
 
-		await page.getByLabel('Behaviour on success Define').selectOption('Reload the current page');
+		await page.locator('#success-behaviour-select').selectOption('Reload the current page');
 		await page.keyboard.press('Tab');
 
 		await page.waitForTimeout(1000);

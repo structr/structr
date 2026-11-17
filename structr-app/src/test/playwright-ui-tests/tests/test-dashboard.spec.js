@@ -77,14 +77,14 @@ test('dashboard', async ({page}, testInfo) => {
 	await expect(page.locator('#dialogBox #dashboard-ui-config')).toBeHidden();
 
 	// show admin console here
-	await page.locator('#terminal-icon > use').click();
+	await page.locator('#terminal-icon').click();
 	let term = page.locator('#structr-console.console-open');
 	await expect(term).toBeVisible();
 	await term.click();
 	await page.keyboard.type('$.find("User")');
 	await page.keyboard.press('Enter');
 	await page.screenshot({path: 'screenshots/dashboard_admin-console.png'});
-	await page.locator('#terminal-icon > use').click();
+	await page.locator('#terminal-icon').click();
 
 	await logout(page);
 });

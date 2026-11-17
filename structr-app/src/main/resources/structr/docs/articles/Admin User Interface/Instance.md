@@ -184,7 +184,7 @@ Here you can configure which items appear in the main navigation bar and which a
 
 ### Style
 
-The Style group holds the look of the Admin UI (Classic, or the new look as a preview), the color scheme of the new look (light, dark, or following the system), the main font, the font size, and the monospace font. The monospace font is used in code editors and log displays.
+The Style group holds the look of the Admin UI (the new look, which is the default, or Classic, the look of earlier versions), the color scheme of the new look (light, dark, or following the system), the main font, the font size, and the monospace font. The monospace font is used in code editors and log displays.
 
 ### Settings by Area
 
