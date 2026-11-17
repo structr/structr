@@ -162,10 +162,10 @@ class AppMapStrands {
 		for (const l of list) {
 
 			const key = l.source.id < l.target.id ? `${l.source.id}|${l.target.id}` : `${l.target.id}|${l.source.id}`;
-			const p   = byKey.get(key) ?? { links: [], lead: l, w: 0 };
+			const p   = byKey.get(key) ?? { links: [], lead: l, weight: 0 };
 
 			p.links.push(l);
-			p.w += l.w;
+			p.weight += l.weight;
 
 			if (AppMapStrands.rankOf(l.kind) < AppMapStrands.rankOf(p.lead.kind)) {
 				p.lead = l;
@@ -210,10 +210,10 @@ class AppMapStrands {
 
 		this.groupings = { list: [], groupingOf: new Map() };
 
-		for (const [key, members] of d3.group(this.view.nodes, n => n.c?.[1] ?? '-')) {
+		for (const [key, members] of d3.group(this.view.nodes, n => n.grouping ?? '-')) {
 
-			const lead   = d3.rollups(members, v => v.length, m => m.k).sort((x, y) => y[1] - x[1])[0][0];
-			const grouping = { anchor: this.view.byId.get(key) ?? null, members, lead, name: this.view.model.sections.get(key)?.n ?? key };
+			const lead   = d3.rollups(members, v => v.length, m => m.kind).sort((x, y) => y[1] - x[1])[0][0];
+			const grouping = { anchor: this.view.byId.get(key) ?? null, members, lead, name: this.view.model.sections.get(key)?.name ?? key };
 
 			this.groupings.list.push(grouping);
 			members.forEach(m => this.groupings.groupingOf.set(m, grouping));
@@ -225,7 +225,7 @@ class AppMapStrands {
 	// a grouping is named after its anchor, a section of the user interface by its own name
 	static groupingLabel(grouping) {
 
-		return grouping.anchor ? `${AppMapModel.KIND_LABEL[grouping.anchor.k]} ${grouping.anchor.n}` : grouping.name;
+		return grouping.anchor ? `${AppMapModel.KIND_LABEL[grouping.anchor.kind]} ${grouping.anchor.name}` : grouping.name;
 	}
 
 	// ----- bundling along a routing tree, so the relations branch like a tree or a bundle of fibres -----
@@ -239,7 +239,7 @@ class AppMapStrands {
 
 		const hubOf = new Map();
 
-		for (const inArea of d3.group(this.groupings.list, grouping => grouping.members[0].c?.[0] ?? '-').values()) {
+		for (const inArea of d3.group(this.groupings.list, grouping => grouping.members[0].area ?? '-').values()) {
 
 			const leaves = inArea.map(grouping => ({ point: [d3.mean(grouping.members, m => m.x), d3.mean(grouping.members, m => m.y)], weight: grouping.members.length, parent: null }));
 

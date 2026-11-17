@@ -61,7 +61,7 @@ async function showCode(page, name) {
 	const zoomTo = () => page.evaluate(name => {
 
 		const view   = _AppMap.view;
-		const n      = view.nodes.find(n => n.n === name);
+		const n      = view.nodes.find(n => n.name === name);
 		const target = AppMapPanels.CODE_READ * 1.8;
 
 		// an element grows with the zoom, so its size is taken at the zoom looked for
@@ -79,9 +79,9 @@ async function showCode(page, name) {
 	await zoomTo();
 
 	// the size of the field follows the length of the lines, known once the code is read
-	await page.waitForFunction(name => _AppMap.view.panels.code.get(_AppMap.view.nodes.find(n => n.n === name))?.lines, name);
+	await page.waitForFunction(name => _AppMap.view.panels.code.get(_AppMap.view.nodes.find(n => n.name === name))?.lines, name);
 	await zoomTo();
-	await page.waitForFunction(name => _AppMap.view.panels.reading.has(_AppMap.view.nodes.find(n => n.n === name)), name);
+	await page.waitForFunction(name => _AppMap.view.panels.reading.has(_AppMap.view.nodes.find(n => n.name === name)), name);
 
 	return placesOf(page, name);
 }
@@ -91,7 +91,7 @@ async function placesOf(page, name) {
 	return page.evaluate(name => {
 
 		const view             = _AppMap.view;
-		const n                = view.nodes.find(n => n.n === name);
+		const n                = view.nodes.find(n => n.name === name);
 		const t                = view.transform;
 		const box              = view.canvas.getBoundingClientRect();
 		const panel            = view.panels.codePanel(n, t.k);
@@ -105,8 +105,8 @@ async function placesOf(page, name) {
 	}, name);
 }
 
-const editing  = page => page.evaluate(() => _AppMap.view.editing?.n ?? null);
-const pinned   = page => page.evaluate(() => _AppMap.view.pinned?.n ?? null);
+const editing  = page => page.evaluate(() => _AppMap.view.editing?.name ?? null);
+const pinned   = page => page.evaluate(() => _AppMap.view.pinned?.name ?? null);
 const editor   = page => page.locator('#appmap-canvas .appmap-editor');
 const state    = page => page.locator('#appmap-canvas .appmap-editor-state');
 const question = page => page.locator('.confirmationText');
@@ -125,7 +125,7 @@ async function typeIntoEditor(page, text) {
 
 	// every key reaches the editor, none starts the search of the map
 	await expect(editor(page).locator('.view-lines')).toContainText(text.trim());
-	await expect(state(page)).toHaveText('Unsaved changes · Ctrl+S saves');
+	await expect(state(page)).toHaveText('Unsaved changes · Ctrl+S saves · Esc discards');
 }
 
 async function openEditorFor(page, name) {
@@ -160,7 +160,7 @@ test.beforeEach(async ({page}) => {
 
 	await login(page);
 	await goToModule(page, '#appmap_');
-	await page.waitForFunction(() => _AppMap.view?.nodes?.some(n => n.n === 'Item.archive'));
+	await page.waitForFunction(() => _AppMap.view?.nodes?.some(n => n.name === 'Item.archive'));
 
 	// the introduction of a first visit lies above the map
 	await page.evaluate(() => document.querySelectorAll('#appmap-intro [data-intro-close]')[0]?.click());
@@ -192,7 +192,7 @@ test('a click on code that is only sketched holds the element and opens no edito
 	const place = await page.evaluate(() => {
 
 		const view = _AppMap.view;
-		const n    = view.nodes.find(n => n.n === 'Item.archive');
+		const n    = view.nodes.find(n => n.name === 'Item.archive');
 		let k      = view.baseK;
 
 		while (view.panels.codePanel(n, k, view.drawnRadiusAt(n, k)).px < (AppMapPanels.CODE_SKETCH + AppMapPanels.CODE_READ) / 2) {
@@ -235,7 +235,7 @@ test('a double click on readable code glides there, and the editor opens where t
 	await expect(editor(page)).toBeVisible();
 	expect(await editing(page)).toBe('Item.archive');
 	expect(await page.evaluate(() => _AppMap.view.transform.toString())).not.toBe(transform);
-	await expect.poll(() => page.evaluate(() => _AppMap.view.fills(_AppMap.view.nodes.find(n => n.n === 'Item.archive'), false))).toBe(true);
+	await expect.poll(() => page.evaluate(() => _AppMap.view.fills(_AppMap.view.nodes.find(n => n.name === 'Item.archive'), false))).toBe(true);
 });
 
 test('while the editor is open, the wheel only zooms out', async ({page}) => {
@@ -262,7 +262,7 @@ test('a click beside the editor closes it, and the element held stays held', asy
 
 	const places = await showCode(page, 'Item.archive');
 
-	await page.evaluate(() => _AppMap.view.pin(_AppMap.view.nodes.find(n => n.n === 'Item.archive')));
+	await page.evaluate(() => _AppMap.view.pin(_AppMap.view.nodes.find(n => n.name === 'Item.archive')));
 	expect(await pinned(page)).toBe('Item.archive');
 
 	await page.mouse.click(places.code.x, places.code.y);
@@ -321,7 +321,7 @@ test('unsaved changes are kept unless they are discarded, whichever way the edit
 	await expect(question(page)).toBeVisible();
 	await answer(page, 'No');
 	await expect(editor(page)).toBeVisible();
-	await expect(state(page)).toHaveText('Unsaved changes · Ctrl+S saves');
+	await expect(state(page)).toHaveText('Unsaved changes · Ctrl+S saves · Esc discards');
 
 	// a click beside the editor asks; Escape in the question cancels it like No and asks nothing more
 	const corner = await page.evaluate(() => { const box = _AppMap.view.canvas.getBoundingClientRect(); return { x: box.left + 8, y: box.bottom - 8 }; });
@@ -333,7 +333,7 @@ test('unsaved changes are kept unless they are discarded, whichever way the edit
 	await page.waitForTimeout(300);
 	await expect(question(page)).toHaveCount(0);
 	await expect(editor(page)).toBeVisible();
-	await expect(state(page)).toHaveText('Unsaved changes · Ctrl+S saves');
+	await expect(state(page)).toHaveText('Unsaved changes · Ctrl+S saves · Esc discards');
 
 	// a click on the code of another method asks; No stays, Yes discards and opens the other method
 	const other = await showCode(page, 'Item.restore');

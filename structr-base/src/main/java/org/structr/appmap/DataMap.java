@@ -297,7 +297,7 @@ public class DataMap {
 		final List<Object> edges = new ArrayList<>();
 
 		for (final Map.Entry<Long, Integer> pair : pairs.entrySet()) {
-			edges.add(List.of("d" + pair.getKey() / 1_000_000L, "d" + pair.getKey() % 1_000_000L, pair.getValue(), "links", 0, "data"));
+			edges.add(Map.of("source", "d" + pair.getKey() / 1_000_000L, "target", "d" + pair.getKey() % 1_000_000L, "weight", pair.getValue(), "kind", "links", "evidence", "data"));
 		}
 
 		result.put(new GenericProperty<>("areas"),   areas);
@@ -313,17 +313,17 @@ public class DataMap {
 
 		final Map<String, Object> node = new LinkedHashMap<>();
 
-		node.put("id",   "d" + index);
-		node.put("k",    "type");
+		node.put("id",        "d" + index);
+		node.put("kind",      "type");
 		// the family stands over the sector, so a name with an underscore leaves it out
 		final String shown = type.indexOf('_') > 0 ? type.substring(type.indexOf('_') + 1) : type;
 
-		node.put("n",    community != null ? shown + " · " + community : shown);
-		node.put("t",    type);
-		node.put("cn",   community);
-		node.put("g",    "type:" + type);
-		node.put("area", area);
-		node.put("s",    size);
+		node.put("name",      community != null ? shown + " · " + community : shown);
+		node.put("type",      type);
+		node.put("community", community);
+		node.put("grouping",  "type:" + type);
+		node.put("area",      area);
+		node.put("size",      size);
 
 		return node;
 	}
@@ -401,7 +401,7 @@ public class DataMap {
 		final List<Long> ids             = new ArrayList<>();
 		final List<Integer> kindList     = new ArrayList<>();
 
-		for (final Map<String, Object> row : rows(app, "MATCH (n:NodeInterface) WHERE n.type IN $types RETURN { nodes: collect(ID(n)), types: collect(n.type) } AS net", types)) {
+		for (final Map<String, Object> row : rows(app, "MATCH (n" + nodeLabels() + ") WHERE n.type IN $types RETURN { nodes: collect(ID(n)), types: collect(n.type) } AS net", types)) {
 
 			final List<?> nodes = list(row.get("nodes"));
 			final List<?> names = list(row.get("types"));
@@ -437,7 +437,7 @@ public class DataMap {
 
 			final String pattern = rels.stream().map(r -> "`" + r.replace("`", "``") + "`").collect(Collectors.joining("|"));
 
-			for (final Map<String, Object> row : rows(app, "MATCH (a:NodeInterface)-[r:" + pattern + "]->(b:NodeInterface) WHERE a.type IN $types AND b.type IN $types RETURN { a: collect(ID(a)), b: collect(ID(b)), r: collect(type(r)) } AS net", types)) {
+			for (final Map<String, Object> row : rows(app, "MATCH (a" + nodeLabels() + ")-[r:" + pattern + "]->(b" + nodeLabels() + ") WHERE a.type IN $types AND b.type IN $types RETURN { a: collect(ID(a)), b: collect(ID(b)), r: collect(type(r)) } AS net", types)) {
 
 				final List<?> a = list(row.get("a"));
 				final List<?> b = list(row.get("b"));
@@ -975,6 +975,14 @@ public class DataMap {
 		}
 
 		return List.of();
+	}
+
+	// the labels of the objects of this application: a database shared by several tenants holds the objects of the others as well
+	private static String nodeLabels() {
+
+		final String tenant = Services.getInstance().getDatabaseService().getTenantIdentifier();
+
+		return tenant != null ? ":NodeInterface:`" + tenant.replace("`", "``") + "`" : ":NodeInterface";
 	}
 
 	// the rows of a Cypher query as maps; a query that fails is logged and has none

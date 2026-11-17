@@ -188,7 +188,7 @@ let _AppMap = {
 			}
 		});
 
-		let relations = d3.sum(data.edges ?? [], e => e[2]);
+		let relations = d3.sum(data.edges ?? [], e => e.weight);
 
 		document.querySelector('#appmap-counts').textContent = `${(data.objects ?? 0).toLocaleString()} objects · ${(data.nodes ?? []).length.toLocaleString()} clusters · ${relations.toLocaleString()} relationships`;
 
@@ -321,14 +321,14 @@ let _AppMap = {
 			// and whether it belongs to a type
 			loadSource: async n => {
 
-				let response = await fetch(Structr.rootUrl + (n.tpl ? 'Template/' + n.tpl : 'SchemaMethod/' + n.id));
+				let response = await fetch(Structr.rootUrl + (n.template ? 'Template/' + n.template : 'SchemaMethod/' + n.id));
 				let result   = response.ok ? (await response.json()).result : null;
 
 				if (!result) {
 					return null;
 				}
 
-				if (n.tpl) {
+				if (n.template) {
 					return result.content ?? '';
 				}
 
@@ -424,7 +424,7 @@ let _AppMap = {
 			}),
 			loadType: async n => {
 
-				let response = await fetch(Structr.rootUrl + '_schema/' + encodeURIComponent(n.n));
+				let response = await fetch(Structr.rootUrl + '_schema/' + encodeURIComponent(n.name));
 				let result   = response.ok ? (await response.json()).result : null;
 
 				// a single result may come wrapped in a list
@@ -568,7 +568,7 @@ let _AppMap = {
 		// a service class has its own folder in the tree; only the schema of the type says whether it is one
 		let base = async type => {
 
-			let schema = (await list(`_schema/${encodeURIComponent(type.n)}`))[0];
+			let schema = (await list(`_schema/${encodeURIComponent(type.name)}`))[0];
 
 			return `/root/${schema?.isServiceClass ? 'services' : 'custom'}/${type.id}`;
 		};
@@ -684,7 +684,7 @@ let _AppMap = {
 			let element = box?.querySelector('.appmap-editor-state');
 
 			if (element) {
-				element.textContent = text ?? (isDirty() ? `Unsaved changes · ${AppMapView.SAVE_KEY} saves` : `${AppMapView.SAVE_KEY} saves · Esc closes`);
+				element.textContent = text ?? (isDirty() ? `Unsaved changes · ${AppMapView.SAVE_KEY} saves · Esc discards` : `${AppMapView.SAVE_KEY} saves · Esc closes`);
 				element.classList.toggle('appmap-editor-dirty', !text && isDirty());
 			}
 		};
@@ -755,7 +755,7 @@ let _AppMap = {
 				state('Loading …');
 
 				// a method with its type, as the Code area reads it, a template with its content type
-				let response = await fetch(Structr.rootUrl + (n.tpl ? n.tpl + '/ui' : n.id + '/schema'));
+				let response = await fetch(Structr.rootUrl + (n.template ? n.template + '/ui' : n.id + '/schema'));
 				let result   = response.ok ? (await response.json()).result : null;
 
 				// another element was opened meanwhile, or editing ended
@@ -764,7 +764,7 @@ let _AppMap = {
 				}
 
 				entity   = Array.isArray(result) ? result[0] : result;
-				property = n.tpl ? 'content' : 'source';
+				property = n.template ? 'content' : 'source';
 
 				if (!entity) {
 
@@ -776,11 +776,11 @@ let _AppMap = {
 				saved  = entity[property] ?? '';
 				editor = _Editors.getMonacoEditor(entity, property, box.querySelector('.appmap-editor-code'), {
 					value:                  saved,
-					language:               n.tpl ? (entity.contentType || 'text/html') : 'auto',
-					lint:                   !n.tpl,
+					language:               n.template ? (entity.contentType || 'text/html') : 'auto',
+					lint:                   !n.template,
 					autocomplete:           true,
-					isAutoscriptEnv:        !n.tpl,
-					forceAllowAutoComplete: !!n.tpl,
+					isAutoscriptEnv:        !n.template,
+					forceAllowAutoComplete: !!n.template,
 					preventRestoreModel:    true,
 					changeFn:               () => state(),
 					saveFn:                 () => save()
@@ -1403,7 +1403,7 @@ let _AppMap = {
 			{ key: '',       name: 'Admin (everything)' },
 			{ key: 'public', name: 'Public users', kind: 'public' },
 			{ key: 'auth',   name: 'Authenticated users', kind: 'auth' },
-			...view.model.groups.slice().sort((a, b) => a.n.localeCompare(b.n)).map(g => ({ key: 'group:' + g.id, name: g.n, kind: 'group', id: g.id }))
+			...view.model.groups.slice().sort((a, b) => a.name.localeCompare(b.name)).map(g => ({ key: 'group:' + g.id, name: g.name, kind: 'group', id: g.id }))
 		];
 
 		let groups = document.createElement('optgroup');

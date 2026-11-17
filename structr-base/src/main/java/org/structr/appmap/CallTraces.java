@@ -40,11 +40,11 @@ import java.util.stream.Collectors;
  * The scripting errors the runtime event log holds that are not seen yet, each with the call trace that led to it (see
  * org.structr.common.trace.ScriptError.getTrace), for the application map: errors with the same trace and the
  * same message count as one, the most recent first. A trace is a list of frames, the failing one first, then its
- * callers; each frame as { k: kind, n: name, d: description, r: row, c: column, m: HTTP method, at: the ids of the
+ * callers; each frame as { kind, name, description, row, column, method: the HTTP method, elements: the ids of the
  * map elements it may be shown as (see ApplicationMap.locate) }, where row and column of a caller are those of its
  * call. A scripting error that was not called from anywhere has its failing frame only.
  *
- * The result is { traces: [{ m: message, c: count, t: time of the last one, f: frames }] }.
+ * The result is { traces: [{ message, count, last: the time of the last one, frames }] }.
  */
 public class CallTraces {
 
@@ -72,7 +72,7 @@ public class CallTraces {
 				continue;
 			}
 
-			final String key  = frames.stream().map(f -> f.get("k") + "|" + f.get("id") + "|" + f.get("n") + "|" + f.get("r")).collect(Collectors.joining(">")) + "#" + message;
+			final String key  = frames.stream().map(f -> f.get("kind") + "|" + f.get("id") + "|" + f.get("name") + "|" + f.get("row")).collect(Collectors.joining(">")) + "#" + message;
 			final Trace trace = traces.computeIfAbsent(key, k -> new Trace(frames, message));
 
 			trace.count++;
@@ -104,16 +104,16 @@ public class CallTraces {
 				final Map<String, Object> shown = new LinkedHashMap<>(frame);
 				final Object id                 = shown.remove("id");
 
-				shown.put("at", id != null ? located.getOrDefault(id.toString(), List.of(id.toString())) : List.of());
+				shown.put("elements", id != null ? located.getOrDefault(id.toString(), List.of(id.toString())) : List.of());
 				frames.add(shown);
 			}
 
 			final Map<String, Object> map = new LinkedHashMap<>();
 
-			map.put("m", trace.message);
-			map.put("c", trace.count);
-			map.put("t", trace.last);
-			map.put("f", frames);
+			map.put("message", trace.message);
+			map.put("count",   trace.count);
+			map.put("last",    trace.last);
+			map.put("frames",  frames);
 
 			list.add(map);
 		}
@@ -155,14 +155,14 @@ public class CallTraces {
 
 		final Map<String, Object> frame = new LinkedHashMap<>();
 
-		frame.put("k", Objects.toString(kind, null));
-		frame.put("n", Objects.toString(name, null));
+		frame.put("kind", Objects.toString(kind, null));
+		frame.put("name", Objects.toString(name, null));
 
-		putIfNotNull(frame, "d",  description);
-		putIfNotNull(frame, "id", id);
-		putIfNotNull(frame, "r",  row);
-		putIfNotNull(frame, "c",  column);
-		putIfNotNull(frame, "m",  method);
+		putIfNotNull(frame, "description", description);
+		putIfNotNull(frame, "id",          id);
+		putIfNotNull(frame, "row",         row);
+		putIfNotNull(frame, "column",      column);
+		putIfNotNull(frame, "method",      method);
 
 		return frame;
 	}

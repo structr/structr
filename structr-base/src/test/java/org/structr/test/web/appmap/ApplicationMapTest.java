@@ -87,15 +87,15 @@ public class ApplicationMapTest extends StructrUiTest {
 		assertNotNull("The map must have groups",  map.getList("result.groups"));
 		assertNotNull("The map must have helpers", map.getList("result.helpers"));
 
-		for (final List<Object> edge : map.<List<Object>>getList("result.edges")) {
-			assertTrue("Every edge must be source, target, weight, kind, inferred and evidence, and may have details", edge.size() == 6 || (edge.size() == 7 && edge.get(6) instanceof Map));
+		for (final Map<String, Object> edge : map.<Map<String, Object>>getList("result.edges")) {
+			assertTrue("Every edge must have source, target, weight, kind and evidence, and may have details", edge.keySet().containsAll(List.of("source", "target", "weight", "kind", "evidence")) && (!edge.containsKey("details") || edge.get("details") instanceof Map));
 		}
 
-		assertEquals("A schema type must be a node of kind type", "type", node(map, ids.get("Item"), "k"));
-		assertEquals("A type method must be named after its type", "Item.archive", node(map, ids.get("archive"), "n"));
-		assertEquals("A service class must be marked", Boolean.TRUE, map.get("result.nodes.find { it.id == '" + ids.get("ItemService") + "' }.svc"));
-		assertNull("A type that is no service class must not be marked", map.get("result.nodes.find { it.id == '" + ids.get("Item") + "' }.svc"));
-		assertEquals("A page outline must start with the html element", "html", map.getString("result.nodes.find { it.id == '" + ids.get("page") + "' }.d[0][0]"));
+		assertEquals("A schema type must be a node of kind type", "type", node(map, ids.get("Item"), "kind"));
+		assertEquals("A type method must be named after its type", "Item.archive", node(map, ids.get("archive"), "name"));
+		assertEquals("A service class must be marked", Boolean.TRUE, map.get("result.nodes.find { it.id == '" + ids.get("ItemService") + "' }.service"));
+		assertNull("A type that is no service class must not be marked", map.get("result.nodes.find { it.id == '" + ids.get("Item") + "' }.service"));
+		assertEquals("A page outline must start with the html element", "html", map.getString("result.nodes.find { it.id == '" + ids.get("page") + "' }.outline[0].tag"));
 	}
 
 	@Test
@@ -105,11 +105,11 @@ public class ApplicationMapTest extends StructrUiTest {
 
 		final JsonPath map = fetchMap();
 
-		assertEquals("A type must be a grouping of its own",                            ids.get("Item"),        node(map, ids.get("Item"), "g"));
-		assertEquals("A type method must belong to the grouping of its type",           ids.get("Item"),        node(map, ids.get("archive"), "g"));
-		assertEquals("An action must belong to the grouping of its page",               ids.get("page"),        node(map, ids.get("archiveAction"), "g"));
-		assertEquals("A repeater must belong to the grouping of its page",              ids.get("page"),        node(map, ids.get("itemRepeater"), "g"));
-		assertEquals("A user-defined function that writes nothing must stand alone",    ids.get("formatItem"),  node(map, ids.get("formatItem"), "g"));
+		assertEquals("A type must be a grouping of its own",                            ids.get("Item"),        node(map, ids.get("Item"), "grouping"));
+		assertEquals("A type method must belong to the grouping of its type",           ids.get("Item"),        node(map, ids.get("archive"), "grouping"));
+		assertEquals("An action must belong to the grouping of its page",               ids.get("page"),        node(map, ids.get("archiveAction"), "grouping"));
+		assertEquals("A repeater must belong to the grouping of its page",              ids.get("page"),        node(map, ids.get("itemRepeater"), "grouping"));
+		assertEquals("A user-defined function that writes nothing must stand alone",    ids.get("formatItem"),  node(map, ids.get("formatItem"), "grouping"));
 		assertEquals("The application's own type must be part of the data model",       "data",                 node(map, ids.get("Item"), "area"));
 		assertEquals("A member must be in the area of its grouping",                    "data",                 node(map, ids.get("archive"), "area"));
 		assertEquals("A service class must be part of the logic",                       "logic",                node(map, ids.get("ItemService"), "area"));
@@ -137,11 +137,11 @@ public class ApplicationMapTest extends StructrUiTest {
 
 		final JsonPath map = fetchMap();
 
-		assertEquals("A repeater must show the type its query finds",                  "Item",         node(map, ids.get("itemRepeater"), "t"));
+		assertEquals("A repeater must show the type its query finds",                  "Item",         node(map, ids.get("itemRepeater"), "type"));
 		assertEquals("A repeater type from the query must be marked as such",           "query",        node(map, ids.get("itemRepeater"), "how"));
-		assertEquals("A nested key must follow the relationship of its parent key",    "Category",     node(map, ids.get("categoryRepeater"), "t"));
+		assertEquals("A nested key must follow the relationship of its parent key",    "Category",     node(map, ids.get("categoryRepeater"), "type"));
 		assertEquals("A type from a relationship path must be marked as such",         "relationship", node(map, ids.get("categoryRepeater"), "how"));
-		assertEquals("A query that names no type must leave it to the properties read below", "Category", node(map, ids.get("rowRepeater"), "t"));
+		assertEquals("A query that names no type must leave it to the properties read below", "Category", node(map, ids.get("rowRepeater"), "type"));
 		assertEquals("A type from the properties read must be marked as such",         "properties",   node(map, ids.get("rowRepeater"), "how"));
 		assertTrue("A page must contain its repeaters",                                hasEdge(map, ids.get("page"), ids.get("itemRepeater"), "contains"));
 		assertTrue("A repeater must read the type it shows",                           hasEdge(map, ids.get("itemRepeater"), ids.get("Item"), "reads"));
@@ -153,14 +153,14 @@ public class ApplicationMapTest extends StructrUiTest {
 		createApplication();
 
 		final JsonPath map        = fetchMap();
-		final List<Object> outline = map.getList("result.nodes.find { it.id == '" + ids.get("page") + "' }.d");
+		final List<Object> outline = map.getList("result.nodes.find { it.id == '" + ids.get("page") + "' }.outline");
 		final Set<String> found    = new HashSet<>();
 
 		collectOutlineIds(outline, found);
 
 		assertTrue("The outline must name a repeater at its element", found.contains(ids.get("itemRepeater")));
 		assertTrue("The outline must give the id of an element, so that its settings can be changed", collectOutlineElements(outline, new HashSet<>()).contains(ids.get("itemRepeater")));
-		assertTrue("The outline must mark the elements that hold a text of their own", collectOutlineFlags(outline, new HashSet<>()).stream().anyMatch(flags -> (flags & 8) != 0));
+		assertTrue("The outline must mark the elements that hold a text of their own", itemsOf(outline).stream().anyMatch(item -> Boolean.TRUE.equals(item.get("text"))));
 		assertTrue("The outline must name the data sources of a repeater that are set, so that a client can point out one that cannot work", collectOutlineSources(outline, new HashSet<>()).contains("functionQuery"));
 
 		for (final String action : List.of("archiveAction", "updateAction", "createAction", "deleteAction", "callAction")) {
@@ -175,21 +175,21 @@ public class ApplicationMapTest extends StructrUiTest {
 
 		final JsonPath map = fetchMap();
 
-		assertEquals("An action without data type must act on the type of the key in its id expression", "Item",       node(map, ids.get("archiveAction"), "t"));
+		assertEquals("An action without data type must act on the type of the key in its id expression", "Item",       node(map, ids.get("archiveAction"), "type"));
 		assertEquals("A type from the scope must name the key",                                            "scope:item", node(map, ids.get("archiveAction"), "how"));
-		assertEquals("An action must name the method it calls, resolved on its type",                      ids.get("archive"), node(map, ids.get("archiveAction"), "m"));
-		assertEquals("An action mapping must name its action",                                             "method",     node(map, ids.get("archiveAction"), "a"));
-		assertEquals("An action mapping must name the event that triggers it",                             "click",      node(map, ids.get("archiveAction"), "ev"));
+		assertEquals("An action must name the method it calls, resolved on its type",                      ids.get("archive"), node(map, ids.get("archiveAction"), "method"));
+		assertEquals("An action mapping must name its action",                                             "method",     node(map, ids.get("archiveAction"), "action"));
+		assertEquals("An action mapping must name the event that triggers it",                             "click",      node(map, ids.get("archiveAction"), "event"));
 		assertTrue("An action must invoke its method",                                                    hasEdge(map, ids.get("archiveAction"), ids.get("archive"), "invokes"));
 		assertTrue("An action must update what its method updates",                                       crud(map, ids.get("archiveAction")).contains("U:Item"));
 		assertEquals("A create action must create its data type and nothing else",                        List.of("C:Category"), crud(map, ids.get("createAction")));
 		assertTrue("A create action must be an edge that creates the type",                               hasEdge(map, ids.get("createAction"), ids.get("Category"), "creates"));
-		assertEquals("An empty data type, as the editor leaves it, must not hide the type of the id expression", "Item", node(map, ids.get("updateAction"), "t"));
+		assertEquals("An empty data type, as the editor leaves it, must not hide the type of the id expression", "Item", node(map, ids.get("updateAction"), "type"));
 		assertTrue("An update action on the key of a repeater must update its type",                     crud(map, ids.get("updateAction")).contains("U:Item"));
-		assertEquals("A key outside every repeater must name the type it is named after",                 "Category",              node(map, ids.get("deleteAction"), "t"));
+		assertEquals("A key outside every repeater must name the type it is named after",                 "Category",              node(map, ids.get("deleteAction"), "type"));
 		assertEquals("A type from the key name must say so",                                               "key name:category",     node(map, ids.get("deleteAction"), "how"));
 		assertTrue("A delete action on a key named after a type must delete that type",                   hasEdge(map, ids.get("deleteAction"), ids.get("Category"), "deletes"));
-		assertEquals("A method called without a type must be the only method of that name",              ids.get("archive"),      node(map, ids.get("callAction"), "m"));
+		assertEquals("A method called without a type must be the only method of that name",              ids.get("archive"),      node(map, ids.get("callAction"), "method"));
 		assertTrue("An action must invoke the only method of its name",                                   hasEdge(map, ids.get("callAction"), ids.get("archive"), "invokes"));
 	}
 
@@ -221,16 +221,16 @@ public class ApplicationMapTest extends StructrUiTest {
 		final JsonPath map  = fetchMap();
 		final String item   = "result.nodes.find { it.id == '" + ids.get("Item") + "' }.rest";
 
-		assertEquals("Every grant on a type or one of its views must count as a rule of the type", 2, map.getInt(item + ".n"));
-		assertEquals("A grant for anonymous users must mark the type as public",                  1, map.getInt(item + ".pub"));
-		assertEquals("A grant for authenticated users must mark the type as such",                1, map.getInt(item + ".auth"));
-		assertEquals("A grant that only reads must not mark the type as writable",                0, map.getInt(item + ".pubw") + map.getInt(item + ".authw"));
-		assertEquals("A POST grant on a method must open the endpoint for writing to authenticated users", 1, map.getInt("result.nodes.find { it.id == 'api:ItemService/createItem' }.rest.authw"));
-		assertEquals("A PATCH grant for public users must open the endpoint to them",                     1, map.getInt("result.nodes.find { it.id == 'api:listItems' }.rest.pub"));
-		assertEquals("A PATCH grant for public users must let them write",                                1, map.getInt("result.nodes.find { it.id == 'api:listItems' }.rest.pubw"));
+		assertEquals("Every grant on a type or one of its views must count as a rule of the type", 2, map.getInt(item + ".rules"));
+		assertTrue("A grant for anonymous users must mark the type as public",                           map.getBoolean(item + ".public"));
+		assertTrue("A grant for authenticated users must mark the type as such",                         map.getBoolean(item + ".authenticated"));
+		assertFalse("A grant that only reads must not mark the type as writable",                        map.getBoolean(item + ".publicWrite") || map.getBoolean(item + ".authenticatedWrite"));
+		assertTrue("A POST grant on a method must open the endpoint for writing to authenticated users", map.getBoolean("result.nodes.find { it.id == 'api:ItemService/createItem' }.rest.authenticatedWrite"));
+		assertTrue("A PATCH grant for public users must open the endpoint to them",                      map.getBoolean("result.nodes.find { it.id == 'api:listItems' }.rest.public"));
+		assertTrue("A PATCH grant for public users must let them write",                                 map.getBoolean("result.nodes.find { it.id == 'api:listItems' }.rest.publicWrite"));
 		assertNull("A type without grants must not carry REST access", map.get("result.nodes.find { it.id == '" + ids.get("Category") + "' }.rest"));
 		assertTrue("The grants on a type must make an endpoint for the type", hasEdge(map, "api:Item", ids.get("Item"), "endpoint"));
-		assertEquals("Every grant on a type or one of its views must count as a rule of its endpoint", 2, map.getInt("result.nodes.find { it.id == 'api:Item' }.rest.n"));
+		assertEquals("Every grant on a type or one of its views must count as a rule of its endpoint", 2, map.getInt("result.nodes.find { it.id == 'api:Item' }.rest.rules"));
 		assertEquals("The endpoint of a type must be part of the REST API", "api", node(map, "api:Item", "area"));
 		assertEquals("The endpoint of a method must be part of the REST API", "api", node(map, "api:ItemService/createItem", "area"));
 		assertNull("A type without grants must not become an endpoint", map.get("result.nodes.find { it.id == 'api:Category' }"));
@@ -273,7 +273,7 @@ public class ApplicationMapTest extends StructrUiTest {
 		}
 
 		final JsonPath map = fetchMap();
-		final String user  = map.getString("result.nodes.find { it.k == 'type' && it.n == 'User' }.id");
+		final String user  = map.getString("result.nodes.find { it.kind == 'type' && it.name == 'User' }.id");
 
 		for (final String endpoint : new String[] { "_login", "_logout", "_registration", "_resetPassword", "_token", "me" }) {
 
@@ -281,8 +281,8 @@ public class ApplicationMapTest extends StructrUiTest {
 			assertEquals("The endpoint " + endpoint + " must be part of the REST API", "api", node(map, "api:" + endpoint, "area"));
 		}
 
-		assertEquals("A grant for anonymous users on the registration must open it to them",     1, map.getInt("result.nodes.find { it.id == 'api:_registration' }.rest.pub"));
-		assertEquals("The grants on the current user and its views must make one endpoint",      2, map.getInt("result.nodes.find { it.id == 'api:me' }.rest.n"));
+		assertTrue("A grant for anonymous users on the registration must open it to them",          map.getBoolean("result.nodes.find { it.id == 'api:_registration' }.rest.public"));
+		assertEquals("The grants on the current user and its views must make one endpoint",      2, map.getInt("result.nodes.find { it.id == 'api:me' }.rest.rules"));
 		assertNull("The endpoints of the users must not count as REST access to the users as data", map.get("result.nodes.find { it.id == '" + user + "' }.rest"));
 		assertTrue("A grant on a method of the current user must make the method of a user type an endpoint", hasEdge(map, "api:me/updateProfile", ids.get("updateProfile"), "endpoint"));
 		assertNull("A grant on the schema must not become an endpoint", map.get("result.nodes.find { it.id == 'api:_schema' }"));
@@ -340,9 +340,9 @@ public class ApplicationMapTest extends StructrUiTest {
 
 		final JsonPath map = fetchMap();
 
-		assertEquals("A page visible to public users must be marked public",        "1", node(map, ids.get("page"), "p"));
-		assertEquals("The access of a page must carry its visibility to public users", "1", node(map, ids.get("page"), "acc.pub"));
-		assertEquals("The access of a page must carry its visibility to authenticated users", "0", node(map, ids.get("page"), "acc.auth"));
+		assertEquals("A page visible to public users must be marked public",        "true", node(map, ids.get("page"), "public"));
+		assertEquals("The access of a page must carry its visibility to public users", "true", node(map, ids.get("page"), "access.public"));
+		assertEquals("The access of a page must carry its visibility to authenticated users", "false", node(map, ids.get("page"), "access.authenticated"));
 	}
 
 	@Test
@@ -352,9 +352,9 @@ public class ApplicationMapTest extends StructrUiTest {
 
 		final JsonPath map = fetchMap();
 
-		assertEquals("A method must measure the lines of its code", "1", node(map, ids.get("archive"), "s"));
-		assertTrue("A page must measure its HTML elements", Integer.parseInt(node(map, ids.get("page"), "s")) > 5);
-		assertTrue("A type must measure its properties", Integer.parseInt(node(map, ids.get("Item"), "s")) > 0);
+		assertEquals("A method must measure the lines of its code", "1", node(map, ids.get("archive"), "size"));
+		assertTrue("A page must measure its HTML elements", Integer.parseInt(node(map, ids.get("page"), "size")) > 5);
+		assertTrue("A type must measure its properties", Integer.parseInt(node(map, ids.get("Item"), "size")) > 0);
 	}
 
 	@Test
@@ -373,7 +373,7 @@ public class ApplicationMapTest extends StructrUiTest {
 			assertEquals("A user-defined function listed in CronService.tasks must carry its schedule", "0 0 2 * * *",   node(map, ids.get("listItems"), "cron"));
 			assertEquals("A static method listed as Type.method must carry its schedule",               "0 */5 * * * *", node(map, ids.get("createItem"), "cron"));
 			assertNull("A method that is not scheduled must not carry a schedule",                      node(map, ids.get("formatItem"), "cron"));
-			assertEquals("A scheduled user-defined function must be a grouping of its own",            ids.get("listItems"), node(map, ids.get("listItems"), "g"));
+			assertEquals("A scheduled user-defined function must be a grouping of its own",            ids.get("listItems"), node(map, ids.get("listItems"), "grouping"));
 			assertEquals("A scheduled user-defined function must be a scheduled task",                 "scheduled",          node(map, ids.get("listItems"), "area"));
 
 		} finally {
@@ -404,14 +404,14 @@ public class ApplicationMapTest extends StructrUiTest {
 
 		final JsonPath map = fetchMap();
 
-		assertEquals("A host a script sends requests to must be an external service", "external", node(map, "ext:api.example.com", "k"));
+		assertEquals("A host a script sends requests to must be an external service", "external", node(map, "ext:api.example.com", "kind"));
 		assertTrue("A request with $.GET must be an edge to the host",                               hasEdge(map, ids.get("syncItems"), "ext:api.example.com", "requests"));
 		assertTrue("A request with the older Structr.POST must be an edge to the host",              hasEdge(map, ids.get("syncItems"), "ext:legacy.example.com", "requests"));
 		assertTrue("Sending mail must be an edge to the mail service, whatever the spelling of the function", hasEdge(map, ids.get("syncItems"), "ext:mail", "mails"));
-		assertEquals("The mail service must say that it sends e-mail, and through which server", "Send e-mail via " + Settings.SmtpHost.getValue(), node(map, "ext:mail", "n"));
+		assertEquals("The mail service must say that it sends e-mail, and through which server", "Send e-mail via " + Settings.SmtpHost.getValue(), node(map, "ext:mail", "name"));
 		assertEquals("An external service must be part of the integrations", "integration", node(map, "ext:api.example.com", "area"));
-		assertEquals("The use of an external service must name the function that calls it", "GET", map.getString("result.edges.find { it[0] == '" + ids.get("syncItems") + "' && it[1] == 'ext:api.example.com' }[6].f"));
-		assertTrue("The use of an external service must show the line of the call", map.getString("result.edges.find { it[0] == '" + ids.get("syncItems") + "' && it[1] == 'ext:api.example.com' }[6].c").contains("GET("));
+		assertEquals("The use of an external service must name the function that calls it", "GET", map.getString("result.edges.find { it.source == '" + ids.get("syncItems") + "' && it.target == 'ext:api.example.com' }.details.function"));
+		assertTrue("The use of an external service must show the line of the call", map.getString("result.edges.find { it.source == '" + ids.get("syncItems") + "' && it.target == 'ext:api.example.com' }.details.code").contains("GET("));
 	}
 
 	@Test
@@ -430,7 +430,7 @@ public class ApplicationMapTest extends StructrUiTest {
 		// a page is rendered on a thread of its own, which records the statistics after the response has gone out
 		JsonPath map = fetchMap();
 
-		for (int i = 0; i < 20 && node(map, ids.get("page"), "hits") == null; i++) {
+		for (int i = 0; i < 20 && node(map, ids.get("page"), "requests") == null; i++) {
 
 			try {
 
@@ -442,9 +442,9 @@ public class ApplicationMapTest extends StructrUiTest {
 			map = fetchMap();
 		}
 
-		assertNotNull("A rendered page must count its requests",                     node(map, ids.get("page"), "hits.n"));
-		assertTrue("A REST request to a type without an endpoint must count for the type", Integer.parseInt(node(map, ids.get("Item"), "hits.n")) >= 1);
-		assertNull("An element nobody requested must carry no requests",              node(map, ids.get("formatItem"), "hits"));
+		assertNotNull("A rendered page must count its requests",                     node(map, ids.get("page"), "requests"));
+		assertTrue("A REST request to a type without an endpoint must count for the type", Integer.parseInt(node(map, ids.get("Item"), "requests")) >= 1);
+		assertNull("An element nobody requested must carry no requests",              node(map, ids.get("formatItem"), "requests"));
 
 		final JsonPath activity = RestAssured
 			.given()
@@ -456,10 +456,10 @@ public class ApplicationMapTest extends StructrUiTest {
 				.get("/_appmap/activity")
 			.jsonPath();
 
-		assertEquals("The activity endpoint must report the requests of a type as the map does", node(map, ids.get("Item"), "hits.n"), activity.getString("result.nodes.'" + ids.get("Item") + "'.hits.n"));
+		assertEquals("The activity endpoint must report the requests of a type as the map does", node(map, ids.get("Item"), "requests"), activity.getString("result.nodes.'" + ids.get("Item") + "'.requests"));
 		assertNull("The activity endpoint must leave out elements nobody requested",               activity.get("result.nodes.'" + ids.get("formatItem") + "'"));
 
-		final String requests = node(map, ids.get("Item"), "hits.n");
+		final String requests = node(map, ids.get("Item"), "requests");
 
 		try (final Tx tx = app.tx()) {
 
@@ -480,8 +480,8 @@ public class ApplicationMapTest extends StructrUiTest {
 
 		map = fetchMap();
 
-		assertEquals("A REST request to a type with grants must count for the endpoint of the type", requests, node(map, "api:Item", "hits.n"));
-		assertNull("A REST request to a type with grants must not count for the type as well",      node(map, ids.get("Item"), "hits"));
+		assertEquals("A REST request to a type with grants must count for the endpoint of the type", requests, node(map, "api:Item", "requests"));
+		assertNull("A REST request to a type with grants must not count for the type as well",      node(map, ids.get("Item"), "requests"));
 	}
 
 	@Test
@@ -518,8 +518,8 @@ public class ApplicationMapTest extends StructrUiTest {
 
 		final JsonPath map = fetchMap();
 
-		assertEquals("The POST requests to a method must count for its endpoint", String.valueOf(before + 2), node(map, "api:ItemService/createItem", "hits.n"));
-		assertTrue("The runs of a scheduled function must count for the function", Integer.parseInt(node(map, ids.get("listItems"), "hits.n")) >= 1);
+		assertEquals("The POST requests to a method must count for its endpoint", String.valueOf(before + 2), node(map, "api:ItemService/createItem", "requests"));
+		assertTrue("The runs of a scheduled function must count for the function", Integer.parseInt(node(map, ids.get("listItems"), "requests")) >= 1);
 	}
 
 	@Test
@@ -532,23 +532,23 @@ public class ApplicationMapTest extends StructrUiTest {
 
 		assertTrue("A request with FETCH must be an edge to the host",                                  hasEdge(map, method, "ext:fetch.example.com", "requests"));
 		assertTrue("A request to a computed URL must be an edge to the dynamic HTTP service",           hasEdge(map, method, "ext:http", "requests"));
-		assertEquals("The dynamic HTTP service must say that its target is computed", "Call computed URLs", node(map, "ext:http", "n"));
-		assertEquals("A web host must be named after the calls to it", "Call fetch.example.com", node(map, "ext:fetch.example.com", "n"));
+		assertEquals("The dynamic HTTP service must say that its target is computed", "Call computed URLs", node(map, "ext:http", "name"));
+		assertEquals("A web host must be named after the calls to it", "Call fetch.example.com", node(map, "ext:fetch.example.com", "name"));
 
 		assertTrue("A jdbc query must be an edge to the database host",                                 hasEdge(map, method, "ext:jdbc:db.example.com", "queries"));
-		assertEquals("A database must be named by its host and the kind of access", "Query db.example.com (JDBC)", node(map, "ext:jdbc:db.example.com", "n"));
+		assertEquals("A database must be named by its host and the kind of access", "Query db.example.com (JDBC)", node(map, "ext:jdbc:db.example.com", "name"));
 		assertTrue("A mongodb query must be an edge to the host, without the credentials of its URL",   hasEdge(map, method, "ext:mongodb:mongo.example.com", "queries"));
 		assertTrue("A remoteCypher query with a template string must be an edge to the host",           hasEdge(map, method, "ext:cypher:graph.example.com", "queries"));
 
 		assertTrue("Geocoding must be an edge to the geocoding service",                                hasEdge(map, method, "ext:geocoding", "requests"));
-		assertEquals("The geocoding service must name the configured provider", "Geocode via Google",  node(map, "ext:geocoding", "n"));
+		assertEquals("The geocoding service must name the configured provider", "Geocode via Google",  node(map, "ext:geocoding", "name"));
 		assertTrue("A translation with a provider must be an edge to that provider",                    hasEdge(map, method, "ext:translation:deepl", "requests"));
-		assertEquals("A translation provider must have its proper name", "Translate via DeepL",        node(map, "ext:translation:deepl", "n"));
+		assertEquals("A translation provider must have its proper name", "Translate via DeepL",        node(map, "ext:translation:deepl", "name"));
 		assertTrue("A translation without a provider must be an edge to Google",                        hasEdge(map, method, "ext:translation:google", "requests"));
 
 		assertTrue("exec must be an edge to the configured script",                                     hasEdge(map, method, "ext:exec:backup", "executes"));
 		assertTrue("execBinary must be an edge to the configured script in its second argument",        hasEdge(map, method, "ext:exec:render", "executes"));
-		assertNull("exec() of a regular expression must not be an integration",                         node(map, "ext:exec", "k"));
+		assertNull("exec() of a regular expression must not be an integration",                         node(map, "ext:exec", "kind"));
 	}
 
 	@Test
@@ -585,12 +585,12 @@ public class ApplicationMapTest extends StructrUiTest {
 
 		final JsonPath map = fetchMap();
 
-		assertTrue("A group must list the types it has grants on", map.getList("result.groups.find { it.id == '" + ids.get("group") + "' }.t").contains(ids.get("Item")));
-		assertEquals("A group must count its members", 1, map.getInt("result.groups.find { it.id == '" + ids.get("group") + "' }.m"));
+		assertTrue("A group must list the types it has grants on", map.getList("result.groups.find { it.id == '" + ids.get("group") + "' }.types").contains(ids.get("Item")));
+		assertEquals("A group must count its members", 1, map.getInt("result.groups.find { it.id == '" + ids.get("group") + "' }.members"));
 		assertNull("A group must not be a node", map.get("result.nodes.find { it.id == '" + ids.get("group") + "' }"));
-		assertEquals("A group must name the rights of its grants", "r", map.getString("result.groups.find { it.id == '" + ids.get("group") + "' }.p['" + ids.get("Item") + "']"));
-		assertTrue("A group must list the groups it is a member of", map.getList("result.groups.find { it.id == '" + ids.get("group") + "' }.in").contains(ids.get("staff")));
-		assertEquals("A group must name access control among the rights of its grants", "a", map.getString("result.groups.find { it.id == '" + ids.get("staff") + "' }.p['" + ids.get("Item") + "']"));
+		assertEquals("A group must name the rights of its grants", "r", map.getString("result.groups.find { it.id == '" + ids.get("group") + "' }.rights['" + ids.get("Item") + "']"));
+		assertTrue("A group must list the groups it is a member of", map.getList("result.groups.find { it.id == '" + ids.get("group") + "' }.memberOf").contains(ids.get("staff")));
+		assertEquals("A group must name access control among the rights of its grants", "a", map.getString("result.groups.find { it.id == '" + ids.get("staff") + "' }.rights['" + ids.get("Item") + "']"));
 	}
 
 	@Test
@@ -619,13 +619,13 @@ public class ApplicationMapTest extends StructrUiTest {
 		}
 
 		final JsonPath map    = fetchMap();
-		final String relation = "result.edges.find { it[0] == '" + ids.get("Category") + "' && it[1] == '" + ids.get("Item") + "' && it[3] == 'relates' }[6]";
+		final String relation = "result.edges.find { it.source == '" + ids.get("Category") + "' && it.target == '" + ids.get("Item") + "' && it.kind == 'relates' }.details";
 
-		assertEquals("A schema relationship must name its multiplicity",                     "1:*", map.getString(relation + ".m"));
-		assertEquals("A schema relationship must say whether it deletes along",              1,     map.getInt(relation + ".cd"));
-		assertEquals("A schema relationship must say in which direction it passes on rights", "Out", map.getString(relation + ".pp"));
-		assertEquals("A schema relationship must say what it does with the read right",      "Add", map.getString(relation + ".r"));
-		assertEquals("A type must say whom all its objects are visible to",                  1,     map.getInt("result.nodes.find { it.id == '" + ids.get("Item") + "' }.dv.auth"));
+		assertEquals("A schema relationship must name its multiplicity",                     "1:*", map.getString(relation + ".multiplicity"));
+		assertEquals("A schema relationship must say whether it deletes along",              1,     map.getInt(relation + ".cascadingDelete"));
+		assertEquals("A schema relationship must say in which direction it passes on rights", "Out", map.getString(relation + ".propagation"));
+		assertEquals("A schema relationship must say what it does with the read right",      "Add", map.getString(relation + ".read"));
+		assertTrue("A type must say whom all its objects are visible to",                           map.getBoolean("result.nodes.find { it.id == '" + ids.get("Item") + "' }.defaultVisibility.authenticated"));
 	}
 
 	@Test
@@ -672,12 +672,12 @@ public class ApplicationMapTest extends StructrUiTest {
 		final JsonPath map = fetchMap();
 		final String page  = "result.nodes.find { it.id == '" + ids.get("page") + "' }";
 
-		assertEquals("A page must name its route",                              "/item/{item}",      map.getString(page + ".r[0].p"));
-		assertEquals("A route must name the type of its current object",        "Item",              map.getString(page + ".r[0].cur"));
+		assertEquals("A page must name its route",                              "/item/{item}",      map.getString(page + ".routes[0].path"));
+		assertEquals("A route must name the type of its current object",        "Item",              map.getString(page + ".routes[0].currentType"));
 		assertTrue("A page must lead to the type of the current object of its route", hasEdge(map, ids.get("page"), ids.get("Item"), "current"));
-		assertEquals("A page must say its position",                            10,                  map.getInt(page + ".pos"));
-		assertEquals("A page must say the errors it is shown for",              "404",               map.getString(page + ".err"));
-		assertEquals("A site must name its host",                               "items.example.com", map.getString("result.sites[0].n"));
+		assertEquals("A page must say its position",                            10,                  map.getInt(page + ".position"));
+		assertEquals("A page must say the errors it is shown for",              "404",               map.getString(page + ".errorCodes"));
+		assertEquals("A site must name its host",                               "items.example.com", map.getString("result.sites[0].name"));
 		assertTrue("A site must list its pages", map.getList("result.sites[0].pages").contains(ids.get("page")));
 	}
 
@@ -743,7 +743,7 @@ public class ApplicationMapTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		assertNotNull("An action mapping whose action was never chosen must still be on the map", node(fetchMap(), ids.get("emptyAction"), "k"));
+		assertNotNull("An action mapping whose action was never chosen must still be on the map", node(fetchMap(), ids.get("emptyAction"), "kind"));
 	}
 
 	@Test
@@ -770,15 +770,15 @@ public class ApplicationMapTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		final List<Object> outline = fetchMap().getList("result.nodes.find { it.id == '" + ids.get("page") + "' }.d");
-		final List<?> holder       = findOutlineItem(outline, ids.get("scriptHolder"));
-		final List<?> block        = findOutlineItem(outline, ids.get("scriptBlock"));
+		final List<Object> outline = fetchMap().getList("result.nodes.find { it.id == '" + ids.get("page") + "' }.outline");
+		final Map<?, ?> holder     = findOutlineItem(outline, ids.get("scriptHolder"));
+		final Map<?, ?> block      = findOutlineItem(outline, ids.get("scriptBlock"));
 
 		assertNotNull("A text node with a script block must stand in the outline, so that a client can show its code", block);
-		assertEquals("A script block must have the tag content, as the Pages area calls it", "content", block.get(0));
-		assertTrue("A script block must have a text", (((Number) block.get(1)).intValue() & 8) != 0);
-		assertTrue("A script block must stand below its element", ((List<?>) holder.get(2)).contains(block));
-		assertEquals("An element whose only text is a script block must have no text of its own", 0, ((Number) holder.get(1)).intValue() & 8);
+		assertEquals("A script block must have the tag content, as the Pages area calls it", "content", block.get("tag"));
+		assertEquals("A script block must have a text", Boolean.TRUE, block.get("text"));
+		assertTrue("A script block must stand below its element", childrenOf(outline, holder).contains(block));
+		assertNull("An element whose only text is a script block must have no text of its own", holder.get("text"));
 	}
 
 	@Test
@@ -824,12 +824,12 @@ public class ApplicationMapTest extends StructrUiTest {
 
 		final JsonPath map = fetchMap();
 
-		assertEquals("A repeater must name its data expression",                               "find('Item')",     node(map, ids.get("itemRepeater"), "use.q"));
+		assertEquals("A repeater must name its data expression",                               "find('Item')",     node(map, ids.get("itemRepeater"), "use.query"));
 		assertEquals("A repeater of other elements than options and rows must be items",       "item",             node(map, ids.get("itemRepeater"), "use.role"));
 		assertEquals("The options of a select must be a choice",                               "choice",           node(map, ids.get("optionRepeater"), "use.role"));
-		assertEquals("A choice must name the property the action mapping it is the input of sets", "Item.category", node(map, ids.get("optionRepeater"), "use.f"));
-		assertEquals("An action mapping must name the user input it sends",                    List.of("category"), map.getList("result.nodes.find { it.id == '" + ids.get("saveAction") + "' }.use.in"));
-		assertTrue("The outline of a page must name the data key of a repeater",               map.getList("result.nodes.find { it.id == '" + ids.get("page") + "' }.d").toString().contains("choice"));
+		assertEquals("A choice must name the property the action mapping it is the input of sets", "Item.category", node(map, ids.get("optionRepeater"), "use.field"));
+		assertEquals("An action mapping must name the user input it sends",                    List.of("category"), map.getList("result.nodes.find { it.id == '" + ids.get("saveAction") + "' }.use.inputs"));
+		assertTrue("The outline of a page must name the data key of a repeater",               map.getList("result.nodes.find { it.id == '" + ids.get("page") + "' }.outline").toString().contains("choice"));
 		assertTrue("The evidence of a method must name the line of its code",                  evidence(map, ids.get("createItem"), ids.get("Item"), "creates").startsWith("ItemService.createItem, line 1: { const item = $.create('Item');"));
 	}
 
@@ -869,18 +869,18 @@ public class ApplicationMapTest extends StructrUiTest {
 		}
 
 		final JsonPath map                 = fetchMap();
-		final List<List<String>> readers   = map.getList("result.nodes.find { it.id == '" + ids.get("Item") + "' }.fr.total");
+		final List<Map<String, String>> readers = map.getList("result.nodes.find { it.id == '" + ids.get("Item") + "' }.functionReads.total");
 		final Map<String, String> byCaller = new HashMap<>();
 
 		assertNotNull("A type must name who reads its function property", readers);
 
-		readers.forEach(reader -> byCaller.put(reader.get(0), reader.get(1)));
+		readers.forEach(reader -> byCaller.put(reader.get("caller"), reader.get("evidence")));
 
 		assertTrue("A method must read a function property on an object it found",      byCaller.containsKey(ids.get("reportItems")));
 		assertTrue("A method of a subtype must read a function property of its parent",  byCaller.containsKey(ids.get("describeTotal")));
 		assertTrue("A page must read a function property on the key of a repeater",      byCaller.getOrDefault(ids.get("page"), "").endsWith("shows item.total"));
 		assertFalse("A variable that is no object of the type must not read it",         byCaller.containsKey(ids.get("readsName")));
-		assertNull("A property that computes nothing must have no readers",              map.get("result.nodes.find { it.id == '" + ids.get("Category") + "' }.fr"));
+		assertNull("A property that computes nothing must have no readers",              map.get("result.nodes.find { it.id == '" + ids.get("Category") + "' }.functionReads"));
 	}
 
 	@Test
@@ -920,15 +920,15 @@ public class ApplicationMapTest extends StructrUiTest {
 		}
 
 		final JsonPath map    = fetchMap();
-		final String section  = node(map, ids.get("categories"), "g");
+		final String section  = node(map, ids.get("categories"), "grouping");
 
-		assertEquals("Pages that work with the same type must share a section",   section,                 node(map, ids.get("category"), "g"));
-		assertEquals("A section of a type must be named after it",                 "Category pages",        map.getString("result.sections.find { it.id == '" + section + "' }.n"));
+		assertEquals("Pages that work with the same type must share a section",   section,                 node(map, ids.get("category"), "grouping"));
+		assertEquals("A section of a type must be named after it",                 "Category pages",        map.getString("result.sections.find { it.id == '" + section + "' }.name"));
 		assertEquals("A section of a type must say so",                            "type",                  map.getString("result.sections.find { it.id == '" + section + "' }.how"));
-		assertEquals("Pages of the same category must share its section",          "section:category:Info", node(map, ids.get("about"), "g"));
-		assertEquals("Pages of the same category must share its section",          "section:category:Info", node(map, ids.get("imprint"), "g"));
+		assertEquals("Pages of the same category must share its section",          "section:category:Info", node(map, ids.get("about"), "grouping"));
+		assertEquals("Pages of the same category must share its section",          "section:category:Info", node(map, ids.get("imprint"), "grouping"));
 		assertEquals("A section must be part of the user interface",               "ui",                    node(map, ids.get("about"), "area"));
-		assertEquals("A repeater must stay in the grouping of its page",           ids.get("page"),         node(map, ids.get("itemRepeater"), "g"));
+		assertEquals("A repeater must stay in the grouping of its page",           ids.get("page"),         node(map, ids.get("itemRepeater"), "grouping"));
 	}
 
 	@Test
@@ -959,7 +959,7 @@ public class ApplicationMapTest extends StructrUiTest {
 
 		final JsonPath map = fetchMap();
 
-		assertNotNull("A link with a query must lead to the page its path names", map.get("result.edges.find { it[1] == '" + ids.get("about") + "' && it[3] == 'navigates' }"));
+		assertNotNull("A link with a query must lead to the page its path names", map.get("result.edges.find { it.target == '" + ids.get("about") + "' && it.kind == 'navigates' }"));
 	}
 
 	@Test
@@ -992,13 +992,13 @@ public class ApplicationMapTest extends StructrUiTest {
 		}
 
 		final JsonPath map = fetchMap();
-		final List<?> card = (List<?>) map.getList("result.nodes.find { it.id == '" + ids.get("card") + "' }.d").get(0);
+		final Map<?, ?> card = (Map<?, ?>) map.getList("result.nodes.find { it.id == '" + ids.get("card") + "' }.outline").get(0);
 
 		assertEquals("A shared component must be an area of its own",                      "components",             node(map, ids.get("card"), "area"));
-		assertEquals("A shared component must belong to no section",                       ids.get("card"),          node(map, ids.get("card"), "g"));
-		assertEquals("An element must show the expressions of its text, without render()", "${current.name}",        card.get(4));
-		assertEquals("A page of a single template must name it",                           ids.get("sheetTemplate"), node(map, ids.get("sheet"), "tpl"));
-		assertNull("A page with elements must name no template",                                                     node(map, ids.get("page"), "tpl"));
+		assertEquals("A shared component must belong to no section",                       ids.get("card"),          node(map, ids.get("card"), "grouping"));
+		assertEquals("An element must show the expressions of its text, without render()", "${current.name}",        card.get("expressions"));
+		assertEquals("A page of a single template must name it",                           ids.get("sheetTemplate"), node(map, ids.get("sheet"), "template"));
+		assertNull("A page with elements must name no template",                                                     node(map, ids.get("page"), "template"));
 	}
 
 	@Test
@@ -1218,36 +1218,18 @@ public class ApplicationMapTest extends StructrUiTest {
 	 */
 	private void collectOutlineIds(final List<?> items, final Set<String> found) {
 
-		for (final Object entry : items) {
+		for (final Map<?, ?> item : itemsOf(items)) {
 
-			final List<?> item = (List<?>) entry;
-
-			if (item.size() > 2) {
-				collectOutlineIds((List<?>) item.get(2), found);
-			}
-
-			if (item.size() > 3) {
-
-				for (final Object id : (List<?>) item.get(3)) {
-					found.add(id.toString());
-				}
+			for (final Object id : listOf(item, "ids")) {
+				found.add(id.toString());
 			}
 		}
 	}
 
 	private Set<String> collectOutlineElements(final List<?> items, final Set<String> found) {
 
-		for (final Object entry : items) {
-
-			final List<?> item = (List<?>) entry;
-
-			if (item.size() > 2) {
-				collectOutlineElements((List<?>) item.get(2), found);
-			}
-
-			if (item.size() > 6) {
-				found.add(item.get(6).toString());
-			}
+		for (final Map<?, ?> item : itemsOf(items)) {
+			found.add(item.get("id").toString());
 		}
 
 		return found;
@@ -1255,59 +1237,57 @@ public class ApplicationMapTest extends StructrUiTest {
 
 	private Set<String> collectOutlineSources(final List<?> items, final Set<String> found) {
 
-		for (final Object entry : items) {
+		for (final Map<?, ?> item : itemsOf(items)) {
 
-			final List<?> item = (List<?>) entry;
-
-			if (item.size() > 2) {
-				collectOutlineSources((List<?>) item.get(2), found);
-			}
-
-			if (item.size() > 7) {
-
-				for (final Object source : (List<?>) item.get(7)) {
-					found.add(source.toString());
-				}
+			for (final Object source : listOf(item, "sources")) {
+				found.add(source.toString());
 			}
 		}
 
 		return found;
 	}
 
-	private List<?> findOutlineItem(final List<?> items, final String id) {
+	private Map<?, ?> findOutlineItem(final List<?> items, final String id) {
 
-		for (final Object entry : items) {
-
-			final List<?> item = (List<?>) entry;
-
-			if (item.size() > 6 && id.equals(item.get(6))) {
-				return item;
-			}
-
-			final List<?> found = item.size() > 2 ? findOutlineItem((List<?>) item.get(2), id) : null;
-
-			if (found != null) {
-				return found;
-			}
-		}
-
-		return null;
+		return itemsOf(items).stream().filter(item -> id.equals(item.get("id"))).findFirst().orElse(null);
 	}
 
-	private Set<Integer> collectOutlineFlags(final List<?> items, final Set<Integer> found) {
+	// the items of an outline, a flat list in which each item stands before the items below it
+	private List<Map<?, ?>> itemsOf(final List<?> outline) {
 
-		for (final Object entry : items) {
+		return outline.stream().<Map<?, ?>>map(entry -> (Map<?, ?>) entry).toList();
+	}
 
-			final List<?> item = (List<?>) entry;
+	// the items directly below an item: those after it one level deeper, up to the next item on its level or above
+	private List<Map<?, ?>> childrenOf(final List<?> outline, final Map<?, ?> parent) {
 
-			found.add(((Number) item.get(1)).intValue());
+		final List<Map<?, ?>> items    = itemsOf(outline);
+		final List<Map<?, ?>> children = new LinkedList<>();
+		final int depth                = depthOf(parent);
 
-			if (item.size() > 2) {
-				collectOutlineFlags((List<?>) item.get(2), found);
+		for (final Map<?, ?> item : items.subList(items.indexOf(parent) + 1, items.size())) {
+
+			if (depthOf(item) <= depth) {
+				break;
+			}
+
+			if (depthOf(item) == depth + 1) {
+				children.add(item);
 			}
 		}
 
-		return found;
+		return children;
+	}
+
+	private int depthOf(final Map<?, ?> item) {
+
+		return ((Number) item.get("depth")).intValue();
+	}
+
+	// an outline item leaves out a list that is empty
+	private List<?> listOf(final Map<?, ?> item, final String key) {
+
+		return item.get(key) instanceof List<?> list ? list : List.of();
 	}
 
 	private JsonPath fetchMap() {
@@ -1339,11 +1319,11 @@ public class ApplicationMapTest extends StructrUiTest {
 
 	private String evidence(final JsonPath map, final String source, final String target, final String kind) {
 
-		return map.getString("result.edges.find { it[0] == '" + source + "' && it[1] == '" + target + "' && it[3] == '" + kind + "' }[5]");
+		return map.getString("result.edges.find { it.source == '" + source + "' && it.target == '" + target + "' && it.kind == '" + kind + "' }.evidence");
 	}
 
 	private boolean hasEdge(final JsonPath map, final String source, final String target, final String kind) {
 
-		return map.get("result.edges.find { it[0] == '" + source + "' && it[1] == '" + target + "' && it[3] == '" + kind + "' }") != null;
+		return map.get("result.edges.find { it.source == '" + source + "' && it.target == '" + target + "' && it.kind == '" + kind + "' }") != null;
 	}
 }

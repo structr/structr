@@ -234,7 +234,7 @@ class DataBindings {
 			final HtmlNode select         = choiceOf(html);
 
 			if (StringUtils.isNotBlank(script)) {
-				use.put("q", StringUtils.abbreviate(script.trim().replaceAll("\\s+", " "), 200));
+				use.put("query", StringUtils.abbreviate(script.trim().replaceAll("\\s+", " "), 200));
 			}
 
 			if (select != null) {
@@ -245,7 +245,7 @@ class DataBindings {
 				use.put("role", "choice");
 
 				if (field != null) {
-					use.put("f", field);
+					use.put("field", field);
 				}
 
 			} else {
@@ -379,10 +379,10 @@ class DataBindings {
 
 		final Map<String, Object> use = new LinkedHashMap<>();
 
-		use.put("el", labelOf(trigger));
+		use.put("element", labelOf(trigger));
 
 		if (!inputs.isEmpty()) {
-			use.put("in", new LinkedList<>(inputs));
+			use.put("inputs", new LinkedList<>(inputs));
 		}
 
 		map.addNode(id, ApplicationMap.ACTION, where + ": " + labelOf(trigger) + " → " + target).setHome(trigger.home).setType(type, how).setAction(action.getAction()).setEvent(action.getEvent()).setMethod(method).setUse(use);

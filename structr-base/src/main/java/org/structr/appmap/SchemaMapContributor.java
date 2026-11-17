@@ -115,9 +115,10 @@ public class SchemaMapContributor implements ApplicationMapContributor {
 	}
 
 	/**
-	 * What a schema relationship does beyond connecting: its multiplicity, whether deleting one end deletes the other (cd,
-	 * see Relation.CASCADING_DESCRIPTIONS) and in which direction it passes on rights (pp, see PropagationDirection), with
-	 * what it does to each right on the way (r, w, d, a: Add, Keep or Remove).
+	 * What a schema relationship does beyond connecting: its multiplicity, whether deleting one end deletes the other
+	 * (cascadingDelete, see Relation.CASCADING_DESCRIPTIONS) and in which direction it passes on rights (propagation, see
+	 * PropagationDirection), with what it does to each right on the way (read, write, delete, accessControl: Add, Keep or
+	 * Remove).
 	 */
 	private Map<String, Object> detailsOf(final SchemaRelationshipNode rel, final String multiplicity) {
 
@@ -125,19 +126,19 @@ public class SchemaMapContributor implements ApplicationMapContributor {
 		final Long cascade                     = rel.getCascadingDeleteFlag();
 		final PropagationDirection propagation = rel.getPermissionPropagation();
 
-		details.put("m", multiplicity);
+		details.put("multiplicity", multiplicity);
 
 		if (cascade != null && cascade > 0) {
-			details.put("cd", cascade);
+			details.put("cascadingDelete", cascade);
 		}
 
 		if (propagation != null && !PropagationDirection.None.equals(propagation)) {
 
-			details.put("pp", propagation.name());
-			details.put("r",  String.valueOf(rel.getReadPropagation()));
-			details.put("w",  String.valueOf(rel.getWritePropagation()));
-			details.put("d",  String.valueOf(rel.getDeletePropagation()));
-			details.put("a",  String.valueOf(rel.getAccessControlPropagation()));
+			details.put("propagation",   propagation.name());
+			details.put("read",          String.valueOf(rel.getReadPropagation()));
+			details.put("write",         String.valueOf(rel.getWritePropagation()));
+			details.put("delete",        String.valueOf(rel.getDeletePropagation()));
+			details.put("accessControl", String.valueOf(rel.getAccessControlPropagation()));
 		}
 
 		return details;

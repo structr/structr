@@ -61,7 +61,7 @@ class AppMapAccess {
 			if (groups.has(id) && !member.has(id)) {
 
 				member.add(id);
-				(groups.get(id).in ?? []).forEach(walk);
+				(groups.get(id).memberOf ?? []).forEach(walk);
 			}
 		};
 
@@ -69,7 +69,7 @@ class AppMapAccess {
 			walk(role.id);
 		}
 
-		const names  = new Set([...member].map(id => groups.get(id).n));
+		const names  = new Set([...member].map(id => groups.get(id).name));
 		const pages  = new Map();
 		const rights = new Map();
 		const rest   = new Map();
@@ -89,38 +89,38 @@ class AppMapAccess {
 
 		for (const n of model.nodes) {
 
-			if (n.k === 'page' || n.k === 'component') {
+			if (n.kind === 'page' || n.kind === 'component') {
 
-				const acc   = n.acc ?? {};
-				const grant = (acc.g ?? []).find(([who, permissions]) => names.has(who) && String(permissions).split(',').includes('read'));
+				const access = n.access ?? {};
+				const grant  = (access.grants ?? []).find(g => names.has(g.principal) && String(g.permissions).split(',').includes('read'));
 
-				pages.set(n, acc.pub ? 'visible to public users' : signedIn && acc.auth ? 'visible to authenticated users' : grant ? `read granted to ${grant[0]}` : null);
+				pages.set(n, access.public ? 'visible to public users' : signedIn && access.authenticated ? 'visible to authenticated users' : grant ? `read granted to ${grant.principal}` : null);
 			}
 
-			if (n.k === 'type') {
+			if (n.kind === 'type') {
 
-				if (n.dv?.pub) {
+				if (n.defaultVisibility?.public) {
 					give(n, 'r', 'every object is visible to public users');
-				} else if (signedIn && n.dv?.auth) {
+				} else if (signedIn && n.defaultVisibility?.authenticated) {
 					give(n, 'r', 'every object is visible to authenticated users');
 				}
 			}
 
 			// what resource access grants open to REST for the role
-			if (n.rest && (n.rest.pub || (signedIn && n.rest.auth))) {
-				rest.set(n, n.rest.pub ? 'open to public users' : 'open to authenticated users');
+			if (n.rest && (n.rest.public || (signedIn && n.rest.authenticated))) {
+				rest.set(n, n.rest.public ? 'open to public users' : 'open to authenticated users');
 			}
 		}
 
 		for (const id of member) {
 
-			for (const [typeId, letters] of Object.entries(groups.get(id).p ?? {})) {
+			for (const [typeId, letters] of Object.entries(groups.get(id).rights ?? {})) {
 
 				const type = model.byId.get(typeId);
 
 				if (type) {
 					// access control (a) decides nothing the lens asks, which is what a role may see, change and delete
-					[...letters].filter(right => right !== 'a').forEach(right => give(type, right, `schema grant for ${groups.get(id).n}`));
+					[...letters].filter(right => right !== 'a').forEach(right => give(type, right, `schema grant for ${groups.get(id).name}`));
 				}
 			}
 		}
@@ -128,8 +128,8 @@ class AppMapAccess {
 		// the rights that schema relationships pass on, until nothing changes any more
 		const hops     = AppMapAccess.propagation(links);
 		const governed = new Set([
-			...model.nodes.filter(n => n.k === 'type' && n.dv),
-			...model.groups.flatMap(g => Object.keys(g.p ?? {})).map(id => model.byId.get(id)).filter(Boolean),
+			...model.nodes.filter(n => n.kind === 'type' && n.defaultVisibility),
+			...model.groups.flatMap(g => Object.keys(g.rights ?? {})).map(id => model.byId.get(id)).filter(Boolean),
 			...hops.map(hop => hop.to)
 		]);
 
@@ -144,7 +144,7 @@ class AppMapAccess {
 
 				for (const right of AppMapAccess.RIGHTS) {
 
-					const mode   = l.x[right];
+					const mode   = l.details[AppMapAccess.RIGHT_LABEL[right]];
 					const origin = origins.get(from)?.get(right);
 
 					if (origin && (mode === 'Add' || mode === 'Keep') && !origins.get(to)?.has(right)) {
@@ -154,7 +154,7 @@ class AppMapAccess {
 					}
 
 					if (origin && mode === 'Add') {
-						give(to, right, origin === from ? `passed on from ${from.n}` : `passed on from ${origin.n} through ${from.n}`);
+						give(to, right, origin === from ? `passed on from ${from.name}` : `passed on from ${origin.name} through ${from.name}`);
 					}
 				}
 			}
@@ -181,9 +181,9 @@ class AppMapAccess {
 	// the steps along which schema relationships pass rights on, as { from, to, l }
 	static propagation(links) {
 
-		return links.filter(l => l.kind === 'relates' && l.x?.pp).flatMap(l => [
-			...(l.x.pp === 'Out' || l.x.pp === 'Both' ? [{ from: l.source, to: l.target, l }] : []),
-			...(l.x.pp === 'In' || l.x.pp === 'Both' ? [{ from: l.target, to: l.source, l }] : [])
+		return links.filter(l => l.kind === 'relates' && l.details?.propagation).flatMap(l => [
+			...(l.details.propagation === 'Out' || l.details.propagation === 'Both' ? [{ from: l.source, to: l.target, l }] : []),
+			...(l.details.propagation === 'In' || l.details.propagation === 'Both' ? [{ from: l.target, to: l.source, l }] : [])
 		]);
 	}
 
@@ -202,12 +202,12 @@ class AppMapAccess {
 
 			for (const l of links) {
 
-				const [forward, backward] = l.kind === 'relates' ? (AppMapAccess.CASCADE[l.x?.cd] ?? [false, false]) : [false, false];
+				const [forward, backward] = l.kind === 'relates' ? (AppMapAccess.CASCADE[l.details?.cascadingDelete] ?? [false, false]) : [false, false];
 				const other               = forward && l.source === current ? l.target : backward && l.target === current ? l.source : null;
 
 				if (other && other !== type && !reached.has(other)) {
 
-					reached.set(other, { from: current, l, maybe: l.x.cd === 4 });
+					reached.set(other, { from: current, l, maybe: l.details.cascadingDelete === 4 });
 					open.push(other);
 				}
 			}
@@ -224,13 +224,13 @@ class AppMapAccess {
 		if (access.pages.has(n)) {
 
 			const reason = access.pages.get(n);
-			const gaps   = access.gaps.filter(g => g.page === n).map(g => `${AppMapAccess.verb(g.need)} ${g.type.n} without ${AppMapAccess.RIGHT_LABEL[g.need]}`);
+			const gaps   = access.gaps.filter(g => g.page === n).map(g => `${AppMapAccess.verb(g.need)} ${g.type.name} without ${AppMapAccess.RIGHT_LABEL[g.need]}`);
 			const shown  = gaps.slice(0, AppMapAccess.GAPS_SHOWN).join(', ') + (gaps.length > AppMapAccess.GAPS_SHOWN ? ` and ${gaps.length - AppMapAccess.GAPS_SHOWN} more` : '');
 
 			return (reason ? `${who} see it: ${reason}` : `${who} do not see it`) + (gaps.length ? ` · for ${who} it ${shown}` : '');
 		}
 
-		if (n.k === 'type') {
+		if (n.kind === 'type') {
 
 			const own  = access.rights.get(n);
 			const list = own ? [...own].map(([right, why]) => `${AppMapAccess.RIGHT_LABEL[right]} (${why})`) : [];
@@ -252,6 +252,6 @@ class AppMapAccess {
 	// the schema does not govern
 	static reaches(access, n) {
 
-		return access.pages.has(n) ? !!access.pages.get(n) : (access.rights.has(n) || access.rest.has(n) || (n.k === 'type' && !access.governed.has(n)));
+		return access.pages.has(n) ? !!access.pages.get(n) : (access.rights.has(n) || access.rest.has(n) || (n.kind === 'type' && !access.governed.has(n)));
 	}
 }

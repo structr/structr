@@ -26,9 +26,12 @@ import org.jsoup.nodes.Node;
 import org.jsoup.parser.Parser;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
+import org.structr.common.AccessControllable;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -45,7 +48,9 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
+import org.structr.web.traits.definitions.WidgetTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.command.CreateComponentCommand;
 import org.structr.websocket.command.GetSuggestionsCommand;
 import org.structr.websocket.command.ReplaceWidgetCommand;
 import org.structr.websocket.message.WebSocketMessage;
@@ -963,6 +968,112 @@ public class WidgetsTest extends DeploymentTestBase {
 		}
 	}
 
+	/**
+	 * A grant comment in a widget's source must stay on the shared component instance the
+	 * widget inserts.
+	 *
+	 * <p>Widget.expandWidget imports the source with the DeploymentCommentHandler, so
+	 * {@code @structr:grant} comments are applied. The new instance takes over the master's
+	 * grants when it is cloned, and the grant from the comment is added to the instance only;
+	 * the master and the existing instance keep their own grants.</p>
+	 */
+	@Test
+	public void testGrantCommentInWidgetStaysOnTheInsertedInstance() {
+
+		final String pageId;
+		final String rootId;
+		final String masterId;
+		final String existingId;
+		final String staffId;
+		final String otherId;
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page       = Page.createNewPage(securityContext, "grant-page");
+			final DOMNode html    = page.createElement("html");
+			final DOMNode root    = page.createElement("body");
+			final DOMNode element = page.createElement("div");
+
+			page.appendChild(html);
+			html.appendChild(root);
+			root.appendChild(element);
+
+			final DOMNode master  = new CreateComponentCommand().create(element);
+			final Principal staff = app.create(StructrTraits.GROUP, "staff").as(Principal.class);
+			final Principal other = app.create(StructrTraits.GROUP, "other").as(Principal.class);
+
+			master.as(AccessControllable.class).grant(Permission.read, other);
+
+			app.create(StructrTraits.WIDGET,
+				new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Granted Component"),
+				new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(WidgetTraitDefinition.SOURCE_PROPERTY), "<!-- @structr:grant(staff,r) --><structr:component src=\"" + master.getUuid() + "\"></structr:component>")
+			);
+
+			pageId     = page.getUuid();
+			rootId     = root.getUuid();
+			masterId   = master.getUuid();
+			existingId = element.getUuid();
+			staffId    = staff.getUuid();
+			otherId    = other.getUuid();
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected exception: " + fex.getMessage());
+
+			return;
+		}
+
+		final String insertedId;
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page    = app.getNodeById(StructrTraits.PAGE, pageId).as(Page.class);
+			final DOMNode root = app.getNodeById(StructrTraits.DOM_NODE, rootId).as(DOMNode.class);
+
+			expandWidget(page, root, "Granted Component");
+
+			final List<DOMNode> inserted = new LinkedList<>();
+
+			for (final DOMNode child : root.getChildren()) {
+
+				if (!existingId.equals(child.getUuid())) {
+
+					inserted.add(child);
+				}
+			}
+
+			assertEquals("the widget should have inserted one element next to the existing instance", 1, inserted.size());
+
+			final DOMNode instance = inserted.get(0);
+
+			assertNotNull(instance.getSharedComponent(), "the inserted element should be an instance of the shared component");
+			assertEquals("the inserted element should be an instance of the existing shared component", masterId, instance.getSharedComponent().getUuid());
+
+			insertedId = instance.getUuid();
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected exception: " + fex.getMessage());
+
+			return;
+		}
+
+		try {
+
+			assertEquals("the inserted instance should have the master's grant and the one from the comment", Set.of(otherId, staffId), granteesOf(insertedId));
+			assertEquals("the master should keep its own grant",                                             Set.of(otherId),          granteesOf(masterId));
+			assertEquals("the existing instance should keep its own grants",                                 Set.of(),                 granteesOf(existingId));
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
 	protected void expandWidget(final Page page, final String targetElement, final String widgetName) throws FrameworkException {
 
 		expandWidget(page, targetElement, widgetName, Map.of());
@@ -1314,5 +1425,22 @@ public class WidgetsTest extends DeploymentTestBase {
 		System.out.println(componentOutput);
 
 		return Parser.parseXmlFragment(componentOutput, "http://localhost");
+	}
+
+	private Set<String> granteesOf(final String id) throws FrameworkException {
+
+		try (final Tx tx = app.tx()) {
+
+			final Set<String> result = new HashSet<>();
+
+			for (final NodeInterface grantee : app.getNodeById(StructrTraits.DOM_NODE, id).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).<Iterable<NodeInterface>>key(NodeInterfaceTraitDefinition.GRANTEES_PROPERTY))) {
+
+				result.add(grantee.getUuid());
+			}
+
+			tx.success();
+
+			return result;
+		}
 	}
 }

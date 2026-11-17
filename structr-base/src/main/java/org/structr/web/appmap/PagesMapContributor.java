@@ -185,14 +185,14 @@ public class PagesMapContributor implements ApplicationMapContributor {
 			final String type   = current != null && "Node".equals(current.getValueType()) ? StringUtils.trimToNull(current.getFormat()) : null;
 			final String typeId = type != null ? map.getSchema().getTypeIds().get(type) : null;
 
-			route.put("p", path.getName());
+			route.put("path", path.getName());
 
 			if (type != null) {
-				route.put("cur", type);
+				route.put("currentType", type);
 			}
 
 			if (path.getWarnings() != null && path.getWarnings().length > 0) {
-				route.put("w", path.getWarnings().length);
+				route.put("warnings", path.getWarnings().length);
 			}
 
 			if (typeId != null) {
@@ -316,79 +316,105 @@ public class PagesMapContributor implements ApplicationMapContributor {
 		return size;
 	}
 
+	/**
+	 * The outline of the HTML of a page or shared component: its elements as a flat list, each
+	 * before the elements below it, with its depth (0 for a root); a client builds the tree from
+	 * the order and the depths. The list is flat because the JSON output of Structr prunes nested
+	 * objects at the output nesting depth (see StreamingWriter.MapSerializer), and an outline is
+	 * deeper than that.
+	 */
 	private List<Object> outlineOf(final List<HtmlNode> roots) {
 
 		final List<Object> outline = new LinkedList<>();
 
 		for (final HtmlNode root : roots) {
-
-			final List<Object> item = outlineOf(root, 0);
-
-			if (item != null) {
-				outline.add(item);
-			}
+			addToOutline(root, 0, outline);
 		}
 
 		return outline;
 	}
 
 	/**
-	 * An outline: [tag, flags, children, ids, expressions, data key, element id, sources]; the
-	 * flags are 1 (the element does something), 2 (it triggers an action mapping), 4 (it repeats),
-	 * 8 (it holds a text of its own), 16 (it has show or hide conditions) and 32 (it is a
-	 * component, whose data adapter provides a data key to the elements below it), the ids are
-	 * those of the repeater and action mapping nodes that live on the element, the expressions
-	 * those that its text shows, see expressionsOf. The element id is the UUID of the HTML
-	 * element itself, so that a client can show and change its settings and content. The sources
-	 * are the data sources of a repeater that are set (functionQuery, cypherQuery, flow), so that
-	 * a client can point out a repeater that cannot work. Text nodes and the head are left out,
-	 * except those with a script block (see isScript), which have the tag "content", so that a
-	 * client can show their code as it shows a template.
+	 * Adds an element and the elements below it to an outline and says whether it is part of
+	 * it. An item has the tag, id (the UUID of the HTML element itself, so that a client can show
+	 * and change its settings and content) and depth of the element, and only where they apply:
+	 * active (the element does something), action (it triggers an action mapping), repeater (it
+	 * repeats), text (it holds a text of its own), conditional (it has show or hide conditions),
+	 * component (it is a component, whose data adapter provides a data key to the elements below
+	 * it), ids (those of the repeater and action mapping nodes that live on the element),
+	 * expressions (those that its text shows, see expressionsOf), dataKey and sources (the data
+	 * sources of a repeater that are set: functionQuery, cypherQuery, flow, so that a client can
+	 * point out a repeater that cannot work). Text nodes and the head are left out, except those
+	 * with a script block (see isScript), which have the tag "content", so that a client can show
+	 * their code as it shows a template.
 	 */
-	private List<Object> outlineOf(final HtmlNode html, final int depth) {
+	private boolean addToOutline(final HtmlNode html, final int depth, final List<Object> outline) {
 
 		final boolean script = isScript(html);
 
 		if (!html.isElement && !html.node.is(StructrTraits.TEMPLATE) && !script) {
-			return null;
+			return false;
 		}
 
 		final String tag = html.isElement ? html.tag : (script ? "content" : "template");
 
 		if (tag == null || SKIPPED_TAGS.contains(tag)) {
-			return null;
+			return false;
 		}
 
-		final int flags             = (html.isActive ? 1 : 0) | (html.actions.isEmpty() ? 0 : 2) | (StringUtils.isNotEmpty(html.functionQuery) || StringUtils.isNotEmpty(html.dataKey) ? 4 : 0)
-			| (hasText(html) ? 8 : 0) | (StringUtils.isNotBlank(html.node.getShowConditions()) || StringUtils.isNotBlank(html.node.getHideConditions()) ? 16 : 0)
-			| (html.isComponent ? 32 : 0);
-		final List<Object> item     = new LinkedList<>(List.of(tag, flags));
-		final List<Object> children = new LinkedList<>();
-		final List<String> ids      = new LinkedList<>(html.mapIds);
+		final Map<String, Object> item = new LinkedHashMap<>();
+		final List<String> ids         = new LinkedList<>(html.mapIds);
+
+		item.put("tag",   tag);
+		item.put("id",    html.id);
+		item.put("depth", depth);
+
+		// the item stands before the elements below it
+		outline.add(item);
 
 		for (final HtmlNode child : html.children) {
 
-			final List<Object> childItem = depth < OUTLINE_DEPTH ? outlineOf(child, depth + 1) : null;
-
-			if (childItem != null) {
-
-				children.add(childItem);
-
-			} else {
+			if (depth >= OUTLINE_DEPTH || !addToOutline(child, depth + 1, outline)) {
 
 				// what lives below the depth of the outline, or inside an element it leaves out, is named at the deepest element it shows
 				collectMapIds(child, ids);
 			}
 		}
 
-		item.add(children);
-		item.add(ids);
-		item.add(StringUtils.defaultString(expressionsOf(html)));
-		item.add(StringUtils.trimToNull(html.dataKey));
-		item.add(html.id);
-		item.add(html.sources());
+		putIfTrue(item, "active",      html.isActive);
+		putIfTrue(item, "action",      !html.actions.isEmpty());
+		putIfTrue(item, "repeater",    StringUtils.isNotEmpty(html.functionQuery) || StringUtils.isNotEmpty(html.dataKey));
+		putIfTrue(item, "text",        hasText(html));
+		putIfTrue(item, "conditional", StringUtils.isNotBlank(html.node.getShowConditions()) || StringUtils.isNotBlank(html.node.getHideConditions()));
+		putIfTrue(item, "component",   html.isComponent);
 
-		return item;
+		putIfNotEmpty(item, "ids",         ids);
+		putIfNotEmpty(item, "expressions", expressionsOf(html));
+		putIfNotEmpty(item, "dataKey",     StringUtils.trimToNull(html.dataKey));
+		putIfNotEmpty(item, "sources",     html.sources());
+
+		return true;
+	}
+
+	private void putIfTrue(final Map<String, Object> item, final String key, final boolean value) {
+
+		if (value) {
+			item.put(key, true);
+		}
+	}
+
+	private void putIfNotEmpty(final Map<String, Object> item, final String key, final Collection<?> value) {
+
+		if (!value.isEmpty()) {
+			item.put(key, value);
+		}
+	}
+
+	private void putIfNotEmpty(final Map<String, Object> item, final String key, final String value) {
+
+		if (StringUtils.isNotEmpty(value)) {
+			item.put(key, value);
+		}
 	}
 
 	/**
