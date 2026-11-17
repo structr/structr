@@ -125,7 +125,7 @@ let _Security = {
 			}
 		});
 
-		if (isUser && entity.blocked !== true && entity.isAdmin !== true) {
+		if (isUser && entity.blocked !== true && entity.isAdmin !== true && Structr.rawEnvInfo?.testSessionsEnabled !== false) {
 
 			elements.push({
 				name: 'Test as this user…',

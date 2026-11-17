@@ -20,6 +20,7 @@ package org.structr.test.web.auth;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import org.structr.api.config.Settings;
 import org.structr.core.auth.OneTimeTokens;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
@@ -234,6 +235,42 @@ public class OneTimeTokenTest extends StructrUiTest {
 				.statusCode(401)
 			.when()
 				.get("/me");
+	}
+
+	@Test
+	public void testSwitchedOffNoTokenIsCreatedAndAnExistingOneOpensNoSession() {
+
+		createEntityAsSuperUser("/User", "{ 'name': 'boss6', 'password': '" + PASSWORD + "', 'isAdmin': true }");
+
+		final String userId = createEntityAsSuperUser("/User", "{ 'name': 'tester6', 'password': '" + PASSWORD + "' }");
+		final String token  = createToken("boss6", userId);
+
+		try {
+
+			Settings.TestSessionsEnabled.setValue(false);
+
+			RestAssured
+				.given()
+					.queryParam(OneTimeTokens.PARAMETER, token)
+				.expect()
+					.statusCode(401)
+				.when()
+					.get("/me");
+
+			RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.headers(X_USER_HEADER, "boss6", X_PASSWORD_HEADER, PASSWORD)
+					.body("{ 'user': '" + userId + "' }")
+				.expect()
+					.statusCode(403)
+				.when()
+					.post("/_oneTimeToken");
+
+		} finally {
+
+			Settings.TestSessionsEnabled.setValue(true);
+		}
 	}
 
 	@Test

@@ -18,6 +18,7 @@
  */
 package org.structr.rest.resource;
 
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -70,6 +71,10 @@ public class OneTimeTokenResource extends ExactMatchEndpoint {
 
 			if (admin == null || !securityContext.isSuperUser()) {
 				throw new NotAllowedException("One-time tokens are restricted to admin users");
+			}
+
+			if (!Settings.TestSessionsEnabled.getValue()) {
+				throw new NotAllowedException("Test sessions are switched off, see " + Settings.TestSessionsEnabled.getKey());
 			}
 
 			final Object userId      = propertySet.get("user");
