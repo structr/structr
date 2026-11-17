@@ -3409,6 +3409,11 @@ body.left-column-foldable.left-column-folded .column-resizer:not(.column-resizer
 	vertical-align: middle;
 }
 
+/* it keeps a little distance from what it stands beside, unless it is placed by hand */
+.info-toggle:not([style*="position: absolute"]) {
+	margin: 0 .25rem;
+}
+
 span.context-help-text {
 	position: fixed;
 	background: var(--color-background-hover);

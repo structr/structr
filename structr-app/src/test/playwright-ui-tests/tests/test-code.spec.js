@@ -130,7 +130,8 @@ test('user-defined-functions', async ({page}, testInfo) => {
 	await page.getByRole('button', {name: 'Save', exact: true}).click();
 	await expect(page.getByRole('button', {name: 'Save', exact: true})).toHaveAttribute('disabled');
 
-	await page.getByRole('link', {name: 'Methods', exact: true}).dblclick();
+	// right after the save, while the tree still reloads: what is opened now has to stay open
+	await page.locator('[data-id="methods"] > .jstree-ocl').first().click();
 	await page.getByRole('link', {name: 'Custom method sendEMail()'}).click();
 
 	await page.waitForTimeout(200);

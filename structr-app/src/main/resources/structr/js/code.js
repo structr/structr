@@ -1045,7 +1045,33 @@ let _Code = {
 			if (_Code.codeTree) {
 
 				let escapedId = id.replaceAll('/', '\\/');
-				_Code.codeTree.jstree().refresh_node(document.querySelector(`li#${escapedId}`));
+				let node      = document.querySelector(`li#${escapedId}`);
+				let tree      = _Code.codeTree.jstree();
+
+				if (node) {
+
+					// the reload puts back what was open when it began; what is opened while it runs is opened again after it
+					let opened = [];
+					let note   = (e, data) => opened.push(data.node.id);
+					let finish = () => {
+
+						_Code.codeTree.off('open_node.jstree', note);
+
+						for (let openedId of opened) {
+							tree.open_node(openedId);
+						}
+
+						opened = [];
+					};
+
+					_Code.codeTree.on('open_node.jstree', note);
+					_Code.codeTree.one('refresh_node.jstree', finish);
+
+					// a reload that sends no signal must not leave the listener behind
+					window.setTimeout(finish, 5000);
+				}
+
+				tree.refresh_node(node);
 			}
 		},
 		// reloads a level of the tree and runs the action once it has loaded, so that a new entry is there to be opened
