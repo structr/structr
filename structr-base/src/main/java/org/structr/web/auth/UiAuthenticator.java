@@ -39,6 +39,7 @@ import org.structr.common.helper.PathHelper;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.auth.OneTimeTokens;
 import org.structr.core.auth.ServicePrincipal;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.LoginAttemptBeforeConfirmationException;
@@ -139,6 +140,58 @@ public class UiAuthenticator implements Authenticator {
 	 * @return security context
 	 * @throws FrameworkException
 	 */
+	/**
+	 * A request that carries a valid one-time token opens a session as the user the token was created for, whatever
+	 * URL it asks for. An admin creates such a token to test the application as that user, see OneTimeTokenResource.
+	 */
+	private Principal redeemOneTimeToken(final HttpServletRequest request) throws FrameworkException {
+
+		final String value = request.getParameter(OneTimeTokens.PARAMETER);
+		if (value == null) {
+
+			return null;
+		}
+
+		// the authentication of a request may be repeated after a deadlock, and the token is gone after its first use
+		final OneTimeTokens.Token redeemed = (OneTimeTokens.Token) request.getAttribute(OneTimeTokens.REDEEMED_ATTRIBUTE);
+		final OneTimeTokens.Token token    = (redeemed != null) ? redeemed : OneTimeTokens.redeem(value);
+
+		if (token == null || !OneTimeTokens.PURPOSE_TEST_SESSION.equals(token.purpose())) {
+
+			logger.warn("One-time token refused: unknown, already used or expired.");
+
+			return null;
+		}
+
+		final NodeInterface node = StructrApp.getInstance().getNodeById(StructrTraits.USER, token.userId());
+		final Principal user     = (node != null) ? node.as(Principal.class) : null;
+
+		// checked again here: the user may have changed since the token was created
+		if (user == null || user.isBlocked() || user.isAdmin()) {
+
+			logger.warn("One-time token refused: the user does not exist any more, is blocked or is an admin.");
+
+			return null;
+		}
+
+		request.setAttribute(OneTimeTokens.REDEEMED_ATTRIBUTE, token);
+
+		AuthHelper.doLogin(request, user);
+
+		final jakarta.servlet.http.HttpSession session = request.getSession(false);
+		if (session != null) {
+
+			// the session says who opened it, which also ends it sooner, see SessionHelper.isSessionTimedOut
+			session.setAttribute(OneTimeTokens.SESSION_ATTRIBUTE, token.createdByName());
+		}
+
+		RuntimeEventLog.login("Test session opened", Map.of("user", user.getUuid(), "name", user.getName(), "openedBy", token.createdByName(), "openedById", token.createdById()));
+
+		logger.info("Test session for user {} opened by {}.", user.getName(), token.createdByName());
+
+		return user;
+	}
+
 	@Override
 	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
@@ -152,8 +205,12 @@ public class UiAuthenticator implements Authenticator {
 
 		 */
 
-		Principal user = checkExternalAuthentication(request, response);
+		Principal user = redeemOneTimeToken(request);
 		SecurityContext securityContext;
+
+		if (user == null) {
+			user = checkExternalAuthentication(request, response);
+		}
 
 		String authorizationToken = getAuthorizationToken(request);
 		if (user == null && StringUtils.isBlank(authorizationToken) && !response.isCommitted()) {

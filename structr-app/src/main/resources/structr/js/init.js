@@ -101,7 +101,21 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	});
 
-	StructrWS.init();
+	// a one-time token in the address opens the session before the UI connects; the address is cleaned of it
+	let oneTimeToken = new URLSearchParams(location.search).get('_structrOneTimeToken');
+	if (oneTimeToken) {
+
+		let cleaned = new URL(location.href);
+		cleaned.searchParams.delete('_structrOneTimeToken');
+		history.replaceState(null, '', cleaned);
+
+		fetch(`${Structr.rootUrl}me?_structrOneTimeToken=${encodeURIComponent(oneTimeToken)}`).finally(() => StructrWS.init());
+
+	} else {
+
+		StructrWS.init();
+	}
+
 	Structr.performActionAfterEnvResourceLoaded(Structr.globalSearch.init);
 
 	document.body.addEventListener('keyup', async (event) => {
