@@ -40,7 +40,7 @@ let _Theme = {
 			// private mode: the choice lasts for this page only
 		}
 	},
-	look:   () => (_Theme.current.look === 'next') ? 'next' : 'classic',
+	look:   () => (_Theme.current.look === 'classic') ? 'classic' : 'next',
 	scheme: () => ['light', 'dark'].includes(_Theme.current.scheme) ? _Theme.current.scheme : 'auto',
 	isNext: () => _Theme.look() === 'next',
 	isDark: () => _Theme.isNext() && (_Theme.scheme() === 'dark' || (_Theme.scheme() === 'auto' && _Theme.media.matches)),
@@ -74,6 +74,6 @@ let _Theme = {
 	color: (token) => getComputedStyle(document.documentElement).getPropertyValue('--' + token).trim()
 };
 
-_Theme.current = { look: _Theme.read(_Theme.lookKey, 'classic'), scheme: _Theme.read(_Theme.schemeKey, 'auto') };
+_Theme.current = { look: _Theme.read(_Theme.lookKey, 'next'), scheme: _Theme.read(_Theme.schemeKey, 'auto') };
 _Theme.media.addEventListener('change', _Theme.apply);
 _Theme.apply();

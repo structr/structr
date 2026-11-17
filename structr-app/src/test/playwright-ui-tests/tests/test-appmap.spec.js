@@ -253,10 +253,12 @@ test('application map', async ({page}) => {
 	await page.waitForFunction(() => !_AppMap.view.spotlight && !_AppMap.view.activity);
 	await page.mouse.move(5, 300);
 
-	// the dark look
-	await page.locator('[data-look="dark"]').click();
+	// the dark colour scheme: the map follows the scheme of the UI
+	await page.locator('#color-scheme-toggle').click();
+	await expect(page.locator('html')).toHaveClass(/theme-dark/);
 	await page.waitForTimeout(500);
 	await page.screenshot({ path: 'screenshots/appmap_dark.png' });
 
-	await page.locator('[data-look="light"]').click();
+	await page.locator('#color-scheme-toggle').click();
+	await expect(page.locator('html')).toHaveClass(/theme-light/);
 });

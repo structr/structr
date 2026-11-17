@@ -3962,16 +3962,16 @@ let UISettings = {
 				lookKey: {
 					text: 'Look',
 					storageKey: 'uiLook' + location.port,
-					defaultValue: 'classic',
+					defaultValue: 'next',
 					type: 'select',
-					infoText: 'The look of this UI. The new look follows the Structr Design system and is still being completed.',
+					infoText: 'The look of this UI. The new look follows the Structr Design system, with a light and a dark color scheme; the classic look is the one of earlier versions.',
 					onUpdate: () => {
 						Structr.changeLook();
 					},
 					inputCssClass: 'w-40 truncate',
 					possibleValues: {
-						Classic: { value: 'classic', text: 'Classic' },
-						Next:    { value: 'next',    text: 'New (preview)' }
+						Next:    { value: 'next',    text: 'New' },
+						Classic: { value: 'classic', text: 'Classic' }
 					}
 				},
 				colorSchemeKey: {
