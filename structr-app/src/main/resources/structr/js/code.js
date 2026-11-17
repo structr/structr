@@ -1048,6 +1048,25 @@ let _Code = {
 				_Code.codeTree.jstree().refresh_node(document.querySelector(`li#${escapedId}`));
 			}
 		},
+		// reloads a level of the tree and runs the action once it has loaded, so that a new entry is there to be opened
+		refreshNodeThen: (id, action) => {
+
+			let done = false;
+			let run  = () => {
+
+				if (!done) {
+					done = true;
+					action();
+				}
+			};
+
+			_Code.codeTree.one('refresh_node.jstree', run);
+
+			// a level that is not in the tree answers with no event
+			window.setTimeout(run, 2000);
+
+			_Code.tree.refreshNode(id);
+		},
 		findAndOpenNode: (path, updateLocationStack) => {
 			let tree = $('#code-tree').jstree(true);
 			_Code.tree.findAndOpenNodeRecursive(tree, document, path, 0, updateLocationStack);
@@ -1148,8 +1167,7 @@ let _Code = {
 
 				Command.create({ type: 'SchemaMethod', name: name, httpVerb: 'POST' }, (result) => {
 					_Code.mainArea.renameOnOpen = (lifecycleName ? null : result.id);
-					_Code.tree.refreshNode(_Code.mainArea.globalsPath);
-					_Code.search.goToResult(result);
+					_Code.tree.refreshNodeThen(_Code.mainArea.globalsPath, () => _Code.search.goToResult(result));
 				});
 			});
 		},
@@ -1176,8 +1194,7 @@ let _Code = {
 		createDataSource: (type) => {
 
 			Command.create({ type: type }, (result) => {
-				_Code.tree.refreshNode(_Code.mainArea.dataSourcesPath);
-				_Code.search.goToResult(result);
+				_Code.tree.refreshNodeThen(_Code.mainArea.dataSourcesPath, () => _Code.search.goToResult(result));
 			});
 		},
 		displayProcessesContent: (data) => {
@@ -1199,6 +1216,15 @@ let _Code = {
 
 			let kindOf     = (element) => (element.type ?? '').replace(/^Bpmn/, '').replace(/([a-z])([A-Z])/g, '$1 $2');
 			let isSelected = () => (_Code.codeTree.jstree(true).get_selected()[0] === data.path);
+			let name       = '';
+
+			// the diagram of the process is edited in the Processes area; set at once, so the button never opens the process shown before
+			_Code.mainArea.typeTabs.toolbar().querySelector('button[data-level="bpmnDefinitionMethods"]').onclick = () => {
+
+				location.hash = '#processes';
+
+				_Helpers.waitForElement('#processDefinitionsTable').then(() => _ProcessDiagram.show({ id: data.id, name: name }, name));
+			};
 
 			_Code.mainArea.displayOverview(data, ['Element', 'Kind', 'Methods'], (addRow) => {
 
@@ -1240,22 +1266,14 @@ let _Code = {
 					return;
 				}
 
-				let name  = definition?.processName || definition?.name || '[unnamed]';
+				name = definition?.processName || definition?.name || '[unnamed]';
+
 				let facts = [(definition?.version != null) ? `Version ${definition.version}` : null, `${(definition?.processes ?? []).length} ${(definition?.processes ?? []).length === 1 ? 'process' : 'processes'}`].filter(Boolean).join(' · ');
 
 				_Code.codeContents[0].insertAdjacentHTML('afterbegin', `
 					<h2 class="with-icon">${_Icons.getSvgIcon(_Icons.iconProcess, 16, 24, ['flex-shrink-0'])}${_Helpers.escapeTags(name)}</h2>
 					<p class="overview-note process-facts">${_Helpers.escapeTags(facts)}</p>
 				`);
-
-				// the diagram of the process is edited in the Processes area
-				let openButton = _Code.mainArea.typeTabs.toolbar().querySelector('button[data-level="bpmnDefinitionMethods"]');
-
-				openButton.onclick = () => {
-					location.hash = '#processes';
-
-					_Helpers.waitForElement('#processDefinitionsTable').then(() => _ProcessDiagram.show({ id: data.id, name: name }, name));
-				};
 
 			}, 'ui');
 		},

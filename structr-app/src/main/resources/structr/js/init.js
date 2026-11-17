@@ -1055,6 +1055,9 @@ let Structr = {
 			new MutationObserver(fit).observe(Structr.header.querySelector('.structr-instance-info'), { childList: true, subtree: true, characterData: true });
 
 			Structr.functionBar.addEventListener('scroll', Structr.mainMenu.fitToolbarTabs, true);
+
+			// a dropdown of a toolbar that scrolls sideways is placed at its button once; it closes when the toolbar moves
+			Structr.functionBar.addEventListener('scroll', () => Structr.dropdowns.hideOpenDropdownsExcept());
 			Structr.functionBar.addEventListener('transitionend', fit, true);
 		},
 		block: () => {
