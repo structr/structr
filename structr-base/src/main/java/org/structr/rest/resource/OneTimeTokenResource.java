@@ -95,7 +95,9 @@ public class OneTimeTokenResource extends ExactMatchEndpoint {
 				throw new NotAllowedException("An admin user cannot be the target of a test session");
 			}
 
-			final String token            = OneTimeTokens.create(OneTimeTokens.PURPOSE_TEST_SESSION, user.getUuid(), admin.getUuid(), admin.getName());
+			// a name is optional, an account may have an e-mail address only
+			final String adminName        = (admin.getName() != null) ? admin.getName() : admin.getUuid();
+			final String token            = OneTimeTokens.create(OneTimeTokens.PURPOSE_TEST_SESSION, user.getUuid(), admin.getUuid(), adminName);
 			final RestMethodResult result = new RestMethodResult(200);
 
 			result.setNonGraphObjectResult(Map.of(

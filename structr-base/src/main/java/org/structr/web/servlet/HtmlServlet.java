@@ -250,7 +250,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// a one-time token has opened the session: the same address again without it, so that it stays in no address bar, history or referrer
 			if (request.getAttribute(OneTimeTokens.REDEEMED_ATTRIBUTE) != null) {
 
-				sendRedirectHeader(response, OneTimeTokens.urlWithoutToken(request.getRequestURI(), request.getQueryString()), false);
+				sendRedirectHeader(response, OneTimeTokens.urlWithoutToken(request.getRequestURI(), request.getQueryString()));
 
 				return;
 			}

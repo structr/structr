@@ -72,12 +72,16 @@ public class SessionHelper {
 			int sessionTimeout      = Services.getGlobalSessionTimeout();
 
 			// a session an admin opened to test as another user ends sooner, see OneTimeTokens
-			if (session.getAttribute(OneTimeTokens.SESSION_ATTRIBUTE) != null) {
+			final String testSessionId = getShortSessionId(session.getId());
+
+			if (OneTimeTokens.isTestSession(testSessionId)) {
 
 				sessionTimeout = (sessionTimeout > 0) ? Math.min(sessionTimeout, OneTimeTokens.TEST_SESSION_TIMEOUT_SECONDS) : OneTimeTokens.TEST_SESSION_TIMEOUT_SECONDS;
 			}
 
 			if (sessionTimeout > 0 && now > lastAccessed + sessionTimeout * 1000) {
+
+				OneTimeTokens.forgetTestSession(testSessionId);
 
 				logger.debug("Session {} timed out, last accessed at {}", session.getId(), Instant.ofEpochMilli(lastAccessed).toString());
 

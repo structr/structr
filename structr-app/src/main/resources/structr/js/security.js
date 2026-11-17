@@ -558,6 +558,12 @@ let _UsersAndGroups = {
 				return;
 			}
 
+			// the link carries a token that logs in: it must not leave this instance
+			if (start.origin !== location.origin) {
+				new ErrorMessage().text(`The start address has to be on this instance (${location.origin}).`).show();
+				return;
+			}
+
 			let response = await fetch(`${Structr.rootUrl}_oneTimeToken`, { method: 'POST', body: JSON.stringify({ user: user.id }) });
 			let data     = await response.json().catch(() => ({}));
 			let result   = Array.isArray(data.result) ? data.result[0] : data.result;
@@ -572,7 +578,9 @@ let _UsersAndGroups = {
 
 			linkInput.value = start.toString();
 
-			dialogText.querySelector('.test-session-validity').textContent = `(valid once, for ${Math.round(result.validForSeconds / 60)} minutes)`;
+			let validity = (result.validForSeconds >= 120) ? `${Math.round(result.validForSeconds / 60)} minutes` : `${result.validForSeconds} seconds`;
+
+			dialogText.querySelector('.test-session-validity').textContent = `(valid once, for ${validity})`;
 			dialogText.querySelector('.test-session-result').classList.remove('hidden');
 
 			linkInput.select();
@@ -580,9 +588,19 @@ let _UsersAndGroups = {
 
 		dialogText.querySelector('.test-session-copy').addEventListener('click', async () => {
 
-			await navigator.clipboard.writeText(linkInput.value);
+			// the clipboard is only there on a secure address
+			try {
 
-			new SuccessMessage().text('Link copied to the clipboard.').show();
+				await navigator.clipboard.writeText(linkInput.value);
+
+				new SuccessMessage().text('Link copied to the clipboard.').show();
+
+			} catch (e) {
+
+				linkInput.select();
+
+				new WarningMessage().text('The browser does not allow copying here. The link is selected: copy it with the keyboard.').show();
+			}
 		});
 	},
 	getDisplayNameForUser: (user) => {

@@ -18,6 +18,10 @@
  */
 package org.structr.core.auth;
 
+import org.structr.api.config.Settings;
+
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
@@ -35,17 +39,17 @@ public class OneTimeTokens {
 	public static final String PARAMETER            = "_structrOneTimeToken";
 	public static final String PURPOSE_TEST_SESSION = "test-session";
 	public static final String REDEEMED_ATTRIBUTE   = "org.structr.oneTimeToken.redeemed";
-	public static final String SESSION_ATTRIBUTE    = "structrTestSessionOpenedBy";
 	public static final int TEST_SESSION_TIMEOUT_SECONDS = 3600;
 
-	private static final Map<String, Token> tokens = new ConcurrentHashMap<>();
-	private static final SecureRandom random       = new SecureRandom();
-	private static volatile long validityMillis    = 120_000L;
+	private static final Map<String, Token> tokens        = new ConcurrentHashMap<>();
+	private static final Map<String, Long> testSessions   = new ConcurrentHashMap<>();
+	private static final SecureRandom random              = new SecureRandom();
+	private static final long TEST_SESSION_MEMORY_MILLIS  = 7L * 24 * 3600 * 1000;
 
 	public record Token(String purpose, String userId, String createdById, String createdByName, long created) {
 
 		boolean isExpired() {
-			return System.currentTimeMillis() - created > validityMillis;
+			return System.currentTimeMillis() - created > getValidityMillis();
 		}
 	}
 
@@ -79,6 +83,27 @@ public class OneTimeTokens {
 	}
 
 	/**
+	 * The token a request carries in its address, or null. Read from the query string alone, so that the body of the request stays unread.
+	 */
+	public static String tokenIn(final String queryString) {
+
+		if (queryString == null || !queryString.contains(PARAMETER.substring(1))) {
+			return null;
+		}
+
+		for (final String pair : queryString.split("&")) {
+
+			final int eq = pair.indexOf('=');
+
+			if (eq > 0 && PARAMETER.equals(decode(pair.substring(0, eq)))) {
+				return decode(pair.substring(eq + 1));
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * The address of a request without the parameter of the token, for the redirect after it was redeemed.
 	 */
 	public static String urlWithoutToken(final String uri, final String queryString) {
@@ -87,17 +112,48 @@ public class OneTimeTokens {
 			return uri;
 		}
 
-		final String rest = Arrays.stream(queryString.split("&")).filter(pair -> !pair.equals(PARAMETER) && !pair.startsWith(PARAMETER + "=")).collect(Collectors.joining("&"));
+		final String rest = Arrays.stream(queryString.split("&")).filter(pair -> !PARAMETER.equals(decode(pair.split("=", 2)[0]))).collect(Collectors.joining("&"));
 
 		return rest.isEmpty() ? uri : uri + "?" + rest;
 	}
 
-	public static long getValidityMillis() {
-		return validityMillis;
+	// a session opened with a token is remembered by its id: the session store keeps no attributes, so a mark on the session would be lost
+	public static void rememberTestSession(final String sessionId) {
+
+		final long now = System.currentTimeMillis();
+
+		testSessions.values().removeIf(opened -> now - opened > TEST_SESSION_MEMORY_MILLIS);
+
+		if (sessionId != null) {
+			testSessions.put(sessionId, now);
+		}
 	}
 
-	// for tests of the expiry
-	public static void setValidityMillis(final long millis) {
-		validityMillis = millis;
+	public static boolean isTestSession(final String sessionId) {
+		return sessionId != null && testSessions.containsKey(sessionId);
+	}
+
+	public static void forgetTestSession(final String sessionId) {
+
+		if (sessionId != null) {
+			testSessions.remove(sessionId);
+		}
+	}
+
+	public static long getValidityMillis() {
+		return Math.max(1, Settings.TestSessionLinkValidity.getValue()) * 1000L;
+	}
+
+	private static String decode(final String value) {
+
+		try {
+
+			return URLDecoder.decode(value, StandardCharsets.UTF_8);
+
+		} catch (IllegalArgumentException iae) {
+
+			// not a valid encoding: taken as it is
+			return value;
+		}
 	}
 }
