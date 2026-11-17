@@ -156,6 +156,14 @@ public class UiAuthenticator implements Authenticator {
 		final OneTimeTokens.Token redeemed = (OneTimeTokens.Token) request.getAttribute(OneTimeTokens.REDEEMED_ATTRIBUTE);
 		final OneTimeTokens.Token token    = (redeemed != null) ? redeemed : OneTimeTokens.redeem(value);
 
+		// switched off after a token was created: the token is spent all the same
+		if (token != null && !Settings.TestSessionsEnabled.getValue()) {
+
+			logger.warn("One-time token refused: test sessions are switched off, see {}.", Settings.TestSessionsEnabled.getKey());
+
+			return null;
+		}
+
 		if (token == null || !OneTimeTokens.PURPOSE_TEST_SESSION.equals(token.purpose())) {
 
 			logger.warn("One-time token refused: unknown, already used or expired.");

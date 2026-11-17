@@ -112,6 +112,7 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 		info.setProperty(new StringProperty("legacyRequestParameters"), Settings.RequestParameterLegacyMode.getValue());
 		info.setProperty(new StringProperty("isDeploymentActive"),      DeployCommand.isDeploymentActive());
 		info.setProperty(new BooleanProperty("defaultCredentialsInUse"),   DefaultCredentialsCheck.isDefaultCredentialsInUse());
+		info.setProperty(new BooleanProperty("testSessionsEnabled"),       Settings.TestSessionsEnabled.getValue());
 
 		info.setProperty(new StringProperty("debuggerEnabled"),          Settings.ScriptingDebugger.getValue());
 

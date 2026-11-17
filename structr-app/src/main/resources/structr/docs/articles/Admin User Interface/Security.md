@@ -44,7 +44,7 @@ Enter the address the test should start at and click "Create link". Open the lin
 
 Any address of the instance can carry the link's parameter, `_structrOneTimeToken`: a page of the application, a REST endpoint, or the Admin UI itself. A page then answers with the same address without the parameter, so the token does not stay in the address bar or the history.
 
-The session ends after 60 minutes without activity, or earlier if the session timeout of the instance is shorter, and when the user logs out in that window. Every session opened this way is recorded in the Event Log as an Authentication event with the name of the admin who created the link. Only admins can create such a link; it cannot be created from a script.
+The session ends after 60 minutes without activity, or earlier if the session timeout of the instance is shorter, and when the user logs out in that window. Every session opened this way is recorded in the Event Log as an Authentication event with the name of the admin who created the link. Only admins can create such a link; it cannot be created from a script. The feature is on by default and can be switched off with the setting `security.testsessions.enabled`; the entry then disappears from the menu and existing links stop working.
 
 #### Security Dialog
 
