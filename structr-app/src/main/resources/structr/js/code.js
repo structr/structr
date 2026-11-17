@@ -1818,8 +1818,8 @@ let _Code = {
 
 						if (success) {
 
-							// reload tree node
-							_Code.tree.refreshNode(typePath);
+							// reload the level above the type, so that a new name of the type shows too
+							_Code.tree.refreshNode(typePath.substring(0, typePath.lastIndexOf('/')));
 
 							// and refresh center pane, on the tab that is open
 							_Code.mainArea.displaySchemaNodeContent(data, _Code.mainArea.typeTabs.activeTab());
@@ -3154,7 +3154,9 @@ let _Code = {
 						nameOutput.textContent = _Code.mainArea.scratchpad.nameOf(pad);
 
 						save();
-						_Code.codeTree.jstree(true).rename_node(data.path, _Code.mainArea.scratchpad.nameOf(pad));
+						// set_text, not rename_node: the tree allows no modifications, so a rename is refused without a word
+						_Code.codeTree.jstree(true).set_text(data.path, _Code.mainArea.scratchpad.nameOf(pad));
+						_Code.codeTree.jstree(true).redraw(true);
 					}
 				};
 
