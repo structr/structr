@@ -417,7 +417,7 @@ class AppMapView {
 		this.generation = (this.generation ?? 0) + 1;
 		this.analysis   = AppMapModel.analyse(this.links, n => this.anchorOf(n));
 		this.importance = AppMapModel.importance(this.links);
-		this.keyPages   = new Set([...this.importance].filter(([n, i]) => n.k === 'page' && i.value > 0).sort((a, b) => b[1].value - a[1].value).slice(0, AppMapView.KEY_PAGES).map(([n]) => n));
+		this.keyPages   = new Set([...this.importance].filter(([n, i]) => n.kind === 'page' && i.value > 0).sort((a, b) => b[1].value - a[1].value).slice(0, AppMapView.KEY_PAGES).map(([n]) => n));
 		this.context    = null;
 		this.liftedFor  = null;
 
@@ -438,7 +438,7 @@ class AppMapView {
 
 	groupKeyOf(n) {
 
-		return n.c?.[1] ?? '-';
+		return n.grouping ?? '-';
 	}
 
 	// the element a grouping is named after: the type, page, component, group or endpoint
@@ -473,7 +473,7 @@ class AppMapView {
 	// pages and shared components, the sheets of the map
 	static isSheet(n) {
 
-		return n.k === 'page' || n.k === 'component';
+		return n.kind === 'page' || n.kind === 'component';
 	}
 
 	/**
@@ -489,42 +489,42 @@ class AppMapView {
 		// a REST endpoint and a group are as large as what their cards hold, the grants of the one, the members and grants of
 		// the other (see AppMapPanels.insidePanel, whose card is as large as the element)
 		if (AppMapView.byContent(n)) {
-			return n.k === 'api' ? (n.rest?.n ?? 1) : n.s;
+			return n.kind === 'api' ? (n.rest?.rules ?? 1) : n.size;
 		}
 
 		if (this.sizeBy === 'objects') {
-			return n.s ?? 0;
+			return n.size ?? 0;
 		}
 
 		if (this.sizeBy !== 'size') {
 			return AppMapView.isSheet(n) ? (this.importance.get(n)?.value ?? 0) : degree;
 		}
 
-		return n.s ?? (n.d ? AppMapView.outlineSize(n.d) : null) ?? (n.k === 'group' ? n.m : null) ?? degree;
+		return n.size ?? (n.outline ? AppMapView.outlineSize(n.outline) : null) ?? (n.kind === 'group' ? n.members : null) ?? degree;
 	}
 
 	// sizes are compared within a sector, and by size within one kind, as the lines of a method say nothing about a type
 	scaleKeyOf(n) {
 
-		const area = n.c?.[0] ?? '-';
+		const area = n.area ?? '-';
 
 		if (this.sizeBy === 'objects') {
 			return '*';
 		}
 
-		return this.sizeBy === 'size' || AppMapView.byContent(n) ? `${area}|${n.k}` : area;
+		return this.sizeBy === 'size' || AppMapView.byContent(n) ? `${area}|${n.kind}` : area;
 	}
 
 	// the elements whose size follows what they hold, compared only among their kind, see measureOf
 	static byContent(n) {
 
-		return n.k === 'api' || n.k === 'group';
+		return n.kind === 'api' || n.kind === 'group';
 	}
 
-	// the number of HTML elements in an outline of nested [tag, flags, children, ids, expressions]
+	// the number of HTML elements in an outline, a flat list of its items, see AppMapModel
 	static outlineSize(items) {
 
-		return d3.sum(items, item => 1 + AppMapView.outlineSize(item[2] ?? []));
+		return items.length;
 	}
 
 	// the radius an element is drawn with at the current zoom, see SIZE_ZOOM and DRAWN
@@ -598,7 +598,7 @@ class AppMapView {
 			const shown  = l => !AppMapModel.STRUCTURE.has(l.kind);
 			const beyond = this.links
 				.filter(l => l.source !== n && l.target !== n && (first.has(l.source) || first.has(l.target)) && shown(l))
-				.sort((a, b) => b.w - a.w)
+				.sort((a, b) => b.weight - a.weight)
 				.slice(0, AppMapView.CONTEXT_LIMIT);
 			const nodes  = new Set(beyond.flatMap(l => [l.source, l.target]).filter(x => x !== n && !first.has(x)));
 			const module = this.hotspotOf(n) ? this.analysis.moduleOf.get(n) : null;
@@ -907,16 +907,16 @@ class AppMapView {
 		// the card of a type, a REST endpoint, a group or an external service, and the code of a method, open at the size of
 		// their text, whatever their size: the names of the rows at CARD_TEXT, the code at CODE_TEXT; a card taller than the
 		// screen stands with its top on it (see glideInto)
-		if (!n.page && AppMapPanels.INSIDE_KINDS.has(n.k)) {
+		if (!n.page && AppMapPanels.INSIDE_KINDS.has(n.kind)) {
 			return this.zoomWhere(k => this.panels.insidePanel(n, k, this.drawnRadiusAt(n, k)).em * AppMapPanels.ROW_NAME * k, AppMapView.CARD_TEXT);
 		}
 
-		if (!n.page && AppMapPanels.hasCode(n) && n.k === 'method') {
+		if (!n.page && AppMapPanels.hasCode(n) && n.kind === 'method') {
 			return this.zoomWhere(k => this.panels.codePanel(n, k, this.drawnRadiusAt(n, k)).font * k, AppMapView.CODE_TEXT);
 		}
 
 		const size   = n.page ? k => (p => [p.width, p.height])(this.panels.elementPanel(n, k))
-			: AppMapPanels.INSIDE_KINDS.has(n.k) ? k => (p => [p.width, p.height])(this.panels.insidePanel(n, k, this.drawnRadiusAt(n, k)))
+			: AppMapPanels.INSIDE_KINDS.has(n.kind) ? k => (p => [p.width, p.height])(this.panels.insidePanel(n, k, this.drawnRadiusAt(n, k)))
 			: k => AppMapRenderer.boxOf(n).map(v => 2 * v * this.drawnRadiusAt(n, k));
 		const across = this.zoomWhere(k => size(k)[0] * k, AppMapView.GLIDE_FILL * this.width);
 		const down   = this.zoomWhere(k => size(k)[1] * k, AppMapView.GLIDE_FILL * this.height);
@@ -968,7 +968,7 @@ class AppMapView {
 
 		const t       = this.transform;
 
-		if (!n.page && n.k === 'method') {
+		if (!n.page && n.kind === 'method') {
 
 			const centred = Math.abs(t.applyX(n.x) - this.width / 2) < this.width / 4 && Math.abs(t.applyY(n.y) - this.height / 2) < this.height / 4;
 
@@ -1261,7 +1261,7 @@ class AppMapView {
 		}
 
 		const targetOf = id => known(id) ?? (this.located.get(id) ?? []).map(known).find(Boolean);
-		const hits     = [...this.byId.values()].filter(n => (n.n != null && fold(n.n).includes(wanted)) || (n.r ?? []).some(route => fold(route.p).includes(wanted)));
+		const hits     = [...this.byId.values()].filter(n => (n.name != null && fold(n.name).includes(wanted)) || (n.routes ?? []).some(route => fold(route.path).includes(wanted)));
 		const found    = { text: searchString, elements: new Set(), inner: new Set() };
 
 		this.foundFor = new Map(ids.map(id => [id, targetOf(id)]).filter(([, n]) => n));
@@ -1369,7 +1369,7 @@ class AppMapView {
 	measure() {
 
 		if (this.activity) {
-			this.activity = { mode: this.activity.mode, ...this.heatOf(n => n.hits, AppMapView.ACTIVITY[this.activity.mode]) };
+			this.activity = { mode: this.activity.mode, ...this.heatOf(n => n.requests != null, AppMapView.ACTIVITY[this.activity.mode]) };
 		}
 
 		this.updateHint();
@@ -1416,7 +1416,7 @@ class AppMapView {
 
 		for (const n of this.nodes) {
 
-			n.hits = fresh[n.id]?.hits;
+			n.requests = fresh[n.id]?.requests;
 		}
 
 		this.measure();
@@ -1473,12 +1473,12 @@ class AppMapView {
 	}
 
 	// what the activity lens shows of an element: its number of requests or runs
-	static ACTIVITY = { usage: n => n.hits.n };
+	static ACTIVITY = { usage: n => n.requests };
 
 	// the use of an element in words: a scheduled method runs, anything else is requested
 	static describeUse(n) {
 
-		const count = n.hits.n;
+		const count = n.requests;
 
 		return `${count.toLocaleString()} ` + (n.cron ? (count === 1 ? 'run' : 'runs') : (count === 1 ? 'request' : 'requests'));
 	}
@@ -1509,14 +1509,14 @@ class AppMapView {
 
 		const { heat, top } = this.activity;
 
-		return !top ? 'Nothing used since the start' : `${heat.size.toLocaleString()} elements used since the start · most used: ${top.n} with ${AppMapView.describeUse(top)}`;
+		return !top ? 'Nothing used since the start' : `${heat.size.toLocaleString()} elements used since the start · most used: ${top.name} with ${AppMapView.describeUse(top)}`;
 	}
 
 	// the lens in one line, for the line below the map
 	describeLens() {
 
 		const access  = this.access;
-		const pages   = this.nodes.filter(n => n.k === 'page');
+		const pages   = this.nodes.filter(n => n.kind === 'page');
 		const seen    = pages.filter(n => access.pages.get(n)).length;
 		const types   = [...access.rights.values()];
 		const count   = right => types.filter(own => own.has(right)).length;
@@ -1528,9 +1528,9 @@ class AppMapView {
 	// the start page: the page of the lowest position, among those the role of the lens sees
 	startPage() {
 
-		const pages = this.nodes.filter(n => n.k === 'page' && n.pos != null && (!this.access || this.access.pages.get(n)));
+		const pages = this.nodes.filter(n => n.kind === 'page' && n.position != null && (!this.access || this.access.pages.get(n)));
 
-		return pages.length ? pages.reduce((a, b) => b.pos < a.pos ? b : a) : null;
+		return pages.length ? pages.reduce((a, b) => b.position < a.position ? b : a) : null;
 	}
 
 	// glides to an element and holds its focus: at the current zoom, unless that is too close for it, as it is after the card
@@ -1572,9 +1572,9 @@ class AppMapView {
 
 			const button = document.createElement('button');
 
-			button.textContent = n.n;
-			button.title       = AppMapModel.KIND_LABEL[n.k];
-			button.style.setProperty('--kind', this.look.kinds[n.k] ?? '#888888');
+			button.textContent = n.name;
+			button.title       = AppMapModel.KIND_LABEL[n.kind];
+			button.style.setProperty('--kind', this.look.kinds[n.kind] ?? '#888888');
 			button.setAttribute('aria-current', String(n === this.pinned && !this.pinnedDom));
 			button.addEventListener('click', () => {
 
@@ -1591,7 +1591,7 @@ class AppMapView {
 			const box = document.createElement('button');
 
 			box.textContent = AppMapPanels.nameOf(this.pinnedDom);
-			box.title       = (this.pinnedDom.data.inner ?? []).map(m => m.n).join(', ');
+			box.title       = (this.pinnedDom.data.inner ?? []).map(m => m.name).join(', ');
 			box.disabled    = true;
 			box.style.setProperty('--kind', this.look.kinds.dom ?? '#888888');
 			box.setAttribute('aria-current', 'true');
@@ -2026,7 +2026,7 @@ class AppMapView {
 		// a type, a REST endpoint, a group or an external service: its card at the size of its text (see fillZoom), in the
 		// middle, or with its top on the screen where it is taller; the card is only as high as what it holds, so the glide
 		// waits until that is there
-		if (AppMapPanels.INSIDE_KINDS.has(n.k)) {
+		if (AppMapPanels.INSIDE_KINDS.has(n.kind)) {
 
 			this.panels.requestInside(n).then(() => {
 
@@ -2243,7 +2243,7 @@ class AppMapView {
 			const r      = Math.max(this.shownRadius(n), 2 / k);
 			const box    = AppMapRenderer.boxOf(n);
 			const gap    = box ? AppMapView.boxGap(x - n.x, y - n.y, r * box[0], r * box[1]) : Math.hypot(n.x - x, n.y - y) - r;
-			const margin = Math.max(0, AppMapView.MIN_TARGET / k - r, n.k === 'type' && small(n) ? r * AppMapView.TYPE_MARGIN : 0);
+			const margin = Math.max(0, AppMapView.MIN_TARGET / k - r, n.kind === 'type' && small(n) ? r * AppMapView.TYPE_MARGIN : 0);
 
 			if (gap <= margin && gap < bestGap) {
 
@@ -2275,9 +2275,9 @@ class AppMapView {
 	// what the tooltip says about an element: its kind, and what Structr does with it
 	describe(n) {
 
-		const parts = [AppMapModel.KIND_LABEL[n.k]];
+		const parts = [AppMapModel.KIND_LABEL[n.kind]];
 
-		if (n.p) {
+		if (n.public) {
 			parts.push('public');
 		}
 
@@ -2286,20 +2286,20 @@ class AppMapView {
 		}
 
 		// how large it is in its own terms, as the server measures it
-		if (n.s) {
-			parts.push(`${n.s} ${{ type: 'properties', method: 'lines of code', page: 'HTML elements', component: 'HTML elements' }[n.k] ?? 'parts'}`);
+		if (n.size) {
+			parts.push(`${n.size} ${{ type: 'properties', method: 'lines of code', page: 'HTML elements', component: 'HTML elements' }[n.kind] ?? 'parts'}`);
 		}
 
 		// how a page is reached and what it is for
 		parts.push(...this.describeRouting(n));
 
 		// how often it was requested or ran since the start
-		if (n.hits) {
+		if (n.requests != null) {
 			parts.push(AppMapView.describeUse(n) + ' since the start');
 		}
 
 		// how often a page was viewed in the last days, which outlives a restart
-		if (n.k === 'page') {
+		if (n.kind === 'page') {
 
 			const views = this.describePageViews(n);
 
@@ -2309,7 +2309,7 @@ class AppMapView {
 		}
 
 		// what deleting it takes along, and what it passes on
-		if (n.k === 'type') {
+		if (n.kind === 'type') {
 			parts.push(...this.describeSchema(n));
 		}
 
@@ -2327,7 +2327,7 @@ class AppMapView {
 		const section = this.model.sections.get(this.groupKeyOf(n));
 
 		if (section) {
-			parts.push(`in the section ${section.n}`);
+			parts.push(`in the section ${section.name}`);
 		}
 
 		// why a page or component has its size, see AppMapModel.importance
@@ -2346,7 +2346,7 @@ class AppMapView {
 			parts.push(`hotspot ${hotspot.place} of ${this.analysis.hotspots.size}, used by ${hotspot.users} groupings`);
 
 			if (hotspot.changedBy.length) {
-				parts.push(`changed by ${hotspot.changedBy.map(x => x.n).join(', ')}`);
+				parts.push(`changed by ${hotspot.changedBy.map(x => x.name).join(', ')}`);
 			}
 
 			if (hotspot.effects.length) {
@@ -2358,9 +2358,9 @@ class AppMapView {
 
 		if (n.rest) {
 
-			const whom = [n.rest.pub ? 'anonymous' : null, n.rest.auth ? 'authenticated' : null].filter(Boolean).join(' and ');
+			const whom = [n.rest.public ? 'anonymous' : null, n.rest.authenticated ? 'authenticated' : null].filter(Boolean).join(' and ');
 
-			parts.push(`REST: ${n.rest.n} resource access ${n.rest.n === 1 ? 'grant' : 'grants'}${whom ? ` for ${whom} users` : ''}`);
+			parts.push(`REST: ${n.rest.rules} resource access ${n.rest.rules === 1 ? 'grant' : 'grants'}${whom ? ` for ${whom} users` : ''}`);
 		}
 
 		return parts.join(' · ');
@@ -2371,23 +2371,23 @@ class AppMapView {
 
 		const parts = [];
 
-		for (const route of n.r ?? []) {
-			parts.push(`URL ${route.p}${route.cur ? ` opens a ${route.cur}` : ''}${route.w ? ` (${route.w} ${route.w === 1 ? 'warning' : 'warnings'})` : ''}`);
+		for (const route of n.routes ?? []) {
+			parts.push(`URL ${route.path}${route.currentType ? ` opens a ${route.currentType}` : ''}${route.warnings ? ` (${route.warnings} ${route.warnings === 1 ? 'warning' : 'warnings'})` : ''}`);
 		}
 
 		if (n === this.startPage()) {
 			parts.push('the start page');
 		}
 
-		if (n.err) {
-			parts.push(`shown for the errors ${n.err}`);
+		if (n.errorCodes) {
+			parts.push(`shown for the errors ${n.errorCodes}`);
 		}
 
-		if (n.ct) {
-			parts.push(`delivers ${n.ct}`);
+		if (n.contentType) {
+			parts.push(`delivers ${n.contentType}`);
 		}
 
-		const sites = this.model.sites.filter(site => site.pages.includes(n.id)).map(site => site.n);
+		const sites = this.model.sites.filter(site => site.pages.includes(n.id)).map(site => site.name);
 
 		if (sites.length) {
 			parts.push(`on ${sites.length === 1 ? 'the site' : 'the sites'} ${sites.join(', ')}`);
@@ -2401,8 +2401,8 @@ class AppMapView {
 
 		const parts   = [];
 		const cascade = [...AppMapAccess.cascadeOf(this.links, n)];
-		const certain = cascade.filter(([, step]) => !step.maybe).map(([type]) => type.n);
-		const maybe   = cascade.filter(([, step]) => step.maybe).map(([type]) => type.n);
+		const certain = cascade.filter(([, step]) => !step.maybe).map(([type]) => type.name);
+		const maybe   = cascade.filter(([, step]) => step.maybe).map(([type]) => type.name);
 
 		if (certain.length) {
 			parts.push(`deleting one deletes its ${certain.join(', ')}`);
@@ -2413,10 +2413,10 @@ class AppMapView {
 		}
 
 		// the types it passes rights on to, by the rights they get
-		const passes = d3.groups(AppMapAccess.propagation(this.links).filter(hop => hop.from === n), ({ l }) => AppMapAccess.RIGHTS.filter(right => l.x[right] === 'Add').map(right => AppMapAccess.RIGHT_LABEL[right]).join(', '));
+		const passes = d3.groups(AppMapAccess.propagation(this.links).filter(hop => hop.from === n), ({ l }) => AppMapAccess.RIGHTS.filter(right => l.details[AppMapAccess.RIGHT_LABEL[right]] === 'Add').map(right => AppMapAccess.RIGHT_LABEL[right]).join(', '));
 
 		for (const [rights, hops] of passes.filter(([rights]) => rights)) {
-			parts.push(`passes ${rights} on to ${hops.map(({ to }) => to.n).join(', ')}`);
+			parts.push(`passes ${rights} on to ${hops.map(({ to }) => to.name).join(', ')}`);
 		}
 
 		return parts;
@@ -2434,16 +2434,16 @@ class AppMapView {
 
 			const pages = `${members.length} pages and shared components`;
 			const why   = section.how === 'category'
-				? `that the developer gave the category ${section.n}`
-				: `that work with ${this.byId.get(key.slice('section:type:'.length))?.n ?? 'one type'} more than with any other type`;
+				? `that the developer gave the category ${section.name}`
+				: `that work with ${this.byId.get(key.slice('section:type:'.length))?.name ?? 'one type'} more than with any other type`;
 
 			return `A section of the user interface: ${pages} ${why}, and what only they hold or lead to.`;
 		}
 
 		const anchor = this.byId.get(key);
-		const kinds  = d3.rollups(members.filter(m => m !== anchor), v => v.length, m => AppMapModel.KIND_LABEL[m.k].toLowerCase());
+		const kinds  = d3.rollups(members.filter(m => m !== anchor), v => v.length, m => AppMapModel.KIND_LABEL[m.kind].toLowerCase());
 
-		return `${AppMapModel.KIND_LABEL[anchor?.k] ?? 'Grouping'} ${anchor?.n ?? key} with ${kinds.map(([kind, n]) => count(n, kind)).join(', ') || 'nothing else'} that belong to it.`;
+		return `${AppMapModel.KIND_LABEL[anchor?.kind] ?? 'Grouping'} ${anchor?.name ?? key} with ${kinds.map(([kind, n]) => count(n, kind)).join(', ') || 'nothing else'} that belong to it.`;
 	}
 
 	// what makes a page or shared component important: "opened from 13 pages, changes 5 types, shows 4"
@@ -2453,7 +2453,7 @@ class AppMapView {
 		const parts = [];
 
 		// a component is reached through the pages that hold it, too
-		parts.push(importance.from.size ? `${n.k === 'component' ? 'on' : 'opened from'} ${count(importance.from.size, 'page')}` : 'no page leads here');
+		parts.push(importance.from.size ? `${n.kind === 'component' ? 'on' : 'opened from'} ${count(importance.from.size, 'page')}` : 'no page leads here');
 
 		if (importance.changes.size) {
 			parts.push(`changes ${count(importance.changes.size, 'type')}`);
@@ -2471,25 +2471,25 @@ class AppMapView {
 	}
 
 	// who may see a page or shared component: its visibility, its owner and the grants of users and groups
-	describeAccess(acc) {
+	describeAccess(access) {
 
 		const parts = [];
 
-		if (acc.pub || acc.auth) {
-			parts.push(`visible to ${[acc.pub ? 'public' : null, acc.auth ? 'authenticated' : null].filter(Boolean).join(' and ')} users`);
+		if (access.public || access.authenticated) {
+			parts.push(`visible to ${[access.public ? 'public' : null, access.authenticated ? 'authenticated' : null].filter(Boolean).join(' and ')} users`);
 		} else {
 			parts.push('not visible to public or authenticated users');
 		}
 
-		if (acc.own) {
-			parts.push(`owner ${acc.own}`);
+		if (access.owner) {
+			parts.push(`owner ${access.owner}`);
 		}
 
-		for (const [principal, permissions] of acc.g ?? []) {
+		for (const { principal, permissions } of access.grants ?? []) {
 			parts.push(`${principal}: ${permissions.split(',').join(', ')}`);
 		}
 
-		if (!acc.own && !acc.g?.length && !acc.pub && !acc.auth) {
+		if (!access.owner && !access.grants?.length && !access.public && !access.authenticated) {
 			parts.push('only admins see it');
 		}
 
@@ -2499,7 +2499,7 @@ class AppMapView {
 	// how many HTML elements of a page or shared component have problems, see AppMapPanels.problemsOfPage
 	// ----- call traces: the scripting errors with the calls that led to them (see CallTraces), on the elements of the map -----
 	/**
-	 * Takes the scripting errors as the server gives them: { m: message, c: count, t: time, f: frames }, the frames the
+	 * Takes the scripting errors as the server gives them: { message, count, last, frames }, the frames the
 	 * failing one first, then its callers, each with the line it failed in or made its call from.
 	 */
 	setTraces(list) {
@@ -2517,7 +2517,7 @@ class AppMapView {
 	 */
 	resolveTraces() {
 
-		const key      = t => JSON.stringify([t.m, t.f]);
+		const key      = t => JSON.stringify([t.message, t.frames]);
 		const shown    = this.callTrace ? key(this.callTrace) : null;
 		this.traces    = [];
 		this.tracesOf  = new Map();
@@ -2526,22 +2526,22 @@ class AppMapView {
 
 			const steps = [];
 
-			for (const frame of t.f ?? []) {
+			for (const frame of t.frames ?? []) {
 
 				const n    = this.traceElement(frame);
 				const last = steps[steps.length - 1];
 
-				if (n && last?.n === n) {
+				if (n && last?.node === n) {
 
 					last.frames.push(frame);
 
 				} else {
 
-					steps.push({ n, frames: [frame] });
+					steps.push({ node: n, frames: [frame] });
 				}
 			}
 
-			const trace = { ...t, steps, origin: steps[0]?.n ?? null };
+			const trace = { ...t, steps, origin: steps[0]?.node ?? null };
 
 			this.traces.push(trace);
 
@@ -2561,7 +2561,7 @@ class AppMapView {
 	 */
 	traceElement(frame) {
 
-		for (const id of frame.at ?? []) {
+		for (const id of frame.elements ?? []) {
 
 			const n = this.byId.get(id);
 
@@ -2570,13 +2570,13 @@ class AppMapView {
 			}
 		}
 
-		const name = String(frame.n ?? '');
+		const name = String(frame.name ?? '');
 
-		if (frame.k === 'CRON') {
-			return this.nodes.find(n => n.k === 'method' && n.n === name) ?? null;
+		if (frame.kind === 'CRON') {
+			return this.nodes.find(n => n.kind === 'method' && n.name === name) ?? null;
 		}
 
-		if (frame.k !== 'HTTP') {
+		if (frame.kind !== 'HTTP') {
 			return null;
 		}
 
@@ -2586,15 +2586,15 @@ class AppMapView {
 		if (rest) {
 
 			const target = '/' + rest[1].replace(/\/$/, '');
-			const api    = this.nodes.filter(n => n.k === 'api' && (target === n.n || target.startsWith(n.n + '/'))).sort((a, b) => b.n.length - a.n.length)[0];
+			const api    = this.nodes.filter(n => n.kind === 'api' && (target === n.name || target.startsWith(n.name + '/'))).sort((a, b) => b.name.length - a.name.length)[0];
 
-			return api ?? this.nodes.find(n => n.k === 'type' && n.n === target.split('/')[1]) ?? null;
+			return api ?? this.nodes.find(n => n.kind === 'type' && n.name === target.split('/')[1]) ?? null;
 		}
 
 		const first = path.split('/').filter(Boolean)[0] ?? '';
 
-		return this.nodes.find(n => n.k === 'page' && (n.r ?? []).some(route => route.p === path))
-			?? this.nodes.find(n => n.k === 'page' && n.n === first)
+		return this.nodes.find(n => n.kind === 'page' && (n.routes ?? []).some(route => route.path === path))
+			?? this.nodes.find(n => n.kind === 'page' && n.name === first)
 			?? null;
 	}
 
@@ -2622,7 +2622,7 @@ class AppMapView {
 
 		this.pin(n);
 		this.callTrace = traces[index];
-		this.showWhole(this.callTrace.steps.map(step => step.n).filter(Boolean));
+		this.showWhole(this.callTrace.steps.map(step => step.node).filter(Boolean));
 		this.updateHint();
 		this.requestDraw();
 	}
@@ -2656,10 +2656,10 @@ class AppMapView {
 	static stepLabel(step) {
 
 		const frame = step.frames[0];
-		const name  = String(step.n?.n ?? frame.d ?? frame.n ?? frame.k);
-		const verb  = frame.k === 'HTTP' && frame.m && !name.startsWith(frame.m) ? `${frame.m} ` : '';
+		const name  = String(step.node?.name ?? frame.description ?? frame.name ?? frame.kind);
+		const verb  = frame.kind === 'HTTP' && frame.method && !name.startsWith(frame.method) ? `${frame.method} ` : '';
 
-		return `${verb}${name}${frame.r ? `:${frame.r}` : ''}`;
+		return `${verb}${name}${frame.row ? `:${frame.row}` : ''}`;
 	}
 
 	// a call trace in one line, from the failing step to where the work entered
@@ -2677,7 +2677,7 @@ class AppMapView {
 
 		for (const t of traces.slice(0, AppMapView.TRACES_SHOWN)) {
 
-			lines.push(`${shorten(t.m ?? 'Scripting error')}${t.c > 1 ? ` (${t.c}×)` : ''}`);
+			lines.push(`${shorten(t.message ?? 'Scripting error')}${t.count > 1 ? ` (${t.count}×)` : ''}`);
 			lines.push(`   ${AppMapView.traceLine(t)}`);
 		}
 
@@ -2709,7 +2709,7 @@ class AppMapView {
 		const t      = this.callTrace;
 		const others = (this.tracesOf.get(t.origin)?.length ?? 1) - 1;
 
-		return `${t.m ?? 'Scripting error'} · ${AppMapView.traceLine(t)}${others ? ` · click the sign for the next of ${others + 1}` : ''} · Esc ends`;
+		return `${t.message ?? 'Scripting error'} · ${AppMapView.traceLine(t)}${others ? ` · click the sign for the next of ${others + 1}` : ''} · Esc ends`;
 	}
 
 	describePageProblems(n) {
@@ -2748,22 +2748,22 @@ class AppMapView {
 
 		for (const n of d.data.inner ?? []) {
 
-			if (n.k === 'view') {
+			if (n.kind === 'view') {
 
-				lines.push(['Repeats', `${n.t ?? 'objects of a type not found'}${AppMapView.typeSource(n.how)}`]);
+				lines.push(['Repeats', `${n.type ?? 'objects of a type not found'}${AppMapView.typeSource(n.how)}`]);
 				continue;
 			}
 
 			// a method the server did not find in the schema keeps the name the action mapping gives it
-			const named  = String(n.n).split('→').pop().trim();
-			const method = this.byId.get(n.m)?.n;
-			const verb   = { create: 'creates', update: 'updates', delete: 'deletes' }[n.a];
-			const what   = n.a === 'method' || (!n.a && method) ? (method ? `runs ${method}()` : `runs ${named}, which is no method of the schema`)
-				: verb ? `${verb} ${n.t ?? 'an object of a type not found'}${AppMapView.typeSource(n.how)}`
-				: (AppMapView.ACTIONS[n.a] ?? (n.a ? `does ${n.a}` : named));
-			const leads  = this.links.filter(l => l.via === n && l.kind === 'navigates').map(l => l.target.n);
+			const named  = String(n.name).split('→').pop().trim();
+			const method = this.byId.get(n.method)?.name;
+			const verb   = { create: 'creates', update: 'updates', delete: 'deletes' }[n.action];
+			const what   = n.action === 'method' || (!n.action && method) ? (method ? `runs ${method}()` : `runs ${named}, which is no method of the schema`)
+				: verb ? `${verb} ${n.type ?? 'an object of a type not found'}${AppMapView.typeSource(n.how)}`
+				: (AppMapView.ACTIONS[n.action] ?? (n.action ? `does ${n.action}` : named));
+			const leads  = this.links.filter(l => l.via === n && l.kind === 'navigates').map(l => l.target.name);
 
-			lines.push([`On ${n.ev ?? 'an event'}`, `${what}${leads.length ? `, then opens ${leads.join(', ')}` : ''}`]);
+			lines.push([`On ${n.event ?? 'an event'}`, `${what}${leads.length ? `, then opens ${leads.join(', ')}` : ''}`]);
 		}
 
 		const shows = d.data.shows ? [`Shows ${d.data.shows}`] : [];
@@ -2793,7 +2793,7 @@ class AppMapView {
 
 		// fields that save themselves when they change are one line: what they change, and the fields
 		const edits  = chosen.filter(l => AppMapView.isFieldEdit(l.via));
-		const fields = d3.rollups(edits, v => [...new Set(v.map(l => l.via.use?.el ?? l.via.n))], l => `${{ create: 'creates', update: 'updates', delete: 'deletes' }[l.via.a]} ${l.via.t ?? 'an object'}`)
+		const fields = d3.rollups(edits, v => [...new Set(v.map(l => l.via.use?.element ?? l.via.name))], l => `${{ create: 'creates', update: 'updates', delete: 'deletes' }[l.via.action]} ${l.via.type ?? 'an object'}`)
 			.map(([what, names]) => [`${what} from ${names.length === 1 ? 'the field' : `${names.length} fields:`} ${names.slice(0, 6).map(n => `“${n}”`).join(', ')}${names.length > 6 ? ', …' : ''}`, 1]);
 
 		const lines  = d3.rollups(chosen.filter(l => !AppMapView.isFieldEdit(l.via)), v => v.length, l => this.explainLink(l, focus, other)).concat(fields).sort((a, b) => b[1] - a[1]);
@@ -2814,7 +2814,7 @@ class AppMapView {
 	// an event action mapping that creates, updates or deletes an object when a field changes, without user input of others
 	static isFieldEdit(via) {
 
-		return via?.k === 'action' && ['create', 'update', 'delete'].includes(via.a) && AppMapView.FIELD_EVENTS.has(via.ev) && !via.use?.in?.length;
+		return via?.kind === 'action' && ['create', 'update', 'delete'].includes(via.action) && AppMapView.FIELD_EVENTS.has(via.event) && !via.use?.inputs?.length;
 	}
 
 	/**
@@ -2825,45 +2825,45 @@ class AppMapView {
 	explainLink(l, focus, other) {
 
 		const via   = l.via;
-		const home  = via ? (l.source.k === 'page' || l.source.k === 'component' ? l.source : l.target) : null;
-		const where = home && home !== focus && home !== other ? `${home.n}: ` : '';
+		const home  = via ? (l.source.kind === 'page' || l.source.kind === 'component' ? l.source : l.target) : null;
+		const where = home && home !== focus && home !== other ? `${home.name}: ` : '';
 
-		if (via?.k === 'view') {
+		if (via?.kind === 'view') {
 
 			const use  = via.use ?? {};
-			const type = via.t ?? 'object';
-			const what = use.role === 'choice' ? `a dropdown to choose a ${type}${use.f ? ` for ${use.f}` : ''}`
+			const type = via.type ?? 'object';
+			const what = use.role === 'choice' ? `a dropdown to choose a ${type}${use.field ? ` for ${use.field}` : ''}`
 				: use.role === 'row' ? `a table row for every ${type}`
 				: `repeats an element for every ${type}`;
 
-			return `${where}${what}${use.q ? ` · ${use.q}` : ''}`;
+			return `${where}${what}${use.query ? ` · ${use.query}` : ''}`;
 		}
 
-		if (via?.k === 'action') {
+		if (via?.kind === 'action') {
 
 			const use    = via.use ?? {};
-			const method = this.byId.get(via.m)?.n;
-			const verb   = { create: 'creates', update: 'updates', delete: 'deletes' }[via.a];
-			const what   = via.a === 'method' || (!via.a && method) ? `runs ${method ?? String(via.n).split('→').pop().trim()}`
-				: verb ? `${verb} ${via.t ?? 'an object'}${use.in?.length ? ` (${use.in.join(', ')})` : ''}`
-				: (AppMapView.ACTIONS[via.a] ?? `does ${via.a ?? 'nothing'}`);
+			const method = this.byId.get(via.method)?.name;
+			const verb   = { create: 'creates', update: 'updates', delete: 'deletes' }[via.action];
+			const what   = via.action === 'method' || (!via.action && method) ? `runs ${method ?? String(via.name).split('→').pop().trim()}`
+				: verb ? `${verb} ${via.type ?? 'an object'}${use.inputs?.length ? ` (${use.inputs.join(', ')})` : ''}`
+				: (AppMapView.ACTIONS[via.action] ?? `does ${via.action ?? 'nothing'}`);
 
-			return `${where}on ${via.ev ?? 'an event'} at “${use.el ?? 'an element'}”: ${what}`;
+			return `${where}on ${via.event ?? 'an event'} at “${use.element ?? 'an element'}”: ${what}`;
 		}
 
 		const label = AppMapModel.EDGE_LABEL[l.kind] ?? l.kind;
 
 		if (l.kind === 'current') {
-			return `${where}opens a ${l.target.n} by its ${l.evidence ?? 'URL'}`;
+			return `${where}opens a ${l.target.name} by its ${l.evidence ?? 'URL'}`;
 		}
 
 		// the evidence of what a method does names the method and the line of its code, which says what but not to whom;
 		// the evidence of a call is a sentence of its own
 		if (l.evidence && AppMapModel.OPERATION_KINDS.has(l.kind)) {
-			return `${label} ${l.target.n} · ${l.evidence}`;
+			return `${label} ${l.target.name} · ${l.evidence}`;
 		}
 
-		return l.evidence ?? `${l.source.n} ${label} ${l.target.n}`;
+		return l.evidence ?? `${l.source.name} ${label} ${l.target.name}`;
 	}
 
 	// what the built-in actions of an event action mapping do, in words
@@ -2952,7 +2952,7 @@ class AppMapView {
 
 				const why = this.pinned && !this.pinnedDom ? this.explainRelation(this.pinned, first) : [];
 
-				this.showTip(e, `Go to ${first.n}`, why.length ? [AppMapModel.KIND_LABEL[first.k], ...why] : AppMapModel.KIND_LABEL[first.k], why.length ? 480 : 300);
+				this.showTip(e, `Go to ${first.name}`, why.length ? [AppMapModel.KIND_LABEL[first.kind], ...why] : AppMapModel.KIND_LABEL[first.kind], why.length ? 480 : 300);
 			}
 
 			return;
@@ -3005,7 +3005,7 @@ class AppMapView {
 		// and for a page how many of its elements have problems, which show on the elements themselves
 		if (troubled) {
 
-			this.showTip(e, troubled.n, this.describeProblems(troubled), 520);
+			this.showTip(e, troubled.name, this.describeProblems(troubled), 520);
 
 			if (this.hoveredDom || this.hoveredStrand) {
 
@@ -3024,7 +3024,7 @@ class AppMapView {
 			// an open page shows its structure; the badge then only tells who may see it, without putting the page in focus
 			const focus = this.panels.isOpen(access) ? null : access;
 
-			this.showTip(e, access.n, `${AppMapModel.KIND_LABEL[access.k]} · ${this.describeAccess(access.acc)}`, 420);
+			this.showTip(e, access.name, `${AppMapModel.KIND_LABEL[access.kind]} · ${this.describeAccess(access.access)}`, 420);
 
 			if (this.hovered !== focus || this.hoveredDom || this.hoveredStrand) {
 
@@ -3087,7 +3087,7 @@ class AppMapView {
 			if (dom.opened) {
 				this.tip.hidden = true;
 			} else {
-				this.showTip(e, `${AppMapPanels.nameOf(dom)} in ${dom.page.n}`, this.describeDom(dom), 420);
+				this.showTip(e, `${AppMapPanels.nameOf(dom)} in ${dom.page.name}`, this.describeDom(dom), 420);
 			}
 
 			this.canvas.style.cursor = this.panels.boxTargets(dom).length ? 'pointer' : '';
@@ -3129,9 +3129,9 @@ class AppMapView {
 			const why = this.pinned && n !== this.pinned && !this.pinnedDom ? this.explainRelation(this.pinned, n) : [];
 
 			if (why.length) {
-				this.showTip(e, `${n.n} and ${this.pinned.n}`, why, 480);
+				this.showTip(e, `${n.name} and ${this.pinned.name}`, why, 480);
 			} else {
-				this.showTip(e, n.n, this.describe(n), 300);
+				this.showTip(e, n.name, this.describe(n), 300);
 			}
 
 		} else {

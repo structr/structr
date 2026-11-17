@@ -61,31 +61,34 @@ import java.util.stream.Stream;
  * system types the application extends), "logic" (user-defined functions and service classes),
  * "scheduled" (what CronService runs) and "data" (the application's own types).
  *
- * The result has six parts: "nodes" (id, k for the kind, n for the name, p for public, g for
- * the grouping, area, and depending on the kind d for the HTML outline (nested [tag, flags,
- * children, ids of the repeaters and action mappings on the element, template expressions its
- * text shows, data key of a repeater]), tpl for the template a page or shared component consists of alone, crud, svc, t for the
- * type, m for the method, how for the way the type was found, a and ev for the action and
- * the event of an action mapping, use for how a repeater or an action mapping uses its type
- * (see MapNode.setUse), cron for the schedule, rest for
- * the resource access grants on a type or endpoint: n rules, pub and auth for whom they open it,
- * pubw and authw whether those may write, acc for who may see a page or shared component:
- * pub and auth for its visibility, own for its owner, g for the grants as [principal,
- * permissions], s for its size: the properties of a type, the lines of code of a method, the
- * HTML elements of a page or shared component, dv for whom every object of a type is visible:
- * pub and auth, r for the URL routes of a page: p the path, cur the type of its current
- * object, w the number of warnings, pos for its position, err for the error codes it is shown
- * for, ct for a content type other than HTML, hits for the use of a page, endpoint, type or
- * scheduled method since the start: n the number of its requests or runs, see Usage),
- * "edges"
- * ([source, target, weight, kind, inferred, evidence, details?]; the details of a schema
- * relationship: m for its multiplicity, cd for cascading delete, pp for the direction in which
- * it passes on rights, r, w, d and a for what it does with read, write, delete and access
- * control rights), "groups" (id, n, m for the number of members, t for the types they have
- * grants on, p for the rights per type as letters r, w and d, in for the groups they are
- * members of, g and area), "sites" (id, n for the host name and port, pages), "helpers" (the methods that
- * many call and that write nothing) and "sections" (the groupings of the user interface that
- * are no artifact: id, n for the name, how for what it rests on, members).
+ * The result has six parts:
+ *
+ * "nodes": id, kind, name, public, grouping, area, and depending on the kind: outline (the HTML
+ * of a page or shared component, see PagesMapContributor.outlineOf), template (the template a
+ * page or shared component consists of alone), crud, service, type, method, how (the way the
+ * type was found), action and event (of an action mapping), use (how a repeater or an action
+ * mapping uses its type, see MapNode.setUse), cron (the schedule), rest (the resource access
+ * grants on a type or endpoint: rules, public and authenticated for whom they open it,
+ * publicWrite and authenticatedWrite whether those may write), access (who may see a page or
+ * shared component: public and authenticated for its visibility, owner, grants as
+ * { principal, permissions }), size (the properties of a type, the lines of code of a method,
+ * the HTML elements of a page or shared component), defaultVisibility (whom every object of a
+ * type is visible to: public and authenticated), routes (the URL routes of a page as { path,
+ * currentType, warnings }), position, errorCodes (the error codes a page is shown for),
+ * contentType (other than HTML), requests (the requests or runs of a page, endpoint, type or
+ * scheduled method since the start, see Usage) and functionReads (who reads the function
+ * properties of a type).
+ *
+ * "edges": source, target, weight, kind, evidence and details; the details of a schema
+ * relationship are its multiplicity, cascadingDelete, propagation (the direction in which it
+ * passes on rights) and read, write, delete and accessControl (what it does with each right),
+ * those of the use of an external service the function, line and code of its first call.
+ *
+ * "groups": id, name, members (their number), types (the types they have grants on), rights
+ * (per type, as the letters r, w, d and a), memberOf (the groups they are members of),
+ * grouping and area. "sites": id, name (host name and port) and pages. "helpers": the methods
+ * that many call and that write nothing. "sections": the groupings of the user interface that
+ * are no artifact, with id, name, how (what it rests on) and members.
  */
 public class ApplicationMap {
 
@@ -237,7 +240,7 @@ public class ApplicationMap {
 
 	/**
 	 * Adds an edge with details of its own, e.g. what a schema relationship does on delete and
-	 * which rights it passes on; they become the seventh part of the edge.
+	 * which rights it passes on; they become the details of the edge.
 	 */
 	public void addEdge(final String source, final String target, final String kind, final double weight, final String evidence, final Map<String, Object> details) {
 
@@ -253,7 +256,7 @@ public class ApplicationMap {
 	 */
 	public void addSite(final String id, final String name, final List<String> pages) {
 
-		sites.add(Map.of("id", id, "n", name, "pages", pages));
+		sites.add(Map.of("id", id, "name", name, "pages", pages));
 	}
 
 	/**
@@ -303,7 +306,7 @@ public class ApplicationMap {
 	}
 
 	/**
-	 * Only the use, per id of the nodes that have one, as hits like in the nodes:
+	 * Only the use, per id of the nodes that have one, as requests like in the nodes:
 	 * a client refreshes them without loading the whole map, which needs no analysis for them. Nodes the map leaves out
 	 * may be among them; a client ignores what it does not show.
 	 */
@@ -371,7 +374,7 @@ public class ApplicationMap {
 		for (final MapEdge edge : all) {
 
 			if (kept.contains(edge.source) && kept.contains(edge.target) && seen.add(edgeKey(edge.source, edge.target, edge.kind))) {
-				edgeList.add(edge.toList());
+				edgeList.add(edge.toMap());
 			}
 		}
 
@@ -384,7 +387,7 @@ public class ApplicationMap {
 		result.put(new GenericProperty<>("groups"),  groupList);
 		result.put(new GenericProperty<>("helpers"), new LinkedList<>(analysis.getHelpers()));
 		result.put(new GenericProperty<>("sections"), sectionList);
-		result.put(new GenericProperty<>("sites"),    sites.stream().map(site -> Map.of("id", site.get("id"), "n", site.get("n"), "pages", ((List<?>) site.get("pages")).stream().filter(kept::contains).toList())).toList());
+		result.put(new GenericProperty<>("sites"),    sites.stream().map(site -> Map.of("id", site.get("id"), "name", site.get("name"), "pages", ((List<?>) site.get("pages")).stream().filter(kept::contains).toList())).toList());
 
 		return result;
 	}
@@ -454,7 +457,7 @@ public class ApplicationMap {
 
 	/**
 	 * The sections of the user interface: pages that belong together, each a grouping that is no artifact of its own, as
-	 * { id, n for the name, how, members }. A page belongs to the category the developer gave it; else to the type it
+	 * { id, name, how, members }. A page belongs to the category the developer gave it; else to the type it
 	 * works with most (see PAGE_WEIGHT), through its repeaters and action mappings; else to the section of the pages that
 	 * lead to it, by links and by the success and failure URLs of action mappings, apart from the menu (see MENU_LINKS),
 	 * only when more than half of them lie in that section. A section of one page is none: it stays a grouping of its own.
@@ -559,7 +562,7 @@ public class ApplicationMap {
 		members.forEach((id, list) -> {
 
 			if (list.size() > 1) {
-				sections.put(id, new LinkedHashMap<>(Map.of("id", id, "n", names.get(id), "how", hows.get(id), "members", list)));
+				sections.put(id, new LinkedHashMap<>(Map.of("id", id, "name", names.get(id), "how", hows.get(id), "members", list)));
 			}
 		});
 
@@ -849,11 +852,12 @@ public class ApplicationMap {
 		}
 
 		/**
-		 * How a repeater or an action mapping uses its type, in the terms of the page: q for the
-		 * data expression of a repeater, role for what its copies are (choice for the options of
-		 * a select or datalist, row for table rows, item for anything else), f for the property
-		 * a choice sets, as Type.property where the type is known; el for the element that
-		 * triggers an action mapping and in for the names of the user input it sends.
+		 * How a repeater or an action mapping uses its type, in the terms of the page: query for
+		 * the data expression of a repeater, role for what its copies are (choice for the options
+		 * of a select or datalist, row for table rows, item for anything else), field for the
+		 * property a choice sets, as Type.property where the type is known; element for the
+		 * element that triggers an action mapping and inputs for the names of the user input it
+		 * sends.
 		 */
 		public MapNode setUse(final Map<String, Object> use) {
 
@@ -902,16 +906,16 @@ public class ApplicationMap {
 		 * How large the node is in its own terms: the properties of a type, the lines of code of
 		 * a method, the HTML elements of a page or shared component.
 		 */
-		// which users see every object of a type: pub and auth, see the class comment
+		// which users see every object of a type: public and authenticated, see the class comment
 		public MapNode setDefaultVisibility(final boolean pub, final boolean auth) {
 
-			this.defaultVisibility = pub || auth ? Map.of("pub", pub ? 1 : 0, "auth", auth ? 1 : 0) : null;
+			this.defaultVisibility = pub || auth ? Map.of("public", pub, "authenticated", auth) : null;
 
 			return this;
 		}
 
 		/**
-		 * How a page is reached: its URL routes as { p: the path, cur: the type of its current object, w: the number of
+		 * How a page is reached: its URL routes as { path, currentType: the type of its current object, warnings: the number of
 		 * warnings }, its position (the start page has the lowest), the error codes it is shown for and a content type other
 		 * than HTML.
 		 */
@@ -947,30 +951,30 @@ public class ApplicationMap {
 		 */
 		public MapNode setAccess(final NodeInterface node) {
 
-			final AccessControllable controllable = node.as(AccessControllable.class);
-			final Principal owner                 = controllable.getOwnerNode();
-			final List<List<String>> grants       = new LinkedList<>();
+			final AccessControllable controllable  = node.as(AccessControllable.class);
+			final Principal owner                  = controllable.getOwnerNode();
+			final List<Map<String, String>> grants = new LinkedList<>();
 
 			for (final Security security : controllable.getSecurityRelationships()) {
 
 				final Principal principal = security != null ? security.getSourceNode() : null;
 
 				if (principal != null) {
-					grants.add(List.of(String.valueOf(principal.getName()), String.join(",", security.getPermissions())));
+					grants.add(Map.of("principal", String.valueOf(principal.getName()), "permissions", String.join(",", security.getPermissions())));
 				}
 			}
 
 			this.access = new LinkedHashMap<>();
 
-			access.put("pub",  node.isVisibleToPublicUsers() ? 1 : 0);
-			access.put("auth", node.isVisibleToAuthenticatedUsers() ? 1 : 0);
+			access.put("public",        node.isVisibleToPublicUsers());
+			access.put("authenticated", node.isVisibleToAuthenticatedUsers());
 
 			if (owner != null) {
-				access.put("own", owner.getName());
+				access.put("owner", owner.getName());
 			}
 
 			if (!grants.isEmpty()) {
-				access.put("g", grants);
+				access.put("grants", grants);
 			}
 
 			return this;
@@ -980,19 +984,19 @@ public class ApplicationMap {
 
 			final Map<String, Object> map = new LinkedHashMap<>();
 
-			map.put("id",   id);
-			map.put("k",    kind);
-			map.put("n",    name);
-			map.put("p",    isPublic ? 1 : 0);
-			map.put("g",    grouping);
-			map.put("area", area);
+			map.put("id",       id);
+			map.put("kind",     kind);
+			map.put("name",     name);
+			map.put("public",   isPublic);
+			map.put("grouping", grouping);
+			map.put("area",     area);
 
 			if (outline != null) {
-				map.put("d", outline);
+				map.put("outline", outline);
 			}
 
 			if (template != null) {
-				map.put("tpl", template);
+				map.put("template", template);
 			}
 
 			if (crud != null && !crud.isEmpty()) {
@@ -1000,15 +1004,15 @@ public class ApplicationMap {
 			}
 
 			if (isService) {
-				map.put("svc", true);
+				map.put("service", true);
 			}
 
 			if (type != null) {
-				map.put("t", type);
+				map.put("type", type);
 			}
 
 			if (method != null && kept.contains(method)) {
-				map.put("m", method);
+				map.put("method", method);
 			}
 
 			if (how != null) {
@@ -1016,11 +1020,11 @@ public class ApplicationMap {
 			}
 
 			if (action != null) {
-				map.put("a", action);
+				map.put("action", action);
 			}
 
 			if (event != null) {
-				map.put("ev", event);
+				map.put("event", event);
 			}
 
 			if (cronExpression != null) {
@@ -1028,31 +1032,31 @@ public class ApplicationMap {
 			}
 
 			if (access != null) {
-				map.put("acc", access);
+				map.put("access", access);
 			}
 
 			if (size > 0) {
-				map.put("s", size);
+				map.put("size", size);
 			}
 
 			if (defaultVisibility != null) {
-				map.put("dv", defaultVisibility);
+				map.put("defaultVisibility", defaultVisibility);
 			}
 
 			if (routes != null) {
-				map.put("r", routes);
+				map.put("routes", routes);
 			}
 
 			if (position != null) {
-				map.put("pos", position);
+				map.put("position", position);
 			}
 
 			if (errorCodes != null) {
-				map.put("err", errorCodes);
+				map.put("errorCodes", errorCodes);
 			}
 
 			if (contentType != null) {
-				map.put("ct", contentType);
+				map.put("contentType", contentType);
 			}
 
 			if (use != null) {
@@ -1062,16 +1066,16 @@ public class ApplicationMap {
 			putActivity(map);
 
 			if (restRules > 0) {
-				map.put("rest", Map.of("n", restRules, "pub", restPublic ? 1 : 0, "auth", restAuthenticated ? 1 : 0, "pubw", restPublicWrite ? 1 : 0, "authw", restAuthenticatedWrite ? 1 : 0));
+				map.put("rest", Map.of("rules", restRules, "public", restPublic, "authenticated", restAuthenticated, "publicWrite", restPublicWrite, "authenticatedWrite", restAuthenticatedWrite));
 			}
 
-			// who reads the function properties of a type, as fr: { property: [[caller, evidence], ...] }, the callers that
+			// who reads the function properties of a type, as functionReads: { property: [{ caller, evidence }, ...] }, the callers that
 			// are on the map only
 			final Map<String, Object> reads = new TreeMap<>();
 
 			functionReads.forEach((property, callers) -> {
 
-				final List<Object> known = callers.entrySet().stream().filter(e -> kept.contains(e.getKey())).map(e -> (Object) List.of(e.getKey(), e.getValue())).toList();
+				final List<Object> known = callers.entrySet().stream().filter(e -> kept.contains(e.getKey())).map(e -> (Object) Map.of("caller", e.getKey(), "evidence", e.getValue())).toList();
 
 				if (!known.isEmpty()) {
 					reads.put(property, known);
@@ -1079,7 +1083,7 @@ public class ApplicationMap {
 			});
 
 			if (!reads.isEmpty()) {
-				map.put("fr", reads);
+				map.put("functionReads", reads);
 			}
 
 			return map;
@@ -1094,11 +1098,11 @@ public class ApplicationMap {
 			functionReads.computeIfAbsent(property, k -> new LinkedHashMap<>()).putIfAbsent(callerId, evidence);
 		}
 
-		// the use of the node, as hits, see the class comment
+		// the use of the node, as requests, see the class comment
 		private void putActivity(final Map<String, Object> map) {
 
 			if (requests > 0) {
-				map.put("hits", Map.of("n", requests));
+				map.put("requests", requests);
 			}
 		}
 
@@ -1132,24 +1136,21 @@ public class ApplicationMap {
 			this.details  = details;
 		}
 
-		private List<Object> toList() {
+		private Map<String, Object> toMap() {
 
-			final List<Object> list = new ArrayList<>(7);
+			final Map<String, Object> map = new LinkedHashMap<>();
 
-			list.add(source);
-			list.add(target);
-			list.add(Math.round(weight * 100) / 100.0);
-			list.add(kind);
-
-			// inferred: every edge rests on a match in a script or a page, none is a guess
-			list.add(0);
-			list.add(evidence);
+			map.put("source",   source);
+			map.put("target",   target);
+			map.put("weight",   Math.round(weight * 100) / 100.0);
+			map.put("kind",     kind);
+			map.put("evidence", evidence);
 
 			if (details != null && !details.isEmpty()) {
-				list.add(details);
+				map.put("details", details);
 			}
 
-			return list;
+			return map;
 		}
 	}
 
@@ -1184,14 +1185,14 @@ public class ApplicationMap {
 
 			final Map<String, Object> map = new LinkedHashMap<>();
 
-			map.put("id",   id);
-			map.put("n",    name);
-			map.put("m",    members);
-			map.put("t",    grants.keySet().stream().filter(kept::contains).toList());
-			map.put("p",    grants.entrySet().stream().filter(e -> kept.contains(e.getKey())).collect(LinkedHashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), Map::putAll));
-			map.put("in",   new LinkedList<>(parents));
-			map.put("g",    id);
-			map.put("area", AREA_SECURITY);
+			map.put("id",       id);
+			map.put("name",     name);
+			map.put("members",  members);
+			map.put("types",    grants.keySet().stream().filter(kept::contains).toList());
+			map.put("rights",   grants.entrySet().stream().filter(e -> kept.contains(e.getKey())).collect(LinkedHashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), Map::putAll));
+			map.put("memberOf", new LinkedList<>(parents));
+			map.put("grouping", id);
+			map.put("area",     AREA_SECURITY);
 
 			return map;
 		}

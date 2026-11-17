@@ -108,7 +108,7 @@ class AppMapRenderer {
 	// the box of an element as shares of its radius across and down, or null for a round one
 	static boxOf(n) {
 
-		return n.k === 'page' || n.k === 'component' ? AppMapRenderer.PAGE_BOX : (n.k === 'method' ? AppMapRenderer.METHOD_BOX : null);
+		return n.kind === 'page' || n.kind === 'component' ? AppMapRenderer.PAGE_BOX : (n.kind === 'method' ? AppMapRenderer.METHOD_BOX : null);
 	}
 
 	// relations between methods, components and endpoints only come forward with the zoom
@@ -173,12 +173,12 @@ class AppMapRenderer {
 
 	recolor() {
 
-		this.colorCache = new Map(this.view.nodes.map(n => [n, n.colour ?? this.view.look.kinds[n.k] ?? '#888888']));
+		this.colorCache = new Map(this.view.nodes.map(n => [n, n.colour ?? this.view.look.kinds[n.kind] ?? '#888888']));
 	}
 
 	colorOf(n) {
 
-		return this.colorCache.get(n) ?? n.colour ?? this.view.look.kinds[n.k] ?? '#888888';
+		return this.colorCache.get(n) ?? n.colour ?? this.view.look.kinds[n.kind] ?? '#888888';
 	}
 
 	// the darker fill of a small element on the light canvas (see SMALL_DARKER), once per colour
@@ -278,8 +278,8 @@ class AppMapRenderer {
 		const focus   = view.spotlight ? null : view.focus;
 		const lifted  = focus ? view.liftedTargets(focus) : [];
 		const shown   = focus ? this.focusLinks(focus) : [];
-		const cascade = focus?.k === 'type' ? AppMapAccess.cascadeOf(view.links, focus) : null;
-		const traced  = view.callTrace ? view.callTrace.steps.map(step => step.n).filter(Boolean) : [];
+		const cascade = focus?.kind === 'type' ? AppMapAccess.cascadeOf(view.links, focus) : null;
+		const traced  = view.callTrace ? view.callTrace.steps.map(step => step.node).filter(Boolean) : [];
 		const near    = focus ? new Set([focus, ...view.neighbours.get(focus), ...lifted.map(([anchor]) => anchor), ...shown.flatMap(l => [l.source, l.target]), ...(cascade?.keys() ?? []), ...traced]) : null;
 		const around  = focus ? view.contextAround(focus) : null;
 		const rect    = this.visibleRect();
@@ -493,8 +493,8 @@ class AppMapRenderer {
 		for (const m of [...inside, ...outside]) {
 
 			const first          = m.anchors[0];
-			const name           = (m.arrow ? m.arrow + ' ' : '') + String(first.n).slice(0, 40);
-			const rest           = m.anchors.length > 1 ? ` +${m.anchors.length - 1} more` : ' ' + (AppMapModel.KIND_LABEL[first.k] ?? first.k);
+			const name           = (m.arrow ? m.arrow + ' ' : '') + String(first.name).slice(0, 40);
+			const rest           = m.anchors.length > 1 ? ` +${m.anchors.length - 1} more` : ' ' + (AppMapModel.KIND_LABEL[first.kind] ?? first.kind);
 			const [nameWidth, w] = measure(name, rest);
 			let x                = Math.min(view.width - edge - w, Math.max(edge, m.x - w / 2));
 			let y                = Math.min(bottom - h, Math.max(top, m.y - h / 2));
@@ -518,7 +518,7 @@ class AppMapRenderer {
 			}
 
 			this.markers.push({ anchors: m.anchors, box: [x, y, x + w, y + h], group: first });
-			pill(x, y, w, nameWidth, name, rest, view.look.kinds[first.k] ?? view.look.ring, first === view.hoveredMarker);
+			pill(x, y, w, nameWidth, name, rest, view.look.kinds[first.kind] ?? view.look.ring, first === view.hoveredMarker);
 		}
 
 		// the open column lies above everything else, downward where there is room, else upward
@@ -529,14 +529,14 @@ class AppMapRenderer {
 
 			m.anchors.forEach((anchor, i) => {
 
-				const name           = (i === 0 && m.arrow ? m.arrow + ' ' : '') + String(anchor.n).slice(0, 40);
-				const rest           = ' ' + (AppMapModel.KIND_LABEL[anchor.k] ?? anchor.k);
+				const name           = (i === 0 && m.arrow ? m.arrow + ' ' : '') + String(anchor.name).slice(0, 40);
+				const rest           = ' ' + (AppMapModel.KIND_LABEL[anchor.kind] ?? anchor.kind);
 				const [nameWidth, w] = measure(name, rest);
 				const px             = Math.min(view.width - edge - w, x);
 				const py             = Math.max(top, down ? y + i * step : y - i * step);
 
 				this.markers.push({ anchors: [anchor], box: [px, py, px + w, py + h], group: m.anchors[0] });
-				pill(px, py, w, nameWidth, name, rest, view.look.kinds[anchor.k] ?? view.look.ring, anchor === view.hoveredMarker);
+				pill(px, py, w, nameWidth, name, rest, view.look.kinds[anchor.kind] ?? view.look.ring, anchor === view.hoveredMarker);
 			});
 		}
 
@@ -829,8 +829,8 @@ class AppMapRenderer {
 			const functional = AppMapModel.FUNCTIONAL.has(l.kind);
 			const length     = Math.hypot(l.target.x - l.source.x, l.target.y - l.source.y);
 			const fade       = bundled && functional ? Math.max(0.35, 1 - length / 2400) : Math.pow(Math.max(0, 1 - length / 700), 1.6);
-			const lod        = AppMapRenderer.MINOR.has(l.source.k) && AppMapRenderer.MINOR.has(l.target.k) ? Math.max(0.25, Math.min(1, (k - 0.35) / 0.9)) : 1;
-			const alpha      = Math.min(0.45, 0.13 + p.w / 16) * fade * lod * (l.kind === 'reads' ? 0.75 : 1) * (functional ? 1 : AppMapRenderer.QUIET);
+			const lod        = AppMapRenderer.MINOR.has(l.source.kind) && AppMapRenderer.MINOR.has(l.target.kind) ? Math.max(0.25, Math.min(1, (k - 0.35) / 0.9)) : 1;
+			const alpha      = Math.min(0.45, 0.13 + p.weight / 16) * fade * lod * (l.kind === 'reads' ? 0.75 : 1) * (functional ? 1 : AppMapRenderer.QUIET);
 
 			if (alpha < AppMapRenderer.MIN_ALPHA) {
 				continue;
@@ -921,13 +921,12 @@ class AppMapRenderer {
 
 		for (const p of AppMapStrands.pairsOf(links)) {
 
-			const l        = p.lead;
-			const to       = near(l.source) ? l.target : l.source;
-			const inferred = p.links.every(x => x.inferred);
-			const course   = this.linkCourse(l);
-			const width    = (inferred ? 0.7 : 0.8) * 1.6 * AppMapStrands.pairWidth(p) / k;
-			const colour   = this.gapColor(l) ?? this.schemaColor(l) ?? this.opColor(l) ?? look.kinds[to.k] ?? look.trace;
-			const radius   = Math.max(view.shownRadius(l.target), 2 / k);
+			const l      = p.lead;
+			const to     = near(l.source) ? l.target : l.source;
+			const course = this.linkCourse(l);
+			const width  = 1.28 * AppMapStrands.pairWidth(p) / k;
+			const colour = this.gapColor(l) ?? this.schemaColor(l) ?? this.opColor(l) ?? look.kinds[to.kind] ?? look.trace;
+			const radius = Math.max(view.shownRadius(l.target), 2 / k);
 
 			// a casing in the colour of the background lifts the relation off everything behind it
 			ctx.globalAlpha = 0.85;
@@ -939,18 +938,16 @@ class AppMapRenderer {
 			ctx.globalAlpha = 0.95;
 			ctx.strokeStyle = colour;
 			ctx.lineWidth   = width;
-			ctx.setLineDash(inferred ? [2.2 / k, 2.6 / k] : []);
 			ctx.stroke(course.path);
 
 			// the direction: an arrowhead where the relation arrives, just outside the element it points to; the data model
 			// between types has none, it says its multiplicity instead
 			if (l.kind !== 'relates') {
 
-				ctx.setLineDash([]);
 				ctx.fillStyle = colour;
 				this.arrowFrom(course.toward(l.target, radius * 2), l.target, radius, width, k);
 
-			} else if (l.x?.m) {
+			} else if (l.details?.multiplicity) {
 
 				this.drawMultiplicity(l, k, colour);
 			}
@@ -970,7 +967,7 @@ class AppMapRenderer {
 	// a schema relationship that deletes along is red, one that passes rights on orange, as in the schema editor
 	schemaColor(l) {
 
-		const key = l.kind !== 'relates' || !l.x ? null : l.x.cd ? 'cascade' : l.x.pp ? 'passes' : null;
+		const key = l.kind !== 'relates' || !l.details ? null : l.details.cascadingDelete ? 'cascade' : l.details.propagation ? 'passes' : null;
 
 		return key ? AppMapRenderer.SCHEMA_COLOR[key][this.view.look.dark ? 1 : 0] : null;
 	}
@@ -979,7 +976,7 @@ class AppMapRenderer {
 	drawMultiplicity(l, k, colour) {
 
 		const ctx    = this.ctx;
-		const ends   = l.x.m.split(':');
+		const ends   = l.details.multiplicity.split(':');
 		const points = this.linkPoints(l);
 		const last   = points.length - 1;
 
@@ -1167,7 +1164,7 @@ class AppMapRenderer {
 
 			// the shape of a type, a REST endpoint, a group or an external service gives way to its card, which may be lower
 			// than the shape (see AppMapPanels.insidePanel)
-			const cover = AppMapPanels.INSIDE_KINDS.has(n.k) ? this.view.panels.insideCover(n, k) : 0;
+			const cover = AppMapPanels.INSIDE_KINDS.has(n.kind) ? this.view.panels.insideCover(n, k) : 0;
 
 			if (cover >= 1) {
 				continue;
@@ -1183,7 +1180,7 @@ class AppMapRenderer {
 
 				ctx.beginPath();
 				ctx.arc(n.x, n.y, r + 2.2 / k, 0, Math.PI * 2);
-				ctx.setLineDash(n.rest.pub ? [] : [2 / k, 1.6 / k]);
+				ctx.setLineDash(n.rest.public ? [] : [2 / k, 1.6 / k]);
 				ctx.lineWidth   = 1 / k;
 				ctx.strokeStyle = this.areaColor('api', 0.9);
 				ctx.stroke();
@@ -1252,8 +1249,8 @@ class AppMapRenderer {
 				continue;
 			}
 
-			const shape  = n.acc.pub && n.acc.auth ? 'open' : (!n.acc.pub && !n.acc.auth ? 'locked' : 'key');
-			const colour = AppMapRenderer.ACCESS_COLOR[n.acc.pub ? 'pub' : (n.acc.auth ? 'auth' : 'none')][dark];
+			const shape  = n.access.public && n.access.authenticated ? 'open' : (!n.access.public && !n.access.authenticated ? 'locked' : 'key');
+			const colour = AppMapRenderer.ACCESS_COLOR[n.access.public ? 'pub' : (n.access.authenticated ? 'auth' : 'none')][dark];
 			const { x, y, size } = badge;
 
 			// in focus the badges step back with their pages
@@ -1361,7 +1358,7 @@ class AppMapRenderer {
 
 		const ctx   = this.ctx;
 		const look  = view.look;
-		const steps = trace.steps.filter(step => step.n);
+		const steps = trace.steps.filter(step => step.node);
 		const width = AppMapRenderer.CALL_WIDTH / k;
 		const gap   = 5 / k;
 
@@ -1381,7 +1378,7 @@ class AppMapRenderer {
 				return Math.min(ux > 1e-6 ? r * box[0] / ux : Infinity, uy > 1e-6 ? r * box[1] / uy : Infinity);
 			}
 
-			return n.k === 'api' ? r * 1.2 : r;
+			return n.kind === 'api' ? r * 1.2 : r;
 		};
 
 		ctx.save();
@@ -1391,8 +1388,8 @@ class AppMapRenderer {
 		// each call, from the caller (the step after) to the callee
 		for (let i = 0; i + 1 < steps.length; i++) {
 
-			const callee = steps[i].n;
-			const caller = steps[i + 1].n;
+			const callee = steps[i].node;
+			const caller = steps[i + 1].node;
 			const dx     = callee.x - caller.x;
 			const dy     = callee.y - caller.y;
 			const length = Math.hypot(dx, dy);
@@ -1431,7 +1428,7 @@ class AppMapRenderer {
 			ctx.fill();
 
 			// the line of the call, beside the middle of the arrow on the outside of its bend
-			const row = steps[i + 1].frames[0].r;
+			const row = steps[i + 1].frames[0].row;
 
 			if (row) {
 
@@ -1447,10 +1444,10 @@ class AppMapRenderer {
 
 		if (origin && origin === trace.steps[0]) {
 
-			const n   = origin.n;
+			const n   = origin.node;
 			const r   = Math.max(view.shownRadius(n), 2 / k);
 			const box = AppMapRenderer.boxOf(n);
-			const top = box ? r * box[1] + gap : (n.k === 'api' ? r * 1.2 : r) + gap;
+			const top = box ? r * box[1] + gap : (n.kind === 'api' ? r * 1.2 : r) + gap;
 
 			ctx.beginPath();
 
@@ -1466,11 +1463,11 @@ class AppMapRenderer {
 			ctx.stroke();
 			ctx.setLineDash([]);
 
-			if (origin.frames[0].r) {
+			if (origin.frames[0].row) {
 				// on the side away from the call that arrives
-				const below = steps[1] ? steps[1].n.y < n.y : false;
+				const below = steps[1] ? steps[1].node.y < n.y : false;
 
-				this.callLabel(`fails in line ${origin.frames[0].r}`, n.x, below ? n.y + top + 12 / k : n.y - top - 12 / k, k);
+				this.callLabel(`fails in line ${origin.frames[0].row}`, n.x, below ? n.y + top + 12 / k : n.y - top - 12 / k, k);
 			}
 		}
 
@@ -1515,7 +1512,7 @@ class AppMapRenderer {
 		const r      = Math.max(this.view.shownRadius(n), 2 / k);
 		const [w, h] = AppMapRenderer.boxOf(n) ?? [1, 1];
 
-		if (!n.acc || !(2 * r * w * k >= AppMapRenderer.ACCESS_FROM || n.acc.pub)) {
+		if (!n.access || !(2 * r * w * k >= AppMapRenderer.ACCESS_FROM || n.access.public)) {
 			return null;
 		}
 
@@ -1541,7 +1538,7 @@ class AppMapRenderer {
 
 		for (const n of view.nodes) {
 
-			if (n.k !== 'page' || (focus && !near.has(n)) || n.x < rect[0] || n.x > rect[2] || n.y < rect[1] || n.y > rect[3]) {
+			if (n.kind !== 'page' || (focus && !near.has(n)) || n.x < rect[0] || n.x > rect[2] || n.y < rect[1] || n.y > rect[3]) {
 				continue;
 			}
 
@@ -1550,8 +1547,8 @@ class AppMapRenderer {
 			const tags = [
 				n === start ? ['start', AppMapRenderer.ROUTING_COLOR.start[dark]] : null,
 				...(r * k >= 4 ? [
-					n.err ? [String(n.err), AppMapRenderer.ROUTING_COLOR.error[dark]] : null,
-					n.ct ? [AppMapRenderer.shortType(n.ct), page] : null
+					n.errorCodes ? [String(n.errorCodes), AppMapRenderer.ROUTING_COLOR.error[dark]] : null,
+					n.contentType ? [AppMapRenderer.shortType(n.contentType), page] : null
 				] : [])
 			].filter(Boolean).map(([text, colour]) => ({ text, colour, width: this.textWidth(text, 600) * 9 / AppMapRenderer.LABEL_SIZE / k + 6 / k }));
 
@@ -1608,20 +1605,20 @@ class AppMapRenderer {
 
 		ctx.beginPath();
 
-		if (n.k === 'page' || n.k === 'component') {
+		if (n.kind === 'page' || n.kind === 'component') {
 
 			const [w, h] = AppMapRenderer.PAGE_BOX;
 
 			// rounded as the card it opens to (see AppMapPanels.drawCard), so the card covers it to the corners
 			ctx.roundRect(n.x - r * w, n.y - r * h, 2 * r * w, 2 * r * h, 2 * r * Math.min(w, h) * 0.035);
 
-		} else if (n.k === 'method') {
+		} else if (n.kind === 'method') {
 
 			const [w, h] = AppMapRenderer.METHOD_BOX;
 
 			ctx.roundRect(n.x - r * w, n.y - r * h, 2 * r * w, 2 * r * h, r * 0.12);
 
-		} else if (n.k === 'api') {
+		} else if (n.kind === 'api') {
 
 			ctx.moveTo(n.x, n.y - r * 1.2);
 			ctx.lineTo(n.x + r * 1.1, n.y + r * 0.8);
@@ -1663,20 +1660,20 @@ class AppMapRenderer {
 			// the shape of the element itself, a little larger
 			const [w, h] = AppMapRenderer.boxOf(n);
 
-			ctx.roundRect(n.x - r * (w + 0.1), n.y - r * (h + 0.1), 2 * r * (w + 0.1), 2 * r * (h + 0.1), n.k === 'method' ? r * 0.15 : 0);
+			ctx.roundRect(n.x - r * (w + 0.1), n.y - r * (h + 0.1), 2 * r * (w + 0.1), 2 * r * (h + 0.1), n.kind === 'method' ? r * 0.15 : 0);
 
-		} else if (n.k === 'api') {
+		} else if (n.kind === 'api') {
 
 			ctx.moveTo(n.x, n.y - r * 1.25);
 			ctx.lineTo(n.x + r * 1.15, n.y + r * 0.85);
 			ctx.lineTo(n.x - r * 1.15, n.y + r * 0.85);
 			ctx.closePath();
 
-		} else if (n.k === 'group') {
+		} else if (n.kind === 'group') {
 
 			this.polygon(n, 6, i => Math.PI / 3 * i + Math.PI / 6, () => r * 1.15);
 
-		} else if (n.k === 'external') {
+		} else if (n.kind === 'external') {
 
 			this.polygon(n, 10, i => Math.PI / 5 * i - Math.PI / 2, i => i % 2 ? r * 0.55 : r * 1.25);
 
@@ -1733,7 +1730,7 @@ class AppMapRenderer {
 
 		if (this.order?.key !== key) {
 
-			const rank = n => AppMapRenderer.LABEL_RANK[n.k] ?? 5;
+			const rank = n => AppMapRenderer.LABEL_RANK[n.kind] ?? 5;
 
 			this.order = { key, nodes: view.nodes.slice().sort((a, b) => view.radiusOf(b) - view.radiusOf(a) || rank(a) - rank(b)) };
 		}
@@ -1837,7 +1834,7 @@ class AppMapRenderer {
 
 			tries++;
 
-			const text    = String(n.n).length > 32 ? String(n.n).slice(0, 31) + '…' : String(n.n);
+			const text    = String(n.name).length > 32 ? String(n.name).slice(0, 31) + '…' : String(n.name);
 			const inFocus = near?.has(n);
 			const badge   = this.accessBadge(n, k);
 			// right of the element's own shape, in focus right of the slightly larger focus shape (see focusShape), and of the
@@ -1948,7 +1945,7 @@ class AppMapRenderer {
 
 		for (const [n, value] of names) {
 
-			const name   = String(n.n).length > 32 ? String(n.n).slice(0, 31) + '…' : String(n.n);
+			const name   = String(n.name).length > 32 ? String(n.name).slice(0, 31) + '…' : String(n.name);
 			const offset = Math.max(view.shownRadius(n), 2 / k) * (AppMapRenderer.boxOf(n)?.[0] ?? 1) + 6 / k;
 			const sx     = t.applyX(n.x + offset);
 			const sy     = t.applyY(n.y);
@@ -2048,7 +2045,7 @@ class AppMapRenderer {
 			}
 
 			ctx.globalAlpha = 0.7;
-			ctx.strokeStyle = this.areaColor(n.c?.[0], 1);
+			ctx.strokeStyle = this.areaColor(n.area, 1);
 			ctx.beginPath();
 			ctx.arc(n.x, n.y, Math.max(this.view.shownRadius(n), 2 / k) + 5 / k, 0, Math.PI * 2);
 			ctx.stroke();
@@ -2091,7 +2088,7 @@ class AppMapRenderer {
 
 		const ctx    = this.ctx;
 		const view   = this.view;
-		const counts = d3.rollup(view.nodes, v => v.length, n => n.c?.[0]);
+		const counts = d3.rollup(view.nodes, v => v.length, n => n.area);
 
 		ctx.save();
 		ctx.globalAlpha = 0.6;
@@ -2204,7 +2201,7 @@ class AppMapRenderer {
 					ctx.lineWidth   = 1.8 / k;
 					ctx.stroke(path);
 					ctx.globalAlpha = 0.95;
-					ctx.strokeStyle = solid ?? this.opColor(l) ?? view.look.kinds[l.target.k] ?? '#888888';
+					ctx.strokeStyle = solid ?? this.opColor(l) ?? view.look.kinds[l.target.kind] ?? '#888888';
 					ctx.lineWidth   = 0.9 / k;
 					ctx.stroke(path);
 				}
@@ -2240,13 +2237,13 @@ class AppMapRenderer {
 
 			cache.circles = { growth: this.view.growth, list: [] };
 
-			for (const [key, members] of d3.group(this.view.nodes.filter(n => n.c?.[1] != null), n => n.c[1])) {
+			for (const [key, members] of d3.group(this.view.nodes.filter(n => n.grouping != null), n => n.grouping)) {
 
 				const { x, y, r } = AppMapRenderer.circleOf(members, n => this.view.shownRadius(n));
 
 				const anchor = this.view.byId.get(key);
 
-				cache.circles.list.push({ key, x, y, r, box: [x - r, y - r, x + r, y + r], anchor, name: anchor?.n ?? this.view.model.sections.get(key)?.n });
+				cache.circles.list.push({ key, x, y, r, box: [x - r, y - r, x + r, y + r], anchor, name: anchor?.name ?? this.view.model.sections.get(key)?.name });
 			}
 		}
 

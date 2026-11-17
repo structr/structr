@@ -120,7 +120,7 @@ async function screenOf(page, name) {
 	return page.evaluate(name => {
 
 		const view = _AppMap.view;
-		const n    = view.nodes.find(n => n.n === name);
+		const n    = view.nodes.find(n => n.name === name);
 		const box  = view.canvas.getBoundingClientRect();
 
 		return { x: box.left + view.transform.applyX(n.x), y: box.top + view.transform.applyY(n.y) };
@@ -187,7 +187,7 @@ test('application map', async ({page}) => {
 
 	await page.mouse.dblclick(complete.x, complete.y);
 	await page.waitForTimeout(1500);
-	await page.waitForFunction(() => [..._AppMap.view.panels.reading].some(n => n.n === 'Task.complete'));
+	await page.waitForFunction(() => [..._AppMap.view.panels.reading].some(n => n.name === 'Task.complete'));
 	await page.mouse.move(5, 300);
 	await page.waitForTimeout(500);
 	await page.screenshot({ path: 'screenshots/appmap_method.png' });
@@ -195,7 +195,7 @@ test('application map', async ({page}) => {
 	const field = await page.evaluate(() => {
 
 		const view             = _AppMap.view;
-		const n                = view.nodes.find(n => n.n === 'Task.complete');
+		const n                = view.nodes.find(n => n.name === 'Task.complete');
 		const t                = view.transform;
 		const box              = view.canvas.getBoundingClientRect();
 		const [fx, fy, fw, fh] = AppMapPanels.codeField(view.panels.codePanel(n, t.k));

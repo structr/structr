@@ -104,8 +104,8 @@ public class ScriptScanner {
 	}
 
 	/**
-	 * Where a call to an external service was found, so that a client can show it: the function
-	 * (f), the number of the line in the script (l) and the line itself (c), shortened.
+	 * Where a call to an external service was found, so that a client can show it: the function,
+	 * the number of the line in the script (line) and the line itself (code), shortened.
 	 */
 	static Map<String, Object> callOf(final String source, final String function, final int index) {
 
@@ -113,7 +113,7 @@ public class ScriptScanner {
 		final int end    = source.indexOf('\n', index);
 		final int number = (int) source.substring(0, start).chars().filter(c -> c == '\n').count() + 1;
 
-		return Map.of("f", function, "l", number, "c", StringUtils.abbreviate(source.substring(start, end < 0 ? source.length() : end).trim(), 160));
+		return Map.of("function", function, "line", number, "code", StringUtils.abbreviate(source.substring(start, end < 0 ? source.length() : end).trim(), 160));
 	}
 
 	// ----- private methods -----

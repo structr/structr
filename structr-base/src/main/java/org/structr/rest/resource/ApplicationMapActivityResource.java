@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The current use of the elements of the application map, per element id as hits
+ * The current use of the elements of the application map, per element id as requests
  * (see ApplicationMap.toActivityObject), so the map shows fresh numbers without loading again. Restricted to admin
  * users, as the map is.
  */

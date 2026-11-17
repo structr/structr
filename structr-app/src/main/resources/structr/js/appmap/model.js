@@ -22,36 +22,42 @@
  *
  *     { result: { nodes: [...], edges: [...], groups: [...], sections: [...], sites: [...] } }
  *
- * - node:  { id, k, n, p, g, area, d?, crud?, svc?, cron?, rest?, acc?, dv?, r?, pos?, err?, ct? }
- *          k is the kind (type, method, page, component, action, view, api, external), n the name, p 1 for a public
- *          element; g is the grouping it belongs to (the type, page, component, group or endpoint), area the Structr area
+ * - node:  { id, kind, name, public, grouping, area, outline?, crud?, service?, cron?, rest?, access?, defaultVisibility?,
+ *          routes?, position?, errorCodes?, contentType? }
+ *          kind is one of type, method, page, component, action, view, api, external; public is true for a public element;
+ *          grouping is the grouping it belongs to (the type, page, component, group or endpoint), area the Structr area
  *          of that grouping (ui, components, api, integration, security, builtin, logic, scheduled, data), both worked out on the server;
- *          d is the DOM tree of a page or shared component as nested [tag, flags, children?, ids?, expressions?]
- *          with the flags 1 active, 2 has an event action mapping, 4 repeater, the ids of the repeaters and event
- *          action mappings that live on the element and the template expressions its text shows; crud lists what a method, action, repeater or endpoint does to which
- *          type ('C:Task', 'R:User'); svc marks a service class; cron is the schedule of a method that CronService runs;
- *          rest summarises the resource access grants on a type or endpoint as { n: rules, pub, auth, pubw, authw }, each
- *          0 or 1, for anonymous and authenticated users and whether they may write (the map reads n, pub and auth);
- *          acc says who sees a page or shared component as { pub, auth, own?: owner, g?: [[principal, permissions]] };
- *          dv whom every object of a type is visible to as { pub, auth }; r the URL routes of a page as [{ p: path,
- *          cur?: type of the current object, w?: warnings }], pos its position (the start page has the lowest), err the
- *          error codes it is shown for, ct a content type other than HTML
- * - edge:  [source id, target id, weight, kind, inferred (0 or 1), evidence, details?], kind one of include, reads,
+ *          outline is the DOM tree of a page or shared component as a flat list of { tag, id, depth, active?, action?,
+ *          repeater?, text?, conditional?, component?, ids?, expressions?, dataKey?, sources? }, each element before the
+ *          elements below it, so that its depth makes the tree (the JSON output of Structr cuts nested objects off at a
+ *          small depth), the flags present only when true
+ *          (action: the element has an event action mapping), ids those of the repeaters and event action mappings that
+ *          live on the element, expressions the template expressions its text shows; crud lists what a method, action, repeater or endpoint does to which
+ *          type ('C:Task', 'R:User'); service marks a service class; cron is the schedule of a method that CronService runs;
+ *          rest summarises the resource access grants on a type or endpoint as { rules, public, authenticated, publicWrite,
+ *          authenticatedWrite }, the number of rules and whether anonymous and authenticated users may read and write (the
+ *          map reads rules, public and authenticated);
+ *          access says who sees a page or shared component as { public, authenticated, owner?, grants?: [{ principal, permissions }] };
+ *          defaultVisibility whom every object of a type is visible to as { public, authenticated }; routes the URL routes
+ *          of a page as [{ path, currentType?: type of the current object, warnings? }], position its position (the start
+ *          page has the lowest), errorCodes the error codes it is shown for, contentType a content type other than HTML
+ * - edge:  { source, target, weight, kind, evidence, details? }, source and target the ids, kind one of include, reads,
  *          contains, member, creates, updates, deletes, uses, helper, calls, relates, invokes, navigates, endpoint,
  *          inherits, requests (to a web host or a geocoding or translation service), queries (a foreign database), executes
  *          (a script configured for exec), mails, current (a page to the type of the current object of its
- *          route); details of a schema relationship as { m: multiplicity, cd?: cascading delete, pp?: direction in which
- *          it passes on rights, r, w, d, a: Add, Keep or Remove per right }, see AppMapAccess; details of the use of an
- *          external service as { f: function, l: line, c: the line itself }, from its first call
- * - group: { id, n, m: number of members, t: ids of the types the group has grants on, p: the rights per type as the
- *          letters r, w and d, in: ids of the groups it is a member of, g, area }
- * - site:  { id, n: host name and port, pages: ids }
- * - section: { id, n, how, members }, a grouping of pages and shared components that belong together and that is no
+ *          route); details of a schema relationship as { multiplicity, cascadingDelete?, propagation?: direction in which
+ *          it passes on rights, read, write, delete, accessControl: Add, Keep or Remove per right }, see AppMapAccess;
+ *          details of the use of an external service as { function, line, code: the line itself }, from its first call
+ * - group: { id, name, members: number of members, types: ids of the types the group has grants on, rights: the rights
+ *          per type as the letters r, w and d, memberOf: ids of the groups it is a member of, grouping, area }
+ * - site:  { id, name: host name and port, pages: ids }
+ * - section: { id, name, how, members }, a grouping of pages and shared components that belong together and that is no
  *          element itself: by the category of its pages, the type they work with most, or the pages that hold or lead to
- *          them (how is category or type); its members carry its id as g
+ *          them (how is category or type); its members carry its id as grouping
  *
  * The model has no geometry. It adds the Structr groups as nodes and derives the business relations from the technical
- * ones; the map shows both at once (links). Grouping and area come with the data, as n.c = [area, grouping].
+ * ones; the map shows both at once (links), each { source, target, weight, kind, evidence, details?, via? } with the nodes
+ * as ends. Grouping and area come with the data; assignAreas resolves n.grouping to an element or section and defaults n.area.
  *
  * Repeaters and event action mappings are no elements of the map of their own: they live inside their page or shared
  * component, and a page close enough shows them in its DOM tree. Their relations start at the page, each remembering in
@@ -119,39 +125,39 @@ class AppMapModel {
 		this.groups   = data.groups ?? [];
 		this.sites    = data.sites ?? [];
 
-		// x holds what a schema relationship does beyond connecting, see AppMapAccess
+		// details holds what a schema relationship does beyond connecting, see AppMapAccess
 		const links = data.edges
-			.filter(([a, b]) => this.byId.has(a) && this.byId.has(b))
-			.map(([a, b, w, kind, inferred, evidence, x]) => ({ source: this.byId.get(a), target: this.byId.get(b), w, kind, inferred, evidence, ...(x ? { x } : {}) }));
+			.filter(e => this.byId.has(e.source) && this.byId.has(e.target))
+			.map(e => ({ ...e, source: this.byId.get(e.source), target: this.byId.get(e.target) }));
 
 		// a Structr group is an element of its own, connected to the types it has grants on
 		for (const g of data.groups ?? []) {
 
-			const targets = g.t.map(id => this.byId.get(id)).filter(Boolean);
+			const targets = g.types.map(id => this.byId.get(id)).filter(Boolean);
 
 			if (!targets.length) {
 				continue;
 			}
 
 			// its size is what its card holds: its members, the types it has grants on and the groups it is a member of
-			const node = { id: g.id, k: 'group', n: g.n, m: g.m, s: g.m + g.t.length + (g.in?.length ?? 0), g: g.g ?? g.id, area: g.area ?? 'security' };
+			const node = { id: g.id, kind: 'group', name: g.name, members: g.members, size: g.members + g.types.length + (g.memberOf?.length ?? 0), grouping: g.grouping ?? g.id, area: g.area ?? 'security' };
 
 			this.nodes.push(node);
 			this.byId.set(node.id, node);
-			targets.forEach(t => links.push({ source: node, target: t, w: 0.4, kind: 'grant', inferred: 0 }));
+			targets.forEach(t => links.push({ source: node, target: t, weight: 0.4, kind: 'grant' }));
 		}
 
 		this.techLinks  = links;
-		this.typeByName = new Map(this.nodes.filter(n => n.k === 'type').map(n => [n.n, n]));
+		this.typeByName = new Map(this.nodes.filter(n => n.kind === 'type').map(n => [n.name, n]));
 		this.homeOf     = new Map(links.filter(l => l.kind === 'contains').map(l => [l.target, l.source]));
 		this.bizLinks   = this.businessLinks();
 		this.inner      = new Map();
 
 		for (const n of this.nodes) {
 
-			const home = AppMapModel.INNER_KINDS.has(n.k) ? (this.byId.get(n.g) ?? this.homeOf.get(n)) : null;
+			const home = AppMapModel.INNER_KINDS.has(n.kind) ? (this.byId.get(n.grouping) ?? this.homeOf.get(n)) : null;
 
-			if (home && home !== n && !AppMapModel.INNER_KINDS.has(home.k)) {
+			if (home && home !== n && !AppMapModel.INNER_KINDS.has(home.kind)) {
 				this.inner.set(n, home);
 			}
 		}
@@ -201,7 +207,7 @@ class AppMapModel {
 		}
 
 		if (l.kind === 'endpoint') {
-			return l.source.k === 'api' ? [l.source, l.target] : [l.target, l.source];
+			return l.source.kind === 'api' ? [l.source, l.target] : [l.target, l.source];
 		}
 
 		return [l.source, l.target];
@@ -228,7 +234,7 @@ class AppMapModel {
 		for (const n of this.nodes) {
 
 			// a page or component does what its actions and repeaters do; a method what its script and the methods it calls do
-			if (n.k === 'action' || n.k === 'view') {
+			if (n.kind === 'action' || n.kind === 'view') {
 
 				const home = this.homeOf.get(n);
 
@@ -236,7 +242,7 @@ class AppMapModel {
 					this.crudOf(n).forEach(([op, t]) => add(home, t, op));
 				}
 
-			} else if (n.k === 'method' || n.k === 'api') {
+			} else if (n.kind === 'method' || n.kind === 'api') {
 
 				this.crudOf(n).forEach(([op, t]) => add(n, t, op));
 			}
@@ -250,11 +256,10 @@ class AppMapModel {
 			result.push({
 				source:   e.source,
 				target:   e.target,
-				w:        1 + (ordered.length - 1) * 0.5 + (strongest === 'R' ? 0 : 1),
+				weight:   1 + (ordered.length - 1) * 0.5 + (strongest === 'R' ? 0 : 1),
 				kind:     AppMapModel.OP_KIND[strongest],
 				ops:      ordered,
-				inferred: 0,
-				evidence: `${e.source.n} ${ordered} ${e.target.n}`
+				evidence: `${e.source.name} ${ordered} ${e.target.name}`
 			});
 		}
 
@@ -354,18 +359,18 @@ class AppMapModel {
 			}
 
 			if (l.kind !== 'reads') {
-				tally(effects, anchorOf(from), `${AppMapModel.EDGE_LABEL[l.kind] ?? l.kind} ${anchorOf(to).n}`);
+				tally(effects, anchorOf(from), `${AppMapModel.EDGE_LABEL[l.kind] ?? l.kind} ${anchorOf(to).name}`);
 			}
 		}
 
 		const strongest = (map, key, count) => [...(map.get(key) ?? new Map())].sort((a, b) => b[1] - a[1]).slice(0, count).map(([x]) => x);
 		const modules   = d3.groups(anchors, n => module[index.get(n)])
 			.map(([id, members]) => ({ id, members: members.sort((a, b) => rankOf.get(b) - rankOf.get(a)) }))
-			.map(m => ({ ...m, name: m.members[0].n, rank: d3.sum(m.members, n => rankOf.get(n)) }))
+			.map(m => ({ ...m, name: m.members[0].name, rank: d3.sum(m.members, n => rankOf.get(n)) }))
 			.sort((a, b) => b.rank - a.rank);
 		const moduleOf  = new Map(modules.flatMap(m => m.members.map(n => [n, m])));
 		const hotspots  = anchors
-			.filter(n => n.k !== 'external' && (users.get(n)?.size ?? 0) >= AppMapModel.HOTSPOT_USERS)
+			.filter(n => n.kind !== 'external' && (users.get(n)?.size ?? 0) >= AppMapModel.HOTSPOT_USERS)
 			.sort((a, b) => rankOf.get(b) * Math.sqrt(users.get(b).size) - rankOf.get(a) * Math.sqrt(users.get(a).size))
 			.slice(0, AppMapModel.HOTSPOTS)
 			.map((n, i) => ({ anchor: n, place: i + 1, users: users.get(n).size, changedBy: strongest(writers, n, 3), effects: strongest(effects, n, 3) }));
@@ -384,7 +389,7 @@ class AppMapModel {
 	 */
 	static importance(links) {
 
-		const isSheet  = n => n.k === 'page' || n.k === 'component';
+		const isSheet  = n => n.kind === 'page' || n.kind === 'component';
 		const add      = (map, key, value) => map.set(key, (map.get(key) ?? new Set()).add(value));
 		const holders  = new Map();
 		const holds    = new Map();
@@ -408,11 +413,11 @@ class AppMapModel {
 
 				add(leadsTo, l.target, l.source);
 
-			} else if (l.target.k === 'type' && AppMapStrands.WRITES.has(l.kind)) {
+			} else if (l.target.kind === 'type' && AppMapStrands.WRITES.has(l.kind)) {
 
 				add(changes, l.source, l.target);
 
-			} else if (l.target.k === 'type' && (l.kind === 'reads' || l.kind === 'current')) {
+			} else if (l.target.kind === 'type' && (l.kind === 'reads' || l.kind === 'current')) {
 
 				add(shows, l.source, l.target);
 
@@ -445,7 +450,7 @@ class AppMapModel {
 			return seen;
 		};
 
-		const pagesAt = n => [n, ...closure(holders, n)].filter(m => m.k === 'page');
+		const pagesAt = n => [n, ...closure(holders, n)].filter(m => m.kind === 'page');
 		const result  = new Map();
 		const weight  = AppMapModel.IMPORTANCE;
 		const sheets  = new Set(links.flatMap(l => [l.source, l.target]).filter(isSheet));
@@ -454,7 +459,7 @@ class AppMapModel {
 
 			const from = new Set([...leadsTo.get(n) ?? []].flatMap(pagesAt));
 
-			closure(holders, n).forEach(m => m.k === 'page' && from.add(m));
+			closure(holders, n).forEach(m => m.kind === 'page' && from.add(m));
 			from.delete(n);
 
 			// what it does: itself, its components, and the methods any of them runs
@@ -470,7 +475,7 @@ class AppMapModel {
 
 			changed.forEach(t => shown.delete(t));
 
-			const value = weight.reach * Math.log2(1 + from.size) + weight.changes * changed.size + weight.shows * shown.size + (n.p ? weight.public : 0);
+			const value = weight.reach * Math.log2(1 + from.size) + weight.changes * changed.size + weight.shows * shown.size + (n.public ? weight.public : 0);
 
 			result.set(n, { from, changes: changed, shows: shown, value });
 		}
@@ -573,9 +578,8 @@ class AppMapModel {
 
 		for (const n of this.nodes) {
 
-			const grouping = this.byId.has(n.g) || this.sections.has(n.g) ? n.g : n.id;
-
-			n.c = [n.area ?? 'data', grouping];
+			n.grouping = this.byId.has(n.grouping) || this.sections.has(n.grouping) ? n.grouping : n.id;
+			n.area     = n.area ?? 'data';
 		}
 	}
 }

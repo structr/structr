@@ -63,7 +63,7 @@ const tip = page => page.locator('#appmap-canvas .appmap-tip');
 
 async function failing(page) {
 
-	return page.evaluate(() => _AppMap.view.nodes.find(n => n.n === 'Item.fail')?.id ?? null);
+	return page.evaluate(() => _AppMap.view.nodes.find(n => n.name === 'Item.fail')?.id ?? null);
 }
 
 // where the sign of errors of the failing method is on the screen, with the map zoomed so that it is large enough
@@ -72,7 +72,7 @@ async function signOnScreen(page) {
 	return page.evaluate(() => {
 
 		const view = _AppMap.view;
-		const n    = view.nodes.find(n => n.n === 'Item.fail');
+		const n    = view.nodes.find(n => n.name === 'Item.fail');
 		const k    = view.baseK * 6;
 
 		d3.select(view.canvas).interrupt().call(view.zoom.transform, d3.zoomIdentity.translate(view.width / 2 - n.x * k, view.height / 2 - n.y * k).scale(k));
@@ -91,7 +91,7 @@ test.beforeEach(async ({page}) => {
 
 	await login(page);
 	await goToModule(page, '#appmap_');
-	await page.waitForFunction(() => _AppMap.view?.nodes?.some(n => n.n === 'Item.fail'), null, { timeout: 30_000 });
+	await page.waitForFunction(() => _AppMap.view?.nodes?.some(n => n.name === 'Item.fail'), null, { timeout: 30_000 });
 	await page.waitForFunction(() => _AppMap.view?.layout && !_AppMap.view.layout.settling);
 
 	// the introduction of a first visit lies above the map
@@ -103,16 +103,16 @@ test('the failing method has the call trace that led to it, from the method that
 	await expect.poll(() => page.evaluate(() => {
 
 		const view = _AppMap.view;
-		const n    = view.nodes.find(n => n.n === 'Item.fail');
+		const n    = view.nodes.find(n => n.name === 'Item.fail');
 
-		return (view.tracesOf.get(n) ?? []).map(t => ({ steps: t.steps.map(s => s.n?.n ?? null).slice(0, 2), lines: t.steps.map(s => s.frames[0].r).slice(0, 2), entry: t.steps.at(-1).frames[0].k }));
+		return (view.tracesOf.get(n) ?? []).map(t => ({ steps: t.steps.map(s => s.node?.name ?? null).slice(0, 2), lines: t.steps.map(s => s.frames[0].row).slice(0, 2), entry: t.steps.at(-1).frames[0].kind }));
 
 	})).toEqual([{ steps: ['Item.fail', 'Item.process'], lines: [3, 2], entry: 'HTTP' }]);
 });
 
 test('the sign of errors on the failing method says what failed and the calls that led there', async ({page}) => {
 
-	await expect.poll(() => page.evaluate(() => _AppMap.view.problemsOfElement(_AppMap.view.nodes.find(n => n.n === 'Item.fail')).errors)).toBe(1);
+	await expect.poll(() => page.evaluate(() => _AppMap.view.problemsOfElement(_AppMap.view.nodes.find(n => n.name === 'Item.fail')).errors)).toBe(1);
 
 	const sign = await signOnScreen(page);
 
@@ -125,14 +125,14 @@ test('the sign of errors on the failing method says what failed and the calls th
 
 test('a click on the sign shows the call trace on the map, and Escape ends it', async ({page}) => {
 
-	await expect.poll(() => page.evaluate(() => _AppMap.view.problemsOfElement(_AppMap.view.nodes.find(n => n.n === 'Item.fail')).errors)).toBe(1);
+	await expect.poll(() => page.evaluate(() => _AppMap.view.problemsOfElement(_AppMap.view.nodes.find(n => n.name === 'Item.fail')).errors)).toBe(1);
 
 	const sign = await signOnScreen(page);
 
 	await page.mouse.click(sign.x, sign.y);
 
-	await expect.poll(() => page.evaluate(() => _AppMap.view.callTrace?.origin?.n ?? null)).toBe('Item.fail');
-	expect(await page.evaluate(() => _AppMap.view.pinned?.n)).toBe('Item.fail');
+	await expect.poll(() => page.evaluate(() => _AppMap.view.callTrace?.origin?.name ?? null)).toBe('Item.fail');
+	expect(await page.evaluate(() => _AppMap.view.pinned?.name)).toBe('Item.fail');
 	await expect(page.locator('#appmap-hint')).toContainText('Item.fail:3 ← Item.process:2');
 	await expect(page.locator('#appmap-hint')).toContainText('Esc ends');
 
@@ -142,7 +142,7 @@ test('a click on the sign shows the call trace on the map, and Escape ends it', 
 		const view = _AppMap.view;
 		const t    = view.transform;
 
-		return view.callTrace.steps.filter(s => s.n).every(({ n }) => {
+		return view.callTrace.steps.filter(s => s.node).every(({ node: n }) => {
 
 			const [w, h] = (AppMapRenderer.boxOf(n) ?? [1, 1]).map(v => v * view.shownRadius(n));
 
@@ -171,5 +171,5 @@ test('saving the failing method acknowledges its error, and the sign goes', asyn
 	// the map loads its scripting errors anew, as after saving in its editor
 	await page.evaluate(() => _AppMap.loadProblems());
 
-	await expect.poll(() => page.evaluate(() => _AppMap.view.problemsOfElement(_AppMap.view.nodes.find(n => n.n === 'Item.fail')).errors)).toBe(0);
+	await expect.poll(() => page.evaluate(() => _AppMap.view.problemsOfElement(_AppMap.view.nodes.find(n => n.name === 'Item.fail')).errors)).toBe(0);
 });

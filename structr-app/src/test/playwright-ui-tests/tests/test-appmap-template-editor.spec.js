@@ -133,7 +133,7 @@ async function waitForMap(page) {
 		const state = await page.evaluate(id => ({
 			mode:    typeof _AppMap === 'undefined' ? null : _AppMap.mode,
 			view:    typeof _AppMap !== 'undefined' && !!_AppMap.view,
-			nodes:   typeof _AppMap === 'undefined' ? null : _AppMap.view?.nodes?.map(n => `${n.k}:${n.n}`) ?? null,
+			nodes:   typeof _AppMap === 'undefined' ? null : _AppMap.view?.nodes?.map(n => `${n.kind}:${n.name}`) ?? null,
 			page:    id,
 			hash:    location.hash,
 			message: [...document.querySelectorAll('.message, .error, .dialog-message')].map(e => e.textContent.trim()).filter(Boolean)

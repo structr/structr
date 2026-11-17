@@ -218,7 +218,7 @@ class AppMapLayout {
 		for (const n of this.nodes) {
 
 			const p      = stored.positions?.[n.id];
-			const sector = stored.sectors[n.c?.[0]];
+			const sector = stored.sectors[n.area];
 
 			if (!p) {
 				continue;
@@ -289,7 +289,7 @@ class AppMapLayout {
 		// a disc is as large as its members need, each with its own size and some room around it: a grouping of a few large,
 		// well connected elements takes as much room as one of many small ones
 		const discs  = d3.groups(this.nodes, n => this.view.groupKeyOf(n))
-			.map(([key, members]) => ({ key, size: members.length, area: members[0].c?.[0], r: (14 + 1.25 * Math.sqrt(d3.sum(members, m => (this.view.radiusOf(m) + 9) ** 2))) * spread }));
+			.map(([key, members]) => ({ key, size: members.length, area: members[0].area, r: (14 + 1.25 * Math.sqrt(d3.sum(members, m => (this.view.radiusOf(m) + 9) ** 2))) * spread }));
 
 		// the field is as large as the fullest sector needs; a sector of angle θ and radius R has the area θR²/2
 		const needed = d3.rollup(discs.filter(d => areas[d.area]), ds => d3.sum(ds, x => Math.PI * (x.r + 18 * spread) ** 2), d => d.area);
@@ -427,8 +427,8 @@ class AppMapLayout {
 		for (const l of this.links) {
 
 			const [from, to] = AppMapModel.dependency(l);
-			const a          = from?.c?.[0];
-			const b          = to?.c?.[0];
+			const a          = from?.area;
+			const b          = to?.area;
 
 			if (a && b && a !== b) {
 
@@ -595,7 +595,7 @@ class AppMapLayout {
 					this.ownerOf.set(m, t);
 				}
 
-				if (m.k === 'method' && t.k === 'type') {
+				if (m.kind === 'method' && t.kind === 'type') {
 
 					const counts = usage.get(m) ?? new Map();
 
@@ -603,7 +603,7 @@ class AppMapLayout {
 						this.ownerOf.set(m, t);
 					}
 
-					counts.set(t, (counts.get(t) ?? 0) + l.w);
+					counts.set(t, (counts.get(t) ?? 0) + l.weight);
 					usage.set(m, counts);
 				}
 			}
@@ -611,13 +611,13 @@ class AppMapLayout {
 
 		for (const n of this.nodes) {
 
-			if (n.k === 'type') {
+			if (n.kind === 'type') {
 
 				this.ownerOf.set(n, n);
 
-			} else if (n.k === 'method' && !this.ownerOf.has(n)) {
+			} else if (n.kind === 'method' && !this.ownerOf.has(n)) {
 
-				const named = n.n.includes('.') ? this.view.model.typeByName.get(n.n.slice(0, n.n.lastIndexOf('.'))) : null;
+				const named = n.name.includes('.') ? this.view.model.typeByName.get(n.name.slice(0, n.name.lastIndexOf('.'))) : null;
 				const used  = usage.has(n) ? d3.greatest(usage.get(n), ([, w]) => w)[0] : null;
 
 				if (named ?? used) {
@@ -649,7 +649,7 @@ class AppMapLayout {
 			const dx       = disc.x - n.x;
 			const dy       = disc.y - n.y;
 			const distance = Math.hypot(dx, dy) || 1;
-			const layer    = (AppMapLayout.LAYER[n.k] ?? 0.6) * disc.r * 0.85;
+			const layer    = (AppMapLayout.LAYER[n.kind] ?? 0.6) * disc.r * 0.85;
 			const toward   = (distance - layer) / distance;
 
 			n.vx += dx * toward * cohesion;
@@ -665,7 +665,7 @@ class AppMapLayout {
 
 			// and no element leaves the sector of its area: past the border it is turned back along its circle, more gently as
 			// the layout cools down, so the map comes to rest; when it rests, confine puts it inside for good
-			const target = this.inSector(n.x, n.y, this.sectors.get(n.c?.[0]), AppMapLayout.ELEMENT_SPAN);
+			const target = this.inSector(n.x, n.y, this.sectors.get(n.area), AppMapLayout.ELEMENT_SPAN);
 
 			if (target) {
 
@@ -703,7 +703,7 @@ class AppMapLayout {
 
 		for (const n of this.nodes) {
 
-			const target = this.inSector(n.x, n.y, this.sectors.get(n.c?.[0]), AppMapLayout.ELEMENT_SPAN);
+			const target = this.inSector(n.x, n.y, this.sectors.get(n.area), AppMapLayout.ELEMENT_SPAN);
 
 			if (target) {
 
@@ -719,19 +719,19 @@ class AppMapLayout {
 	// grouping and area is gone and its step stays: the tuned forces and the lengths of the layout rest on these numbers
 	hierarchyDistance(l) {
 
-		const a     = l.source.c ?? [];
-		const b     = l.target.c ?? [];
-		const owner = this.ownerOf.get(l.source);
+		const a     = l.source;
+		const b     = l.target;
+		const owner = this.ownerOf.get(a);
 
-		if (owner && owner === this.ownerOf.get(l.target)) {
+		if (owner && owner === this.ownerOf.get(b)) {
 			return 0;
 		}
 
-		if (a[1] != null && a[1] === b[1]) {
+		if (a.grouping != null && a.grouping === b.grouping) {
 			return 1;
 		}
 
-		if (a[0] != null && a[0] === b[0]) {
+		if (a.area != null && a.area === b.area) {
 			return 3;
 		}
 

@@ -297,7 +297,7 @@ public class DataMap {
 		final List<Object> edges = new ArrayList<>();
 
 		for (final Map.Entry<Long, Integer> pair : pairs.entrySet()) {
-			edges.add(List.of("d" + pair.getKey() / 1_000_000L, "d" + pair.getKey() % 1_000_000L, pair.getValue(), "links", 0, "data"));
+			edges.add(Map.of("source", "d" + pair.getKey() / 1_000_000L, "target", "d" + pair.getKey() % 1_000_000L, "weight", pair.getValue(), "kind", "links", "evidence", "data"));
 		}
 
 		result.put(new GenericProperty<>("areas"),   areas);
@@ -313,17 +313,17 @@ public class DataMap {
 
 		final Map<String, Object> node = new LinkedHashMap<>();
 
-		node.put("id",   "d" + index);
-		node.put("k",    "type");
+		node.put("id",        "d" + index);
+		node.put("kind",      "type");
 		// the family stands over the sector, so a name with an underscore leaves it out
 		final String shown = type.indexOf('_') > 0 ? type.substring(type.indexOf('_') + 1) : type;
 
-		node.put("n",    community != null ? shown + " · " + community : shown);
-		node.put("t",    type);
-		node.put("cn",   community);
-		node.put("g",    "type:" + type);
-		node.put("area", area);
-		node.put("s",    size);
+		node.put("name",      community != null ? shown + " · " + community : shown);
+		node.put("type",      type);
+		node.put("community", community);
+		node.put("grouping",  "type:" + type);
+		node.put("area",      area);
+		node.put("size",      size);
 
 		return node;
 	}

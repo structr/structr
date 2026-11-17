@@ -268,25 +268,45 @@ class AppMapPanels {
 
 		const inner  = this.view.model.inner;
 		const byId   = this.view.byId;
-		const toTree = item => ({
-			tag:       item[0],
-			active:    !!(item[1] & 1),
-			action:    !!(item[1] & 2),
-			repeater:  !!(item[1] & 4),
-			children:  (item[2] ?? []).map(toTree),
-			inner:     (item[3] ?? []).map(id => byId.get(id)).filter(n => n && inner.has(n)),
-			shows:     item[4] || null,
-			key:       item[5] ?? null,
-			id:        item[6] ?? null,
-			text:      !!(item[1] & 8),
-			when:      !!(item[1] & 16),
-			component: !!(item[1] & 32),
-			sources:   item[7] ?? []
+		// an outline item carries its flags only when they are set and its lists only when they are not empty; the box of
+		// the tree has the map nodes behind its ids as inner and its expressions as shows
+		const toBox = item => ({
+			tag:         item.tag,
+			id:          item.id ?? null,
+			active:      !!item.active,
+			action:      !!item.action,
+			repeater:    !!item.repeater,
+			text:        !!item.text,
+			conditional: !!item.conditional,
+			component:   !!item.component,
+			children:    [],
+			inner:       (item.ids ?? []).map(id => byId.get(id)).filter(n => n && inner.has(n)),
+			shows:       item.expressions || null,
+			dataKey:     item.dataKey ?? null,
+			sources:     item.sources ?? []
 		});
 
-		for (const page of this.view.nodes.filter(n => (n.k === 'page' || n.k === 'component') && n.d?.length && !n.tpl)) {
+		// the outline is a flat list, each item before the items below it (see AppMapModel); an item belongs to the
+		// last item before it that lies one level higher
+		const toTree = (root, items) => {
 
-			const root = d3.hierarchy({ tag: page.n, children: page.d.map(toTree) });
+			const above = [root];
+
+			for (const item of items) {
+
+				const box = toBox(item);
+
+				above.length = Math.min(above.length, item.depth + 1);
+				above[above.length - 1].children.push(box);
+				above.push(box);
+			}
+
+			return root;
+		};
+
+		for (const page of this.view.nodes.filter(n => (n.kind === 'page' || n.kind === 'component') && n.outline?.length && !n.template)) {
+
+			const root = d3.hierarchy(toTree({ tag: page.name, children: [] }, page.outline));
 
 			// the boxes of one level stand side by side, as far apart as their widths need; a run of leaves stands as a stack
 			// (see layoutOf), which the layout takes for a chain, one leaf below the other
@@ -328,9 +348,9 @@ class AppMapPanels {
 			// so its context is not known
 			for (const d of all.slice(1)) {
 
-				const ancestors = d.ancestors().slice(1, -1).map(a => ({ dataKey: a.data.key, component: a.data.component }));
+				const ancestors = d.ancestors().slice(1, -1).map(a => ({ dataKey: a.data.dataKey, component: a.data.component }));
 
-				d.warnings = typeof _Pages === 'undefined' ? [] : _Pages.problems.checkRepeater({ dataKey: d.data.key, component: d.data.component, sources: d.data.sources }, { ancestors, inPage: page.k === 'page' });
+				d.warnings = typeof _Pages === 'undefined' ? [] : _Pages.problems.checkRepeater({ dataKey: d.data.dataKey, component: d.data.component, sources: d.data.sources }, { ancestors, inPage: page.kind === 'page' });
 			}
 
 			const boxOf = new Map(all.flatMap(d => (d.data.inner ?? []).map(n => [n, d])));
@@ -730,7 +750,7 @@ class AppMapPanels {
 
 		const data = d.data;
 
-		return !!(data.repeater || data.action || data.text || data.when || data.tag === 'template' || data.tag === 'content');
+		return !!(data.repeater || data.action || data.text || data.conditional || data.tag === 'template' || data.tag === 'content');
 	}
 
 	// how an HTML element opens inside its box at the given zoom: the box as a card, its header, and the room below the
@@ -785,7 +805,7 @@ class AppMapPanels {
 		const middle = head.line + panel.strip * 0.5;
 		const font   = head.name * 0.62;
 		const data   = d.data;
-		const type   = data.shows ? this.view.nodes.find(m => m.k === 'type' && m.n === data.shows) : null;
+		const type   = data.shows ? this.view.nodes.find(m => m.kind === 'type' && m.name === data.shows) : null;
 		const source = { functionQuery: 'function query', cypherQuery: 'Cypher query', flow: 'flow' }[(data.sources ?? [])[0]];
 		const issues = d.warnings?.length ?? 0;
 
@@ -800,13 +820,13 @@ class AppMapPanels {
 
 		// what it does, from the right, as far as there is room
 		const marks = [
-			data.key && [`key ${data.key}`, 'chip', look.label],
-			type && [`shows ${type.n}`, 'chip', renderer.colorOf(type)],
+			data.dataKey && [`key ${data.dataKey}`, 'chip', look.label],
+			type && [`shows ${type.name}`, 'chip', renderer.colorOf(type)],
 			!type && data.shows && [`shows ${data.shows}`, 'chip', look.label],
 			source && [source, 'chip', look.label],
 			// an event action of an element that is something else first, a repeater; the kind says it of any other
 			data.action && data.repeater && ['event action', 'on', AppMapPanels.ACTION_COLOR],
-			data.when && ['conditional', 'chip', look.label],
+			data.conditional && ['conditional', 'chip', look.label],
 			data.component && ['shared component', 'chip', look.kinds.component],
 			issues && [`${issues} ${issues === 1 ? 'problem' : 'problems'}`, 'on', look.warning]
 		].filter(Boolean);
@@ -953,7 +973,7 @@ class AppMapPanels {
 	// template, which shows the text of the template in place of its tree
 	static hasCode(n) {
 
-		return n.k === 'method' || !!n.tpl;
+		return n.kind === 'method' || !!n.template;
 	}
 
 	// reads the source of a method or the text of a template once, when its box first comes close enough to show it
@@ -1085,7 +1105,7 @@ class AppMapPanels {
 		const font   = panel.head.name * 0.62;
 		const unit   = panel.head.depth;
 		const middle = top + unit * 0.52;
-		const name   = n.n.split('.').pop();
+		const name   = n.name.split('.').pop();
 		const cycle  = meta.onType && /^(on|after)[A-Z]/.test(name);
 		const kind   = n.cron ? `Scheduled · ${n.cron}` : (!meta.onType ? 'Function' : (cycle ? 'Lifecycle method' : (meta.isStatic ? 'Static method' : 'Method')));
 
@@ -1157,24 +1177,24 @@ class AppMapPanels {
 		}
 	}
 
-	// the readers of a function property, as the map data has them on the type that declares it (fr): the methods whose
+	// the readers of a function property, as the map data has them on the type that declares it (functionReads): the methods whose
 	// code reads it, by their name, and the pages and shared components that show it, with the element that shows it, from
 	// the evidence ("Total shows item.total"). As a list of { node, label }
 	readersOf(owner, property) {
 
 		const readers = [];
 
-		for (const [id, evidence] of owner?.fr?.[property] ?? []) {
+		for (const { caller, evidence } of owner?.functionReads?.[property] ?? []) {
 
-			const node = this.view.byId.get(id);
+			const node = this.view.byId.get(caller);
 
 			if (!node) {
 				continue;
 			}
 
-			const element = node.k === 'method' ? null : String(evidence ?? '').match(/^(.*?) shows /)?.[1];
+			const element = node.kind === 'method' ? null : String(evidence ?? '').match(/^(.*?) shows /)?.[1];
 
-			readers.push({ node, label: element ? `${node.n} › ${element}` : node.n });
+			readers.push({ node, label: element ? `${node.name} › ${element}` : node.name });
 		}
 
 		return readers.sort((a, b) => a.label.localeCompare(b.label));
@@ -1195,25 +1215,25 @@ class AppMapPanels {
 				continue;
 			}
 
-			let label = l.source.n;
+			let label = l.source.name;
 
 			if (l.kind === 'invokes') {
 
 				// "invoices: Save → saveHighestInvoiceNo() calls …": the element is what stands before the arrow
 				const element = String(l.evidence ?? '').match(/^[^:]*:\s*(.*?)\s*→/)?.[1];
 
-				label = element ? `${l.source.n} › ${element}` : l.source.n;
+				label = element ? `${l.source.name} › ${element}` : l.source.name;
 
 			} else if (l.kind === 'endpoint') {
 
-				const signature = l.source.n.replace(/^\//, '');
+				const signature = l.source.name.replace(/^\//, '');
 				const usage     = this.view.usage.grants?.data?.usage;
 				const requests  = usage ? d3.sum(Object.entries(usage).filter(([source]) => source.startsWith(signature + ' ')), ([, u]) => u.total) : null;
 
 				// the requests of the last days, read once they are needed
 				this.view.usageOf('grants');
 
-				label = `${meta?.httpVerb ?? 'POST'} ${l.source.n}` + (requests != null ? ` · ${AppMapPanels.shortCount(requests)} ${requests === 1 ? 'request' : 'requests'}` : '');
+				label = `${meta?.httpVerb ?? 'POST'} ${l.source.name}` + (requests != null ? ` · ${AppMapPanels.shortCount(requests)} ${requests === 1 ? 'request' : 'requests'}` : '');
 			}
 
 			seen.set(`${l.source.id}|${label}`, { node: l.source, label });
@@ -1335,10 +1355,10 @@ class AppMapPanels {
 				this.reading.add(n);
 
 				// a method has its way into the Code area at its foot, see AppMapView.placeOpenButton
-				if (n.k === 'method') {
+				if (n.kind === 'method') {
 					this.cards.push({ n, open: { area: 'code', kind: 'method', node: n }, rect: [panel.x0, panel.y0, 2 * panel.w, 2 * panel.h], foot: panel.head.foot, opacity: 1 });
 				}
-				this.drawHeader(renderer, head, AppMapModel.KIND_LABEL[n.k], n.n, colour, k);
+				this.drawHeader(renderer, head, AppMapModel.KIND_LABEL[n.kind], n.name, colour, k);
 
 				if (panel.meta) {
 					this.drawMethodStrip(renderer, n, panel, colour, k);
@@ -1441,7 +1461,7 @@ class AppMapPanels {
 
 		}).catch(error => {
 
-			console.warn(`Application map: what ${n.n} holds could not be read`, error);
+			console.warn(`Application map: what ${n.name} holds could not be read`, error);
 
 			this.insides.set(n, { failed: true, layouts: new Map(), loaded });
 			this.view.requestDraw();
@@ -1457,13 +1477,13 @@ class AppMapPanels {
 	// out of the map at the foot of the card (open), and what the card calls the element, where that is not its kind
 	async insideOf(n) {
 
-		if (n.k === 'type') {
+		if (n.kind === 'type') {
 
 			const schema = this.view.loadType ? await this.view.loadType(n) : null;
 
 			// the schema relationships of the type and of the types it inherits relationships from, for their boxes (see
 			// relationshipSettings)
-			const types   = new Map(this.view.nodes.filter(m => m.k === 'type').map(m => [m.n, m]));
+			const types   = new Map(this.view.nodes.filter(m => m.kind === 'type').map(m => [m.name, m]));
 			const owners  = [...new Set(Object.values(schema?.views?.all ?? {}).filter(p => p.relatedType).map(p => types.get(p.declaringClass)?.id).filter(Boolean))];
 			const related = this.view.loadRelationships && owners.length ? await this.view.loadRelationships(owners).catch(() => []) : [];
 
@@ -1473,22 +1493,22 @@ class AppMapPanels {
 			return schema ? { sections: this.typeRows(n, schema, related, functions), strip: this.typeStripOf(n, schema), kindLabel: schema.isServiceClass ? 'Service class' : null, open: { area: 'code', kind: 'type', node: n } } : null;
 		}
 
-		if (n.k === 'api') {
+		if (n.kind === 'api') {
 
 			const [grants, usage] = await Promise.all([this.view.loadGrants ? this.view.loadGrants() : null, this.view.usageOf('grants')]);
 
 			// what the endpoint gives access to, for its strip (see drawEndpointStrip)
 			const target = this.view.links.find(l => l.kind === 'endpoint' && l.source === n)?.target ?? null;
 
-			return grants ? { sections: this.endpointRows(n, grants, usage), usage, strip: { endpoint: true, target }, open: { area: 'security', tab: 'resource-access', filter: n.n.replace(/^\//, '') } } : null;
+			return grants ? { sections: this.endpointRows(n, grants, usage), usage, strip: { endpoint: true, target }, open: { area: 'security', tab: 'resource-access', filter: n.name.replace(/^\//, '') } } : null;
 		}
 
-		if (n.k === 'group') {
+		if (n.kind === 'group') {
 
 			const members = this.view.loadMembers ? await this.view.loadMembers(n) : null;
 
 			// the rights are changed in the properties of the group, see _UsersAndGroups.typePermissions
-			return { sections: this.groupRows(n, members ?? []), strip: this.groupStripOf(n, members ?? []), open: { area: 'security', tab: 'users-and-groups', group: true, filter: n.n, id: n.id, dialog: 'type-permissions' } };
+			return { sections: this.groupRows(n, members ?? []), strip: this.groupStripOf(n, members ?? []), open: { area: 'security', tab: 'users-and-groups', group: true, filter: n.name, id: n.id, dialog: 'type-permissions' } };
 		}
 
 		// what the service is to its code says the strip, see drawExternalStrip
@@ -1498,7 +1518,7 @@ class AppMapPanels {
 	// the settings of the box of a row that leads to another element of the map: what it is, and the way to it
 	static leadTo(node) {
 
-		return node.k === 'method' ? { area: 'code', kind: 'method', node } : (node.k === 'type' ? { area: 'code', kind: 'type', node } : null);
+		return node.kind === 'method' ? { area: 'code', kind: 'method', node } : (node.kind === 'type' ? { area: 'code', kind: 'type', node } : null);
 	}
 
 	// the properties of a type, from its schema (see SchemaHelper.getSchemaTypeInfo): its relationships, its fields and, per
@@ -1506,7 +1526,7 @@ class AppMapPanels {
 	// createdDate, are left out, and so are its methods, which stand beside it on the map
 	typeRows(n, schema, related = [], functions = new Map()) {
 
-		const types  = new Map(this.view.nodes.filter(m => m.k === 'type').map(m => [m.n, m]));
+		const types  = new Map(this.view.nodes.filter(m => m.kind === 'type').map(m => [m.name, m]));
 		const all    = Object.values(schema.views?.all ?? {}).filter(p => types.has(p.declaringClass));
 		const byName = (a, b) => a.name.localeCompare(b.name);
 
@@ -1545,16 +1565,16 @@ class AppMapPanels {
 			};
 		};
 
-		const own       = all.filter(p => p.declaringClass === n.n).map(item);
+		const own       = all.filter(p => p.declaringClass === n.name).map(item);
 		const relations = own.filter(i => i.target).sort(byName);
 		const fields    = own.filter(i => !i.target).sort(byName);
-		const inherited = d3.groups(all.filter(p => p.declaringClass !== n.n), p => p.declaringClass).map(([parent, list]) => ({ heading: `From ${parent} · ${list.length}`, items: list.map(item).sort(byName), faded: true }));
+		const inherited = d3.groups(all.filter(p => p.declaringClass !== n.name), p => p.declaringClass).map(([parent, list]) => ({ heading: `From ${parent} · ${list.length}`, items: list.map(item).sort(byName), faded: true }));
 
 		// a service class holds methods, not data: its card lists them, each leading to the method beside it on the map;
 		// the methods of any other type stand beside it and are not listed again
-		const methods   = schema.isServiceClass ? this.view.links.filter(l => l.kind === 'member' && l.target === n && l.source.k === 'method').map(l => l.source) : [];
+		const methods   = schema.isServiceClass ? this.view.links.filter(l => l.kind === 'member' && l.target === n && l.source.kind === 'method').map(l => l.source) : [];
 		// named without the class, which the card is
-		const rows      = methods.map(m => ({ ...this.leadRow(m, m.cron ? 'Scheduled' : 'Method', m.cron ? `runs at ${m.cron}:` : 'a method of the service class:'), name: m.n.split('.').pop() })).sort((a, b) => a.name.localeCompare(b.name));
+		const rows      = methods.map(m => ({ ...this.leadRow(m, m.cron ? 'Scheduled' : 'Method', m.cron ? `runs at ${m.cron}:` : 'a method of the service class:'), name: m.name.split('.').pop() })).sort((a, b) => a.name.localeCompare(b.name));
 		const empty     = !relations.length && !fields.length && !inherited.length && !rows.length;
 
 		return [
@@ -1574,8 +1594,8 @@ class AppMapPanels {
 	// grants (see AppMapView.usageOf), each row also says how often its permission decided a request
 	endpointRows(n, grants, usage) {
 
-		const base   = n.n.replace(/^\//, '');
-		const own    = new Set(this.view.nodes.filter(m => m.k === 'api').map(m => m.n.replace(/^\//, '')));
+		const base   = n.name.replace(/^\//, '');
+		const own    = new Set(this.view.nodes.filter(m => m.kind === 'api').map(m => m.name.replace(/^\//, '')));
 		const mine   = grants.filter(g => g.signature === base || (g.signature?.startsWith(base + '/') && !own.has(g.signature)));
 		const opens  = this.view.links.filter(l => l.kind === 'endpoint' && l.source === n).map(l => l.target);
 		AppMapPanels.annotateUsage(mine, usage);
@@ -1584,7 +1604,7 @@ class AppMapPanels {
 
 		return [
 			{ heading: `Requests · ${rows.length}`, items: rows, columns: 1, empty: 'No grants – only admins may use it' },
-			{ heading: 'Gives access to', items: opens.map(node => this.leadRow(node, null, node.k === 'method' ? 'requests to it run' : 'requests to it read and change the objects of')), columns: 1 }
+			{ heading: 'Gives access to', items: opens.map(node => this.leadRow(node, null, node.kind === 'method' ? 'requests to it run' : 'requests to it read and change the objects of')), columns: 1 }
 		];
 	}
 
@@ -1760,7 +1780,7 @@ class AppMapPanels {
 			series:   use,
 			verbs:    set.map(({ verb, cells }) => ({ verb, live: cells.some(cell => cell === 'yes' || cell === 'some') })),
 			chip:     set.length ? (chips.length ? chips.join(' · ') : 'no effect') : 'admins only',
-			chipTint: { access: any(pub.cells, 'yes') ? 'pub' : (chips.length ? 'auth' : 'none') }
+			chipTint: { audience: any(pub.cells, 'yes') ? 'pub' : (chips.length ? 'auth' : 'none') }
 		});
 	}
 
@@ -1875,19 +1895,19 @@ class AppMapPanels {
 	leadRow(node, chip, does, evidence) {
 
 		return {
-			name:     node.n,
-			kind:     AppMapModel.KIND_LABEL[node.k],
+			name:     node.name,
+			kind:     AppMapModel.KIND_LABEL[node.kind],
 			arrow:    true,
 			tint:     node,
-			chip:     chip ?? AppMapModel.KIND_LABEL[node.k],
+			chip:     chip ?? AppMapModel.KIND_LABEL[node.kind],
 			// its box: what it leads to, as a chip in its colour, and in words how it relates, with what the map knows it
 			// from in grey (see drawSummary); the way there is the button at its foot
 			summary:  {
-				chip:      AppMapModel.KIND_LABEL[node.k],
+				chip:      AppMapModel.KIND_LABEL[node.kind],
 				chipTint:  node,
 				marks:     [],
 				sentences: () => [
-					does ? `${does[0].toUpperCase()}${does.slice(1)} ${node.n}` : node.n,
+					does ? `${does[0].toUpperCase()}${does.slice(1)} ${node.name}` : node.name,
 					evidence && { text: String(evidence), muted: true }
 				]
 			},
@@ -1910,8 +1930,8 @@ class AppMapPanels {
 		return {
 			kind,
 			parents,
-			access: !rest || !rest.n ? 'admins only' : [rest.pub && 'public', rest.auth && 'signed in'].filter(Boolean).join(' · ') || 'no effect',
-			accessTint: { access: rest?.pub ? 'pub' : (rest?.auth ? 'auth' : 'none') },
+			access: !rest || !rest.rules ? 'admins only' : [rest.public && 'public', rest.authenticated && 'signed in'].filter(Boolean).join(' · ') || 'no effect',
+			accessTint: { audience: rest?.public ? 'pub' : (rest?.authenticated ? 'auth' : 'none') },
 			groups,
 			uses: AppMapPanels.TYPE_USES.map(([key, label, verb]) => ({ label, verb, count: users(key) }))
 		};
@@ -1961,7 +1981,7 @@ class AppMapPanels {
 		x += this.drawLabel(renderer, strip.kind, x, first, font, 'chip', colour, k);
 
 		for (const parent of strip.parents) {
-			x += this.drawLabel(renderer, `extends ${parent.n}`, x, first, font, 'chip', this.tintOf(renderer, parent) ?? look.label, k);
+			x += this.drawLabel(renderer, `extends ${parent.name}`, x, first, font, 'chip', this.tintOf(renderer, parent) ?? look.label, k);
 		}
 
 		// who may request it over REST, and the groups with rights on it
@@ -1992,15 +2012,15 @@ class AppMapPanels {
 		const what  = n.id.replace(/^ext:/, '');
 		const where = what.includes(':') ? what.slice(what.indexOf(':') + 1) : null;
 		const kind  = { requests: what === 'http' ? 'HTTP requests' : (what === 'geocoding' ? 'Geocoding' : (what.startsWith('translation') ? 'Translation' : 'Web service')), mails: 'Mail server', executes: 'Script', queries: 'Database' }[links[0]?.kind] ?? 'External service';
-		const count = k => new Set(links.filter(l => l.source.k === k).map(l => l.source)).size;
+		const count = k => new Set(links.filter(l => l.source.kind === k).map(l => l.source)).size;
 
 		return {
 			external: true,
 			kind,
 			// where it is, unless the header names it already or it has no place of its own
-			where:    [where ?? what].filter(w => w !== n.n && !['http', 'geocoding', 'exec', 'mail'].includes(w))[0] ?? null,
+			where:    [where ?? what].filter(w => w !== n.name && !['http', 'geocoding', 'exec', 'mail'].includes(w))[0] ?? null,
 			users:    [['method', 'method', 'methods'], ['page', 'page', 'pages'], ['component', 'shared component', 'shared components']].map(([k, one, many]) => count(k) && `${count(k)} ${count(k) === 1 ? one : many}`).filter(Boolean),
-			calls:    [...new Set(links.map(l => l.x?.f).filter(Boolean))].sort(),
+			calls:    [...new Set(links.map(l => l.details?.function).filter(Boolean))].sort(),
 			lead:     AppMapPanels.leadOf(n, links)
 		};
 	}
@@ -2061,11 +2081,11 @@ class AppMapPanels {
 	groupStripOf(n, members) {
 
 		const group   = (this.view.model.groups ?? []).find(g => g.id === n.id);
-		const letters = Object.values(group?.p ?? {}).map(String);
+		const letters = Object.values(group?.rights ?? {}).map(String);
 
 		return {
 			group:   true,
-			parents: (group?.in ?? []).map(id => this.view.byId.get(id)).filter(Boolean),
+			parents: (group?.memberOf ?? []).map(id => this.view.byId.get(id)).filter(Boolean),
 			users:   members.filter(m => !m.isGroup).length,
 			groups:  members.filter(m => m.isGroup).length,
 			rights:  AppMapPanels.RIGHTS.map(([badge, letter, label], i) => ({ badge, count: letters.filter(l => l.includes(letter)).length, label: ['reads', 'writes', 'deletes', 'controls access to'][i] }))
@@ -2087,7 +2107,7 @@ class AppMapPanels {
 		x += this.drawLabel(renderer, 'Group', x, first, font, 'chip', colour, k);
 
 		for (const parent of strip.parents) {
-			x += this.drawLabel(renderer, `member of ${parent.n}`, x, first, font, 'chip', this.tintOf(renderer, parent) ?? look.label, k);
+			x += this.drawLabel(renderer, `member of ${parent.name}`, x, first, font, 'chip', this.tintOf(renderer, parent) ?? look.label, k);
 		}
 
 		// its members
@@ -2129,10 +2149,10 @@ class AppMapPanels {
 		// what kind of endpoint, and what it gives access to
 		let x = left;
 
-		x += this.drawLabel(renderer, target?.k === 'method' ? 'Method endpoint' : (target?.k === 'type' ? 'Type endpoint' : 'REST endpoint'), x, first, font, 'chip', colour, k);
+		x += this.drawLabel(renderer, target?.kind === 'method' ? 'Method endpoint' : (target?.kind === 'type' ? 'Type endpoint' : 'REST endpoint'), x, first, font, 'chip', colour, k);
 
 		if (target) {
-			x += this.drawLabel(renderer, target.n, x, first, font, 'chip', this.tintOf(renderer, target) ?? look.label, k);
+			x += this.drawLabel(renderer, target.name, x, first, font, 'chip', this.tintOf(renderer, target) ?? look.label, k);
 		}
 
 		// the requests of the last days over all its permissions: the sums, the denied ones in red, and before them the bars
@@ -2207,7 +2227,7 @@ class AppMapPanels {
 			p.defaultValue != null && p.defaultValue !== '' && ['Default', String(p.defaultValue)],
 			!isEnum && p.format && ['Format', String(p.format)],
 			p.readOnly && ['Read-only', 'cannot be changed']
-		]).concat([owner !== n && ['From', owner.n]]).filter(Boolean);
+		]).concat([owner !== n && ['From', owner.name]]).filter(Boolean);
 
 		const shownValues = isEnum ? values.slice(0, most).concat(values.length > most ? [`+${values.length - most}`] : []) : [];
 		const valueLines  = Math.ceil(shownValues.length / AppMapPanels.ENUM_COLUMNS);
@@ -2242,7 +2262,7 @@ class AppMapPanels {
 		const type       = p.relationshipType ?? '';
 		const [from, to] = incoming ? [target, owner] : [owner, target];
 		// a type of the map is its schema node, and one built into Structr is known by its name
-		const is         = (node, m) => !!node && (node.id === m.id || node.name === m.n);
+		const is         = (node, m) => !!node && (node.id === m.id || node.name === m.name);
 		const far        = r => incoming ? r.sourceMultiplicity : r.targetMultiplicity;
 		const rel        = relationships.find(r => r.relationshipType === type && is(r.sourceNode, from) && is(r.targetNode, to) && (far(r) === '*') === !!p.isCollection) ?? null;
 		const count      = multiplicity => multiplicity === '1' ? '1' : 'n';
@@ -2259,15 +2279,15 @@ class AppMapPanels {
 			const list   = items => items.length > 1 ? items.slice(0, -1).join(', ') + ' and ' + items[items.length - 1] : items[0];
 
 			facts.push(...[
-				[null, `Deleting ${from.n} deletes its ${to.n}`, `Deleting ${to.n} deletes its ${from.n}`, 'Deleting either side deletes the other', 'Deletes the other side where a constraint requires it'][rel.cascadingDeleteFlag ?? 0],
-				[null, `${from.n} can create its ${to.n} on the fly`, `${to.n} can create its ${from.n} on the fly`, 'Either side can create the other on the fly'][rel.autocreationFlag ?? 0],
-				pp === 'None' ? null : (passes.length ? `Passes ${list(passes)} rights ` + { Out: `on to ${to.n}`, In: `on to ${from.n}`, Both: 'both ways' }[pp] : `Removes all rights ` + { Out: `on the way to ${to.n}`, In: `on the way to ${from.n}`, Both: 'both ways' }[pp]),
+				[null, `Deleting ${from.name} deletes its ${to.name}`, `Deleting ${to.name} deletes its ${from.name}`, 'Deleting either side deletes the other', 'Deletes the other side where a constraint requires it'][rel.cascadingDeleteFlag ?? 0],
+				[null, `${from.name} can create its ${to.name} on the fly`, `${to.name} can create its ${from.name} on the fly`, 'Either side can create the other on the fly'][rel.autocreationFlag ?? 0],
+				pp === 'None' ? null : (passes.length ? `Passes ${list(passes)} rights ` + { Out: `on to ${to.name}`, In: `on to ${from.name}`, Both: 'both ways' }[pp] : `Removes all rights ` + { Out: `on the way to ${to.name}`, In: `on the way to ${from.name}`, Both: 'both ways' }[pp]),
 				rel.propertyMask ? `Hides ${rel.propertyMask}` : null
 			].filter(Boolean));
 		}
 
 		if (owner !== n) {
-			facts.push(`Inherited from ${owner.n}`);
+			facts.push(`Inherited from ${owner.name}`);
 		}
 
 		const remote = rel ? (incoming ? rel.targetJsonName : rel.sourceJsonName) : null;
@@ -2308,8 +2328,8 @@ class AppMapPanels {
 		const byId   = this.view.byId;
 		const byName = (a, b) => a.name.localeCompare(b.name);
 
-		const grants = Object.entries(group?.p ?? {}).map(([id, letters]) => [byId.get(id), String(letters)]).filter(([node]) => node).map(([node, letters]) => ({
-			name:     node.n,
+		const grants = Object.entries(group?.rights ?? {}).map(([id, letters]) => [byId.get(id), String(letters)]).filter(([node]) => node).map(([node, letters]) => ({
+			name:     node.name,
 			kind:     'Grant',
 			arrow:    true,
 			tint:     node,
@@ -2319,7 +2339,7 @@ class AppMapPanels {
 				chip:      null,
 				marks:     AppMapPanels.RIGHTS.map(([verb, letter, label]) => ({ text: label.toLowerCase(), on: letters.includes(letter), colour: AppMapPanels.RIGHT_COLOR[verb] })),
 				sentences: () => [
-					AppMapPanels.describeRights(node.n, letters),
+					AppMapPanels.describeRights(node.name, letters),
 					{ text: 'Changed under Type Permissions of the group', muted: true }
 				]
 			},
@@ -2347,7 +2367,7 @@ class AppMapPanels {
 						const on = label => tile.settings.find(([l]) => l === label)?.[1];
 
 						return [
-							m.isGroup ? `A member of ${n.n}, so its members are as well` : `A member of ${n.n}`,
+							m.isGroup ? `A member of ${n.name}, so its members are as well` : `A member of ${n.name}`,
 							on('Admin') && { text: 'An admin may do everything, whatever the groups allow', muted: true },
 							on('Blocked') && { text: 'Blocked, cannot sign in', muted: true }
 						];
@@ -2359,15 +2379,15 @@ class AppMapPanels {
 
 		}).sort(byName);
 
-		const parents = (group?.in ?? []).map(id => byId.get(id)).filter(Boolean).map(node => ({
+		const parents = (group?.memberOf ?? []).map(id => byId.get(id)).filter(Boolean).map(node => ({
 			...this.leadRow(node, null, 'member of'),
 			summary: {
 				chip:      'Group',
 				chipTint:  node,
 				marks:     [],
-				sentences: () => [`${n.n} is a member of ${node.n}`, { text: `So the members of ${n.n} have the rights of ${node.n} as well`, muted: true }]
+				sentences: () => [`${n.name} is a member of ${node.name}`, { text: `So the members of ${n.name} have the rights of ${node.name} as well`, muted: true }]
 			},
-			open:    { area: 'security', tab: 'users-and-groups', group: true, filter: node.n }
+			open:    { area: 'security', tab: 'users-and-groups', group: true, filter: node.name }
 		}));
 
 		return [
@@ -2399,26 +2419,26 @@ class AppMapPanels {
 		const links = this.view.links.filter(l => l.target === n && l.source !== n);
 		const row   = l => {
 
-			const call = l.x?.f ? l.x : null;
+			const call = l.details?.function ? l.details : null;
 
 			const lead = this.leadRow(l.source);
 
 			return {
 				...lead,
-				chip:     call ? `${call.f}()` : AppMapModel.KIND_LABEL[l.source.k],
+				chip:     call ? `${call.function}()` : AppMapModel.KIND_LABEL[l.source.kind],
 				// its box: where the service is called, and the line of code that calls it
 				summary:  {
 					...lead.summary,
 					sentences: () => [
-						call ? `Calls ${call.f}() in line ${call.l}` : 'Uses this service',
-						call?.c && { text: String(call.c), mono: true }
+						call ? `Calls ${call.function}() in line ${call.line}` : 'Uses this service',
+						call?.code && { text: String(call.code), mono: true }
 					]
 				}
 			};
 		};
 
 		// the code that uses the service, by its kind, methods first; each row with the call that was found
-		return d3.groups(links, l => l.source.k).sort(([a], [b]) => (a === 'method' ? 0 : 1) - (b === 'method' ? 0 : 1)).map(([kind, list]) => ({
+		return d3.groups(links, l => l.source.kind).sort(([a], [b]) => (a === 'method' ? 0 : 1) - (b === 'method' ? 0 : 1)).map(([kind, list]) => ({
 			heading: `${AppMapModel.KIND_LABEL[kind]}s · ${list.length}`,
 			items:   list.map(row).sort((a, b) => a.name.localeCompare(b.name))
 		}));
@@ -2552,13 +2572,13 @@ class AppMapPanels {
 	// whether an element is close enough to show its card, even if only as a sketch
 	hasInsideCard(n, k) {
 
-		return AppMapPanels.INSIDE_KINDS.has(n.k) && this.insidePanel(n, k).px >= AppMapPanels.CODE_SKETCH;
+		return AppMapPanels.INSIDE_KINDS.has(n.kind) && this.insidePanel(n, k).px >= AppMapPanels.CODE_SKETCH;
 	}
 
 	// how far the card of an element has taken the place of its shape, from 0 to 1, see AppMapRenderer.drawElements
 	insideCover(n, k) {
 
-		const px = AppMapPanels.INSIDE_KINDS.has(n.k) ? this.insidePanel(n, k).px : 0;
+		const px = AppMapPanels.INSIDE_KINDS.has(n.kind) ? this.insidePanel(n, k).px : 0;
 
 		return Math.min(1, Math.max(0, (px - AppMapPanels.CODE_SKETCH) / (AppMapPanels.CODE_READ - AppMapPanels.CODE_SKETCH)));
 	}
@@ -2567,7 +2587,7 @@ class AppMapPanels {
 	insidePanels(renderer, k) {
 
 		return this.view.nodes
-			.filter(n => AppMapPanels.INSIDE_KINDS.has(n.k) && renderer.onScreen(n, 200 + Math.max(...AppMapPanels.INSIDE_CARD) * this.view.shownRadius(n) * k))
+			.filter(n => AppMapPanels.INSIDE_KINDS.has(n.kind) && renderer.onScreen(n, 200 + Math.max(...AppMapPanels.INSIDE_CARD) * this.view.shownRadius(n) * k))
 			.map(n => ({ n, panel: this.insidePanel(n, k) }))
 			.filter(({ panel }) => panel.px >= AppMapPanels.CODE_SKETCH)
 			.map(c => ({ ...c, strong: Math.min(1, (c.panel.px - AppMapPanels.CODE_SKETCH) / (AppMapPanels.CODE_READ - AppMapPanels.CODE_SKETCH)) }));
@@ -2592,7 +2612,7 @@ class AppMapPanels {
 			const data   = this.insides.get(n);
 			const colour = renderer.colorOf(n);
 
-			if (n.k === 'api' && data?.sections) {
+			if (n.kind === 'api' && data?.sections) {
 				this.refreshGrantUsage(data);
 			}
 			const em     = panel.em;
@@ -2616,7 +2636,7 @@ class AppMapPanels {
 					this.cards.push({ n, open: data.open, rect: [panel.x0, panel.y0, panel.width, panel.height], foot: panel.size.foot, opacity: 1 });
 				}
 
-				this.drawHeader(renderer, head, data?.kindLabel ?? AppMapModel.KIND_LABEL[n.k], n.n, colour, k);
+				this.drawHeader(renderer, head, data?.kindLabel ?? AppMapModel.KIND_LABEL[n.kind], n.name, colour, k);
 
 				if (data?.strip?.endpoint) {
 					this.drawEndpointStrip(renderer, data, panel, colour, k);
@@ -2687,8 +2707,8 @@ class AppMapPanels {
 		this.drawGates(renderer, k, gates);
 	}
 
-	// the colour of a row: that of the element of the map it leads to, of who may send a request (see ACCESS_COLOR) or of its
-	// method (see VERB_COLOR)
+	// the colour of a row: that of the element of the map it leads to, of who may send a request (audience, see ACCESS_COLOR)
+	// or of its method (see VERB_COLOR); an element of the map has an access of its own, so the audience has another name
 	tintOf(renderer, tint) {
 
 		if (!tint) {
@@ -2697,7 +2717,7 @@ class AppMapPanels {
 
 		const dark = this.view.look.dark ? 1 : 0;
 
-		return tint.verb ? AppMapPanels.VERB_COLOR[tint.verb][dark] : (tint.access ? AppMapRenderer.ACCESS_COLOR[tint.access][dark] : renderer.colorOf(tint));
+		return tint.verb ? AppMapPanels.VERB_COLOR[tint.verb][dark] : (tint.audience ? AppMapRenderer.ACCESS_COLOR[tint.audience][dark] : renderer.colorOf(tint));
 	}
 
 	// a row of a card, as the fields of a database in Notion or Airtable: a small square with a sign (that of the type of a
@@ -3182,7 +3202,7 @@ class AppMapPanels {
 		const body   = font * AppMapPanels.BOX_BODY;
 
 		// the two types as chips in their colours, each at most a third of the width
-		const chip = (node, x, align) => this.drawLabel(renderer, AppMapPanels.cutText(renderer, node.n, 600, pill, across * 0.3), x, middle, pill, 'chip', this.tintOf(renderer, node) ?? look.label, k, align) - pill * AppMapPanels.PILL_GAP;
+		const chip = (node, x, align) => this.drawLabel(renderer, AppMapPanels.cutText(renderer, node.name, 600, pill, across * 0.3), x, middle, pill, 'chip', this.tintOf(renderer, node) ?? look.label, k, align) - pill * AppMapPanels.PILL_GAP;
 
 		const a = left + chip(rel.here.node, left, 'left');
 		const b = right - chip(rel.there.node, right, 'right');
@@ -3845,15 +3865,15 @@ class AppMapPanels {
 	// to and how many link to it, as the relations of the map have them
 	pageStripOf(page) {
 
-		const out   = kind => new Set(this.view.links.filter(l => l.source === page && l.kind === kind).map(l => l.target)).size;
-		const into  = kind => new Set(this.view.links.filter(l => l.target === page && l.kind === kind && l.source !== page).map(l => l.source)).size;
-		const route = (page.r ?? []).map(r => r.p).filter(Boolean);
-		const acc   = page.acc ?? null;
+		const out    = kind => new Set(this.view.links.filter(l => l.source === page && l.kind === kind).map(l => l.target)).size;
+		const into   = kind => new Set(this.view.links.filter(l => l.target === page && l.kind === kind && l.source !== page).map(l => l.source)).size;
+		const route  = (page.routes ?? []).map(r => r.path).filter(Boolean);
+		const access = page.access ?? null;
 
 		return {
-			kind:    page.k === 'component' ? AppMapModel.KIND_LABEL.component : (page.err ? `Error page ${page.err}` : AppMapModel.KIND_LABEL.page),
-			route:   page.k === 'component' ? null : (route[0] ?? `/${page.n}`) + (route.length > 1 ? ` +${route.length - 1}` : ''),
-			visible: page.k === 'component' ? [] : [['public', !!(acc?.pub ?? page.p)], ['signed in', !!(acc?.auth ?? page.p)]],
+			kind:    page.kind === 'component' ? AppMapModel.KIND_LABEL.component : (page.errorCodes ? `Error page ${page.errorCodes}` : AppMapModel.KIND_LABEL.page),
+			route:   page.kind === 'component' ? null : (route[0] ?? `/${page.name}`) + (route.length > 1 ? ` +${route.length - 1}` : ''),
+			visible: page.kind === 'component' ? [] : [['public', !!(access?.public ?? page.public)], ['signed in', !!(access?.authenticated ?? page.public)]],
 			data:    AppMapPanels.TYPE_USES.map(([key, , verb], i) => ({ label: `${['reads', 'creates', 'changes', 'deletes'][i]} ${out(key)} ${out(key) === 1 ? 'type' : 'types'}`, verb, count: out(key) })),
 			more:    [
 				out('invokes') && `calls ${out('invokes')} ${out('invokes') === 1 ? 'method' : 'methods'}`,
@@ -3861,7 +3881,7 @@ class AppMapPanels {
 				into('navigates') && `linked from ${into('navigates')}`
 			].filter(Boolean),
 			// a shared component says first where it is used, the pages and components that include it
-			usedOn:  page.k === 'component' ? new Set(this.view.links.filter(l => l.target === page && (l.kind === 'uses' || l.kind === 'include') && l.source !== page).map(l => l.source)).size : null
+			usedOn:  page.kind === 'component' ? new Set(this.view.links.filter(l => l.target === page && (l.kind === 'uses' || l.kind === 'include') && l.source !== page).map(l => l.source)).size : null
 		};
 	}
 
@@ -3896,7 +3916,7 @@ class AppMapPanels {
 
 		// who may see it, and its views, as far as there is room beside what it is: on a narrow sheet the caption goes
 		// first, then the views; a shared component is never viewed by itself
-		const views   = page.k === 'component' ? null : this.view.usage.pages?.data;
+		const views   = page.kind === 'component' ? null : this.view.usage.pages?.data;
 		const total   = views ? (views.usage?.[page.id]?.total ?? 0) : null;
 		const viewed  = views ? `${AppMapPanels.shortCount(total)} ${total === 1 ? 'view' : 'views'} in ${views.days} days` : null;
 		const pills   = d3.sum(strip.visible, ([text]) => width(text));
@@ -3978,7 +3998,7 @@ class AppMapPanels {
 		ctx.globalAlpha = 1;
 
 		this.drawFrame(ctx, page, panel, colour, k, 1);
-		this.drawHeader(renderer, panel.head, AppMapModel.KIND_LABEL[page.k], page.n, colour, k);
+		this.drawHeader(renderer, panel.head, AppMapModel.KIND_LABEL[page.kind], page.name, colour, k);
 		this.drawPageStrip(renderer, page, tree, panel, colour, k);
 
 		// lines grow with the tree, up to a few pixels, so close up they do not become bars; light, so that the relations
@@ -4071,7 +4091,7 @@ class AppMapPanels {
 			const list   = this.trees.get(n)?.list ?? [];
 			const errors = new Set(list.filter(d => d.data.id && runtime?.has(d.data.id)).map(d => d.data.id));
 
-			if (runtime && n.k === 'page') {
+			if (runtime && n.kind === 'page') {
 
 				for (const [id, node] of _Pages.problems.erroneousNodes) {
 
@@ -4296,7 +4316,7 @@ class AppMapPanels {
 		const kind = AppMapPanels.elementKind(d);
 
 		ctx.globalAlpha = Math.min(1, (change - 0.5) * 2);
-		this.drawHeader(renderer, panel.head, kind, `${AppMapPanels.nameOf(d)}${d.data.key ? ' ' + d.data.key : ''}`, colour, k);
+		this.drawHeader(renderer, panel.head, kind, `${AppMapPanels.nameOf(d)}${d.data.dataKey ? ' ' + d.data.dataKey : ''}`, colour, k);
 		this.drawElementStrip(renderer, d, panel, colour, k);
 
 		// the controls come with the header, growing and fading in with it, and go with it the same way

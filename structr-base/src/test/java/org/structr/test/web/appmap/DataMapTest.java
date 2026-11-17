@@ -36,6 +36,7 @@ import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.testng.AssertJUnit.*;
 
@@ -105,22 +106,22 @@ public class DataMapTest extends StructrUiTest {
 			return;
 		}
 
-		final List<Integer> sizes      = map.getList("result.nodes.s");
-		final List<String> clusterTypes = map.getList("result.nodes.t");
-		final List<String> areas        = map.getList("result.areas.key");
-		final String order              = map.getString("result.nodes.find { it.t == 'ShopOrder' }.id");
-		final String item               = map.getString("result.nodes.find { it.t == 'ShopItem' }.id");
-		final List<List<Object>> edges  = map.getList("result.edges");
-		final List<List<Object>> between = edges.stream().filter(e -> order.equals(e.get(0)) && item.equals(e.get(1))).toList();
+		final List<Integer> sizes               = map.getList("result.nodes.size");
+		final List<String> clusterTypes         = map.getList("result.nodes.type");
+		final List<String> areas                = map.getList("result.areas.key");
+		final String order                      = map.getString("result.nodes.find { it.type == 'ShopOrder' }.id");
+		final String item                       = map.getString("result.nodes.find { it.type == 'ShopItem' }.id");
+		final List<Map<String, Object>> edges   = map.getList("result.edges");
+		final List<Map<String, Object>> between = edges.stream().filter(e -> order.equals(e.get("source")) && item.equals(e.get("target"))).toList();
 
 		assertEquals("The data map must hold every object of the application",          5, map.getInt("result.objects"));
 		assertEquals("The clusters of the data map must hold every object once",         5, sizes.stream().mapToInt(Integer::intValue).sum());
 		assertTrue("The data map must leave out the types Structr brings along",         !clusterTypes.contains(StructrTraits.USER));
 		assertEquals("Types of one family must share a sector, the others one more",     List.of("family-shop", "other"), areas);
-		assertEquals("A type must lie in the sector of its family",                      "family-shop", map.getString("result.nodes.find { it.t == 'ShopItem' }.area"));
-		assertEquals("A type of no family must lie in the sector of the others",         "other",       map.getString("result.nodes.find { it.t == 'Note' }.area"));
+		assertEquals("A type must lie in the sector of its family",                      "family-shop", map.getString("result.nodes.find { it.type == 'ShopItem' }.area"));
+		assertEquals("A type of no family must lie in the sector of the others",         "other",       map.getString("result.nodes.find { it.type == 'Note' }.area"));
 		assertEquals("The relationships between two clusters must be one relation",      1, between.size());
-		assertEquals("A relation between clusters must count their relationships",       2, between.get(0).get(2));
+		assertEquals("A relation between clusters must count their relationships",       2, between.get(0).get("weight"));
 	}
 
 	@Test
