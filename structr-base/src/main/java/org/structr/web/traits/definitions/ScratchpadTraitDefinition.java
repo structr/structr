@@ -131,7 +131,7 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> logProperty            = new StringProperty(LOG_PROPERTY).defaultValue("");
 		final Property<Long> lastRunTimestampProperty = new LongProperty(LAST_RUN_TIMESTAMP_PROPERTY);
 		final Property<Boolean> collapsedProperty     = new BooleanProperty(COLLAPSED_PROPERTY).defaultValue(false);
-		final Property<Boolean> wrapJsInMainProperty  = new BooleanProperty(WRAP_JS_IN_MAIN_PROPERTY).defaultValue(true);
+		final Property<Boolean> wrapJsInMainProperty  = new BooleanProperty(WRAP_JS_IN_MAIN_PROPERTY).defaultValue(false);
 
 		return Set.of(sourceProperty, resultProperty, logProperty, lastRunTimestampProperty, collapsedProperty, wrapJsInMainProperty);
 	}

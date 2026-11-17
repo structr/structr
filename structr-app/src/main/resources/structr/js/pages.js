@@ -964,13 +964,13 @@ let _Pages = {
 			let lack = _Pages.centerMinWidth - _Pages.roomForCenter(pxLeft, pxRight);
 
 			if (lack > 0 && pxRight) {
-				let give = Math.min(lack, pxRight - _Pages.rightTabMinWidth);
+				let give = Math.max(0, Math.min(lack, pxRight - _Pages.rightTabMinWidth));
 				pxRight -= give;
 				lack    -= give;
 			}
 
 			if (lack > 0 && pxLeft) {
-				let give = Math.min(lack, pxLeft - _Pages.leftTabMinWidth);
+				let give = Math.max(0, Math.min(lack, pxLeft - _Pages.leftTabMinWidth));
 				pxLeft -= give;
 				lack   -= give;
 			}

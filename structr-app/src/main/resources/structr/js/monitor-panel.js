@@ -41,6 +41,12 @@ let _MonitorPanel = {
 	ensure: () => {
 
 		if (_MonitorPanel.getSwitches()) {
+
+			// after a logout and a new login the panel is there but closed
+			if (!_MonitorPanel.current && LSWrapper.getItem(_MonitorPanel.viewKey)) {
+				_MonitorPanel.restore();
+			}
+
 			return;
 		}
 
@@ -54,13 +60,17 @@ let _MonitorPanel = {
 		_MonitorPanel.getPanel().querySelector('#monitor-panel-close').addEventListener('click', () => _MonitorPanel.close());
 		_MonitorPanel.getPanel().querySelector('#monitor-panel-resizer').addEventListener('mousedown', _MonitorPanel.startResize);
 
+		_MonitorPanel.restore();
+	},
+	// the view that was open comes back, with the next page load or the next login
+	restore: () => {
+
 		_MonitorPanel.isRequestLoggingEnabled().then(enabled => {
 
 			_MonitorPanel.getSwitches().querySelector('[data-view="requests"]').classList.toggle('hidden', !enabled);
 
-			// the view that was open comes back with the next page load
 			let storedView = LSWrapper.getItem(_MonitorPanel.viewKey);
-			if (storedView && _MonitorPanel.views[storedView] && (storedView !== 'requests' || enabled)) {
+			if (!_MonitorPanel.current && storedView && _MonitorPanel.views[storedView] && (storedView !== 'requests' || enabled)) {
 				_MonitorPanel.open(storedView);
 			}
 		});

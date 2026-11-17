@@ -428,7 +428,6 @@ let _Helpers = {
 		toggleElement.css({
 			"anchor-name": anchorName,
 		});
-		toggleElement[0].popovertarget = id;
 
 		toggleElement.css(toggleElementCss);
 
@@ -451,16 +450,40 @@ let _Helpers = {
 			});
 		}
 
-		toggleElement[0].addEventListener('mouseenter', () => helpElement[0].showPopover());
-		toggleElement[0].addEventListener('mouseleave', () => helpElement[0].hidePopover());
+		toggleElement[0].addEventListener('mouseenter', () => {
 
-		let popupsContainer = document.querySelector('#comment-popups-container');
-		if (!popupsContainer) {
-			document.body.insertAdjacentHTML('beforeend', '<div id="comment-popups-container"></div>');
-			popupsContainer = document.querySelector('#comment-popups-container');
-		}
+			// a text that was cleared away while its icon was out of the page comes back with the first hover
+			if (!helpElement[0].isConnected) {
+				_Helpers.getInfoTextContainer().appendChild(helpElement[0]);
+			}
 
-		popupsContainer.insertAdjacentElement('beforeend', helpElement[0]);
+			helpElement[0].showPopover();
+
+			// a browser without CSS anchor positioning shows the text in the middle of the window: there it is placed by hand
+			if (!CSS.supports('position-anchor', '--a')) {
+
+				let icon = toggleElement[0].getBoundingClientRect();
+				let text = helpElement[0].getBoundingClientRect();
+				let left = Math.max(8, Math.min(icon.left, window.innerWidth - text.width - 8));
+				let top  = (icon.top - text.height - 6 >= 8) ? (icon.top - text.height - 6) : Math.min(icon.bottom + 6, window.innerHeight - text.height - 8);
+
+				Object.assign(helpElement[0].style, { position: 'fixed', inset: 'auto', margin: '0', left: `${left}px`, top: `${top}px` });
+			}
+		});
+		toggleElement[0].addEventListener('mouseleave', () => {
+
+			if (helpElement[0].isConnected) {
+				helpElement[0].hidePopover();
+			}
+		});
+
+		// the text lives outside the view it belongs to, so it is removed once its icon is gone, see pruneInfoTexts
+		helpElement[0].infoToggle  = toggleElement[0];
+		helpElement[0].infoCreated = Date.now();
+
+		_Helpers.pruneInfoTexts();
+
+		_Helpers.getInfoTextContainer().insertAdjacentElement('beforeend', helpElement[0]);
 
 		if (!customToggleElement) {
 			if (insertAfter) {
@@ -473,6 +496,48 @@ let _Helpers = {
 		helpElement.css(helpElementCss);
 
 		return createdElements;
+	},
+	getInfoTextContainer: () => {
+
+		let container = document.querySelector('#comment-popups-container');
+		if (!container) {
+
+			document.body.insertAdjacentHTML('beforeend', '<div id="comment-popups-container"></div>');
+			container = document.querySelector('#comment-popups-container');
+		}
+
+		return container;
+	},
+	// a view that is parked while the login lies over it (see Structr.mainContainerOffscreen) is out of the page, but comes back
+	isParked: (element) => (typeof Structr !== 'undefined') && [Structr.mainContainerOffscreen, Structr.functionBarOffscreen, Structr.dialogContainerOffscreen].some(parked => parked?.contains(element)),
+	// removes the help texts whose icon is no longer in the page; one pass for a whole batch, and only texts old enough to have had their icon attached
+	pruneInfoTexts: () => {
+
+		clearTimeout(_Helpers.pruneInfoTextsTimer);
+
+		_Helpers.pruneInfoTextsTimer = setTimeout(() => {
+
+			let now      = Date.now();
+			let tooYoung = false;
+
+			for (let text of document.querySelectorAll('#comment-popups-container > .context-help-text')) {
+
+				if (text.infoToggle && !text.infoToggle.isConnected && !_Helpers.isParked(text.infoToggle)) {
+
+					if (now - text.infoCreated > 10000) {
+						text.remove();
+					} else {
+						tooYoung = true;
+					}
+				}
+			}
+
+			// what was too young to judge is looked at again
+			if (tooYoung) {
+				_Helpers.pruneInfoTexts();
+			}
+
+		}, 2000);
 	},
 	activateCommentsInElement: (elem, defaults) => {
 
@@ -514,7 +579,7 @@ let _Helpers = {
 	getDocumentationURLForTopic: (topic) => {
 
 		switch (topic) {
-			case 'dashboard':      return '#docs:Admin%20User%20Interface/Dashboard';
+			case 'dashboard':      return '#docs:Admin%20User%20Interface/Instance';
 			case 'pages':          return '#docs:Admin%20User%20Interface/Pages';
 			case 'files':          return '#docs:Admin%20User%20Interface/Files';
 			case 'security':       return '#docs:Admin%20User%20Interface/Security';
