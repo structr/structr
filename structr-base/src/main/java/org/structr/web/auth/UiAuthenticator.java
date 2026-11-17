@@ -146,8 +146,17 @@ public class UiAuthenticator implements Authenticator {
 	 */
 	private Principal redeemOneTimeToken(final HttpServletRequest request) throws FrameworkException {
 
-		final String value = request.getParameter(OneTimeTokens.PARAMETER);
+		// from the query string, not getParameter(): that would read the body of a form or an upload before its servlet does
+		final String value = OneTimeTokens.tokenIn(request.getQueryString());
 		if (value == null) {
+
+			return null;
+		}
+
+		// a browser says how it fetches; what fetches a link on its own (a link preview, a mail scanner) does not, and must not use the token up
+		if (!"GET".equals(request.getMethod()) || request.getHeader("Sec-Fetch-Mode") == null) {
+
+			logger.info("One-time token ignored: the request does not come from a browser, the token stays valid.");
 
 			return null;
 		}
@@ -189,13 +198,19 @@ public class UiAuthenticator implements Authenticator {
 		final jakarta.servlet.http.HttpSession session = request.getSession(false);
 		if (session != null) {
 
-			// the session says who opened it, which also ends it sooner, see SessionHelper.isSessionTimedOut
-			session.setAttribute(OneTimeTokens.SESSION_ATTRIBUTE, token.createdByName());
+			// remembered by its id, which ends it sooner, see SessionHelper.isSessionTimedOut
+			OneTimeTokens.rememberTestSession(SessionHelper.getShortSessionId(session.getId()));
 		}
 
-		RuntimeEventLog.login("Test session opened", Map.of("user", user.getUuid(), "name", user.getName(), "openedBy", token.createdByName(), "openedById", token.createdById()));
+		// as every other login does, for the other nodes of a cluster
+		Services.getInstance().broadcastLogin(node.getNode().getId().hash());
 
-		logger.info("Test session for user {} opened by {}.", user.getName(), token.createdByName());
+		// a name is optional, an account may have an e-mail address only
+		final String userName = (user.getName() != null) ? user.getName() : user.getUuid();
+
+		RuntimeEventLog.login("Test session opened", Map.of("user", user.getUuid(), "name", userName, "openedBy", String.valueOf(token.createdByName()), "openedById", String.valueOf(token.createdById())));
+
+		logger.info("Test session for user {} opened by {}.", userName, token.createdByName());
 
 		return user;
 	}

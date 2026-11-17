@@ -54,6 +54,7 @@ public class OneTimeTokenTest extends StructrUiTest {
 		// any address that carries the token: here a REST endpoint
 		final Response first = RestAssured
 			.given()
+				.header("Sec-Fetch-Mode", "navigate")
 				.queryParam(OneTimeTokens.PARAMETER, token)
 			.expect()
 				.statusCode(200)
@@ -79,6 +80,7 @@ public class OneTimeTokenTest extends StructrUiTest {
 		// the token is used up
 		RestAssured
 			.given()
+				.header("Sec-Fetch-Mode", "navigate")
 				.queryParam(OneTimeTokens.PARAMETER, token)
 			.expect()
 				.statusCode(401)
@@ -103,6 +105,7 @@ public class OneTimeTokenTest extends StructrUiTest {
 			.given()
 				.redirects().follow(false)
 				.queryParam("a", "1")
+				.header("Sec-Fetch-Mode", "navigate")
 				.queryParam(OneTimeTokens.PARAMETER, token)
 				.queryParam("b", "2")
 			.expect()
@@ -131,18 +134,19 @@ public class OneTimeTokenTest extends StructrUiTest {
 		createEntityAsSuperUser("/User", "{ 'name': 'boss3', 'password': '" + PASSWORD + "', 'isAdmin': true }");
 
 		final String userId = createEntityAsSuperUser("/User", "{ 'name': 'tester3', 'password': '" + PASSWORD + "' }");
-		final long validity = OneTimeTokens.getValidityMillis();
+		final int validity = Settings.TestSessionLinkValidity.getValue();
 
 		try {
 
-			OneTimeTokens.setValidityMillis(1);
+			Settings.TestSessionLinkValidity.setValue(1);
 
 			final String token = createToken("boss3", userId);
 
-			Thread.sleep(50);
+			Thread.sleep(1200);
 
 			RestAssured
 				.given()
+					.header("Sec-Fetch-Mode", "navigate")
 					.queryParam(OneTimeTokens.PARAMETER, token)
 				.expect()
 					.statusCode(401)
@@ -151,7 +155,7 @@ public class OneTimeTokenTest extends StructrUiTest {
 
 		} finally {
 
-			OneTimeTokens.setValidityMillis(validity);
+			Settings.TestSessionLinkValidity.setValue(validity);
 		}
 	}
 
@@ -230,6 +234,7 @@ public class OneTimeTokenTest extends StructrUiTest {
 
 		RestAssured
 			.given()
+				.header("Sec-Fetch-Mode", "navigate")
 				.queryParam(OneTimeTokens.PARAMETER, token)
 			.expect()
 				.statusCode(401)
@@ -251,6 +256,7 @@ public class OneTimeTokenTest extends StructrUiTest {
 
 			RestAssured
 				.given()
+					.header("Sec-Fetch-Mode", "navigate")
 					.queryParam(OneTimeTokens.PARAMETER, token)
 				.expect()
 					.statusCode(401)
@@ -274,6 +280,70 @@ public class OneTimeTokenTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testWhatIsNoBrowserDoesNotUseTheTokenUp() {
+
+		createEntityAsSuperUser("/User", "{ 'name': 'boss7', 'password': '" + PASSWORD + "', 'isAdmin': true }");
+
+		final String userId = createEntityAsSuperUser("/User", "{ 'name': 'tester7', 'password': '" + PASSWORD + "' }");
+
+		grant("User", UiAuthenticator.AUTH_USER_GET, true);
+
+		final String token = createToken("boss7", userId);
+
+		// a link preview or a scanner: no header of a browser, no session
+		RestAssured
+			.given()
+				.queryParam(OneTimeTokens.PARAMETER, token)
+			.expect()
+				.statusCode(401)
+			.when()
+				.get("/me");
+
+		// the browser after it still gets in
+		RestAssured
+			.given()
+				.header("Sec-Fetch-Mode", "navigate")
+				.queryParam(OneTimeTokens.PARAMETER, token)
+			.expect()
+				.statusCode(200)
+				.body("result.name", equalTo("tester7"))
+			.when()
+				.get("/me");
+	}
+
+	@Test
+	public void testAUserAndAnAdminWithoutANameWork() {
+
+		final String adminId = createEntityAsSuperUser("/User", "{ 'eMail': 'boss8@example.com', 'password': '" + PASSWORD + "', 'isAdmin': true }");
+		final String userId  = createEntityAsSuperUser("/User", "{ 'eMail': 'tester8@example.com', 'password': '" + PASSWORD + "' }");
+
+		grant("User", UiAuthenticator.AUTH_USER_GET, true);
+
+		final String token = RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.headers(X_USER_HEADER, "boss8@example.com", X_PASSWORD_HEADER, PASSWORD)
+				.body("{ 'user': '" + userId + "' }")
+			.expect()
+				.statusCode(200)
+			.when()
+				.post("/_oneTimeToken")
+			.jsonPath().getString("result.token");
+
+		assertNotNull("the admin without a name did not get a token: " + adminId, token);
+
+		RestAssured
+			.given()
+				.header("Sec-Fetch-Mode", "navigate")
+				.queryParam(OneTimeTokens.PARAMETER, token)
+			.expect()
+				.statusCode(200)
+				.body("result.id", equalTo(userId))
+			.when()
+				.get("/me");
+	}
+
+	@Test
 	public void testTheAddressWithoutTheToken() {
 
 		final String p = OneTimeTokens.PARAMETER;
@@ -283,6 +353,13 @@ public class OneTimeTokenTest extends StructrUiTest {
 		assertEquals("/a?b=1",     OneTimeTokens.urlWithoutToken("/a", p + "=x&b=1"));
 		assertEquals("/a?b=1&c=2", OneTimeTokens.urlWithoutToken("/a", "b=1&" + p + "=x&c=2"));
 		assertEquals("/a?" + p + "x=1", OneTimeTokens.urlWithoutToken("/a", p + "x=1"));
+
+		// the name of the parameter may arrive encoded
+		assertEquals("/a?b=1", OneTimeTokens.urlWithoutToken("/a", "%5FstructrOneTimeToken=x&b=1"));
+		assertEquals("x",      OneTimeTokens.tokenIn("%5FstructrOneTimeToken=x&b=1"));
+		assertEquals("x y",    OneTimeTokens.tokenIn("b=1&" + p + "=x%20y"));
+		assertNull(OneTimeTokens.tokenIn("b=1"));
+		assertNull(OneTimeTokens.tokenIn(null));
 
 		assertNull("an unknown token must not be redeemed", OneTimeTokens.redeem("no-such-token"));
 		assertNull("no token must not be redeemed",         OneTimeTokens.redeem(null));
