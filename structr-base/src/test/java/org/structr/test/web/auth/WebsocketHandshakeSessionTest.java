@@ -36,9 +36,11 @@ import org.testng.annotations.Test;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
+import java.net.http.WebSocketHandshakeException;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -90,6 +92,39 @@ public class WebsocketHandshakeSessionTest extends StructrUiTest {
 	}
 
 	// ----- private methods -----
+	@Test
+	public void testRefusedHandshakeIsAnsweredWith403() throws Exception {
+
+		assertEquals("A foreign origin was not refused", 403, refusedHandshakeStatus("http://foreign.example", "structr"));
+		assertEquals("An unknown protocol was not refused", 403, refusedHandshakeStatus("http://" + host + ":" + httpPort, "other"));
+	}
+
+	private int refusedHandshakeStatus(final String origin, final String protocol) throws Exception {
+
+		try {
+
+			// an unanswered handshake runs into the timeout instead
+			HttpClient.newHttpClient().newWebSocketBuilder()
+				.subprotocols(protocol)
+				.header("Origin", origin)
+				.buildAsync(URI.create("ws://" + host + ":" + httpPort + "/structr/ws"), new WebSocket.Listener() {})
+				.get(10, TimeUnit.SECONDS);
+
+		} catch (ExecutionException ex) {
+
+			if (ex.getCause() instanceof WebSocketHandshakeException handshake) {
+
+				return handshake.getResponse().statusCode();
+			}
+
+			throw ex;
+		}
+
+		fail("The handshake was accepted");
+
+		return -1;
+	}
+
 	private String loginOverRest() throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {

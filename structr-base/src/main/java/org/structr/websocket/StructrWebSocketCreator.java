@@ -25,9 +25,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.ee10.servlet.ServletApiRequest;
 import org.eclipse.jetty.ee10.servlet.ServletChannel;
 import org.eclipse.jetty.ee10.servlet.ServletContextRequest;
+import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.session.ManagedSession;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.websocket.server.ServerUpgradeRequest;
 import org.eclipse.jetty.websocket.server.ServerUpgradeResponse;
@@ -71,10 +73,7 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 
 		if (!isOriginAllowed(request)) {
 
-			// Returning null causes Jetty to reject the upgrade. Same pattern
-			// as an unsupported sub-protocol below.
-
-			return null;
+			return reject(request, response, callback);
 		}
 
 		if (request.getSubProtocols().contains(STRUCTR_PROTOCOL)) {
@@ -107,6 +106,14 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 
 			return webSocket;
 		}
+
+		return reject(request, response, callback);
+	}
+
+	/** Returning null alone leaves the request unanswered, so the refusal is sent here. */
+	private Object reject(final ServerUpgradeRequest request, final ServerUpgradeResponse response, final Callback callback) {
+
+		Response.writeError(request, response, callback, HttpStatus.FORBIDDEN_403);
 
 		return null;
 	}
