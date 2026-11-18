@@ -236,13 +236,15 @@
 }
 
 /* the small dialogs (login, connection lost, messages) are the same card as the large one */
-:root.ui-next .non-block-ui-blocker-content .dialog:not(#dialogBox) {
+:root.ui-next .non-block-ui-blocker-content .dialog:not(#dialogBox),
+:root.ui-next .non-block-ui-blocker-content > .confirmationText {
 	border: var(--line);
 	border-radius: var(--radius-dialog);
 	box-shadow: 0 12px 34px var(--color-shadow);
 }
 
-:root.ui-next #reconnect-dialog {
+:root.ui-next #reconnect-dialog,
+:root.ui-next .non-block-ui-blocker-content > .confirmationText {
 	padding: 1.5rem 2rem;
 }
 
