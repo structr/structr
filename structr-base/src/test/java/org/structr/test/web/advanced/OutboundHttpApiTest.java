@@ -504,7 +504,7 @@ public class OutboundHttpApiTest extends StructrTest {
 
 				"${GET('http://localhost:" + port + "/', 'text/plain', { timeout: 1 })}",
 				"${HEAD('http://localhost:" + port + "/', { timeout: 1 })}",
-				"${DELETE('http://localhost:" + port + "/', { timeout: 1 })}",
+				"${DELETE('http://localhost:" + port + "/', null, { timeout: 1 })}",
 				"${POST('http://localhost:" + port + "/', 'b', 'text/plain', { timeout: 1 })}",
 				"${PUT('http://localhost:" + port + "/', 'b', 'text/plain', { timeout: 1 })}",
 				"${PATCH('http://localhost:" + port + "/', 'b', 'text/plain', { timeout: 1 })}",
@@ -526,6 +526,10 @@ public class OutboundHttpApiTest extends StructrTest {
 				final long elapsed = System.currentTimeMillis() - start;
 
 				assertTrue("timeout was ignored by " + script + ", the call took " + elapsed + "ms", elapsed < 4000);
+
+				// The lower bound proves that a request was made and the call waited for the timeout. A call
+				// refused for its arguments returns at once, and would pass the upper bound without testing anything.
+				assertTrue("no request was made by " + script + ", the call took only " + elapsed + "ms", elapsed >= 800);
 			}
 		});
 	}
