@@ -21,6 +21,7 @@ import {expect, test} from '@playwright/test';
 import {goToModule} from './helpers/init';
 import {login} from './helpers/auth';
 import {EamBuilder} from './helpers/eam';
+import {screenshot} from "./helpers/screenshots";
 
 // The Application Map of a small project management application, with the screenshots for its chapter of the
 // documentation (screenshots/appmap*.png, see copy-screenshots-to-docs.sh).
@@ -148,24 +149,24 @@ test('application map', async ({page}) => {
 
 	// a first visit opens the introduction
 	await expect(page.locator('#appmap-intro')).toBeVisible();
-	await page.screenshot({ path: 'screenshots/appmap_introduction.png' });
+	await screenshot(page, { path: 'screenshots/appmap_introduction.png' });
 
 	await page.locator('#appmap-intro-close').click();
 	await overview(page);
-	await page.screenshot({ path: 'screenshots/appmap.png' });
+	await screenshot(page, { path: 'screenshots/appmap.png' });
 
 	// the pointer on a type shows what it connects to
 	const taskType = await screenOf(page, 'Task');
 
 	await page.mouse.move(taskType.x, taskType.y);
 	await page.waitForTimeout(500);
-	await page.screenshot({ path: 'screenshots/appmap_hover.png' });
+	await screenshot(page, { path: 'screenshots/appmap_hover.png' });
 
 	// a click holds it, the names at the ends of its relations lead on
 	await page.mouse.click(taskType.x, taskType.y);
 	await page.mouse.move(5, 300);
 	await page.waitForTimeout(800);
-	await page.screenshot({ path: 'screenshots/appmap_explore.png' });
+	await screenshot(page, { path: 'screenshots/appmap_explore.png' });
 
 	await page.keyboard.press('Escape');
 
@@ -178,7 +179,7 @@ test('application map', async ({page}) => {
 	await page.waitForTimeout(1500);
 	await page.mouse.move(5, 300);
 	await page.waitForTimeout(500);
-	await page.screenshot({ path: 'screenshots/appmap_page.png' });
+	await screenshot(page, { path: 'screenshots/appmap_page.png' });
 
 	// and a method, whose code a click makes editable
 	await overview(page);
@@ -190,7 +191,7 @@ test('application map', async ({page}) => {
 	await page.waitForFunction(() => [..._AppMap.view.panels.reading].some(n => n.name === 'Task.complete'));
 	await page.mouse.move(5, 300);
 	await page.waitForTimeout(500);
-	await page.screenshot({ path: 'screenshots/appmap_method.png' });
+	await screenshot(page, { path: 'screenshots/appmap_method.png' });
 
 	const field = await page.evaluate(() => {
 
@@ -206,7 +207,7 @@ test('application map', async ({page}) => {
 	await page.mouse.click(field.x, field.y);
 	await expect(page.locator('#appmap-canvas .appmap-editor .monaco-editor')).toBeVisible();
 	await page.waitForTimeout(500);
-	await page.screenshot({ path: 'screenshots/appmap_editor.png' });
+	await screenshot(page, { path: 'screenshots/appmap_editor.png' });
 
 	await page.keyboard.press('Escape');
 	await expect(page.locator('#appmap-canvas .appmap-editor')).toHaveCount(0);
@@ -215,7 +216,7 @@ test('application map', async ({page}) => {
 	await overview(page);
 	await page.locator('#appmap-lens').selectOption('public');
 	await page.waitForTimeout(500);
-	await page.screenshot({ path: 'screenshots/appmap_access.png' });
+	await screenshot(page, { path: 'screenshots/appmap_access.png' });
 
 	await page.locator('#appmap-lens').selectOption('');
 
@@ -223,11 +224,11 @@ test('application map', async ({page}) => {
 	await page.locator('#appmap-activity').hover();
 	await page.waitForFunction(() => _AppMap.view.activity?.heat?.size > 0);
 	await page.waitForTimeout(500);
-	await page.screenshot({ path: 'screenshots/appmap_usage.png' });
+	await screenshot(page, { path: 'screenshots/appmap_usage.png' });
 
 	await page.locator('#appmap-spotlight').hover();
 	await page.waitForTimeout(500);
-	await page.screenshot({ path: 'screenshots/appmap_hotspots.png' });
+	await screenshot(page, { path: 'screenshots/appmap_hotspots.png' });
 
 	await page.mouse.move(5, 300);
 	await page.waitForFunction(() => !_AppMap.view.spotlight && !_AppMap.view.activity);

@@ -20,6 +20,7 @@
 import {expect, test} from '@playwright/test';
 import {goToModule, initialize, waitForDialogBoxToClose} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
+import {screenshot} from "./helpers/screenshots";
 
 test.beforeAll(async ({playwright}) => {
 	await initialize(playwright);
@@ -35,14 +36,14 @@ test('user-group', async ({page}, testInfo) => {
 
 	// Wait for Security UI to load all components
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/security.png'});
+	await screenshot(page, {path: 'screenshots/security.png'});
 
 	// Create new user
 	await page.locator('#add-user-button').waitFor({state: 'visible'});
 	await page.locator('#add-user-button').click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/security_create-user.png'});
+	await screenshot(page, {path: 'screenshots/security_create-user.png'});
 
 	// Rename user
 	await page.locator('#users').getByText('New User').first().click();
@@ -51,7 +52,7 @@ test('user-group', async ({page}, testInfo) => {
 	await page.locator('#users').click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/security_rename-user.png'});
+	await screenshot(page, {path: 'screenshots/security_rename-user.png'});
 
 	await page.locator('#users').getByText('Renamed user').waitFor({state: 'visible'});
 
@@ -60,7 +61,7 @@ test('user-group', async ({page}, testInfo) => {
 	await page.getByText('General').first().click();
 	await page.locator('input#password-input').dblclick();
 	await page.keyboard.type('test123');
-	await page.screenshot({path: 'screenshots/security_change-admin-password.png'});
+	await screenshot(page, {path: 'screenshots/security_change-admin-password.png'});
 	await page.getByText('Set Password').first().click();
 	await page.getByRole('button', {name: 'Close', exact: true}).click();
 
@@ -71,7 +72,7 @@ test('user-group', async ({page}, testInfo) => {
 	await page.locator('#add-group-button').click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/security_create-group.png'});
+	await screenshot(page, {path: 'screenshots/security_create-group.png'});
 
 	// Rename group
 	await page.locator('#groups').getByText('New Group').first().click();
@@ -80,7 +81,7 @@ test('user-group', async ({page}, testInfo) => {
 	await page.locator('#groups').click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/security_renamed-group.png'});
+	await screenshot(page, {path: 'screenshots/security_renamed-group.png'});
 
 	await page.locator('#groups').getByText('Renamed group').waitFor({state: 'visible'});
 
@@ -93,7 +94,7 @@ test('user-group', async ({page}, testInfo) => {
 	await page.waitForTimeout(1000);
 	// Open group
 	await page.locator('#groups .expand_icon_svg.svg-collapsed').first().click();
-	await page.screenshot({path: 'screenshots/security_user-dragged-on-group.png'});
+	await screenshot(page, {path: 'screenshots/security_user-dragged-on-group.png'});
 });
 
 test('resource-access-before-1', async ({request}) => {
@@ -134,7 +135,7 @@ test('add-resource-access-auth-user-get', async ({page}) => {
 	await waitForDialogBoxToClose(page);
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/security_create-resource-access-auth-user-get.png'});
+	await screenshot(page, {path: 'screenshots/security_create-resource-access-auth-user-get.png'});
 });
 
 test('resource-access-after-1', async ({request}) => {
@@ -193,7 +194,7 @@ test('add-resource-access-auth-user-post', async ({page}) => {
 	await projectIdRow.locator('input[data-key="AUTH_USER_DELETE"]').click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/security_create-resource-access-auth-user-post.png'});
+	await screenshot(page, {path: 'screenshots/security_create-resource-access-auth-user-post.png'});
 
 	await logout(page);
 });
@@ -221,7 +222,7 @@ test('cors-settings', async ({page}) => {
 
 	// Wait for Security UI to load all components
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/security_.png'});
+	await screenshot(page, {path: 'screenshots/security_.png'});
 
 	// CORS Settings: Typical Example
 
@@ -264,7 +265,7 @@ test('cors-settings', async ({page}) => {
 
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/security_create-cors-setting.png'});
+	await screenshot(page, {path: 'screenshots/security_create-cors-setting.png'});
 
 	await logout(page);
 });

@@ -21,6 +21,7 @@ import {expect, test} from '@playwright/test';
 import {goToModule, initialize, waitForDialogBoxToClose} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
 import {openFileContextMenuFor, createFileWithContentAndContentType} from "./helpers/files";
+import {screenshot} from "./helpers/screenshots";
 
 test.beforeAll(async ({playwright}) => {
 	await initialize(playwright, {
@@ -40,16 +41,16 @@ test('files', async ({page}, testInfo) => {
 
 	// Wait for Files UI to load all components
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/files.png'});
+	await screenshot(page, {path: 'screenshots/files.png'});
 
 	// Create new folder
 	await page.locator('#add-folder-button').waitFor({state: 'visible'});
 	await page.locator('#add-folder-button').click();
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/files_create-folder.png'});
+	await screenshot(page, {path: 'screenshots/files_create-folder.png'});
 	await page.locator('#file-tree-container').getByText('New Folder').first().click();
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/files_navigated-to-folder.png'});
+	await screenshot(page, {path: 'screenshots/files_navigated-to-folder.png'});
 
 	// Rename folder
 	await page.locator('#file-tree-container').getByText('/').first().click();
@@ -58,7 +59,7 @@ test('files', async ({page}, testInfo) => {
 	await page.keyboard.press('Enter');
 	await page.locator('#file-tree-container').click();
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/files_renamed-folder.png'});
+	await screenshot(page, {path: 'screenshots/files_renamed-folder.png'});
 
 	// create test.csv, open import dialog and create a screenshot
 	await createFileWithContentAndContentType(page, 'projects.csv', ['Name;ProjectID', 'Project 1;prj0001', 'Project 2;prj0002', 'Project 3;prj0003'], 'text/csv');
@@ -67,7 +68,7 @@ test('files', async ({page}, testInfo) => {
 	await page.waitForTimeout(1000);
 	await page.locator('#delimiter').selectOption(';');
 	await page.locator('#target-type-select').selectOption('Project');
-	await page.screenshot({path: 'screenshots/files_import-csv-dialog.png'});
+	await screenshot(page, {path: 'screenshots/files_import-csv-dialog.png'});
 	await page.waitForTimeout(200);
 	await page.getByRole('button', {name: 'Close', exact: true}).click();
 
@@ -96,7 +97,7 @@ test('files', async ({page}, testInfo) => {
 	await openFileContextMenuFor(page, 'projects.xml');
 	await page.getByText('Import XML').click();
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/files_import-xml-dialog.png'});
+	await screenshot(page, {path: 'screenshots/files_import-xml-dialog.png'});
 	await page.waitForTimeout(1000);
 	await page.getByRole('button', {name: 'Close', exact: true}).click();
 

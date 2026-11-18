@@ -21,6 +21,7 @@ import {expect, test} from '@playwright/test';
 import {goToModule, initialize} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
 import * as fs from "node:fs";
+import {screenshot} from "./helpers/screenshots";
 
 test.beforeAll(async ({playwright}) => {
 
@@ -88,7 +89,7 @@ test('job-queue', async ({page}, testInfo) => {
 
 	// Wait for Code UI to load all components
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/importer.png'});
+	await screenshot(page, {path: 'screenshots/importer.png'});
 
 	// Create CSV document to import
 	await goToModule(page, '#files_');
@@ -97,14 +98,14 @@ test('job-queue', async ({page}, testInfo) => {
 	await page.locator('#add-file-button').click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/importer_created-file.png'});
+	await screenshot(page, {path: 'screenshots/importer_created-file.png'});
 
 	await page.getByText('New File').first().click();
 	await page.keyboard.type('import-file.csv');
 	await page.keyboard.press('Enter');
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/importer_renamed-file.png'});
+	await screenshot(page, {path: 'screenshots/importer_renamed-file.png'});
 
 	await page.getByText('import-file.csv').first().click({button: 'right'});
 	await page.getByText('General').first().waitFor({state: 'visible'});
@@ -117,7 +118,7 @@ test('job-queue', async ({page}, testInfo) => {
 	await page.locator('#content-type-input').press('Enter');
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/importer_set-content-type.png'});
+	await screenshot(page, {path: 'screenshots/importer_set-content-type.png'});
 
 	await page.getByRole('button', {name: 'Close'}).click();
 
@@ -128,7 +129,7 @@ test('job-queue', async ({page}, testInfo) => {
 	await page.getByText('Edit File').first().click();
 	await page.keyboard.type(csv);
 	await page.getByRole('button', {name: 'Save and Close'}).click();
-	await page.screenshot({ path: 'screenshots/importer_typed-csv-text.png' });
+	await screenshot(page, { path: 'screenshots/importer_typed-csv-text.png' });
   */
 
 	await page.locator('#file-tree-container').getByText('structr_uploads').first().click();
@@ -167,7 +168,7 @@ test('job-queue', async ({page}, testInfo) => {
 	await page.locator('#job-queue-jobs-table tbody tr').isVisible();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/importer_check-import-process.png'});
+	await screenshot(page, {path: 'screenshots/importer_check-import-process.png'});
 
 	await page.locator('.close-message-button').click();
 

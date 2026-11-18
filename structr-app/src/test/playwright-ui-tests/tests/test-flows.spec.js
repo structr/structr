@@ -20,6 +20,7 @@
 import {test} from '@playwright/test';
 import {goToModule, initialize} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
+import {screenshot} from "./helpers/screenshots";
 
 
 test.beforeAll(async ({playwright}) => {
@@ -41,14 +42,14 @@ test('flows', async ({page}, testInfo) => {
 
 	// Wait for Code UI to load all components
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/flows.png'});
+	await screenshot(page, {path: 'screenshots/flows.png'});
 
 	// Create new flow
 	await page.getByPlaceholder('Enter flow name').click();
 	await page.keyboard.type('testFlow');
 	await page.getByRole('button', {name: 'Create'}).click();
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/flows_created-flow.png'});
+	await screenshot(page, {path: 'screenshots/flows_created-flow.png'});
 
 	// Add TypeQuery node
 	await page.getByText('testFlow').click();
@@ -59,7 +60,7 @@ test('flows', async ({page}, testInfo) => {
 	await page.getByText('TypeQuery', {exact: true}).hover();
 	await page.getByText('TypeQuery', {exact: true}).click();
 
-	await page.screenshot({path: 'screenshots/flows_added-type-query.png'});
+	await screenshot(page, {path: 'screenshots/flows_added-type-query.png'});
 
 	// Select 'Project' as type and sort by name
 	await page.locator('#dataType select').selectOption({label: 'Project'});
@@ -75,7 +76,7 @@ test('flows', async ({page}, testInfo) => {
 	await page.getByText('Return', {exact: true}).hover();
 	await page.getByText('Return', {exact: true}).click();
 
-	await page.screenshot({path: 'screenshots/flows_created-return-node.png'});
+	await screenshot(page, {path: 'screenshots/flows_created-return-node.png'});
 
 	// Arrange nodes
 	await page.getByText('Return').hover();
@@ -88,20 +89,20 @@ test('flows', async ({page}, testInfo) => {
 	await page.mouse.move(580, 300);
 	await page.mouse.up();
 
-	await page.screenshot({path: 'screenshots/flows_arranged-nodes.png'});
+	await screenshot(page, {path: 'screenshots/flows_arranged-nodes.png'});
 
 	await page.locator('.node.typequery .socket.output.dataTarget').hover();
 	await page.mouse.down();
 	await page.locator('.node.return .socket.input.dataSource').hover();
 	await page.mouse.up();
 
-	await page.screenshot({path: 'screenshots/flows_connected-nodes.png'});
+	await screenshot(page, {path: 'screenshots/flows_connected-nodes.png'});
 
 	await page.getByRole('button', {name: 'Run'}).click();
 
 	await page.getByText('"result": [').waitFor({state: 'visible', timeout: 10_000});
 
-	await page.screenshot({path: 'screenshots/flows_run-flow.png'});
+	await screenshot(page, {path: 'screenshots/flows_run-flow.png'});
 
 	await page.locator('#executionResult .close').click();
 

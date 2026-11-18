@@ -20,6 +20,7 @@
 import {test} from '@playwright/test';
 import {goToModule, initialize} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
+import {screenshot} from "./helpers/screenshots";
 
 test.beforeAll(async ({playwright}) => {
 	await initialize(playwright, {
@@ -67,7 +68,7 @@ test('data', async ({page}, testInfo) => {
 
 	// Wait for Schema UI to load all components
 	await page.waitForSelector('#crud-types [data-type="Project"]', {state: 'visible', timeout: 60000});
-	await page.screenshot({path: 'screenshots/data.png'});
+	await screenshot(page, {path: 'screenshots/data.png'});
 
 	// Create test data of type 'Project'
 	await page.locator('#crud-types [data-type="Project"]').click({timeout: 30000});
@@ -85,7 +86,7 @@ test('data', async ({page}, testInfo) => {
 	await page.keyboard.press('Enter');
 	await page.keyboard.type('Project 3;prj0003');
 	await page.keyboard.press('Enter');
-	await page.screenshot({path: 'screenshots/data_import-csv.png'});
+	await screenshot(page, {path: 'screenshots/data_import-csv.png'});
 	await page.getByRole('button', {name: 'Close'}).click();
 
 	// Set name
@@ -150,7 +151,7 @@ test('data', async ({page}, testInfo) => {
 
 	// wait for "blinkGreen" on all rows to be done
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/data_objects-created.png'});
+	await screenshot(page, {path: 'screenshots/data_objects-created.png'});
 
 	await page.locator('#crud-types [data-type="Project"]').click();
 
@@ -175,7 +176,7 @@ test('data', async ({page}, testInfo) => {
 
 	// wait for "blinkGreen" on all rows to be done
 	await page.waitForTimeout(2000);
-	await page.screenshot({path: 'screenshots/data_objects-linked.png'});
+	await screenshot(page, {path: 'screenshots/data_objects-linked.png'});
 
 	await logout(page);
 });

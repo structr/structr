@@ -19,6 +19,7 @@
 
 // @ts-check
 import { expect, Page } from '@playwright/test';
+import {screenshot as takeScreenshot} from "./screenshots";
 
 /**
  * The password every spec after 001-default-credentials logs in with.
@@ -52,7 +53,7 @@ export async function login(page: Page, screenshot: boolean = false, passwordOve
 	await loginForm.locator('#passwordField').fill(password);
 
 	if (screenshot) {
-		await page.screenshot({path: 'screenshots/login.png', caret: 'initial'});
+		await takeScreenshot(page, {path: 'screenshots/login.png', caret: 'initial'});
 	}
 
     // wait until websocket is ready

@@ -21,6 +21,7 @@ import {test, expect} from '@playwright/test';
 import {goToModule, initialize, waitForDialogBoxToClose} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
 import * as fs from "node:fs";
+import {screenshot} from "./helpers/screenshots";
 
 test.beforeAll(async ({playwright}) => {
 
@@ -61,7 +62,7 @@ test('processes', async ({page}, testInfo) => {
 	// the instance counts are patched in asynchronously
 	await expect(definitionRow.locator('.active-instances-cell')).not.toHaveText('…');
 	await page.waitForTimeout(500);
-	await page.screenshot({path: 'screenshots/processes_definitions.png'});
+	await screenshot(page, {path: 'screenshots/processes_definitions.png'});
 
 	// BPMN editor
 	await definitionRow.locator('.show-diagram-link').click();
@@ -70,14 +71,14 @@ test('processes', async ({page}, testInfo) => {
 	await editorHost.locator('g.bpmn-shape').first().waitFor({state: 'visible'});
 	await page.locator('.btn-fit').click();
 	await page.waitForTimeout(500);
-	await page.screenshot({path: 'screenshots/processes_editor.png'});
+	await screenshot(page, {path: 'screenshots/processes_editor.png'});
 
 	// Element tab: select a user task on the canvas
 	const reviewTask = editorHost.locator('g.bpmn-shape', {has: page.locator('title', {hasText: 'Review leave request'})});
 	await reviewTask.click();
 	await page.getByText('Assignee (humanPerformer)').waitFor({state: 'visible'});
 	await page.waitForTimeout(500);
-	await page.screenshot({path: 'screenshots/processes_editor_user-task.png'});
+	await screenshot(page, {path: 'screenshots/processes_editor_user-task.png'});
 
 	// Process tab: set the subject type and save
 	await page.locator('.sidepanel-tab[data-tab="process"]').click();
@@ -88,7 +89,7 @@ test('processes', async ({page}, testInfo) => {
 
 	await expect(page.locator('.btn-save')).toBeEnabled();
 	await page.waitForTimeout(500);
-	await page.screenshot({path: 'screenshots/processes_editor_process-settings.png'});
+	await screenshot(page, {path: 'screenshots/processes_editor_process-settings.png'});
 
 	await page.locator('.btn-save').click();
 	await expect(page.locator('.btn-save')).toBeDisabled();
@@ -104,13 +105,13 @@ test('processes', async ({page}, testInfo) => {
 	await page.locator('#processesTabsMenu a[href="#processes:instances"]').click();
 	await page.locator('#processInstancesTable tbody tr').first().waitFor({state: 'visible'});
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/processes_instances.png'});
+	await screenshot(page, {path: 'screenshots/processes_instances.png'});
 
 	// Task Instances
 	await page.locator('#processesTabsMenu a[href="#processes:tasks"]').click();
 	await page.locator('#processTasksTable tbody tr').first().waitFor({state: 'visible'});
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/processes_tasks.png'});
+	await screenshot(page, {path: 'screenshots/processes_tasks.png'});
 
 	await logout(page);
 });

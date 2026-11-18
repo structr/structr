@@ -21,6 +21,7 @@ import {expect, test} from '@playwright/test';
 import {goToModule, initialize, waitForDialogBoxToClose} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
 import {focusMonacoEditorInContainer} from "./helpers/pages";
+import {screenshot} from "./helpers/screenshots";
 
 test.beforeAll(async ({playwright}) => {
 	await initialize(playwright, {
@@ -46,7 +47,7 @@ test('user-defined-functions', async ({page}, testInfo) => {
 
 	// Wait for Code UI to load all components
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/code.png'});
+	await screenshot(page, {path: 'screenshots/code.png'});
 
 	// Create new user-defined function
 	await page.getByText('User-defined functions').first().click();
@@ -66,26 +67,26 @@ test('user-defined-functions', async ({page}, testInfo) => {
 	await expect(page.locator('#code-contents .schema-grid-row', {hasText: 'testMethod'})).toBeVisible();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/code_create-user-defined-function.png'});
+	await screenshot(page, {path: 'screenshots/code_create-user-defined-function.png'});
 
 	// take a screenshot of the OpenAPI root element
 	await page.getByRole('link', {name: 'OpenAPI - Swagger UI'}).click();
 
 	await page.waitForTimeout(2000);
-	await page.screenshot({path: 'screenshots/code_openapi-root.png'});
+	await screenshot(page, {path: 'screenshots/code_openapi-root.png'});
 
 	// Run function
 	await page.getByRole('link', {name: 'testMethod()', exact: false}).click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/code_run-function.png'});
+	await screenshot(page, {path: 'screenshots/code_run-function.png'});
 
 	await page.getByText('Open run dialog').first().click();
 	//await page.locator('#run-method').click();
 	await page.getByRole('button', {name: 'Run', exact: true}).click();
 	//await page.getByText('Run', { exact: false }).first().click();
 	await expect(page.getByText('"result": "testMethod return value"')).toBeVisible();
-	await page.screenshot({path: 'screenshots/code_run-function-result.png'});
+	await screenshot(page, {path: 'screenshots/code_run-function-result.png'});
 
 	await page.waitForTimeout(1000);
 	await page.getByRole('button', {name: 'Close', exact: true}).click();
@@ -107,7 +108,7 @@ test('user-defined-functions', async ({page}, testInfo) => {
 	await expect(page.getByRole('button', {name: 'Save', exact: false})).toHaveAttribute('disabled');
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/code_project-to-openapi.png'});
+	await screenshot(page, {path: 'screenshots/code_project-to-openapi.png'});
 
 	// Create example method for screenshot
 	await page.locator('li li li .jstree-ocl').first().click();
@@ -123,7 +124,7 @@ test('user-defined-functions', async ({page}, testInfo) => {
 	await page.keyboard.type('$.sendPlain', { delay: 50 });
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/code_project-method-autocomplete.png'});
+	await screenshot(page, {path: 'screenshots/code_project-method-autocomplete.png'});
 
 	await page.keyboard.press('Enter');
 	await page.keyboard.type('();');
@@ -135,7 +136,7 @@ test('user-defined-functions', async ({page}, testInfo) => {
 	await page.getByRole('link', {name: 'Custom method sendEMail()'}).click();
 
 	await page.waitForTimeout(200);
-	await page.screenshot({path: 'screenshots/code_project-method.png'});
+	await screenshot(page, {path: 'screenshots/code_project-method.png'});
 
 	await logout(page);
 });
@@ -165,7 +166,7 @@ test('data-sources', async ({page}, testInfo) => {
 	await page.getByRole('link', {name: 'seededScriptSource', exact: true}).waitFor({state: 'visible'});
 	await expect(page.getByRole('link', {name: '[unnamed ScriptDataSource]', exact: true})).toBeVisible();
 
-	await page.screenshot({path: 'screenshots/code_data-sources.png'});
+	await screenshot(page, {path: 'screenshots/code_data-sources.png'});
 
 	// Clicking an entry has to open the editor. The click used to fall through the type switch in
 	// handleNodeObjectClick() without a matching case and do nothing at all, so both entries are
@@ -186,7 +187,7 @@ test('data-sources', async ({page}, testInfo) => {
 	await page.waitForTimeout(1000);
 	await expect(page.getByRole('link', {name: 'namedInTheEditor', exact: true})).toBeVisible();
 
-	await page.screenshot({path: 'screenshots/code_data-source-editor.png'});
+	await screenshot(page, {path: 'screenshots/code_data-source-editor.png'});
 
 	// The create buttons of the level make a data source and open it on its editor
 	await page.getByRole('link', {name: 'Data Sources', exact: true}).click();

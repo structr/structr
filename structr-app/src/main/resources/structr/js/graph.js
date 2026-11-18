@@ -57,6 +57,14 @@ let _Graph = {
 	schemaNodes: {},
 	schemaNodesById: {},
 
+	// the canvas takes no CSS variables: the labels of nodes and relationships get the text colour the look resolves,
+	// the classic look keeps black
+	labelColor: () => _Theme.isNext() ? _Theme.color('color-text-primary') : '#000',
+	followColorScheme: () => {
+
+		_Graph.graphBrowser?.changeSigmaSetting('defaultLabelColor', _Graph.labelColor());
+		_Graph.graphBrowser?.changeSigmaSetting('defaultEdgeLabelColor', _Graph.labelColor());
+	},
 	init: () => {
 
 		// Colors created with http://paletton.com
@@ -131,8 +139,8 @@ let _Graph = {
 				labelThreshold: 0,
 				borderSize: 4,
 				defaultNodeBorderColor: '#a5a5a5',
-				// the canvas takes no CSS variables: the labels get the text colour the look resolves, the classic look keeps black
-				defaultLabelColor: _Theme.isNext() ? _Theme.color('color-text-primary') : '#000',
+				defaultLabelColor: _Graph.labelColor(),
+				defaultEdgeLabelColor: _Graph.labelColor(),
 				singleHover: true,
 				doubleClickEnabled: false,
 				minEdgeSize: 1,
@@ -1160,3 +1168,5 @@ let _Graph = {
 		`,
 	}
 };
+
+_Theme.onChange(() => _Graph.followColorScheme());

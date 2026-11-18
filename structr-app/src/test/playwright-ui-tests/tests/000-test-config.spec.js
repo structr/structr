@@ -19,6 +19,7 @@
 // @ts-check
 import {test, expect} from '@playwright/test';
 import {setGlobalTimeout} from "./helpers/init";
+import {screenshot} from "./helpers/screenshots";
 
 // no initialize here because we dont need to do anything
 test('config', async ({page}, testInfo) => {
@@ -33,31 +34,31 @@ test('config', async ({page}, testInfo) => {
 	// the wizard is closed until the setup token from the server log is entered; the test rig
 	// presets it via setup.token (ticket 1581)
 	await expect(page.locator('#setupTokenField')).toBeVisible();
-	await page.screenshot({path: 'screenshots/config_setup-token.png'});
+	await screenshot(page, {path: 'screenshots/config_setup-token.png'});
 	await page.locator('#setupTokenField').fill(process.env.SETUP_TOKEN);
 	await page.getByRole('button', {name: 'Start Setup'}).click();
 	await page.waitForTimeout(500);
 
-	await page.screenshot({path: 'screenshots/config_set-superuser-password.png'});
+	await screenshot(page, {path: 'screenshots/config_set-superuser-password.png'});
 
 	// this only works the first time the tests are started, do not change
 	await expect(page.getByPlaceholder('Enter a superuser password')).toBeVisible();
 	await page.getByPlaceholder('Enter a superuser password').fill(process.env.SUPERUSER_PASSWORD);
 	await page.getByRole('button', {name: 'Save'}).click();
 	await page.waitForTimeout(500);
-	await page.screenshot({path: 'screenshots/config_superuser-password-set.png', caret: 'initial'});
+	await screenshot(page, {path: 'screenshots/config_superuser-password-set.png', caret: 'initial'});
 	await page.getByRole('button', {name: 'Configure a database connection'}).click();
 	await page.waitForTimeout(500);
 
 	/*
 	await expect(page.locator('#loginButton')).toBeVisible();
-	await page.screenshot({ path: 'screenshots/config_login.png', caret: 'initial' });
+	await screenshot(page, { path: 'screenshots/config_login.png', caret: 'initial' });
 
 	await page.locator('#passwordField').fill(process.env.SUPERUSER_PASSWORD);
 	await page.locator('#loginButton').click();
 	await page.waitForTimeout(500);
 	await expect(page.locator('#configTabs')).toBeVisible();
-	await page.screenshot({ path: 'screenshots/config_after-login.png' });
+	await screenshot(page, { path: 'screenshots/config_after-login.png' });
 
 	// Disconnect from database and remove database connection
 	await page.getByRole('link', { name: 'Database Connections' }).click();
@@ -69,21 +70,21 @@ test('config', async ({page}, testInfo) => {
   */
 
 	await expect(page.getByRole('button', {name: 'Create new database connection'})).toBeVisible();
-	await page.screenshot({path: 'screenshots/config_create-database-connection.png'});
+	await screenshot(page, {path: 'screenshots/config_create-database-connection.png'});
 	await page.getByRole('button', {name: 'Create new database connection'}).click();
 	await page.waitForTimeout(500);
-	await page.screenshot({path: 'screenshots/config_configure-database-connection.png'});
+	await screenshot(page, {path: 'screenshots/config_configure-database-connection.png'});
 	await page.getByRole('button', {name: 'Set Neo4j defaults'}).click();
 	await page.waitForTimeout(500);
 	await page.getByPlaceholder('Enter a connection name').fill('neo4j-localhost-7687');
 	await page.getByPlaceholder('Enter URL').fill(process.env.DATABASE_URL);
 	await page.getByPlaceholder('Enter password').fill(process.env.DATABASE_PASSWORD);
-	await page.screenshot({path: 'screenshots/config_database-connection-specified.png'});
+	await screenshot(page, {path: 'screenshots/config_database-connection-specified.png'});
 
 	await page.getByRole('button', {name: 'Add connection'}).click();
-	await page.screenshot({path: 'screenshots/config_database-connection-wait.png'});
+	await screenshot(page, {path: 'screenshots/config_database-connection-wait.png'});
 	await page.waitForTimeout(500);
-	await page.screenshot({path: 'screenshots/config_database-connection-established.png'});
+	await screenshot(page, {path: 'screenshots/config_database-connection-established.png'});
 
 	// Logout
 	await page.locator('#logout-form button[type="submit"]').click();

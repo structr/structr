@@ -1,4 +1,4 @@
 #!/bin/bash
 
 cd screenshots
-cp * ../../../main/resources/structr/docs/
+cp -r * ../../../main/resources/structr/docs/

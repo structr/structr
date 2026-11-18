@@ -28,6 +28,7 @@ import {
 	setNodeContent
 } from "./helpers/pages";
 import {openFileContextMenuFor, createFileWithContentAndContentType} from "./helpers/files";
+import {screenshot} from "./helpers/screenshots";
 
 test.beforeAll(async ({ playwright }) => {
 	await initialize(playwright, {
@@ -267,7 +268,7 @@ test('search-and-refactor-code', async ({ page }, testInfo) => {
 	await searchInput.fill(oldName);
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({ path: 'screenshots/global-search.png' });
+	await screenshot(page, { path: 'screenshots/global-search.png' });
 
 	let contentResultRow = page.locator('#global-search-results tbody tr').first();
 	let firstNodeId = await contentResultRow.getAttribute('data-id');

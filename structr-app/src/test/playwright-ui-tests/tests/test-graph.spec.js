@@ -21,6 +21,7 @@ import {expect, test} from '@playwright/test';
 import {goToModule, initialize, mainMenuIsUnblocked} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
 import {createAndRenamePage} from "./helpers/pages";
+import {screenshot} from "./helpers/screenshots";
 
 test.beforeAll(async ({playwright}) => {
 	await initialize(playwright);
@@ -47,7 +48,7 @@ test('graph', async ({page}, testInfo) => {
 
 	// Wait for Graph UI to load all components
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/graph.png'});
+	await screenshot(page, {path: 'screenshots/graph.png'});
 
 	// Enter Cypher query to show all nodes and relationships
 	await page.getByPlaceholder('Cypher query').click();
@@ -55,7 +56,7 @@ test('graph', async ({page}, testInfo) => {
 	await page.locator('#exec-cypher').click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/graph_show-nodes.png'});
+	await screenshot(page, {path: 'screenshots/graph_show-nodes.png'});
 
 	// Sigma reports node positions relative to the canvas, so take the canvas position from the DOM
 	// instead of assuming how tall the toolbar above it is. The previous fixed offset of 128 was the
@@ -91,13 +92,13 @@ test('graph', async ({page}, testInfo) => {
 	await page.mouse.move(x, y);
 
 	await page.waitForTimeout(500);
-	await page.screenshot({path: 'screenshots/graph_node-hover.png'});
+	await screenshot(page, {path: 'screenshots/graph_node-hover.png'});
 
 	// Click on first node to open properties dialog
 	await page.mouse.click(x, y);
 
 	await page.waitForTimeout(500);
-	await page.screenshot({path: 'screenshots/graph_node-properties-opened.png'});
+	await screenshot(page, {path: 'screenshots/graph_node-properties-opened.png'});
 
 	await page.getByRole('button', {name: 'Close', exact: true}).click();
 

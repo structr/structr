@@ -19,6 +19,7 @@
 // @ts-check
 import {expect, test} from '@playwright/test';
 import {initialize} from "./helpers/init";
+import {screenshot} from "./helpers/screenshots";
 
 const fs = require('fs');
 
@@ -35,7 +36,7 @@ test('configuration-interface', async ({page}, testInfo) => {
 	await expect(page.locator('#superuserPasswordField')).toBeVisible();
 	await expect(page.locator('#loginButton')).toBeVisible();
 
-	await page.screenshot({path: 'screenshots/configuration-interface_login.png'});
+	await screenshot(page, {path: 'screenshots/configuration-interface_login.png'});
 
 	// Login with admin/admin
 	await page.locator('#superuserNameField').fill('superadmin');
@@ -43,7 +44,7 @@ test('configuration-interface', async ({page}, testInfo) => {
 	await page.locator('#loginButton').click();
 
 	// Wait for Code UI to load all components
-	await page.screenshot({path: 'screenshots/configuration-interface.png'});
+	await screenshot(page, {path: 'screenshots/configuration-interface.png'});
 
 	// Logout
 	await page.locator('#logout-form button[type="submit"]').click();

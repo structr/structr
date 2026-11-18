@@ -33,6 +33,7 @@ import {
 	useContextMenu,
 	resizeRightFlyout, waitForPartialReload
 } from "./helpers/pages";
+import {screenshot} from "./helpers/screenshots";
 
 test.beforeAll(async ({playwright}) => {
 	await initialize(playwright, {
@@ -101,7 +102,7 @@ test('pages', async ({page}, testInfo) => {
 		await widgetForm.getByText('All Project Nodes').click();
 	}
 
-	await page.screenshot({path: 'screenshots/widgets_insert-table-dialog.png'});
+	await screenshot(page, {path: 'screenshots/widgets_insert-table-dialog.png'});
 
 	await page.getByRole('button', { name: 'Append Widget' }).click();
 
@@ -147,7 +148,7 @@ test('pages', async ({page}, testInfo) => {
 
 	await dueDateFieldDetails.locator('input[name="dateFormat"]').fill('dd.MM.yyyy');
 
-	await page.screenshot({path: 'screenshots/widgets_table-fields.png'});
+	await screenshot(page, {path: 'screenshots/widgets_table-fields.png'});
 
 	await page.getByRole('button', { name: 'Controller' }).click();
 	await page.getByRole('textbox', { name: 'Selection Channel' }).fill('current');
@@ -155,7 +156,7 @@ test('pages', async ({page}, testInfo) => {
 	// click somewhere else to save the value
 	await page.locator('#page-size-input').click();
 
-	await page.screenshot({path: 'screenshots/widgets_table_controller.png'});
+	await screenshot(page, {path: 'screenshots/widgets_table_controller.png'});
 
 	// insert edit form
 	await useContextMenu(page, mainContent, 'Suggested Widgets', 'Components', 'Edit Form');

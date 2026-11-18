@@ -20,6 +20,7 @@
 import {test} from '@playwright/test';
 import {goToModule, initialize} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
+import {screenshot} from "./helpers/screenshots";
 
 test.beforeAll(async ({playwright}) => {
     await initialize(playwright);
@@ -34,7 +35,7 @@ test('localization', async ({page}, testInfo) => {
 	await goToModule(page, '#localization_');
 
     await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/localization.png'});
+    await screenshot(page, {path: 'screenshots/localization.png'});
 
     // Create new Localization elements
     await page.getByRole('textbox', {name: 'Enter a key to create'}).click();
@@ -51,7 +52,7 @@ test('localization', async ({page}, testInfo) => {
     await page.keyboard.press('Tab');
 
 	await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/localization_created.png'});
+    await screenshot(page, {path: 'screenshots/localization_created.png'});
 
     await logout(page);
 });

@@ -20,6 +20,7 @@
 import {expect, test} from '@playwright/test';
 import {goToModule, initialize} from './helpers/init';
 import {login} from './helpers/auth';
+import {screenshot} from "./helpers/screenshots";
 
 // The editor of the application map: a click on readable code of a method glides so close that the method fills the
 // screen, and there the editor of the Code area opens on its field. The map is a canvas, so the test asks the map where a
@@ -173,7 +174,7 @@ test('a click on readable code opens the editor with the code', async ({page}) =
 	await expect(editor(page).locator('.view-lines')).toContainText('archived = true');
 	expect(await pinned(page)).toBeNull();
 
-	await page.screenshot({ path: 'screenshots/appmap_editor.png' });
+	await screenshot(page, { path: 'screenshots/appmap_editor.png' });
 });
 
 test('a click on the header of a readable card opens no editor, the open card does not answer itself', async ({page}) => {

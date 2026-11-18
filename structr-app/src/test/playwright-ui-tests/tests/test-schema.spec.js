@@ -22,6 +22,7 @@ import {expect, test} from '@playwright/test';
 import {goToModule, initialize, waitForDialogBoxToClose} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
 import {focusCenterPaneMonacoEditor, focusMonacoEditorInContainer} from "./helpers/pages";
+import {screenshot} from "./helpers/screenshots";
 
 test.beforeAll(async ({playwright}) => {
 	await initialize(playwright);
@@ -37,19 +38,19 @@ test('schema', async ({page}, testInfo) => {
 
 	// Wait for Schema UI to load all components
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/schema.png'});
+	await screenshot(page, {path: 'screenshots/schema.png'});
 
 	// Create new type 'Project'
 	await page.locator('#create-type').click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/schema_create-type_Project.png'});
+	await screenshot(page, {path: 'screenshots/schema_create-type_Project.png'});
 
 	await page.getByPlaceholder('Type Name...').fill('Project');
 	await page.getByRole('button', {name: ' Create ', exact: true}).click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/schema_created-type_Project.png'});
+	await screenshot(page, {path: 'screenshots/schema_created-type_Project.png'});
 
 	// Add custom method and take a screenshot
 	await page.getByText('Methods', {exact: true}).click();
@@ -63,7 +64,7 @@ test('schema', async ({page}, testInfo) => {
 	await page.keyboard.type("$.sendPlaintextMail(...);");
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/schema_method-added_sendEMail.png'});
+	await screenshot(page, {path: 'screenshots/schema_method-added_sendEMail.png'});
 
 	// Add custom String property 'projectId'
 	await page.getByText('Direct properties', {exact: true}).click();
@@ -74,7 +75,7 @@ test('schema', async ({page}, testInfo) => {
 	await page.locator('.unique').nth(0).check();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/schema_property-added_projectId.png'});
+	await screenshot(page, {path: 'screenshots/schema_property-added_projectId.png'});
 
 	await page.getByRole('button', {name: 'Save All', exact: true}).click();
 	await expect(page.getByRole('button', {name: 'Save All', exact: true})).toHaveClass(/disabled/);
@@ -86,13 +87,13 @@ test('schema', async ({page}, testInfo) => {
 	await waitForDialogBoxToClose(page);
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/schema_type-created_Project.png'});
+	await screenshot(page, {path: 'screenshots/schema_type-created_Project.png'});
 
 	// Create new type 'Milestone'
 	await page.locator('#create-type').click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/schema_create-type_Milestone.png'});
+	await screenshot(page, {path: 'screenshots/schema_create-type_Milestone.png'});
 
 	await page.getByPlaceholder('Type Name...').fill('Milestone');
 	await page.getByRole('button', {name: ' Create ', exact: true}).click();
@@ -111,7 +112,7 @@ test('schema', async ({page}, testInfo) => {
 	await page.locator('.property-type').nth(1).selectOption({value: 'Date'});
 
 	await page.waitForTimeout(500);
-	await page.screenshot({path: 'screenshots/schema_property-added_dueDate.png'});
+	await screenshot(page, {path: 'screenshots/schema_property-added_dueDate.png'});
 
 	await page.getByRole('button', {name: 'Add direct property', exact: true}).click();
 	await page.getByPlaceholder('JSON name').nth(2).click();
@@ -133,14 +134,14 @@ test('schema', async ({page}, testInfo) => {
 	await page.getByRole('button', {name: 'Back'}).click();
 
 	await page.waitForTimeout(500);
-	await page.screenshot({path: 'screenshots/schema_added-Milestone-properties.png'});
+	await screenshot(page, {path: 'screenshots/schema_added-Milestone-properties.png'});
 
 	await page.getByRole('button', {name: 'Close', exact: true}).click();
 
 	await waitForDialogBoxToClose(page);
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/schema_type-created_Milestone.png'});
+	await screenshot(page, {path: 'screenshots/schema_type-created_Milestone.png'});
 
 	// Reset layout
 	//await page.evaluate('document.body.style.zoom="1.0"');
@@ -159,7 +160,7 @@ test('schema', async ({page}, testInfo) => {
 	await page.getByRole('button', {name: 'Create', exact: true}).click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/schema_relationship-project-milestone-created.png'});
+	await screenshot(page, {path: 'screenshots/schema_relationship-project-milestone-created.png'});
 
 	await page.getByRole('button', {name: 'Close', exact: true}).click();
 
@@ -197,18 +198,18 @@ test('schema', async ({page}, testInfo) => {
 	await page.getByRole('button', {name: 'Save', exact: true}).click();
 	await expect(page.getByRole('button', {name: 'Save', exact: true})).toHaveClass(/disabled/);
 	await page.getByRole('button', {name: 'Back'}).click();
-	await page.screenshot({path: 'screenshots/schema_added-Task-properties.png'});
+	await screenshot(page, {path: 'screenshots/schema_added-Task-properties.png'});
 	await page.getByRole('button', {name: 'Close', exact: true}).click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/schema_type-created_Task.png'});
+	await screenshot(page, {path: 'screenshots/schema_type-created_Task.png'});
 
 	await page.getByText('Project Edit type Delete type').hover();
 	await page.getByText('Project Edit type Delete type').locator('svg.edit-type-icon').click();
 	await page.getByText('General', {exact: true}).click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/schema_type-edit_Project.png'});
+	await screenshot(page, {path: 'screenshots/schema_type-edit_Project.png'});
 
 	await page.getByRole('button', {name: 'Close', exact: true}).click();
 
@@ -227,7 +228,7 @@ test('schema', async ({page}, testInfo) => {
 	await page.getByRole('button', {name: 'Create', exact: true}).click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/schema_relationship-project-task-created.png'});
+	await screenshot(page, {path: 'screenshots/schema_relationship-project-task-created.png'});
 
 	await page.getByRole('button', {name: 'Close', exact: true}).click();
 

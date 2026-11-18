@@ -21,6 +21,7 @@ import {expect, test} from '@playwright/test';
 import {goToModule, initialize, waitForDialogBoxToClose} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
 import {createAndRenamePage, focusCenterPaneMonacoEditor, resizeRightFlyout, createParametersAndReturnInputDropzones} from "./helpers/pages";
+import {screenshot} from "./helpers/screenshots";
 
 test.beforeAll(async ({playwright}) => {
 	await initialize(playwright);
@@ -36,7 +37,7 @@ test('pages', async ({page}, testInfo) => {
 
 	// Wait for Pages UI to load all components
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/pages.png'});
+	await screenshot(page, {path: 'screenshots/pages.png'});
 
 	// the edit features of the page preview are on by default; check, not click, so the test does not depend on it
 	await page.locator('#ui-settings-popup button').click();
@@ -47,7 +48,7 @@ test('pages', async ({page}, testInfo) => {
 		await page.locator('#create_page').click();
 		await page.locator('#template-tiles .page-tile:nth-child(3)').click();
 		await page.waitForTimeout(1000);
-		await page.screenshot({path: 'screenshots/pages_import-page.png'});
+		await screenshot(page, {path: 'screenshots/pages_import-page.png'});
 		await page.getByRole('button', {name: 'Close'}).click();
 
 		await waitForDialogBoxToClose(page);
@@ -57,7 +58,7 @@ test('pages', async ({page}, testInfo) => {
 	{
 		await page.locator('#create_page').click();
 		await page.waitForTimeout(1000);
-		await page.screenshot({path: 'screenshots/pages_create-page.png'});
+		await screenshot(page, {path: 'screenshots/pages_create-page.png'});
 		await page.locator('#template-tiles .page-tile:nth-child(2)').click();
 
 		await waitForDialogBoxToClose(page);
@@ -67,7 +68,7 @@ test('pages', async ({page}, testInfo) => {
 	{
 		await page.getByRole('img', {name: 'Access Control'}).first().click();
 		await page.waitForTimeout(1000);
-		await page.screenshot({path: 'screenshots/pages_access-control-dialog.png'});
+		await screenshot(page, {path: 'screenshots/pages_access-control-dialog.png'});
 		await page.getByRole('button', {name: 'Close'}).click();
 
 		await waitForDialogBoxToClose(page);
@@ -80,7 +81,7 @@ test('pages', async ({page}, testInfo) => {
 	await page.locator('#pagesTree').click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/pages_page-created.png'});
+	await screenshot(page, {path: 'screenshots/pages_page-created.png'});
 
 	await page.locator('#pagesTree .node-container:nth-child(1)').click({button: 'right'});
 	await page.getByText('Expand / Collapse').waitFor({state: 'visible'});
@@ -89,28 +90,28 @@ test('pages', async ({page}, testInfo) => {
 	await page.getByText('Expand subtree recursively').click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/pages_page-expanded.png'});
+	await screenshot(page, {path: 'screenshots/pages_page-expanded.png'});
 
 	// click through the different tabs and take a screenshot of each tab
 	await page.getByRole('link', {name: 'Advanced'}).click();
 	await page.waitForTimeout(200);
-	await page.screenshot({path: 'screenshots/pages_page-details-advanced.png'});
+	await screenshot(page, {path: 'screenshots/pages_page-details-advanced.png'});
 
 	await page.getByRole('link', {name: 'Security'}).nth(1).click();
 	await page.waitForTimeout(200);
-	await page.screenshot({path: 'screenshots/pages_page-details-security.png'});
+	await screenshot(page, {path: 'screenshots/pages_page-details-security.png'});
 
 	await page.getByRole('link', {name: 'Active Elements'}).click();
 	await page.waitForTimeout(200);
-	await page.screenshot({path: 'screenshots/pages_page-details-active-elements.png'});
+	await screenshot(page, {path: 'screenshots/pages_page-details-active-elements.png'});
 
 	await page.getByRole('link', {name: 'URL Routing'}).click();
 	await page.waitForTimeout(200);
-	await page.screenshot({path: 'screenshots/pages_page-details-url-routing.png'});
+	await screenshot(page, {path: 'screenshots/pages_page-details-url-routing.png'});
 
 	await page.getByRole('link', {name: 'Preview'}).click();
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/pages_page-preview.png'});
+	await screenshot(page, {path: 'screenshots/pages_page-preview.png'});
 
 	// Drag 'Simple Table' widget onto 'Main Container'
 	{
@@ -160,7 +161,7 @@ test('pages', async ({page}, testInfo) => {
 		await page.mouse.up();
 
 		await page.waitForTimeout(1000);
-		await page.screenshot({path: 'screenshots/pages_simple-table-added.png'});
+		await screenshot(page, {path: 'screenshots/pages_simple-table-added.png'});
 
 		await page.locator('#widgetsTab').click();
 	}
@@ -210,7 +211,7 @@ test('pages', async ({page}, testInfo) => {
 	await removeNodeInPreview(page, preview, 'Role');
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/pages_output-expression.png'});
+	await screenshot(page, {path: 'screenshots/pages_output-expression.png'});
 
 	// Add repeater to display the projects
 	await page.locator('#pagesTree div.node:has(> div > span > b[title="tbody"]) div.node b[title="tr"]').click();
@@ -223,26 +224,26 @@ test('pages', async ({page}, testInfo) => {
 	await page.locator('.save-repeater-datakey').click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/pages_element-details_repeater.png'});
+	await screenshot(page, {path: 'screenshots/pages_element-details_repeater.png'});
 
 	await page.getByRole('link', {name: 'Preview'}).click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/pages_repeater.png'});
+	await screenshot(page, {path: 'screenshots/pages_repeater.png'});
 
 	// clipped to the repeater subtree: the Dynamic Content article embeds it as a small inline image
-	await page.locator('#pagesTree div.node:has(> div > span > b[title="tbody"]) div.node:has(> div > span > b[title="tr"])').first()
-		.screenshot({path: 'screenshots/pages_single-repeater-element.png'});
+	await screenshot(page.locator('#pagesTree div.node:has(> div > span > b[title="tbody"]) div.node:has(> div > span > b[title="tr"])').first(),
+		{path: 'screenshots/pages_single-repeater-element.png'});
 
 	await page.getByRole('link', {name: 'General'}).click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/pages_element-details_general.png'});
+	await screenshot(page, {path: 'screenshots/pages_element-details_general.png'});
 
 	await page.getByRole('link', {name: 'HTML'}).click();
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/pages_element-details_html.png'});
+	await screenshot(page, {path: 'screenshots/pages_element-details_html.png'});
 
 	await page.getByRole('link', {name: 'Events'}).click();
 	await page.getByRole('textbox', {name: 'Browser event (click, keydown'}).click();
@@ -253,7 +254,7 @@ test('pages', async ({page}, testInfo) => {
 	await createParametersAndReturnInputDropzones(page, [ 'name' ]);
 
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'screenshots/pages_element-details_events.png'});
+	await screenshot(page, {path: 'screenshots/pages_element-details_events.png'});
 
 	await logout(page);
 });

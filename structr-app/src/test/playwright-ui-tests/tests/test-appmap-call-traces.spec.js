@@ -21,6 +21,7 @@ import {expect, test} from '@playwright/test';
 import {goToModule} from './helpers/init';
 import {login} from './helpers/auth';
 import {EamBuilder} from './helpers/eam';
+import {screenshot} from "./helpers/screenshots";
 
 // The call traces of scripting errors on the application map: a method that fails, called by another method, which a
 // REST request calls. The map marks the failing method with the sign of errors, its tooltip names the error and the calls
@@ -154,7 +155,7 @@ test('a click on the sign shows the call trace on the map, and Escape ends it', 
 	await page.mouse.move(5, 300);
 	await page.waitForTimeout(300);
 
-	await page.screenshot({ path: 'screenshots/appmap_call-trace.png' });
+	await screenshot(page, { path: 'screenshots/appmap_call-trace.png' });
 
 	await page.keyboard.press('Escape');
 

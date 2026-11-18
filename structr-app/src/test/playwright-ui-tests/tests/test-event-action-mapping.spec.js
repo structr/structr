@@ -37,6 +37,7 @@ import {
 	useContextMenu,
 	createParametersAndReturnInputDropzones
 } from "./helpers/pages";
+import {screenshot} from "./helpers/screenshots";
 
 let runTests = [ 1, 2, 3 ];
 
@@ -188,7 +189,7 @@ test('pages', async ({page}, testInfo) => {
 		await page.keyboard.press('Tab');
 
 		await page.waitForTimeout(1000);
-		await page.screenshot({path: 'screenshots/pages_create-form_event-action-mapping-configuration.png'});
+		await screenshot(page, {path: 'screenshots/pages_create-form_event-action-mapping-configuration.png'});
 
 		await page.reload();
 
@@ -197,7 +198,7 @@ test('pages', async ({page}, testInfo) => {
 		await page.locator('span').filter({hasText: /^script$/}).hover();
 
 		// take a screenshot of the form element
-		await page.locator('div.node:has(b[title="form"])').nth(4).screenshot({path: 'screenshots/pages_create-form-element.png'});
+		await screenshot(page.locator('div.node:has(b[title="form"])').nth(4), {path: 'screenshots/pages_create-form-element.png'});
 
 		await collapsePageTree(page, 'projects');
 	}
@@ -245,7 +246,7 @@ test('pages', async ({page}, testInfo) => {
 
 
 		await page.waitForTimeout(1000);
-		await page.screenshot({path: 'screenshots/pages_edit-form_input-configuration.png'});
+		await screenshot(page, {path: 'screenshots/pages_edit-form_input-configuration.png'});
 
 		// insert button element
 		await useContextMenu(page, formContainer, 'Insert HTML element', 'b', 'button');
@@ -283,7 +284,7 @@ test('pages', async ({page}, testInfo) => {
 		await page.keyboard.press('Tab');
 
 		await page.waitForTimeout(1000);
-		await page.screenshot({path: 'screenshots/pages_edit-form_event-action-mapping-configuration.png'});
+		await screenshot(page, {path: 'screenshots/pages_edit-form_event-action-mapping-configuration.png'});
 
 		// reload to un-select the form element
 		await page.reload();
@@ -294,7 +295,7 @@ test('pages', async ({page}, testInfo) => {
 		await page.locator('span').filter({hasText: 'head'}).hover();
 
 		// take a screenshot of the form element
-		await page.locator('div.node:has(b[title="form"])').nth(4).screenshot({path: 'screenshots/pages_edit-form-element.png'});
+		await screenshot(page.locator('div.node:has(b[title="form"])').nth(4), {path: 'screenshots/pages_edit-form-element.png'});
 
 		await page.goto(process.env.BASE_URL + '/projects');
 
@@ -374,7 +375,7 @@ test('pages', async ({page}, testInfo) => {
 				await page.locator('input#name-input').click();
 
 				await page.waitForTimeout(1000);
-				await page.screenshot({path: 'screenshots/pages_advanced-form_option-configuration.png'});
+				await screenshot(page, {path: 'screenshots/pages_advanced-form_option-configuration.png'});
 			}
 
 			await configureHTMLAttributes(page, option, { value: config.optionValue });
@@ -420,7 +421,7 @@ test('pages', async ({page}, testInfo) => {
 		await page.keyboard.press('Tab');
 
 		await page.waitForTimeout(1000);
-		await page.screenshot({path: 'screenshots/pages_advanced-form_event-action-mapping-configuration.png'});
+		await screenshot(page, {path: 'screenshots/pages_advanced-form_event-action-mapping-configuration.png'});
 
 		// reload to un-select the form element
 		await page.reload();
@@ -431,7 +432,7 @@ test('pages', async ({page}, testInfo) => {
 		await h.getTextNode().click();
 
 		// take a screenshot of the form element (background change is necessary because playwright tries to scroll the element into view, which hovers it apparently)
-		await formContainer.locator.screenshot({path: 'screenshots/pages_advanced-form-element.png', style: '.nodeHover { background-color: transparent; }' });
+		await screenshot(formContainer.locator, {path: 'screenshots/pages_advanced-form-element.png', style: '.nodeHover { background-color: transparent; }' });
 	}
 
 	await logout(page);

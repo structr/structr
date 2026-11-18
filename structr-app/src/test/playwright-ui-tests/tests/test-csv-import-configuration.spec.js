@@ -21,6 +21,7 @@ import {expect, test} from '@playwright/test';
 import {goToModule, initialize} from "./helpers/init";
 import {login} from "./helpers/auth";
 import * as fs from "node:fs";
+import {screenshot} from "./helpers/screenshots";
 
 test.beforeAll(async ({playwright}) => {
 
@@ -92,5 +93,5 @@ test('csv-import-load-configuration-for-builtin-type', async ({page}, testInfo) 
 	await expect(page.locator('input#target-type-custom-only')).not.toBeChecked();
 	await expect(page.locator('select.attr-mapping[name="name"]')).toHaveValue('name');
 
-	await page.screenshot({path: 'screenshots/csv-import_loaded-configuration.png'});
+	await screenshot(page, {path: 'screenshots/csv-import_loaded-configuration.png'});
 });

@@ -257,6 +257,24 @@ let _Documentation = {
 		for (let name of ['ui-next', 'theme-light', 'theme-dark']) {
 			doc.documentElement.classList.toggle(name, document.documentElement.classList.contains(name));
 		}
+
+		// the screenshots exist in both colour schemes: docs/dark/ holds the dark one under the name of the light one,
+		// which an image without a dark counterpart keeps
+		let dark = document.documentElement.classList.contains('theme-dark');
+
+		for (let img of doc.querySelectorAll('img[src*="/structr/docs/"]')) {
+
+			img.dataset.lightSrc ??= img.getAttribute('src');
+
+			let light  = img.dataset.lightSrc;
+			let wanted = dark ? light.replace('/structr/docs/', '/structr/docs/dark/') : light;
+
+			if (img.getAttribute('src') !== wanted) {
+
+				img.onerror = dark ? () => { img.onerror = null; img.src = light; } : null;
+				img.src     = wanted;
+			}
+		}
 	},
 	attachClickHandlerToIframe: (iframe) => {
 

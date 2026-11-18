@@ -20,6 +20,7 @@
 import {expect, test} from '@playwright/test';
 import {goToModule, initialize} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
+import {screenshot} from "./helpers/screenshots";
 
 const fs = require('fs');
 
@@ -42,7 +43,7 @@ test('mail-templates', async ({page}, testInfo) => {
     await page.getByText('Create default "Self-').click();
 
 	await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/mail-templates.png'});
+    await screenshot(page, {path: 'screenshots/mail-templates.png'});
 
     await logout(page);
 });
