@@ -129,6 +129,23 @@ public interface Documentable {
 				lines.add("");
 			}
 
+			if (signatures != null && !signatures.isEmpty()) {
+
+				lines.add(startHeading + "# Signatures");
+				lines.add("");
+				lines.add("```");
+
+				// until the language for signatures is not used, we remove duplicate output
+				final Set<String> signatureSet = signatures.stream().map(Signature::getSignature).collect(Collectors.toSet());
+				for (final String signature : signatureSet) {
+
+					lines.add(name + "(" + signature + ")");
+				}
+
+				lines.add("```");
+				lines.add("");
+			}
+
 			if (parameters != null && !parameters.isEmpty()) {
 
 				lines.add(startHeading + "# Parameters");
@@ -161,23 +178,6 @@ public interface Documentable {
 					lines.add("- " + note);
 				}
 
-				lines.add("");
-			}
-
-			if (signatures != null && !signatures.isEmpty()) {
-
-				lines.add(startHeading + "# Signatures");
-				lines.add("");
-				lines.add("```");
-
-				// until the language for signatures is not used, we remove duplicate output
-				final Set<String> signatureSet = signatures.stream().map(Signature::getSignature).collect(Collectors.toSet());
-				for (final String signature : signatureSet) {
-
-					lines.add(name + "(" + signature + ")");
-				}
-
-				lines.add("```");
 				lines.add("");
 			}
 
