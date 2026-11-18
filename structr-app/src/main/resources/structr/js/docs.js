@@ -561,7 +561,7 @@ let _Documentation = {
 		`,
 		mainNavigationItem: config => `<li class="docs-main-nav-item">${config.label}</li>`,
         mainNavigationSubItem: config => `<li><a target="main-documentation" href="${_Documentation.ontologyRoot}?id=${config.id}&parent=${config.parent}&details=all" data-doc-id="${config.id}">${config.label}</a></li>`,
-		indexItem: config => `<h2><a target="main-documentation" href="${_Documentation.ontologyRoot}?id=${config.id}&details=all#${config.name}">${config.label}</a></h2>`,
+		indexItem: config => `<h2><a target="main-documentation" href="${_Documentation.ontologyRoot}?id=${config.id}&details=all&format=markdown#${config.name}">${config.label}</a></h2>`,
 		searchOverlay: config => `
 			<div id="search-overlay" class="hidden">
 				<div id="search-overlay-dialog">
