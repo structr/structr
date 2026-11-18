@@ -27,8 +27,17 @@ let StructrWS = {
 	userId: undefined,
 	me: undefined,
 	ignoreEmptyCallbacksForCommands: ['CREATE_SIMPLE_PAGE', 'INSERT_RELATIVE_TO_DOM_NODE', 'WRAP_DOM_NODE', 'REPLACE_WITH'],
+	sessionChannel: ('BroadcastChannel' in window) ? new BroadcastChannel('structr-session') : undefined,
 
 	init: () => {
+
+		StructrWS.sessionChannel?.addEventListener('message', (e) => {
+
+			// another tab completed a login, which gave the browser a new session cookie: this tab's connection still carries the old one
+			if (e.data?.type === 'login') {
+				StructrWS.renew();
+			}
+		});
 
 		StructrWS.wsWorker.addEventListener('message', (e) => {
 
@@ -99,6 +108,39 @@ let StructrWS = {
 		StructrWS.onNextOpen = callback;
 
 		StructrWS.wsWorker.postMessage(Object.assign({ type: 'renew' }, wsInfo));
+	},
+	completeLogin: async (ticket) => {
+
+		// until the renewed connection carries the new session id, a PING is answered with 401
+		StructrWS.stopPing();
+
+		// a websocket cannot set cookies: the login is completed over HTTP, which answers with a new session id, and the connection is renewed with it
+		let response = await fetch(`${Structr.wsRoot}/login`, {
+			method: 'POST',
+			body: new URLSearchParams({ ticket: ticket })
+		});
+
+		if (!response.ok) {
+
+			let result = await response.json().catch(() => ({}));
+
+			StructrWS.user   = null;
+			StructrWS.userId = null;
+
+			// the connection that logged in is still authenticated, a new one is not
+			StructrWS.renew();
+
+			_Dialogs.loginDialog.show();
+			_Dialogs.loginDialog.appendErrorMessage((result.reason === 'sessionLimitExceeded') ? 'Max. number of sessions exceeded.' : 'Login could not be completed, please try again.');
+
+			return false;
+		}
+
+		await new Promise((resolve) => StructrWS.renew(resolve));
+
+		StructrWS.sessionChannel?.postMessage({ type: 'login' });
+
+		return true;
 	},
 	reconnect: (data) => {
 
@@ -191,6 +233,14 @@ let StructrWS = {
 		let code         = data.code;
 
 		if (command === 'LOGIN' || code === 100) {
+
+			if (command === 'LOGIN' && data.data.loginTicket) {
+
+				let completed = await StructrWS.completeLogin(data.data.loginTicket);
+				if (!completed) {
+					return;
+				}
+			}
 
 			if ((command === 'LOGIN' || !StructrWS.userId) && data.code < 400) {
                 let response = await fetch(`${Structr.rootUrl}me`);

@@ -112,19 +112,21 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 		assertResponse(mock, "STATUS", 401, false);
 	}
 
+	/** A PING names the session the login was completed with, which is not the one the login was made with: that is rotated. */
 	@Test
 	public void testPingWithSession() {
 
 		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
-		createEntityAsSuperUser("/SessionDataNode", "{ vhost: '0.0.0.0', sessionId: 'TESTSESSION' }");
 
-		final MockedWebsocketSetup mock = getMockedWebsocketSetup();
+		final MockedWebsocketSetup mock  = getMockedWebsocketSetup();
 		final StructrWebSocket websocket = mock.getWebSocket();
-		final String sessionId = "TESTSESSION";
+		final String loginSessionId      = anonymousSessionId();
 
-		login(websocket, "admin", "admin", sessionId);
+		loginWithUnknownSession(websocket, "admin", "admin", loginSessionId);
 
-		try { Thread.sleep(200); } catch (Throwable t) {}
+		final String sessionId = redeem(loginTicket(mock), loginSessionId).getSessionId();
+
+		assertNotNull("completing the login must set a new session cookie", sessionId);
 
 		websocket.onWebSocketText(toJson(Map.of("command", "PING", "sessionId", sessionId)));
 

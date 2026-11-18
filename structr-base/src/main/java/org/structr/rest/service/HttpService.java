@@ -68,6 +68,7 @@ import org.structr.rest.servlet.UIExtensionsServlet;
 import org.structr.rest.servlet.MetricsServlet;
 import org.structr.schema.SchemaService;
 import org.structr.websocket.servlet.WebSocketConfigurator;
+import org.structr.websocket.servlet.WebSocketLoginServlet;
 
 import java.io.File;
 import java.io.IOException;
@@ -551,6 +552,9 @@ public class HttpService implements RunnableService, StatsCallback {
 			// configuration wizard entry point
 			servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/structr/config/*");
 		}
+
+		// completes a websocket login over HTTP, where the session id can be rotated
+		servletContext.addServlet(WebSocketLoginServlet.class, WebSocketLoginServlet.PATH);
 
 		final SessionHandler sessionHandler = servletContext.getSessionHandler();
 

@@ -20,6 +20,9 @@ package org.structr.test.mock;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.Authenticator;
@@ -34,10 +37,12 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.WebSocketDataGSONAdapter;
 import org.structr.websocket.WebsocketController;
 import org.structr.websocket.message.WebSocketMessage;
+import org.structr.websocket.servlet.WebSocketLoginServlet;
 
 import java.util.Map;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
 public class StructrWebsocketBaseTest extends StructrUiTest {
@@ -136,6 +141,46 @@ public class StructrWebsocketBaseTest extends StructrUiTest {
 
 			fail("Unexpected exception establishing a session: " + fex.getMessage());
 		}
+	}
+
+	/** A session id the server accepts, obtained the way a browser (or an attacker) obtains one: by asking for anything at all. */
+	protected String anonymousSessionId() {
+
+		final String sessionId = RestAssured.given().when().get("/User").getSessionId();
+
+		assertNotNull("could not obtain an anonymous session id", sessionId);
+
+		return sessionId;
+	}
+
+	/** Completes a websocket login over HTTP, the way the Admin UI does, and answers the response that carries the rotated session cookie. */
+	protected Response redeem(final String ticket, final String sessionId) {
+
+		return redemption(ticket, sessionId).header("Origin", "http://" + host + ":" + httpPort).when().post(WebSocketLoginServlet.PATH);
+	}
+
+	/** The redemption request without its Origin header, for tests that send a different one. */
+	protected RequestSpecification redemption(final String ticket, final String sessionId) {
+
+		RequestSpecification request = RestAssured.given().basePath("").formParam(WebSocketLoginServlet.TICKET_PARAMETER, ticket);
+
+		if (sessionId != null) {
+
+			request = request.sessionId(sessionId);
+		}
+
+		return request;
+	}
+
+	/** The login ticket of the last response, which has to be a successful LOGIN. */
+	protected String loginTicket(final MockedWebsocketSetup mock) {
+
+		final Map<String, Object> response = assertResponse(mock, "LOGIN", 200.0, true);
+		final Object ticket                = ((Map<String, Object>) response.get("data")).get("loginTicket");
+
+		assertNotNull("a websocket login must answer with a ticket", ticket);
+
+		return (String) ticket;
 	}
 
 	protected Map<String, Object> assertResponse(final MockedWebsocketSetup mock, final String command, final double statusCode, final boolean sessionValid) {

@@ -26,6 +26,7 @@ import org.eclipse.jetty.ee10.servlet.ServletApiRequest;
 import org.eclipse.jetty.ee10.servlet.ServletChannel;
 import org.eclipse.jetty.ee10.servlet.ServletContextRequest;
 import org.eclipse.jetty.http.HttpURI;
+import org.eclipse.jetty.session.ManagedSession;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.websocket.server.ServerUpgradeRequest;
@@ -34,15 +35,15 @@ import org.eclipse.jetty.websocket.server.WebSocketCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.Authenticator;
+import org.structr.rest.auth.SessionHelper;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-;
 
 /**
  * Custom creator for structr WebSockets.
@@ -175,7 +176,15 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 		}
 	}
 
-	/** The upgrade handler runs before the SessionHandler, so the requested session id is not resolved yet: read the cookie itself. */
+	/**
+	 * The upgrade handler runs before the SessionHandler, so the requested session id is not resolved yet: read the cookie itself.
+	 *
+	 * <p>A browser can hold more than one session cookie - one planted with a more specific path from a
+	 * sibling subdomain is sent first - so this picks the way Jetty's SessionHandler does for every other
+	 * request: the first id with a valid session behind it. Taking the first cookie instead tied the
+	 * websocket to a different session than the HTTP requests of the same page, and a planted cookie
+	 * whose session was rotated away on login kept every new websocket logged out.</p>
+	 */
 	private String getSessionCookie(final HttpServletRequest request) {
 
 		final String requested = request.getRequestedSessionId();
@@ -186,19 +195,47 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 
 		final String name       = StringUtils.defaultIfBlank(request.getServletContext().getSessionCookieConfig().getName(), "JSESSIONID");
 		final Cookie[] cookies = request.getCookies();
+		String first           = null;
 
 		if (cookies != null) {
 
 			for (final Cookie cookie : cookies) {
 
-				if (name.equals(cookie.getName()) && StringUtils.isNotBlank(cookie.getValue())) {
+				final String value = cookie.getValue();
 
-					return cookie.getValue();
+				if (name.equals(cookie.getName()) && StringUtils.isNotBlank(value)) {
+
+					if (hasValidSession(value)) {
+
+						return value;
+					}
+
+					if (first == null) {
+
+						first = value;
+					}
 				}
 			}
 		}
 
-		return null;
+		// no live session at all: the id is still the connection's to name, nothing authenticates with it
+		return first;
+	}
+
+	private boolean hasValidSession(final String sessionId) {
+
+		try {
+
+			final ManagedSession session = SessionHelper.getSessionBySessionId(SessionHelper.getShortSessionId(sessionId));
+
+			return session != null && session.isValid();
+
+		} catch (final FrameworkException fex) {
+
+			logger.warn("Unable to look up session for websocket handshake: {}", fex.getMessage());
+
+			return false;
+		}
 	}
 
 	private List<String> getAcceptedOrigins() {
