@@ -841,6 +841,77 @@ public class UiScriptingTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testReplaceDomChild() {
+
+		// the arguments arrive as nodes and must be converted with as(), a cast to DOMElement / DOMNode fails
+		final Map<String, String> scripts = Map.of(
+			"JavaScript",    "${{ $.replaceDomChild($.find('Body', { id: '%s' })[0], $.find('Div', { id: '%s' })[0], '<p>replaced</p>'); }}",
+			"StructrScript", "${replace_dom_child(first(find('Body', 'id', '%s')), first(find('Div', 'id', '%s')), '<p>replaced</p>')}"
+		);
+
+		for (final Map.Entry<String, String> entry : scripts.entrySet()) {
+
+			final String language = entry.getKey();
+			String bodyId         = null;
+			String divId          = null;
+
+			try (final Tx tx = app.tx()) {
+
+				final Page page = Page.createSimplePage(securityContext, "replaceDomChild" + language);
+
+				bodyId = page.getElementsByTagName("body").get(0).getUuid();
+				divId  = page.getElementsByTagName("div").get(0).getUuid();
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				Scripting.evaluate(new ActionContext(securityContext), null, String.format(entry.getValue(), bodyId, divId), "test");
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception in " + language + ".");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				final DOMElement body        = app.getNodeById(StructrTraits.DOM_ELEMENT, bodyId).as(DOMElement.class);
+				final List<String> childTags = new LinkedList<>();
+				final List<String> childIds  = new LinkedList<>();
+
+				for (final DOMNode child : body.getChildren()) {
+
+					childIds.add(child.getUuid());
+
+					if (child.is(StructrTraits.DOM_ELEMENT)) {
+
+						childTags.add(child.as(DOMElement.class).getTag());
+					}
+				}
+
+				assertFalse("replaceDomChild() did not remove the old child in " + language, childIds.contains(divId));
+				assertEquals("replaceDomChild() did not insert the new child in " + language, List.of("h1", "p"), childTags);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+		}
+	}
+
+	@Test
 	public void testToJsonFunctions() {
 
 		try (final Tx tx = app.tx()) {
