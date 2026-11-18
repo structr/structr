@@ -731,13 +731,22 @@
 }
 
 /* notifications: the corners and the soft line of the other boxes, a gap between them, and room to the edge of the window */
+/* the area scrolls, so it clips: the padding is the room of the shadow, taken out of the distances to keep the boxes in place */
 :root.ui-next #info-area {
-	right: 1rem;
+	left: calc(60% - .75rem);
+	right: .25rem;
+	padding: 0 .75rem;
+	box-sizing: border-box;
+}
+
+/* only with a message in it, so that the empty area covers nothing */
+:root.ui-next #info-area:has(.message) {
+	padding-bottom: .75rem;
 }
 
 :root.ui-next #info-area .message {
 	margin-bottom: .5rem;
 	border-color: color-mix(in srgb, currentColor 35%, transparent);
 	border-radius: var(--radius-surface);
-	box-shadow: 0 12px 34px var(--color-shadow);
+	box-shadow: 0 2px 8px var(--color-shadow);
 }
