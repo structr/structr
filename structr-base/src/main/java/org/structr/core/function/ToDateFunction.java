@@ -52,31 +52,15 @@ public class ToDateFunction extends CoreFunction {
 		}
 
 		// if source is a number, try to convert from millis
-		if (sources != null && sources.length == 1 && sources[0] instanceof Number) {
+		if (sources != null && sources.length == 1 && sources[0] instanceof Number number) {
 
-			try {
+			// floating point values are rounded to the nearest millisecond
+			if (number instanceof Double || number instanceof Float) {
 
-				Long timestamp = 0L;
-
-				if (sources[0] instanceof Double) {
-
-					timestamp = Math.round((Double) sources[0]);
-
-				} else if (sources[0] instanceof Integer || sources[0] instanceof Long) {
-
-					timestamp = (Long) sources[0];
-
-				} else {
-
-					throw new UnsupportedOperationException();
-				}
-
-				return new Date(timestamp);
-
-			} catch (Throwable t) {
-
-				// fail silently
+				return new Date(Math.round(number.doubleValue()));
 			}
+
+			return new Date(number.longValue());
 
 		} else {
 
@@ -84,8 +68,6 @@ public class ToDateFunction extends CoreFunction {
 
 			return null;
 		}
-
-		return null;
 	}
 
 	@Override

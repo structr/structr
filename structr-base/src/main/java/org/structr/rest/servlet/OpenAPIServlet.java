@@ -38,6 +38,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.docs.Documentation;
+import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
@@ -326,9 +327,9 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		));
 
 		map.put("TokenResponse", new OpenAPIObjectSchema("Contains the bearer token and refresh token that can be used to authenticate further calls to any other resources.",
-			new OpenAPIPrimitiveSchema("The Bearer token.",                                                "access_token",    "string"),
-			new OpenAPIPrimitiveSchema("The refresh token that can be used to optain more Bearer tokens.", "refresh_token",   "string"),
-			new OpenAPIPrimitiveSchema("The expiration timestamp of the Bearer token.",                     "expiration_date", "integer"),
+			new OpenAPIPrimitiveSchema("The Bearer token.",                                                JWTHelper.ACCESS_TOKEN_KEY,    "string"),
+			new OpenAPIPrimitiveSchema("The refresh token that can be used to optain more Bearer tokens.", JWTHelper.REFRESH_TOKEN_KEY,   "string"),
+			new OpenAPIPrimitiveSchema("The expiration timestamp of the Bearer token.",                    JWTHelper.EXPIRATION_DATE_KEY, "integer"),
 			new OpenAPIPrimitiveSchema("The token type.",                                                  "token_type",      "string")
 		));
 

@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
@@ -43,6 +44,7 @@ import org.structr.rest.auth.DeviceTrustHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+import org.structr.websocket.servlet.WebSocketLoginServlet;
 
 import java.util.HashMap;
 
@@ -128,12 +130,9 @@ public class LoginCommand extends AbstractCommand {
 
 					} else if (SessionHelper.getSessionBySessionId(SessionHelper.getShortSessionId(sessionId)) == null) {
 
-						/* The id arrives in the message, so the client picks it. Binding one that has no
-						   session behind it means the client can name its own credential - and it is a
-						   credential over HTTP too, because both sides read the same sessionIds property.
-						   It would also never expire, because StructrWebSocket.authenticate() reads a
-						   missing session as a valid one (ticket 1594). The websocket is opened from a
-						   page that already has a session; requiring it to exist costs that flow nothing. */
+						/* The id may arrive in the message, so the client picks it, and it is what the login
+						   ticket is tied to (ticket 1594). The websocket is opened from a page that already
+						   has a session; requiring it to exist costs that flow nothing. */
 						logger.info("Refusing websocket login for {}: no session exists for the id the client sent.", username);
 
 						getWebSocket().send(MessageBuilder.status().code(HttpServletResponse.SC_FORBIDDEN).data("reason", "noSessionCookie").build(), true);
@@ -142,24 +141,27 @@ public class LoginCommand extends AbstractCommand {
 
 						sessionId = SessionHelper.getShortSessionId(sessionId);
 
-						// Clear possible existing sessions
-						SessionHelper.clearSession(sessionId);
-
-						if (!user.addSessionId(sessionId)) {
+						if (isSessionLimitReached(user, sessionId)) {
 
 							logger.debug("Unable to login {}: Unable to add new sessionId", username);
 							getWebSocket().send(MessageBuilder.status().code(HttpServletResponse.SC_FORBIDDEN).data("reason", "sessionLimitExceeded").build(), true);
 
 						} else {
 
-							AuthHelper.updateLastLoginDate(user);
-							AuthHelper.sendLoginNotification(user, getWebSocket().getRequest());
-
-							// store token in response data
+							/* Nothing is bound to the id the browser brought along: it may have been planted by
+							   somebody else, and binding it is session fixation. A websocket cannot set a cookie,
+							   so the page redeems this ticket over HTTP, where the id is rotated and the new one
+							   is bound, see WebSocketLoginServlet. */
 							webSocketData.getNodeData().clear();
 							// a session id taken from the HttpOnly cookie is not handed to the page
 							webSocketData.setSessionId(sessionIdFromMessage ? sessionId : null);
 							webSocketData.getNodeData().put("username", user.getName());
+
+							// only for a user the websocket lets in; the login of any other user is answered with 403
+							if (getWebSocket().isPrivilegedUser(user)) {
+
+								webSocketData.getNodeData().put("loginTicket", WebSocketLoginServlet.issueTicket(user, sessionId));
+							}
 
 							if (result == AuthHelper.TwoFactorAuthenticationResult.SUCCESS && userRequestedTrust) {
 
@@ -177,7 +179,7 @@ public class LoginCommand extends AbstractCommand {
 								}
 							}
 
-							// authenticate socket
+							// the connection that proved the credentials is logged in until the page replaces it with one whose handshake carries the new session id
 							getWebSocket().setAuthenticated(sessionId, user);
 
 							tx.setSecurityContext(getWebSocket().getSecurityContext());
@@ -226,6 +228,15 @@ public class LoginCommand extends AbstractCommand {
 
 			getWebSocket().send(webSocketData, false);
 		}
+	}
+
+	/** The limit as user.addSessionId() applies it when the ticket is redeemed, checked here so the connection is not logged in past it. */
+	private boolean isSessionLimitReached(final Principal user, final String sessionId) {
+
+		final int max      = Settings.MaxSessionsPerUser.getValue();
+		final String[] ids = user.getSessionIds();
+
+		return max > 0 && ids != null && !ArrayUtils.contains(ids, sessionId) && ids.length >= max;
 	}
 
 	@Override

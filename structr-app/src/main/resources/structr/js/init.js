@@ -1863,7 +1863,7 @@ let Structr = {
 
 							let builder = new WarningMessage().uniqueClass(`n${data.nodeId}${data.nodeType}${data.row}${data.column}`).incrementsUniqueCount(true).title(`Scripting error in ${title}`).text(getLocationTable({...data, name, property})).requiresConfirmation();
 
-							if (data.nodeType === 'SchemaMethod' || data.nodeType === 'SchemaProperty') {
+							if (data.nodeType === 'SchemaMethod' || data.nodeType === 'SchemaProperty' || data.nodeType === 'Scratchpad') {
 
 								builder.specialInteractionButton(`Go to code`, () => {
 

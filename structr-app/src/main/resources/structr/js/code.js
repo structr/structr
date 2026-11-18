@@ -3674,6 +3674,10 @@ let _Code = {
 
 				return `/datasources/${obj.id}`;
 
+			} else if (obj.type === 'Scratchpad') {
+
+				return `/scratchpads/${obj.id}`;
+
 			} else {
 
 				let firstSubFolder = (obj.schemaNode?.isServiceClass === true) ? 'services' : 'custom';

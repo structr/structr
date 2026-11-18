@@ -63,6 +63,9 @@ import java.util.*;
 public class JWTHelper {
 
 	public static final String TOKEN_ERROR_MSG = "The given access_token or refresh_token is invalid";
+	public static final String ACCESS_TOKEN_KEY = "access_token";
+	public static final String REFRESH_TOKEN_KEY = "refresh_token";
+	public static final String EXPIRATION_DATE_KEY = "expiration_date";
 
 	/**
 	 * The claim marking a token as belonging to the MCP endpoint, and its only accepted value.
@@ -587,7 +590,7 @@ public class JWTHelper {
 			String refreshToken = refreshBuilder.sign(alg);
 
 			user.addRefreshToken(tokenId);
-			tokens.put("refresh_token", refreshToken);
+			tokens.put(REFRESH_TOKEN_KEY, refreshToken);
 		}
 
 		final JWTCreator.Builder accessBuilder = JWT.create()
@@ -602,8 +605,8 @@ public class JWTHelper {
 		applyAudience(accessBuilder);
 		String accessToken = accessBuilder.sign(alg);
 
-		tokens.put("access_token", accessToken);
-		tokens.put("expiration_date", Long.toString(accessTokenExpirationDate.getTime()));
+		tokens.put(ACCESS_TOKEN_KEY, accessToken);
+		tokens.put(EXPIRATION_DATE_KEY, Long.toString(accessTokenExpirationDate.getTime()));
 
 		return tokens;
 	}

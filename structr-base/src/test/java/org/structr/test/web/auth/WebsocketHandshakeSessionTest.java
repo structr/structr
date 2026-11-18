@@ -76,6 +76,19 @@ public class WebsocketHandshakeSessionTest extends StructrUiTest {
 		}
 	}
 
+	/**
+	 * A cookie planted with a more specific path is sent first, and keeps being sent after the login has
+	 * rotated its session away. The handshake has to pick the cookie with a live session, as Jetty does for
+	 * every HTTP request of the same page, or every new websocket comes up logged out.
+	 */
+	@Test
+	public void testHandshakePrefersTheCookieWithALiveSession() throws Exception {
+
+		final String sessionId = loginOverRest();
+
+		assertEquals(100.0, pingWithCookies("JSESSIONID=PLANTED-AND-ROTATED-AWAY; JSESSIONID=" + sessionId, "http://" + host + ":" + httpPort).get("code"));
+	}
+
 	// ----- private methods -----
 	private String loginOverRest() throws FrameworkException {
 
@@ -111,11 +124,16 @@ public class WebsocketHandshakeSessionTest extends StructrUiTest {
 
 	private Map<String, Object> ping(final String sessionId, final String origin) throws Exception {
 
+		return pingWithCookies("JSESSIONID=" + sessionId, origin);
+	}
+
+	private Map<String, Object> pingWithCookies(final String cookieHeader, final String origin) throws Exception {
+
 		final BlockingQueue<String> messages = new LinkedBlockingQueue<>();
 		final StringBuilder buffer           = new StringBuilder();
 
 		final WebSocket webSocket = HttpClient.newHttpClient().newWebSocketBuilder()
-			.header("Cookie", "JSESSIONID=" + sessionId)
+			.header("Cookie", cookieHeader)
 			.header("Origin", origin)
 			.subprotocols("structr")
 			.buildAsync(URI.create("ws://" + host + ":" + httpPort + "/structr/ws"), new WebSocket.Listener() {

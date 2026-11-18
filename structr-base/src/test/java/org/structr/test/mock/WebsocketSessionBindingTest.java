@@ -18,13 +18,27 @@
  */
 package org.structr.test.mock;
 
+import io.restassured.response.Response;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.rest.auth.SessionHelper;
 import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.servlet.WebSocketLoginServlet;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * Ticket 1594: the websocket LOGIN command takes the session id out of the message
@@ -36,6 +50,11 @@ import static org.testng.AssertJUnit.assertFalse;
  * valid session ({@code session == null || !isSessionTimedOut(...)}), so an id that exists nowhere but
  * in the user's sessionIds is never subject to the idle timeout either. It stays valid until that user
  * logs in or out again.
+ *
+ * <p>Binding the id of the handshake cookie instead was still session fixation: an id planted in the
+ * browser beforehand became an authenticated session the moment the user logged into the Admin UI. A
+ * websocket cannot set a cookie, so LOGIN binds nothing and answers with a ticket, which the page
+ * redeems over HTTP at {@link WebSocketLoginServlet#PATH}, where the session id is rotated.</p>
  */
 public class WebsocketSessionBindingTest extends StructrWebsocketBaseTest {
 
@@ -72,7 +91,7 @@ public class WebsocketSessionBindingTest extends StructrWebsocketBaseTest {
 		assertResponse(mock, "LOGIN", 200.0, true);
 	}
 
-	/** With httpservice.cookies.httponly = true the page cannot read the cookie: a LOGIN without a session id binds the session of the handshake cookie, and does not hand its id to the page. */
+	/** With httpservice.cookies.httponly = true the page cannot read the cookie: a LOGIN without a session id is made with the session of the handshake cookie, and does not hand its id to the page. */
 	@Test
 	public void testLoginWithoutSessionIdUsesTheHandshakeSession() {
 
@@ -90,25 +109,106 @@ public class WebsocketSessionBindingTest extends StructrWebsocketBaseTest {
 		assertFalse("the session id from the HttpOnly cookie must not be sent to the page", response.containsKey("sessionId"));
 	}
 
-	/** A page that logged in elsewhere (another tab, Structr Desktop) is authenticated by the handshake cookie alone. */
+	/** A page that logged in elsewhere (another tab, Structr Desktop) is authenticated by the handshake cookie alone, once that carries the session id the login was completed with. */
 	@Test
 	public void testPingWithoutSessionIdIsAuthenticatedByTheHandshakeSession() {
 
 		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
 
-		final MockedWebsocketSetup first = getMockedWebsocketSetup();
+		final String sessionId = anonymousSessionId();
+		final String ticket    = loginForTicket(getMockedWebsocketSetup(), sessionId);
+		final Response redeem  = redeem(ticket, sessionId);
 
-		login(first.getWebSocket(), "admin", "admin", "SHAREDSESSION");
-		assertResponse(first, "LOGIN", 200.0, true);
+		assertEquals(204, redeem.getStatusCode());
 
-		final MockedWebsocketSetup second = getMockedWebsocketSetup();
+		assertEquals(100.0, ping(redeem.getSessionId()).get("code"));
+	}
 
-		second.getWebSocket().setHandshakeSessionId("SHAREDSESSION");
-		second.getWebSocket().onWebSocketText(toJson(Map.of("command", "PING")));
+	/**
+	 * The attack, end to end: an id planted in the browser before the Admin UI login must be worthless
+	 * afterwards - neither bound to the account nor accepted by a websocket - and the browser must hold
+	 * a different one that is.
+	 */
+	@Test
+	public void testLoginDoesNotBindTheSessionTheBrowserArrivedWith() {
 
-		final Map<String, Object> response = second.getLastWebsocketResponse();
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
 
-		assertEquals(100.0, response.get("code"));
+		final String plantedSessionId = anonymousSessionId();
+		final String ticket           = loginForTicket(getMockedWebsocketSetup(), plantedSessionId);
+
+		assertFalse("the websocket login bound the session id the browser carried into it", sessionIdsOfAdmin().contains(SessionHelper.getShortSessionId(plantedSessionId)));
+
+		final Response redeem = redeem(ticket, plantedSessionId);
+
+		assertEquals(204, redeem.getStatusCode());
+
+		final String newSessionId = redeem.getSessionId();
+
+		assertNotNull("redeeming the ticket must set a new session cookie", newSessionId);
+		assertFalse("the session id was not rotated", SessionHelper.getShortSessionId(plantedSessionId).equals(SessionHelper.getShortSessionId(newSessionId)));
+
+		final List<String> sessionIds = sessionIdsOfAdmin();
+
+		assertTrue("the rotated session id was not bound to the account", sessionIds.contains(SessionHelper.getShortSessionId(newSessionId)));
+		assertFalse("the planted session id was bound to the account", sessionIds.contains(SessionHelper.getShortSessionId(plantedSessionId)));
+
+		assertEquals(401.0, ping(plantedSessionId).get("code"));
+	}
+
+	@Test
+	public void testTicketCanBeRedeemedOnlyOnce() {
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+
+		final String sessionId = anonymousSessionId();
+		final String ticket    = loginForTicket(getMockedWebsocketSetup(), sessionId);
+		final Response first   = redeem(ticket, sessionId);
+
+		assertEquals(204, first.getStatusCode());
+		assertEquals(401, redeem(ticket, first.getSessionId()).getStatusCode());
+	}
+
+	/** A ticket that leaked is useless to a browser that does not also hold the session the login was made with. */
+	@Test
+	public void testTicketCanOnlyBeRedeemedWithTheSessionOfTheLogin() {
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+
+		final String sessionId = anonymousSessionId();
+		final String ticket    = loginForTicket(getMockedWebsocketSetup(), sessionId);
+
+		assertEquals(401, redeem(ticket, anonymousSessionId()).getStatusCode());
+		assertEquals(401, redeem(ticket, null).getStatusCode());
+
+		assertTrue("a refused redemption bound a session", sessionIdsOfAdmin().isEmpty());
+	}
+
+	@Test
+	public void testTicketRedemptionRequiresSameOrigin() {
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+
+		final String sessionId = anonymousSessionId();
+		final String ticket    = loginForTicket(getMockedWebsocketSetup(), sessionId);
+
+		assertEquals(403, redemption(ticket, sessionId).header("Origin", "http://foreign.example").when().post(WebSocketLoginServlet.PATH).getStatusCode());
+	}
+
+	/** The websocket refuses a user without backend access, and so is the ticket that would log them in over HTTP. */
+	@Test
+	public void testNonAdminLoginIssuesNoTicket() {
+
+		createEntityAsSuperUser("/User", "{ name: tester, password: tester }");
+
+		final MockedWebsocketSetup mock = getMockedWebsocketSetup();
+
+		mock.getWebSocket().setHandshakeSessionId(anonymousSessionId());
+		mock.getWebSocket().onWebSocketText(toJson(Map.of("command", "LOGIN", "data", Map.of("username", "tester", "password", "tester"))));
+
+		final Map<String, Object> response = assertResponse(mock, "LOGIN", 403.0, false);
+
+		assertNull("a user without backend access was given a login ticket", ((Map<String, Object>) response.get("data")).get("loginTicket"));
 	}
 
 	/** Without a session id in the message and without a session cookie in the handshake, LOGIN is refused with a reason the Admin UI explains. */
@@ -125,5 +225,44 @@ public class WebsocketSessionBindingTest extends StructrWebsocketBaseTest {
 		final Map<String, Object> response = assertResponse(mock, "STATUS", 403.0, false);
 
 		assertEquals("noSessionCookie", ((Map<String, Object>) response.get("data")).get("reason"));
+	}
+
+	// ----- private methods -----
+	/** Logs in as admin over a websocket whose handshake carried the given session id, and answers the ticket. */
+	private String loginForTicket(final MockedWebsocketSetup mock, final String sessionId) {
+
+		mock.getWebSocket().setHandshakeSessionId(sessionId);
+		mock.getWebSocket().onWebSocketText(toJson(Map.of("command", "LOGIN", "data", Map.of("username", "admin", "password", "admin"))));
+
+		return loginTicket(mock);
+	}
+
+	private Map<String, Object> ping(final String handshakeSessionId) {
+
+		final MockedWebsocketSetup mock = getMockedWebsocketSetup();
+
+		mock.getWebSocket().setHandshakeSessionId(handshakeSessionId);
+		mock.getWebSocket().onWebSocketText(toJson(Map.of("command", "PING")));
+
+		return mock.getLastWebsocketResponse();
+	}
+
+	private List<String> sessionIdsOfAdmin() {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.nodeQuery(StructrTraits.USER).name("admin").getFirst();
+			final String[] ids       = node.as(Principal.class).getSessionIds();
+
+			tx.success();
+
+			return ids != null ? Arrays.asList(ids) : List.of();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception: " + fex.getMessage());
+
+			return List.of();
+		}
 	}
 }

@@ -76,6 +76,10 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 
 					logException(caller, ex, sources);
 				}
+
+			} else {
+
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getDisplayName(false) + ": Node of type File required as first argument!");
 			}
 
 			return null;

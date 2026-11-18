@@ -20,6 +20,7 @@ package org.structr.web.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Signature;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
@@ -51,8 +52,8 @@ public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 
 		assertArrayHasMinLengthAndTypes(sources, 3, DOMElement.class, DOMNode.class, String.class);
 
-		final DOMElement parent = (DOMElement) sources[0];
-		final DOMNode child     = (DOMNode) sources[1];
+		final DOMElement parent = ((NodeInterface) sources[0]).as(DOMElement.class);
+		final DOMNode child     = ((NodeInterface) sources[1]).as(DOMNode.class);
 		final String html       = (String)sources[2];
 
 		return ReplaceDOMChildFunction.apply(ctx.getSecurityContext(), parent, child, html);
