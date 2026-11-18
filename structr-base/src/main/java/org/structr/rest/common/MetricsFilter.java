@@ -49,13 +49,18 @@ public class MetricsFilter implements jakarta.servlet.Filter {
 		final HttpServletResponse resp = (HttpServletResponse)response;
 		final long t0                  = System.currentTimeMillis();
 
-        	try {
+		boolean failed = false;
 
-		        chain.doFilter(request, response);
+		try {
 
-	        } catch (Throwable t) {
+			chain.doFilter(request, response);
 
-			t.printStackTrace();
+		} catch (Throwable t) {
+
+			// handed on, so that the request fails as it does without this filter
+			failed = true;
+
+			throw t;
 
 		} finally {
 
@@ -63,7 +68,7 @@ public class MetricsFilter implements jakarta.servlet.Filter {
 			final StringBuilder buf  = new StringBuilder();
 			final String method      = req.getMethod();
 			final String servletPath = req.getServletPath();
-			final int status         = resp.getStatus();
+			final int status         = failed && resp.getStatus() < 400 ? HttpServletResponse.SC_INTERNAL_SERVER_ERROR : resp.getStatus();
 
 			buf.append(servletPath);
 
