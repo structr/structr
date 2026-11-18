@@ -21,13 +21,15 @@ package org.structr.web.function;
 import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.entity.User;
 
 import java.util.Calendar;
 import java.util.List;
@@ -44,7 +46,7 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("user, accessTokenTimeout");
+		return Signature.forAllScriptingLanguages("user [, accessTokenTimeout ]");
 	}
 
 	@Override
@@ -53,21 +55,35 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 		try {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
-			final User user = (User) sources[0];
-			int accessTokenTimeout = Settings.JWTExpirationTimeout.getValue();
-			int refreshTokenTimeout = Settings.JWTRefreshTokenExpirationTimeout.getValue();
 
-			if (sources.length > 1) {
+			if (sources[0] instanceof NodeInterface p1 && p1.is(StructrTraits.USER)) {
 
-				accessTokenTimeout = (int) sources[1];
+				final Principal user = p1.as(Principal.class);
+				int accessTokenTimeout = Settings.JWTExpirationTimeout.getValue();
+
+				if (sources.length > 1) {
+
+					if (sources[1] instanceof Number timeout) {
+
+						accessTokenTimeout = timeout.intValue();
+
+					} else {
+
+						logger.warn("{}: parameter 'accessTokenTimeout' must be a number, was '{}' - using default. {}", getDisplayName(false), sources[1], usage());
+					}
+				}
+
+				final Calendar accessTokenExpirationDate = Calendar.getInstance();
+				accessTokenExpirationDate.add(Calendar.MINUTE, accessTokenTimeout);
+
+				final Map<String, String> tokens = JWTHelper.createTokensForUser(user, accessTokenExpirationDate.getTime(), null);
+
+				return tokens.get(JWTHelper.ACCESS_TOKEN_KEY);
+
+			} else {
+
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getDisplayName(false) + ": Node of type User required as first argument!");
 			}
-
-			Calendar accessTokenExpirationDate = Calendar.getInstance();
-			accessTokenExpirationDate.add(Calendar.MINUTE, accessTokenTimeout);
-
-			Map<String, String> tokens = JWTHelper.createTokensForUser(user, accessTokenExpirationDate.getTime(), null);
-
-			return tokens.get("accessToken");
 
 		} catch (ArgumentCountException pe) {
 
@@ -86,7 +102,7 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 
-		return "The return value of this function is a single string with the generated access token. This token can then be used in the `Authorization` HTTP header to authenticate requests against to Structr.";
+		return "The return value of this function is a single string with the generated access token. This token can then be used in the `Authorization` HTTP header to authenticate requests against Structr.";
 	}
 
 	@Override
@@ -94,7 +110,7 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 
 		return List.of(
 			Parameter.mandatory("user", "user entity to create a token for"),
-			Parameter.optional("accessTokenTimeout", "access token timeout in **minutes**, defaults to 1 hour (60 minutes)")
+			Parameter.optional("accessTokenTimeout",  "access token timeout in **minutes**, defaults to setting `" + Settings.JWTExpirationTimeout.getKey() + "`")
 		);
 	}
 
@@ -114,7 +130,7 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 				fetch("http://localhost:8082/structr/rest/User", {
 					method: "GET",
 					headers: {
-						"authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ[...]VkIn0.fbwKEQ4dELHuXXmPiNtn8XNWh6ShesdlTZsXf-CojTmxQOWUxkbHcroj7gVz02twox82ChTuyxkyHeIoiidU4g"
+						"authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdHJ1Y3RyIiwic3ViIjoiYWRtaW4iLCJleHAiOjE1OTc5MjMzNjh9..."
 					}
 				});
 				""", "Authenticate a request to the Structr backend with an existing access token")
@@ -125,9 +141,10 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-			"In order to use JWT in your application, you must configure `" + Settings.JWTSecretType.getKey() + "` and the corresponding settings your structr.conf.",
-			"You can configure the timeouts for access and refresh tokens in your structr.conf by setting `" + Settings.JWTExpirationTimeout.getKey() + "` and `" + Settings.JWTRefreshTokenExpirationTimeout.getKey() + "` respectively.",
-			"The refresh token is stored in the `refreshTokens` property in the given User entity."
+			"In order to use JWT in your application, you must configure `" + Settings.JWTSecretType.getKey() + "` and the corresponding settings in your structr.conf.",
+			"The default timeout is configured in structr.conf with `" + Settings.JWTExpirationTimeout.getKey() + "` (default: " + Settings.JWTExpirationTimeout.getDefaultValue() + " minutes).",
+			"The timeout must be a number. Decimal values are cut down to whole minutes (`45.7` becomes 45 minutes). Any other value is ignored with a warning in the server log, and the default timeout is used instead.",
+			"The first argument must be a node of type `User` (or of a type that extends `User`). For any other value, the function throws an error in JavaScript, and in StructrScript it logs a warning and returns `null`."
 		);
 	}
 

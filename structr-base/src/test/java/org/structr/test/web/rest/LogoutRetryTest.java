@@ -130,7 +130,7 @@ public class LogoutRetryTest extends StructrUiTest {
 
 		createUser();
 
-		final String accessToken = createTokens().get("access_token");
+		final String accessToken = createTokens().get(JWTHelper.ACCESS_TOKEN_KEY);
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")

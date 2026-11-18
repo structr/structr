@@ -21,13 +21,15 @@ package org.structr.web.function;
 import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.entity.User;
 
 import java.util.Calendar;
 import java.util.List;
@@ -44,7 +46,7 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("user, accessTokenTimeout, refreshTokenTimeout");
+		return Signature.forAllScriptingLanguages("user [, accessTokenTimeout [, refreshTokenTimeout ]]");
 	}
 
 	@Override
@@ -53,29 +55,51 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 		try {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
-			final User user = (User) sources[0];
-			int accessTokenTimeout = Settings.JWTExpirationTimeout.getValue();
-			int refreshTokenTimeout = Settings.JWTRefreshTokenExpirationTimeout.getValue();
 
-			if (sources.length > 1) {
+			if (sources[0] instanceof NodeInterface p1 && p1.is(StructrTraits.USER)) {
 
-				accessTokenTimeout = (int) sources[1];
+				final Principal user = p1.as(Principal.class);
+				int accessTokenTimeout = Settings.JWTExpirationTimeout.getValue();
+				int refreshTokenTimeout = Settings.JWTRefreshTokenExpirationTimeout.getValue();
+
+				if (sources.length > 1) {
+
+					if (sources[1] instanceof Number timeout) {
+
+						accessTokenTimeout = timeout.intValue();
+
+					} else {
+
+						logger.warn("{}: parameter 'accessTokenTimeout' must be a number, was '{}' - using default. {}", getDisplayName(false), sources[1], usage());
+					}
+				}
+
+				if (sources.length > 2) {
+
+					if (sources[2] instanceof Number timeout) {
+
+						refreshTokenTimeout = timeout.intValue();
+
+					} else {
+
+						logger.warn("{}: parameter 'refreshTokenTimeout' must be a number, was '{}' - using default. {}", getDisplayName(false), sources[2], usage());
+					}
+				}
+
+				final Calendar accessTokenExpirationDate = Calendar.getInstance();
+				accessTokenExpirationDate.add(Calendar.MINUTE, accessTokenTimeout);
+
+				final Calendar refreshTokenExpirationDate = Calendar.getInstance();
+				refreshTokenExpirationDate.add(Calendar.MINUTE, refreshTokenTimeout);
+
+				final Map<String, String> tokens = JWTHelper.createTokensForUser(user, accessTokenExpirationDate.getTime(), refreshTokenExpirationDate.getTime());
+
+				return UiFunction.toGraphObject(tokens, 1);
+
+			} else {
+
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getDisplayName(false) + ": Node of type User required as first argument!");
 			}
-
-			if (sources.length > 2) {
-
-				refreshTokenTimeout = (int) sources[2];
-			}
-
-			Calendar accessTokenExpirationDate = Calendar.getInstance();
-			accessTokenExpirationDate.add(Calendar.MINUTE, accessTokenTimeout);
-
-			Calendar refreshTokenExpirationDate = Calendar.getInstance();
-			refreshTokenExpirationDate.add(Calendar.MINUTE, refreshTokenTimeout);
-
-			Map<String, String> tokens = JWTHelper.createTokensForUser(user, accessTokenExpirationDate.getTime(), refreshTokenExpirationDate.getTime());
-
-			return UiFunction.toGraphObject(tokens, 1);
 
 		} catch (ArgumentCountException pe) {
 
@@ -99,9 +123,9 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 	
 			```
 			{
-				"accessToken":"eyJhbGciOiJIUzUxMiJ9.eyJ[...]VkIn0.fbwKEQ4dELHuXXmPiNtn8XNWh6ShesdlTZsXf-CojTmxQOWUxkbHcroj7gVz02twox82ChTuyxkyHeIoiidU4g",
-				"refreshToken":"eyJhbGciOiJIUzUxMiJ9.eyJ[...]lbiJ9.GANUkPH09pBimd5EkJmrEbsYQhDw6hXULZGSldHSZYqq1FNjM_g6wfxt1217TlGZcjKyXEL_lktcPzjOeEU3A",
-				"expirationDate":"1616692902820"
+				"access_token": "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdHJ1Y3RyIiwic3ViIjoiYWRtaW4iLCJleHAiOjE1OTc5MjMzNjh9...",
+				"refresh_token": "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdHJ1Y3RyIiwidHlwZSI6InJlZnJlc2giLCJleHAiOjE1OTgwMDYxNjh9...",
+				"expiration_date": "1597923368582"
 			}
 			```
 			""";
@@ -112,8 +136,8 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 
 		return List.of(
 			Parameter.mandatory("user", "user entity to create tokens for"),
-			Parameter.optional("accessTokenTimeout", "access token timeout in **minutes**, defaults to 1 hour (60 minutes)"),
-			Parameter.optional("refreshTokenTimeout", "refresh token timeout in **minutes**, defaults to 1 day (1440 minutes)")
+			Parameter.optional("accessTokenTimeout",  "access token timeout in **minutes**, defaults to setting `" + Settings.JWTExpirationTimeout.getKey() + "`"),
+			Parameter.optional("refreshTokenTimeout", "refresh token timeout in **minutes**, defaults to setting `" + Settings.JWTRefreshTokenExpirationTimeout.getKey() + "`")
 		);
 	}
 
@@ -126,17 +150,17 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 					// create an access token that is valid for 30 minutes
 					// and a refresh token that is valid for 2 hours
 					let tokens       = $.createAccessAndRefreshToken($.me, 30, 120);
-					let accessToken  = tokens.accessToken;
-					let refreshToken = tokens.refreshToken;
+					let accessToken  = tokens.access_token;
+					let refreshToken = tokens.refresh_token;
 
 					// ... use the tokens
 				}
-				""", "Create a new tokens with non-default validity periods"),
+				""", "Create new tokens with non-default validity periods"),
 			Example.javaScript("""
 				fetch("http://localhost:8082/structr/rest/User", {
 					method: "GET",
 					headers: {
-						"authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ[...]VkIn0.fbwKEQ4dELHuXXmPiNtn8XNWh6ShesdlTZsXf-CojTmxQOWUxkbHcroj7gVz02twox82ChTuyxkyHeIoiidU4g"
+						"authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdHJ1Y3RyIiwic3ViIjoiYWRtaW4iLCJleHAiOjE1OTc5MjMzNjh9..."
 					}
 				});
 				""", "Authenticate a request to the Structr backend with an existing access token")
@@ -147,9 +171,11 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-			"In order to use JWT in your application, you must configure `" + Settings.JWTSecretType.getKey() + "` and the corresponding settings your structr.conf.",
-			"You can configure the timeouts for access and refresh tokens in your structr.conf by setting `" + Settings.JWTExpirationTimeout.getKey() + "` and `" + Settings.JWTRefreshTokenExpirationTimeout.getKey() + "` respectively.",
-			"The refresh token is stored in the `refreshTokens` property in the given User entity."
+			"In order to use JWT in your application, you must configure `" + Settings.JWTSecretType.getKey() + "` and the corresponding settings in your structr.conf.",
+			"The default timeouts are configured in structr.conf with `" + Settings.JWTExpirationTimeout.getKey() + "` (default: " + Settings.JWTExpirationTimeout.getDefaultValue() + " minutes) and `" + Settings.JWTRefreshTokenExpirationTimeout.getKey() + "` (default: " + Settings.JWTRefreshTokenExpirationTimeout.getDefaultValue() + " minutes).",
+			"The refresh token is stored in the `refreshTokens` property in the given User entity.",
+			"Timeouts must be numbers. Decimal values are cut down to whole minutes (`45.7` becomes 45 minutes). Any other value is ignored with a warning in the server log, and the default timeout is used instead.",
+			"The first argument must be a node of type `User` (or of a type that extends `User`). For any other value, the function throws an error in JavaScript, and in StructrScript it logs a warning and returns `null`."
 		);
 	}
 
