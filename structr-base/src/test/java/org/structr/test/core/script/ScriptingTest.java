@@ -7075,6 +7075,32 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testToDateNumberTypes() {
+
+		// JavaScript passes small whole numbers as Integer, large ones as Long and fractions as Double
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			assertEquals("toDate() with an Integer value",     true, Scripting.evaluate(ctx, null, "${{ $.toDate(0).getTime() === 0; }}",                         "integer"));
+			assertEquals("toDate() with an Integer value",     true, Scripting.evaluate(ctx, null, "${{ $.toDate(86400000).getTime() === 86400000; }}",           "integer"));
+			assertEquals("toDate() with a Long value",         true, Scripting.evaluate(ctx, null, "${{ $.toDate(1473201885000).getTime() === 1473201885000; }}", "long"));
+			assertEquals("toDate() with a Double value",       true, Scripting.evaluate(ctx, null, "${{ $.toDate(1473201885000.4).getTime() === 1473201885000; }}", "double"));
+			assertEquals("toDate() must round a Double value", true, Scripting.evaluate(ctx, null, "${{ $.toDate(1473201885000.6).getTime() === 1473201885001; }}", "double"));
+
+			assertEquals("to_date() in StructrScript", new Date(0L),             Scripting.evaluate(ctx, null, "${to_date(0)}",             "structrscript"));
+			assertEquals("to_date() in StructrScript", new Date(1473201885000L), Scripting.evaluate(ctx, null, "${to_date(1473201885000)}", "structrscript"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
 	public void testEntityBindingAcrossMultipleMethodCalls() {
 
 		// setup
