@@ -18,18 +18,16 @@
  */
 package org.structr.web.function;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.ontology.FunctionCategory;
@@ -41,9 +39,7 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -84,13 +80,41 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 			}
 
 			final String uri                = sources[0].toString();
-			final Map<String, Object> parts = (HashMap) sources[1];
+			final Map<String, Object> parts = partsOf(sources[1]);
 			final HttpOptions options       = HttpOptions.from("POSTMultiPart", sources, 2).accepting(ctx, "POSTMultiPart", HttpOptions.PARSE_RESPONSE);
+
+			// a node is sent as the content of a file, or of all files of a folder - any other node is
+			// refused before the request is made instead of being sent as something the receiver can't use
+			for (final Map.Entry<String, Object> entry : parts.entrySet()) {
+
+				final String invalidType = findNodeThatIsNotAFileOrFolder(entry.getValue());
+				if (invalidType != null) {
+
+					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): part '" + entry.getKey() + "' must be a File or Folder node, was a node of type " + invalidType + ".");
+				}
+			}
+
+			final String username = options.getString(HttpOptions.USERNAME);
+			final String password = options.getString(HttpOptions.PASSWORD);
+
+			// A file part is a stream, and a stream cannot answer a 401 challenge, because answering means
+			// sending the body again. Refused up front like a File body in POST(), instead of failing later
+			// as an apparently empty upload.
+			if (username != null && !options.getBoolean(HttpOptions.PREEMPTIVE, false) && parts.values().stream().anyMatch(this::containsNode)) {
+
+				throw new ArgumentTypeException(getName() + "(): a File or Folder part cannot be sent with username/password unless "
+					+ "{ preemptive: true } is set. The credentials are otherwise sent only after a 401, which requires "
+					+ "sending the parts a second time, and a file cannot be read twice.");
+			}
+
+			// checked before the parts are built, which opens the files
+			HttpHelper.validateOutgoingAddress(uri);
 
 			// no contentType parameter: a multipart request builds its own Content-Type, including the
 			// boundary, so naming one here could only conflict with it
-			final Map<String, Object> responseData = this.postMultiPart(uri, parts, options.mergeHeaders(ctx.getHeaders()),
-				options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates()));
+			final Map<String, Object> responseData = HttpHelper.post(uri, buildEntity(parts), username, password, null, null, null, null,
+				options.mergeHeaders(ctx.getHeaders()), DEFAULT_CHARSET, options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates()),
+				options.asRequestConfig(), null);
 
 			return processResponseData(ctx, caller, responseData, options.getBoolean(HttpOptions.PARSE_RESPONSE, false));
 
@@ -102,18 +126,89 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 		}
 	}
 
+	/**
+	 * The parts as a map: a JavaScript object arrives as a Map, a map from a function like from_json() as a
+	 * GraphObjectMap, which is not a Map.
+	 */
+	private Map<String, Object> partsOf(final Object source) {
+
+		if (source instanceof GraphObjectMap graphObjectMap) {
+
+			return graphObjectMap.toMap();
+		}
+
+		if (source instanceof Map<?, ?> map) {
+
+			final Map<String, Object> parts = new LinkedHashMap<>();
+
+			for (final Map.Entry<?, ?> entry : map.entrySet()) {
+
+				parts.put(String.valueOf(entry.getKey()), entry.getValue());
+			}
+
+			return parts;
+		}
+
+		throw new ArgumentTypeException(getName() + "(): the parts must be a map, was " + source.getClass().getSimpleName() + ".");
+	}
+
+	/** The type of the first node in the given part value (or its elements) that is neither a File nor a Folder, or null. */
+	private String findNodeThatIsNotAFileOrFolder(final Object partValue) {
+
+		if (partValue instanceof Iterable<?> iterable) {
+
+			for (final Object element : iterable) {
+
+				final String type = findNodeThatIsNotAFileOrFolder(element);
+				if (type != null) {
+
+					return type;
+				}
+			}
+
+		} else if (partValue instanceof NodeInterface n && !n.is(StructrTraits.FILE) && !n.is(StructrTraits.FOLDER)) {
+
+			return n.getType();
+		}
+
+		return null;
+	}
+
+	/**
+	 * The content type of a file part. parse() rather than create(), which refuses parameters like a charset.
+	 * A file without a usable content type is still sent, as application/octet-stream.
+	 */
+	private ContentType contentTypeOf(final File file) {
+
+		final String contentType = file.getContentType();
+
+		if (contentType != null && !contentType.isBlank()) {
+
+			try {
+
+				return ContentType.parse(contentType);
+
+			} catch (Exception ex) {
+
+				logger.warn("{}(): unable to parse content type '{}' of file {}, sending it as {}", getName(), contentType, file.getUuid(), ContentType.APPLICATION_OCTET_STREAM.getMimeType());
+			}
+		}
+
+		return ContentType.APPLICATION_OCTET_STREAM;
+	}
+
 	private MultipartEntityBuilder addInputStreamToMultiPartBuilder(MultipartEntityBuilder builder, AbstractFile abstractFile, final String partKey) {
 
 		if (abstractFile.is(StructrTraits.FILE)) {
 
-			final File file = (File) abstractFile;
-			InputStreamBody inputStreamBody = new InputStreamBody(StorageProviderFactory.getStorageProvider(file).getInputStream(), ContentType.create(file.getContentType()), file.getName());
+			final File file = abstractFile.as(File.class);
+			InputStreamBody inputStreamBody = new InputStreamBody(StorageProviderFactory.getStorageProvider(file).getInputStream(), contentTypeOf(file), file.getName());
 
 			builder.addPart(partKey, inputStreamBody);
 
 		} else if (abstractFile.is(StructrTraits.FOLDER)) {
 
-			final Folder folder = (Folder) abstractFile;
+			final Folder folder = abstractFile.as(Folder.class);
 
 			for (File folderFile : folder.getFiles()) {
 
@@ -124,7 +219,38 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 		return builder;
 	}
 
-	private MultipartEntityBuilder addPartToBuilder(MultipartEntityBuilder builder, final String partKey, final Object partValue) throws UnsupportedEncodingException {
+	/** Whether the given part value is a node or contains one: after the type check, a File or a Folder. */
+	private boolean containsNode(final Object partValue) {
+
+		if (partValue instanceof Iterable<?> iterable) {
+
+			for (final Object element : iterable) {
+
+				if (containsNode(element)) {
+
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		return partValue instanceof NodeInterface;
+	}
+
+	private HttpEntity buildEntity(final Map<String, Object> parts) {
+
+		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+
+		for (final Map.Entry<String, Object> entry : parts.entrySet()) {
+
+			builder = addPartToBuilder(builder, entry.getKey(), entry.getValue());
+		}
+
+		return builder.build();
+	}
+
+	private MultipartEntityBuilder addPartToBuilder(MultipartEntityBuilder builder, final String partKey, final Object partValue) {
 
 		if (partValue instanceof Iterable) {
 
@@ -145,47 +271,6 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 		return builder;
 	}
 
-	private Map<String, Object> postMultiPart(final String address, final Map<String, Object> parts, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
-
-		final Map<String, Object> responseData = new HashMap<>();
-
-		try {
-
-			// the whitelist every other outbound function goes through, and the one this function's own
-			// notes promise - it used to build the request straight from the address (ticket 1595)
-			final URI uri      = HttpHelper.validateOutgoingAddress(address);
-			final HttpPost req = new HttpPost(uri);
-			MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-			CloseableHttpClient client = HttpHelper.getClient(req, DEFAULT_CHARSET, null, null, null, null, null, null, headers, false, validateCertificates);
-
-			for (Map.Entry<String, Object> entry : parts.entrySet()) {
-
-				final String partKey   = entry.getKey();
-				final Object partValue = entry.getValue();
-
-				 builder = addPartToBuilder(builder, partKey, partValue);
-			}
-
-			HttpEntity reqEntity = builder.build();
-			req.setEntity(reqEntity);
-
-			final CloseableHttpResponse response = client.execute(req);
-			String content = IOUtils.toString(response.getEntity().getContent(), HttpHelper.charset(response));
-
-			content = HttpHelper.skipBOMIfPresent(content);
-
-			responseData.put(HttpHelper.FIELD_BODY, content);
-			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
-			responseData.put(HttpHelper.FIELD_HEADERS, HttpHelper.getHeadersAsMap(response));
-
-		} catch (final Throwable t) {
-
-			logger.error("Unable to issue POST request to address {}, {}", address, t.getMessage());
-			throw new FrameworkException(422, "Unable to issue POST request to address " + address + ": " + t.getCause() + " " + (t.getMessage() != null ? t.getMessage() : ""), t);
-		}
-
-		return responseData;
-	}
 
 	// ----- documentation -----
 	@Override
@@ -199,7 +284,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
-			Parameter.optional("partsMap", "map with multipart parts (type, content)"),
+			Parameter.mandatory("partsMap", "map of part names to values: text, `File`, `Folder` or a list of these (see notes)"),
 			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, and `parseResponse` to parse the response body as JSON")
 		);
 	}
@@ -216,7 +301,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 		return """
 			This function can be used in a script to make a multi-part HTTP POST request **from within the Structr Server**, triggered by a frontend control like a button etc.
 
-			The `POST()` function will return a response object containing the response headers, body and status code. The object has the following structure:
+			The function returns a response object containing the response headers, body and status code. The object has the following structure:
 
 			| Field | Description | Type |
 			| --- | --- | --- |
@@ -224,22 +309,56 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 			headers | Response headers | Map |
 			body | Response body | Map or String |
 
-			The options object accepts `headers`, `validateCertificates` and `parseResponse`. A multipart request builds its own Content-Type, including the boundary, so there is no contentType parameter.
+			The options object configures everything else, for example `{ timeout: 60, redirects: true }`. The timeout is given in seconds; by default there is no timeout and redirects are not followed. A multipart request builds its own Content-Type, including the boundary, so there is no contentType parameter.
 			""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.javaScript("""
+				${{
+					let file = $.find('File', { name: 'report.pdf' })[0];
+
+					let response = $.POSTMultiPart('https://api.example.com/upload', {
+						file:        file,
+						description: 'Monthly report'
+					});
+
+					$.log('Upload finished with status ' + response.status);
+				}}
+				""", "Upload a file together with a text field"),
+			Example.javaScript("""
+				${{
+					let folder = $.find('Folder', { name: 'invoices' })[0];
+
+					let response = $.POSTMultiPart('https://api.example.com/upload', {
+						attachments: folder,
+						tags:        ['invoice', '2026']
+					}, {
+						headers:       { Authorization: 'Bearer ...' },
+						parseResponse: true
+					});
+
+					$.log('Created upload ' + response.body.id);
+				}}
+				""", "Upload every file of a folder as part 'attachments' and two parts 'tags', with an authorization header, and parse the JSON response"),
+			Example.structrScript("""
+				${POSTMultiPart('https://api.example.com/contact', from_json('{ "name": "Jane Doe", "message": "Hello" }')).status}
+				""", "Send text fields from StructrScript, which has no map literal, so the parts come from `fromJson()`")
+		);
 	}
 
 	@Override
 	public List<String> getNotes() {
 
 		return List.of(
-			"The `POST()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
-			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
+			"The `POSTMultiPart()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
+			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
+			"Each entry of `partsMap` is sent as a part whose name is the entry's key. The value decides the content: text (or any other value that is not a node) is sent as a text part. A `File` is sent as a file part with the file's content and content type, and with the file's name as the `filename` of the part - the part itself is still named after the key. A `Folder` is sent as one such file part for each file in it, and a list as one part for each element, so several parts share the key as their name. For example, `{ attachments: [a, b] }` with two files named `a.pdf` and `b.pdf` sends two parts named `attachments`, one with the `filename` `a.pdf` and one with `b.pdf`.",
+			"A node in `partsMap` that is neither a `File` nor a `Folder` is refused: the function throws an error in JavaScript, and in StructrScript it logs a warning and returns `null`. To send such a node, convert it explicitly, e.g. with `toJson()`.",
+			"File and Folder parts cannot be sent with `username` and `password` unless `preemptive: true` is set: the credentials are otherwise only sent after a 401 challenge, which would require reading the files a second time."
 		);
-	}
-
-	@Override
-	public FunctionCategory getCategory() {
-
-		return FunctionCategory.Http;
 	}
 }

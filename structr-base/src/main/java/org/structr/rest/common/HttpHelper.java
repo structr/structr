@@ -537,6 +537,12 @@ public class HttpHelper {
 	 */
 	private static HttpEntity entityFor(final Object requestBody, final String contentType, final String charset) {
 
+		// a complete entity, e.g. a multipart body, which brings its own content type
+		if (requestBody instanceof HttpEntity entity) {
+
+			return entity;
+		}
+
 		final ContentType type = StringUtils.isBlank(contentType) ? null : ContentType.create(ContentType.parse(contentType).getMimeType(), charset);
 
 		if (requestBody instanceof byte[] bytes) {

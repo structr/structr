@@ -30,13 +30,20 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.property.IntProperty;
 import org.structr.rest.common.HttpHelper;
 import org.structr.test.common.StructrTest;
+import org.structr.web.entity.Folder;
 import org.testng.annotations.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -430,7 +437,8 @@ public class OutboundHttpApiTest extends StructrTest {
 				"${POST('http://localhost:" + port + "/', 'b', 'text/plain', { timeout: 1 })}",
 				"${PUT('http://localhost:" + port + "/', 'b', 'text/plain', { timeout: 1 })}",
 				"${PATCH('http://localhost:" + port + "/', 'b', 'text/plain', { timeout: 1 })}",
-				"${FETCH('http://localhost:" + port + "/', 'POST', 'b', 'text/plain', { timeout: 1 })}"
+				"${FETCH('http://localhost:" + port + "/', 'POST', 'b', 'text/plain', { timeout: 1 })}",
+				"${POSTMultiPart('http://localhost:" + port + "/', from_json('{\"a\": \"b\"}'), { timeout: 1 })}"
 			}) {
 
 				final long start = System.currentTimeMillis();
@@ -555,7 +563,366 @@ public class OutboundHttpApiTest extends StructrTest {
 		});
 	}
 
+	// ----- POSTMultiPart -----
+	@Test
+	public void testMultiPartSendsTextPartsUnderTheirNames() {
+
+		withServer(port -> {
+
+			evaluate(new ActionContext(securityContext), "${{ $.POSTMultiPart('http://localhost:" + port + "/', { first: 'one', second: 'two' }); }}");
+
+			assertEquals("POST", lastMethod);
+			assertEquals("POSTMultiPart must send a multipart request", "multipart/form-data", mimeOf(lastHeaders.get("content-type")));
+
+			final List<Part> parts = parts();
+
+			assertEquals("Each entry of the map must become one part", 2, parts.size());
+			assertEquals("one", single(parts, "first").content());
+			assertEquals("two", single(parts, "second").content());
+		});
+	}
+
+	@Test
+	public void testMultiPartSendsAListAsOnePartPerElement() {
+
+		withServer(port -> {
+
+			evaluate(new ActionContext(securityContext), "${{ $.POSTMultiPart('http://localhost:" + port + "/', { tags: ['a', 'b', 'c'] }); }}");
+
+			assertEquals("Each element of a list must become its own part with the same name", List.of("a", "b", "c"), contents(parts(), "tags"));
+		});
+	}
+
+	@Test
+	public void testMultiPartSendsAFileAsItsContent() {
+
+		createFile("upload.txt", "the file content", null);
+
+		withServer(port -> {
+
+			try (final Tx tx = app.tx()) {
+
+				evaluate(new ActionContext(securityContext), "${{ $.POSTMultiPart('http://localhost:" + port + "/', { file: $.find('File', { name: 'upload.txt' })[0], comment: 'with a file' }); }}");
+
+				tx.success();
+			}
+
+			final List<Part> parts = parts();
+			final Part file        = single(parts, "file");
+
+			assertEquals("A file part must carry the name of the file", "upload.txt", file.fileName());
+			assertEquals("A file part must carry the content type of the file", "text/plain", file.contentType());
+			assertEquals("A file part must carry the content of the file", "the file content", file.content());
+			assertEquals("Text parts next to a file part must still be sent", "with a file", single(parts, "comment").content());
+		});
+	}
+
+	@Test
+	public void testMultiPartSendsAFileWhoseContentTypeHasACharset() {
+
+		createFile("utf8.txt", "the file content", null, "text/plain; charset=utf-8");
+
+		withServer(port -> {
+
+			try (final Tx tx = app.tx()) {
+
+				evaluate(new ActionContext(securityContext), "${{ $.POSTMultiPart('http://localhost:" + port + "/', { file: $.find('File', { name: 'utf8.txt' })[0] }); }}");
+
+				tx.success();
+			}
+
+			final Part file = single(parts(), "file");
+
+			assertEquals("A file part must carry the content type of the file", "text/plain", file.contentType());
+			assertEquals("the file content", file.content());
+		});
+	}
+
+	@Test
+	public void testMultiPartSendsAListOfFilesUnderOneName() {
+
+		createFile("a.pdf", "content of a", null);
+		createFile("b.pdf", "content of b", null);
+
+		withServer(port -> {
+
+			try (final Tx tx = app.tx()) {
+
+				evaluate(new ActionContext(securityContext), "${{ $.POSTMultiPart('http://localhost:" + port + "/', { attachments: [$.find('File', { name: 'a.pdf' })[0], $.find('File', { name: 'b.pdf' })[0]] }); }}");
+
+				tx.success();
+			}
+
+			final List<Part> parts = parts();
+
+			assertEquals("Each file of the list must become its own part", 2, parts.size());
+
+			// the part is named after the key, the file name is sent as the filename of the part
+			assertEquals(new Part("attachments", "a.pdf", "text/plain", "content of a"), parts.get(0));
+			assertEquals(new Part("attachments", "b.pdf", "text/plain", "content of b"), parts.get(1));
+		});
+	}
+
+	@Test
+	public void testMultiPartSendsEveryFileOfAFolder() {
+
+		createFile("a.txt", "content of a", "/multipart");
+		createFile("b.txt", "content of b", "/multipart");
+
+		withServer(port -> {
+
+			try (final Tx tx = app.tx()) {
+
+				evaluate(new ActionContext(securityContext), "${{ $.POSTMultiPart('http://localhost:" + port + "/', { files: $.find('Folder', { name: 'multipart' })[0] }); }}");
+
+				tx.success();
+			}
+
+			final Map<String, String> files = new TreeMap<>();
+
+			for (final Part part : parts()) {
+
+				assertEquals("Every file of the folder must be sent under the name of the folder's part", "files", part.name());
+
+				files.put(part.fileName(), part.content());
+			}
+
+			assertEquals("Every file of the folder must be sent with its content", Map.of("a.txt", "content of a", "b.txt", "content of b"), files);
+		});
+	}
+
+	@Test
+	public void testMultiPartAcceptsAMapFromStructrScript() {
+
+		// StructrScript has no map literal, a map comes from a function like from_json() and is not a HashMap
+		withServer(port -> {
+
+			evaluate(new ActionContext(securityContext), "${POSTMultiPart('http://localhost:" + port + "/', from_json('{\"text\": \"hello\"}'))}");
+
+			assertEquals("POST", lastMethod);
+			assertEquals("hello", single(parts(), "text").content());
+		});
+	}
+
+	@Test
+	public void testMultiPartRefusesANodeThatIsNotAFileOrFolder() {
+
+		createFile("upload.txt", "the file content", null);
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.GROUP, "notafile");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		withServer(port -> {
+
+			final String url   = "'http://localhost:" + port + "/'";
+			final String group = "$.find('Group', { name: 'notafile' })[0]";
+			final String file  = "$.find('File', { name: 'upload.txt' })[0]";
+
+			for (final String parts : new String[] {
+				"{ attachment: " + group + " }",
+				"{ attachments: [" + file + ", " + group + "] }"
+			}) {
+
+				try (final Tx tx = app.tx()) {
+
+					Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.POSTMultiPart(" + url + ", " + parts + "); }}", "test");
+
+					fail("POSTMultiPart must refuse a node that is neither a File nor a Folder: " + parts);
+
+				} catch (FrameworkException expected) {
+
+					assertTrue("Unexpected error message: " + expected.getMessage(), String.valueOf(expected.getMessage()).contains("must be a File or Folder node, was a node of type Group"));
+				}
+
+				assertNull("No request may be made when a part is refused: " + parts, lastMethod);
+			}
+		});
+	}
+
+	@Test
+	public void testMultiPartSendsCredentialsAfterAChallenge() {
+
+		withServer(port -> {
+
+			// basic auth is sent after a challenge, so the server asks for it once
+			challengeOnce = true;
+
+			evaluate(new ActionContext(securityContext), "${{ $.POSTMultiPart('http://localhost:" + port + "/', { text: 'hello' }, { username: 'user', password: 'secret' }); }}");
+
+			final String authorization = lastHeaders.get("authorization");
+
+			assertNotNull("credentials in the options object must produce an Authorization header", authorization);
+			assertEquals("user:secret", new String(java.util.Base64.getDecoder().decode(authorization.substring("Basic ".length())), StandardCharsets.UTF_8));
+			assertEquals("the parts must be sent again after the challenge", "hello", single(parts(), "text").content());
+		});
+	}
+
+	@Test
+	public void testMultiPartWithAFileAndCredentialsMustBePreemptive() {
+
+		createFile("guarded.txt", "the file content", null);
+
+		withServer(port -> {
+
+			final String url  = "'http://localhost:" + port + "/'";
+			final String file = "$.find('File', { name: 'guarded.txt' })[0]";
+
+			try (final Tx tx = app.tx()) {
+
+				// a file part is a stream, which cannot be sent a second time to answer a 401 challenge
+				evaluate(new ActionContext(securityContext), "${{ $.POSTMultiPart(" + url + ", { file: " + file + " }, { username: 'u', password: 'p' }); }}");
+
+				assertNull("a file part with non-preemptive credentials must be refused before the request is made", lastMethod);
+
+				evaluate(new ActionContext(securityContext), "${{ $.POSTMultiPart(" + url + ", { file: " + file + " }, { username: 'u', password: 'p', preemptive: true }); }}");
+
+				assertNotNull("preemptive credentials must be sent on the first request", lastHeaders.get("authorization"));
+				assertEquals("the file must still be sent", "the file content", single(parts(), "file").content());
+
+				tx.success();
+			}
+		});
+	}
+
+	@Test
+	public void testMultiPartFollowsRedirectsOnlyWhenAsked() {
+
+		HttpServer server = null;
+
+		try {
+
+			server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+
+			server.createContext("/old", exchange -> {
+
+				exchange.getResponseHeaders().add("Location", "/new");
+				exchange.sendResponseHeaders(302, -1);
+				exchange.close();
+			});
+
+			server.createContext("/new", exchange -> {
+
+				exchange.sendResponseHeaders(200, -1);
+				exchange.close();
+			});
+
+			server.start();
+
+			final ActionContext ctx = new ActionContext(securityContext);
+			final String url        = "'http://localhost:" + server.getAddress().getPort() + "/old'";
+
+			assertEquals("a redirect must not be followed by default", true, evaluate(ctx, "${{ $.POSTMultiPart(" + url + ", { a: 'b' }).status === 302; }}"));
+			assertEquals("a redirect must be followed with { redirects: true }", true, evaluate(ctx, "${{ $.POSTMultiPart(" + url + ", { a: 'b' }, { redirects: true }).status === 200; }}"));
+
+		} catch (Exception e) {
+
+			e.printStackTrace();
+			fail("Unexpected exception: " + e.getMessage());
+
+		} finally {
+
+			if (server != null) {
+
+				server.stop(0);
+			}
+		}
+	}
+
 	// ----- private methods -----
+	/** One part of the last multipart request the server received. */
+	private record Part(String name, String fileName, String contentType, String content) {}
+
+	private List<Part> parts() {
+
+		assertNotNull("The server did not receive a request", lastBody);
+
+		final Matcher boundaryMatcher = Pattern.compile("boundary=\"?([^\";]+)").matcher(String.valueOf(lastHeaders.get("content-type")));
+
+		assertTrue("The request has no multipart boundary: " + lastHeaders.get("content-type"), boundaryMatcher.find());
+
+		final List<Part> parts = new ArrayList<>();
+
+		for (final String section : lastBody.split(Pattern.quote("--" + boundaryMatcher.group(1)))) {
+
+			// the preamble before the first boundary and the "--" after the last one have no headers
+			final int headerEnd = section.indexOf("\r\n\r\n");
+			if (headerEnd < 0) {
+
+				continue;
+			}
+
+			final String headers = section.substring(0, headerEnd);
+			String content       = section.substring(headerEnd + 4);
+
+			if (content.endsWith("\r\n")) {
+
+				content = content.substring(0, content.length() - 2);
+			}
+
+			parts.add(new Part(
+				find(headers, "(?<![a-z])name=\"([^\"]*)\""),
+				find(headers, "filename=\"([^\"]*)\""),
+				find(headers, "(?im)^Content-Type:\\s*([^;\\r\\n]+)"),
+				content
+			));
+		}
+
+		return parts;
+	}
+
+	private Part single(final List<Part> parts, final String name) {
+
+		final List<Part> matching = parts.stream().filter(p -> name.equals(p.name())).toList();
+
+		assertEquals("Expected exactly one part named " + name + " in " + parts, 1, matching.size());
+
+		return matching.get(0);
+	}
+
+	private List<String> contents(final List<Part> parts, final String name) {
+
+		return parts.stream().filter(p -> name.equals(p.name())).map(Part::content).toList();
+	}
+
+	private String find(final String source, final String regex) {
+
+		final Matcher matcher = Pattern.compile(regex).matcher(source);
+
+		return matcher.find() ? matcher.group(1).trim() : null;
+	}
+
+	/** Creates a text file, in the given folder if one is given. */
+	private void createFile(final String name, final String content, final String folderPath) {
+
+		createFile(name, content, folderPath, "text/plain");
+	}
+
+	private void createFile(final String name, final String content, final String folderPath, final String contentType) {
+
+		try (final Tx tx = app.tx()) {
+
+			final Folder folder = folderPath != null ? FileHelper.createFolderPath(securityContext, folderPath).as(Folder.class) : null;
+
+			FileHelper.createFile(securityContext, new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)), contentType, StructrTraits.FILE, name, folder);
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unable to create " + name + ": " + ex.getMessage());
+		}
+	}
+
 	private Object evaluate(final ActionContext ctx, final String script) {
 
 		try {
