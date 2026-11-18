@@ -139,7 +139,7 @@ The `/structr/health` endpoint returns detailed status information in the `appli
 - Cache statistics (nodes, relationships)
 - Response time statistics for HTML pages and REST endpoints
 
-Access to the full health data is restricted by IP whitelist. Requests from non-whitelisted IPs receive only the HTTP status code.
+Access to the full health data is restricted by IP whitelist. Requests from non-whitelisted IPs receive only the HTTP status code. A request that carries the login of an admin user, as a session cookie or in the `X-User` and `X-Password` headers, gets the full data from any address. The same holds for the metrics and the query histogram endpoints.
 
 ### Configuration
 

@@ -82,6 +82,46 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 	}
 
 	// ----- protected methods -----
+	/**
+	 * Whether the request is an admin user's, by its session or by credentials it carries. The monitoring endpoints
+	 * admit such a request besides the addresses on their whitelist. A request that cannot be examined is not one.
+	 */
+	protected boolean isAdminRequest(final HttpServletRequest request, final HttpServletResponse response) {
+
+		try {
+
+			return isAdmin(authenticate(getConfig().getAuthenticator(), request, response));
+
+		} catch (Throwable t) {
+
+			return false;
+		}
+	}
+
+	/**
+	 * Whether the security context of an examined request is an admin user's.
+	 */
+	protected boolean isAdmin(final SecurityContext securityContext) {
+
+		if (securityContext == null) {
+
+			return false;
+		}
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final boolean admin = securityContext.isSuperUser();
+
+			tx.success();
+
+			return admin;
+
+		} catch (Throwable t) {
+
+			return false;
+		}
+	}
+
 	protected void commitResponse(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final RestMethodResult result, final String view, final boolean wrapSingleResultInArray) {
 
 		final String serializeNullsSrc    = request.getParameter(RequestParameters.SerializeNulls.getName());

@@ -26,6 +26,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
@@ -62,14 +63,15 @@ public class HealthCheckServlet extends AbstractDataServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		final List<String> notes = new LinkedList<>();
-		boolean error             = false;
+		final List<String> notes        = new LinkedList<>();
+		SecurityContext securityContext = null;
+		boolean error                   = false;
 
 		// isolate request authentication in a transaction
 		try {
 
 			// Ensure CORS settings apply by letting the authenticator examine the request.
-			authenticate(getConfig().getAuthenticator(), request, response);
+			securityContext = authenticate(getConfig().getAuthenticator(), request, response);
 
 		} catch (FrameworkException ex) {
 
@@ -98,7 +100,9 @@ public class HealthCheckServlet extends AbstractDataServlet {
 			return;
 		}
 
-		if (!RemoteAddressWhitelist.isWhitelisted(request, getWhitelistAddresses(), "the health check endpoint")) {
+		final boolean admin = isAdmin(securityContext);
+
+		if (!admin && !RemoteAddressWhitelist.isWhitelisted(request, getWhitelistAddresses(), "the health check endpoint")) {
 
 			if (!Services.getInstance().isInitialized()) {
 
@@ -243,7 +247,8 @@ public class HealthCheckServlet extends AbstractDataServlet {
 			}
 
 			response.setStatus(statusCode);
-			response.setHeader("Cache-Control", "max-age=60");
+			// a report served for a login may pass a shared cache, which must not keep it for others
+			response.setHeader("Cache-Control", admin ? "no-store" : "max-age=60");
 
 			writer.append("\n");
 			writer.flush();

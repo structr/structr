@@ -52,7 +52,15 @@ public class MetricsServlet extends AbstractDataServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		if (RemoteAddressWhitelist.isWhitelisted(request, getWhitelistAddresses(), "the metrics endpoint")) {
+		final boolean admin = isAdminRequest(request, response);
+
+		if (admin || RemoteAddressWhitelist.isWhitelisted(request, getWhitelistAddresses(), "the metrics endpoint")) {
+
+			if (admin) {
+
+				// metrics served for a login may pass a shared cache, which must not keep them for others
+				response.setHeader("Cache-Control", "no-store");
+			}
 
 			servlet.service(request, response);
 

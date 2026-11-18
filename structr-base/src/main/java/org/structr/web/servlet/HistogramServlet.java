@@ -46,7 +46,9 @@ public class HistogramServlet extends HealthCheckServlet {
 		response.setCharacterEncoding("UTF-8");
 		response.setContentType("application/json; charset=utf-8");
 
-		if (!RemoteAddressWhitelist.isWhitelisted(request, getWhitelistAddresses(), "the histogram endpoint")) {
+		final boolean admin = isAdminRequest(request, response);
+
+		if (!admin && !RemoteAddressWhitelist.isWhitelisted(request, getWhitelistAddresses(), "the histogram endpoint")) {
 
 			response.sendError(HttpServletResponse.SC_FORBIDDEN);
 
@@ -61,7 +63,8 @@ public class HistogramServlet extends HealthCheckServlet {
 			gson.toJson(QueryHistogram.analyze(stringOrDefault(sortKey, "total"), intOrDefault(top, 1000)), writer);
 
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.setHeader("Cache-Control", "max-age=60");
+			// a report served for a login may pass a shared cache, which must not keep it for others
+			response.setHeader("Cache-Control", admin ? "no-store" : "max-age=60");
 
 			writer.append("\n");
 			writer.flush();
