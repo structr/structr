@@ -24,21 +24,24 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 
+import java.io.InputStream;
+
 /**
  * The request body of an outbound HTTP call, which may be text or binary.
  *
  * A File is sent as its content rather than as its string representation, so an upload does not have to
- * go through base64 or a multipart envelope. Anything else keeps the previous behaviour of being sent as
- * text, so no existing call changes meaning.
+ * go through base64 or a multipart envelope. The same goes for a stream, e.g. the body of a response read
+ * with binaryResponse, so a download can be forwarded without buffering it. Anything else keeps the
+ * previous behaviour of being sent as text, so no existing call changes meaning.
  */
 public class HttpBody {
 
 	/**
-	 * The value to hand to HttpHelper: a stream for a File, the bytes for a byte[], text otherwise.
+	 * The value to hand to HttpHelper: a stream for a File or a stream, the bytes for a byte[], text otherwise.
 	 *
-	 * Note that a File becomes a NON-REPEATABLE stream. HttpClient sends basic credentials only after a
-	 * 401 challenge, and it cannot replay a stream to answer one, so a File body with username/password
-	 * needs `preemptive: true`. The same applies to following a redirect.
+	 * Note that a File or a stream is sent as a NON-REPEATABLE stream. HttpClient sends basic credentials
+	 * only after a 401 challenge, and it cannot replay a stream to answer one, so such a body with
+	 * username/password needs `preemptive: true`. The same applies to following a redirect.
 	 */
 	public static Object of(final Object source) {
 
@@ -48,6 +51,13 @@ public class HttpBody {
 		}
 
 		if (source instanceof byte[]) {
+
+			return source;
+		}
+
+		// Without this a stream would be sent as its toString(), e.g. "HttpHelper$1@7f77e065", which is
+		// what forwarding the body of a binaryResponse download used to upload.
+		if (source instanceof InputStream) {
 
 			return source;
 		}
@@ -63,7 +73,7 @@ public class HttpBody {
 	/** Whether this body cannot be sent twice, so a 401 challenge or a redirect would lose it. */
 	public static boolean isStream(final Object body) {
 
-		return body instanceof java.io.InputStream;
+		return body instanceof InputStream;
 	}
 
 	/**
@@ -80,7 +90,7 @@ public class HttpBody {
 
 		if (isStream(body) && options.getString(HttpOptions.USERNAME) != null && !options.getBoolean(HttpOptions.PREEMPTIVE, false)) {
 
-			throw new ArgumentTypeException(functionName + "(): a File body cannot be sent with username/password unless "
+			throw new ArgumentTypeException(functionName + "(): a File or stream body cannot be sent with username/password unless "
 				+ "{ preemptive: true } is set. The credentials are otherwise sent only after a 401, which requires "
 				+ "sending the body a second time, and a stream cannot be read twice.");
 		}

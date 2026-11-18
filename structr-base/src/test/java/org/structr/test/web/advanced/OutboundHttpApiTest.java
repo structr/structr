@@ -113,6 +113,7 @@ public class OutboundHttpApiTest extends StructrTest {
 			final ActionContext ctx = new ActionContext(securityContext);
 
 			createFileWithContent("upload.bin", "the actual bytes");
+			createFileWithContent("upload-put.bin", "the bytes for PUT");
 
 			// a transaction, because the script reads a node: the other tests here never touch the graph
 			try (final Tx tx = app.tx()) {
@@ -124,9 +125,11 @@ public class OutboundHttpApiTest extends StructrTest {
 				assertEquals("POST must send the file's content as the request body", "the actual bytes", lastBody);
 				assertEquals("POST must send the content type it was given", "application/octet-stream", mimeOf(lastHeaders.get("content-type")));
 
-				evaluate(ctx, "${PUT('http://localhost:" + port + "/', first(find('File', 'name', 'upload.bin')), 'application/octet-stream')}");
+				// a different file, so that a PUT which sends nothing cannot pass on the body left over from POST
+				evaluate(ctx, "${PUT('http://localhost:" + port + "/', first(find('File', 'name', 'upload-put.bin')), 'application/octet-stream')}");
 
-				assertEquals("PUT must send the file's content as the request body", "the actual bytes", lastBody);
+				assertEquals("PUT", lastMethod);
+				assertEquals("PUT must send the file's content as the request body", "the bytes for PUT", lastBody);
 
 				tx.success();
 
@@ -134,6 +137,63 @@ public class OutboundHttpApiTest extends StructrTest {
 
 				fail("Unexpected exception: " + fex.getMessage());
 			}
+		});
+	}
+
+	@Test
+	public void testAFileIsSentAsItsContentByEveryOtherVerbWithABody() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// one file per verb, so that a call which sends nothing cannot pass on the body of the call before
+			createFileWithContent("upload-patch.bin",  "the bytes for PATCH");
+			createFileWithContent("upload-fetch.bin",  "the bytes for FETCH");
+			createFileWithContent("upload-delete.bin", "the bytes for DELETE");
+
+			try (final Tx tx = app.tx()) {
+
+				evaluate(ctx, "${PATCH('http://localhost:" + port + "/', first(find('File', 'name', 'upload-patch.bin')), 'application/octet-stream')}");
+
+				assertEquals("PATCH", lastMethod);
+				assertEquals("PATCH must send the file's content as the request body", "the bytes for PATCH", lastBody);
+
+				evaluate(ctx, "${FETCH('http://localhost:" + port + "/', 'PROPPATCH', first(find('File', 'name', 'upload-fetch.bin')), 'application/octet-stream')}");
+
+				assertEquals("PROPPATCH", lastMethod);
+				assertEquals("FETCH must send the file's content as the request body", "the bytes for FETCH", lastBody);
+
+				evaluate(ctx, "${DELETE('http://localhost:" + port + "/', first(find('File', 'name', 'upload-delete.bin')), 'application/octet-stream')}");
+
+				assertEquals("DELETE", lastMethod);
+				assertEquals("DELETE must send the file's content as the request body", "the bytes for DELETE", lastBody);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fail("Unexpected exception: " + fex.getMessage());
+			}
+		});
+	}
+
+	@Test
+	public void testABinaryResponseCanBeForwardedAsABody() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// Download with binaryResponse and upload the stream right away. The test server answers every
+			// request with the same JSON, so that is what the second request has to carry as its body.
+			evaluate(ctx, "${{"
+				+ "let download = $.GET('http://localhost:" + port + "/', 'application/octet-stream', { binaryResponse: true });"
+				+ "$.POST('http://localhost:" + port + "/', download.body, 'application/octet-stream');"
+				+ "}}");
+
+			assertEquals("POST", lastMethod);
+			assertEquals("a stream from binaryResponse must be sent as its content, not as its string form", "{ \"ok\": true }", lastBody);
 		});
 	}
 
@@ -205,6 +265,17 @@ public class OutboundHttpApiTest extends StructrTest {
 
 			// and the misplaced map must not also be sent as the content type
 			assertFalse("the options object must not become the content type", String.valueOf(lastHeaders.get("content-type")).contains("X-Marker"));
+
+			// FETCH without a body: the options follow the method directly, as the documentation shows
+			evaluate(ctx, "${FETCH('http://localhost:" + port + "/', 'MKCOL', { headers: { 'X-Marker': 'fetch-no-body' } })}");
+			assertEquals("MKCOL", lastMethod);
+			assertEquals("FETCH must find options that sit in the body slot", "fetch-no-body", lastHeaders.get("x-marker"));
+			assertEquals("the options object must not be sent as the body", "", lastBody);
+
+			// DELETE without a body: null for the body, then the options in the content type slot
+			evaluate(ctx, "${DELETE('http://localhost:" + port + "/', null, { headers: { 'X-Marker': 'delete' } })}");
+			assertEquals("DELETE", lastMethod);
+			assertEquals("DELETE must find options that sit in the content type slot", "delete", lastHeaders.get("x-marker"));
 		});
 	}
 

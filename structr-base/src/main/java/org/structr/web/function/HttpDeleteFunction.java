@@ -131,9 +131,25 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
-			Parameter.optional("body", "request body; HTTP allows one on DELETE and some APIs require it"),
+			Parameter.optional("body", "request body: a string, or a `File` or a stream (e.g. the body of a `binaryResponse`) whose content is sent. HTTP allows a body on DELETE and some APIs require it"),
 			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `async` to start the request on a worker thread and answer an awaitable result (JavaScript only), `parseResponse` to parse the response body as JSON")
+			Parameter.optional("options",
+				"""
+					object with optional settings\
+					\
+					<ul>\
+						<li> `username`: username for basic authentication</li>\
+						<li> `password`: password for basic authentication</li>\
+						<li> `preemptive`: sends the credentials with the first request instead of waiting for a 401 challenge. Required when the body is a `File` or a stream and credentials are given (default: `false`)</li>\
+						<li> `headers`: map of request headers. Merged with the headers set with `addHeader()`, the headers given here win on conflicts</li>\
+						<li> `timeout`: timeout in seconds (default: no timeout)</li>\
+						<li> `redirects`: indicates if redirects should be followed (default: `false`)</li>\
+						<li> `validateCertificates`: indicates if the server certificate should be validated (default: the setting of `validateCertificates()`, which is `true` unless changed)</li>\
+						<li> `async`: starts the request on a worker thread and returns an awaitable result instead of the response. JavaScript only (default: `false`)</li>\
+						<li> `parseResponse`: indicates if the response body should be parsed as JSON (default: `false`)</li>\
+					</ul>\
+					"""
+			)
 		);
 	}
 
@@ -156,6 +172,8 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 			status | HTTP status of the request | Integer |
 			headers | Response headers | Map |
 			body | Response body | Map or String |
+
+			`contentType` can be left out entirely, so the options object can follow right after the body, e.g. `DELETE(url, body, { timeout: 10 })`. Without a body, pass `null` for it: `DELETE(url, null, { username: 'user', password: 'pass' })`. An object right after the url is refused, because that is where the options were before 7.0. For the same reason, a JSON body must be passed as a string, e.g. `JSON.stringify(data)`.
 			""";
 	}
 
@@ -170,7 +188,7 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 		return List.of(
 			"7.0+: In JavaScript, the `async` option starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. The result is awaitable, not a full promise: use `Promise.resolve($.DELETE(url, { async: true })).catch(...)` to chain. `Promise.race()` answers as soon as its winner arrives, and the calls it beat are discarded. StructrScript has no way to await a result, so it rejects the option rather than calling `DELETE()` synchronously without saying so.",
-			"The `DELETE()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
+			"The `DELETE()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. To access protected resources, use the `username` and `password` options for HTTP Basic Auth, or the `headers` option or `addHeader()` for header-based authentication, e.g. a bearer token.",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
 		);
 	}

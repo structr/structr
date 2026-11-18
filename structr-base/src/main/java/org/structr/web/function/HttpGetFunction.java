@@ -200,7 +200,25 @@ public class HttpGetFunction extends UiAdvancedFunction {
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.optional("contentType", "content type of the request; `text/html` parses the response with jsoup, see the `selector` option"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `async` to start the request on a worker thread and answer an awaitable result (JavaScript only), `parseResponse` to parse the response body as JSON, `selector` for a CSS selector applied to a `text/html` response, and `binaryResponse` to return the response body as a byte array")
+			Parameter.optional("options",
+				"""
+					object with optional settings\
+					\
+					<ul>\
+						<li> `username`: username for basic authentication</li>\
+						<li> `password`: password for basic authentication</li>\
+						<li> `preemptive`: sends the credentials with the first request instead of waiting for a 401 challenge (default: `false`)</li>\
+						<li> `headers`: map of request headers. Merged with the headers set with `addHeader()`, the headers given here win on conflicts</li>\
+						<li> `timeout`: timeout in seconds (default: no timeout)</li>\
+						<li> `redirects`: indicates if redirects should be followed (default: `false`)</li>\
+						<li> `validateCertificates`: indicates if the server certificate should be validated (default: the setting of `validateCertificates()`, which is `true` unless changed)</li>\
+						<li> `async`: starts the request on a worker thread and returns an awaitable result instead of the response. JavaScript only (default: `false`)</li>\
+						<li> `parseResponse`: indicates if the response body should be parsed as JSON (default: `false`)</li>\
+						<li> `selector`: CSS selector applied to the response body. Only used if `contentType` is `text/html`, several matches are returned as a list of HTML strings</li>\
+						<li> `binaryResponse`: returns the response body as a stream instead of a string (default: `false`)</li>\
+					</ul>\
+					"""
+			)
 		);
 	}
 
@@ -225,6 +243,8 @@ public class HttpGetFunction extends UiAdvancedFunction {
 			| status | HTTP status of the request | Integer |
 			| headers | Response headers | Map |
 			| body | Response body | String, InputStream or Map |
+
+			`contentType` can be left out entirely, so the options object can follow right after the url, e.g. `GET(url, { timeout: 10 })`. There is no need to pass `null` for it.
 			""";
 	}
 
@@ -274,8 +294,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 			"7.0+: In JavaScript, the `async` option starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. The result is awaitable, not a full promise: use `Promise.resolve($.GET(url, { async: true })).catch(...)` to chain. `Promise.race()` answers as soon as its winner arrives, and the calls it beat are discarded. StructrScript has no way to await a result, so it rejects the option rather than calling `GET()` synchronously without saying so.",
 			"GET() returns binary content when the `binaryResponse` option is set. Up to 6.x a `contentType` of `application/octet-stream` did this on its own; from 7.0 the content type only describes the data, and the option decides the shape of the response.",
 			"7.0+: `contentType` is the content type of the REQUEST, sent as the `Content-Type` header. Its charset is used to interpret the response, unless the server provides one of its own.",
-			"The `username` and `password` options are intended for HTTP Basic Auth. For header authentication use the `headers` option or `addHeader()`.",
-			"The `GET()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
+			"The `GET()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. To access protected resources, use the `username` and `password` options for HTTP Basic Auth, or the `headers` option or `addHeader()` for header-based authentication, e.g. a bearer token.",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
 			"With `binaryResponse` the body is a streaming `InputStream` rather than a `byte[]`, which removes the 2 GB limit and avoids buffering the whole response in memory. The stream is consumed when passed to `setContent()` and can not be read more than once."
 		);

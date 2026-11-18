@@ -285,7 +285,22 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.mandatory("partsMap", "map of part names to values: text, `File`, `Folder` or a list of these (see notes)"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, and `parseResponse` to parse the response body as JSON")
+			Parameter.optional("options",
+				"""
+					object with optional settings\
+					\
+					<ul>\
+						<li> `username`: username for basic authentication</li>\
+						<li> `password`: password for basic authentication</li>\
+						<li> `preemptive`: sends the credentials with the first request instead of waiting for a 401 challenge. Required when sending a `File` or `Folder` with credentials (default: `false`)</li>\
+						<li> `headers`: map of request headers. Merged with the headers set with `addHeader()`, the headers given here win on conflicts</li>\
+						<li> `timeout`: timeout in seconds (default: no timeout)</li>\
+						<li> `redirects`: indicates if redirects should be followed (default: `false`)</li>\
+						<li> `validateCertificates`: indicates if the server certificate should be validated (default: the setting of `validateCertificates()`, which is `true` unless changed)</li>\
+						<li> `parseResponse`: indicates if the response body should be parsed as JSON (default: `false`)</li>\
+					</ul>\
+					"""
+			)
 		);
 	}
 
@@ -309,7 +324,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 			headers | Response headers | Map |
 			body | Response body | Map or String |
 
-			The options object configures everything else, for example `{ timeout: 60, redirects: true }`. The timeout is given in seconds; by default there is no timeout and redirects are not followed. A multipart request builds its own Content-Type, including the boundary, so there is no contentType parameter.
+			The options object configures everything else, for example `{ timeout: 60, redirects: true }`. A multipart request builds its own Content-Type, including the boundary, so there is no contentType parameter.
 			""";
 	}
 
@@ -354,7 +369,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-			"The `POSTMultiPart()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
+			"The `POSTMultiPart()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. To access protected resources, use the `username` and `password` options for HTTP Basic Auth, or the `headers` option or `addHeader()` for header-based authentication, e.g. a bearer token.",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
 			"Each entry of `partsMap` is sent as a part whose name is the entry's key. The value decides the content: text (or any other value that is not a node) is sent as a text part. A `File` is sent as a file part with the file's content and content type, and with the file's name as the `filename` of the part - the part itself is still named after the key. A `Folder` is sent as one such file part for each file in it, and a list as one part for each element, so several parts share the key as their name. For example, `{ attachments: [a, b] }` with two files named `a.pdf` and `b.pdf` sends two parts named `attachments`, one with the `filename` `a.pdf` and one with `b.pdf`.",
 			"A node in `partsMap` that is neither a `File` nor a `Folder` is refused: the function throws an error in JavaScript, and in StructrScript it logs a warning and returns `null`. To send such a node, convert it explicitly, e.g. with `toJson()`.",
