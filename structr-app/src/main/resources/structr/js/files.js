@@ -2354,7 +2354,7 @@ let _Files = {
 				_Files.mountDialog.populate(dialogText, mount);
 			}
 
-			_Dialogs.custom.prependCustomDialogButton(`<button form="mount-dialog-form" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">${mount ? 'Save' : 'Mount'}</button>`);
+			_Dialogs.custom.prependCustomDialogButton(`<button form="mount-dialog-form" class="action focus:border-gray-666 active:border-green">${mount ? 'Save' : 'Mount'}</button>`);
 
 			if (mount) {
 

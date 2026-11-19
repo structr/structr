@@ -246,7 +246,7 @@ let _ContentExtraction = {
 				});
 			}
 
-			_Dialogs.custom.prependCustomDialogButton(`<button data-content-extraction-button form="content-extraction-form" class="action hover:bg-gray-100 focus:border-gray-666 active:border-green">${exists ? 'Save' : 'Create'}</button>`);
+			_Dialogs.custom.prependCustomDialogButton(`<button data-content-extraction-button form="content-extraction-form" class="action focus:border-gray-666 active:border-green">${exists ? 'Save' : 'Create'}</button>`);
 
 		} else {
 
