@@ -59,6 +59,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.IntSupplier;
 
@@ -217,8 +218,8 @@ public final class TikaParserSetup {
 	}
 
 	/**
-	 * Whether the tesseract executable exists: in the configured directory if there is one, otherwise on
-	 * the PATH, which is where Tika looks for it.
+	 * Whether the tesseract executable exists and can be started: in the configured directory if there is
+	 * one, otherwise on the PATH, which is where Tika looks for it.
 	 */
 	private static boolean isTesseractInstalled(final String tesseractPath) {
 
@@ -226,28 +227,77 @@ public final class TikaParserSetup {
 
 		if (!tesseractPath.isEmpty()) {
 
-			final boolean installed = Files.isExecutable(Path.of(tesseractPath, executable));
-			if (!installed) {
+			final Path candidate = Path.of(tesseractPath, executable);
+			if (!Files.isExecutable(candidate)) {
 
 				logger.warn("Content extraction: no {} executable in {} (setting {}), OCR is skipped", executable, tesseractPath, ContentExtractionSettings.TesseractPath.getKey());
+
+				return false;
 			}
 
-			return installed;
+			return canStart(candidate);
 		}
 
 		final String path = StringUtils.defaultString(System.getenv("PATH"));
 
 		for (final String directory : path.split(File.pathSeparator)) {
 
-			if (!directory.isBlank() && Files.isExecutable(Path.of(directory, executable))) {
+			if (!directory.isBlank()) {
 
-				return true;
+				final Path candidate = Path.of(directory, executable);
+				if (Files.isExecutable(candidate)) {
+
+					return canStart(candidate);
+				}
 			}
 		}
 
 		logger.info("Content extraction: no {} executable on the PATH of this process; to use OCR, install Tesseract or set {} to its directory", executable, ContentExtractionSettings.TesseractPath.getKey());
 
 		return false;
+	}
+
+	/**
+	 * Whether the executable can be started at all. An executable that exists can still fail to start,
+	 * e.g. an x86_64 build on an arm64 machine without Rosetta ("Bad CPU type in executable"); Tika would
+	 * then log the failure with a stack trace while preloading the languages.
+	 */
+	private static boolean canStart(final Path executable) {
+
+		Process process = null;
+
+		try {
+
+			process = new ProcessBuilder(executable.toString(), "--version").redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
+
+			if (!process.waitFor(10, TimeUnit.SECONDS)) {
+
+				logger.warn("Content extraction: {} --version did not finish within 10 seconds, OCR is skipped", executable);
+
+				return false;
+			}
+
+			return true;
+
+		} catch (final IOException ex) {
+
+			logger.warn("Content extraction: unable to start {}, OCR is skipped: {}", executable, ex.getMessage());
+
+			return false;
+
+		} catch (final InterruptedException ex) {
+
+			Thread.currentThread().interrupt();
+
+			return false;
+
+		} finally {
+
+			if (process != null && process.isAlive()) {
+
+				process.destroyForcibly();
+			}
+		}
 	}
 
 	private static OcrInfo ocrInfo(final TesseractOCRParser parser) {
