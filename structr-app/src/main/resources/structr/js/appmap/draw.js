@@ -708,8 +708,9 @@ class AppMapRenderer {
 		const look = view.look;
 		const size = AppMapRenderer.GRID;
 
-		// in the new look the grid has the dots of the page and belongs to the map: it moves and widens with it
-		const page = _Theme.isNext();
+		// in the new look the grid has the dots of the page and belongs to the map: it moves and widens with it; a host
+		// without the theme of the Admin UI (the Companion loads the map without js/theme.js) has the grid of the map's look
+		const page = typeof _Theme !== 'undefined' && _Theme.isNext();
 		const t    = view.transform;
 		const dpr  = window.devicePixelRatio || 1;
 
@@ -723,7 +724,7 @@ class AppMapRenderer {
 
 			// the colour is read from the page once per look, not with every frame
 			if (this.dots?.look !== look) {
-				this.dots = { look, color: _Theme.color('color-border-secondary') };
+				this.dots = { look, color: page ? _Theme.color('color-border-secondary') : look.grid };
 			}
 
 			ctx.fillStyle = this.dots.color;
